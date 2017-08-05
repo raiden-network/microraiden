@@ -44,7 +44,11 @@ class Blockchain(object):
         # filter for events after block_number
         # which involve contract_address and address
 
-        # update ChannelManager
+        # if there are relevant events:
+        # call: ChannelManager.event_*
+
+        # update head hash and number
+        self.cm.set_head()
 
 
 class ChannelManagerState(object):
@@ -84,7 +88,9 @@ class ChannelManager(object):
         self.state.head_hash = _hash
         self._store_state()
 
-    def channel_opened(self, sender, deposit):
+    # relevant events from the blockchain for receiver from contract
+
+    def event_channel_opened(self, sender, deposit):
         assert sender not in self.state.channels  # shall we allow top-ups
         c = Channel(sender, deposit)
         self.state.channels[sender] = c
@@ -102,6 +108,8 @@ class ChannelManager(object):
     def event_channel_settled(self, sender):
         del self.state.channels[sender]
         self._store_state()
+
+    # end events ####
 
     def close_channel(self, sender):
         "receiver can always close the channel directly"
