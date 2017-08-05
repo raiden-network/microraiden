@@ -120,6 +120,20 @@ class ChannelManager(object):
     def get_token_balance(self):
         pass
 
+    def register_payment(self, msg):
+        """
+        registers a payment message
+        returns its value
+        """
+        sender, balance = parse_balance_proof_msg(msg)
+        c = self.state.channels[sender]
+        assert c.balance < balance
+        received = balance - c.balance
+        c.balance = balance
+        c.last_message = msg
+        c.mtime = time.time()
+        return (sender, received)
+
 
 class Channel(object):
 
@@ -146,15 +160,9 @@ class PublicAPI(object):
     def register_payment(self, msg):
         """
         registers a payment message
-        returns its value
+        returns its sender and value
         """
-        sender, balance = parse_balance_proof_msg(msg)
-        c = self._channel(sender)
-        assert c.balance < balance
-        received = balance - c.balance
-        c.balance = balance
-        c.last_message = msg
-        return (received, sender)
+        return self.register_payment(msg)
 
     def get_balance(self, sender_address):
         "returns balance of address (i.e. total payed in current channel)"
