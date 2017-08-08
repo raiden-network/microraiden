@@ -110,6 +110,41 @@
       "web3": {
         "$ref": "web3.TestRPC"
       }
+    },
+    "kovan": {
+      "chain": {
+        "class": "populus.chain.external.ExternalChain"
+      },
+      "contracts": {
+        "backends": {
+          "JSONFile": {
+            "$ref": "contracts.backends.JSONFile"
+          },
+          "Memory": {
+            "$ref": "contracts.backends.Memory"
+          },
+          "ProjectContracts": {
+            "$ref": "contracts.backends.ProjectContracts"
+          },
+          "TestContracts": {
+            "$ref": "contracts.backends.TestContracts"
+          }
+        }
+      },
+      "web3": {
+        "eth": {
+            "default_account": "0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb"
+        },
+        "provider": {
+            "class": "web3.providers.rpc.HTTPProvider",
+            "settings": {
+            "endpoint_uri": "http://127.0.0.1:8545",
+            "request_kwargs": {
+                "timeout": 180
+            }
+            }
+        }
+      }
     }
   },
   "compilation": {
@@ -180,7 +215,7 @@
       }
     }
   },
-  "version": "5",
+  "version": "3",
   "web3": {
     "GethIPC": {
       "provider": {

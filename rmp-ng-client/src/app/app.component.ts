@@ -28,7 +28,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.accounts = this.rmp.getAccounts();
+    this.rmp.getAccounts()
+      .subscribe((accounts) => this.accounts = accounts);
   }
 
   ngOnDestroy() {
