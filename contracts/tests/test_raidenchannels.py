@@ -6,6 +6,7 @@ from web3.utils.compat import (
 from ethereum import tester
 import sign
 
+
 @pytest.fixture
 def contract(chain, accounts):
     global token
@@ -24,6 +25,26 @@ def contract(chain, accounts):
 
     contract = RaidenMicroTransferChannels(address)
     return contract
+
+
+@pytest.fixture
+def channel(contract, accounts):
+    (A, B) = accounts(2)
+
+    token.transact({"from": A}).approve(contract.address, 100)
+    assert token.call().balanceOf(contract.address) == 0
+    contract.transact({"from": A}).createChannel(B, 100)
+    assert token.call().balanceOf(contract.address) == 100
+
+    save_logs(contract, 'ChannelCreated')
+    with Timeout(20) as timeout:
+        timeout.sleep(2)
+
+    log_args = logs['ChannelCreated'][0]['args']
+    open_block_number = log_args['open_block_number']
+
+    return (A, B, open_block_number)
+
 
 
 @pytest.fixture
@@ -86,6 +107,16 @@ def test_open_channel(contract, accounts):
     assert channel_data[1] == 100
     assert channel_data[2] == open_block_number
     assert channel_data[3] == 0
+
+
+def test_fund_channel(contract, channel):
+    (sender, receiver, open_block_number) = channel
+    print('test_fund_channel', sender, receiver, open_block_number)
+
+    contract.transact({'from': sender}).fundChannel(receiver, open_block_number, 10)
+
+    channel_data = contract.call().getChannel(sender, receiver, open_block_number)
+    assert channel_data[1] == 110
 
 
 def test_sign_message_and_settlement(contract, accounts, chain):

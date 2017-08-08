@@ -59,8 +59,8 @@ contract RaidenMicroTransferChannels {
 
     function fundChannel(
         address _receiver,
-        uint32 _deposit,
-        uint32 _open_block_number)
+        uint32 _open_block_number,
+        uint32 _deposit)
         external
     {
         require(_deposit != 0);
