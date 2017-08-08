@@ -1,0 +1,200 @@
+[
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_from",
+        "type": "address"
+      },
+      {
+        "name": "_to",
+        "type": "address"
+      },
+      {
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "name": "_value",
+        "type": "uint32"
+      }
+    ],
+    "name": "shaOfValue",
+    "outputs": [
+      {
+        "name": "data",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "bytes32"
+      }
+    ],
+    "name": "settle",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "bytes32"
+      },
+      {
+        "name": "_balance",
+        "type": "uint32"
+      },
+      {
+        "name": "_signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "close",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_receiver",
+        "type": "address"
+      },
+      {
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "name": "_deposit",
+        "type": "uint32"
+      },
+      {
+        "name": "_challengePeriod",
+        "type": "uint8"
+      }
+    ],
+    "name": "init",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_sender",
+        "type": "address"
+      },
+      {
+        "name": "_receiver",
+        "type": "address"
+      },
+      {
+        "name": "_token",
+        "type": "address"
+      }
+    ],
+    "name": "getChannel",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "",
+        "type": "int256"
+      },
+      {
+        "name": "",
+        "type": "int256"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "payable": false,
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "_sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_receiver",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_id",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ChannelCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "_sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_receiver",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_id",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ChannelCloseRequested",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "_sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_receiver",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_id",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ChannelSettled",
+    "type": "event"
+  }
+]
