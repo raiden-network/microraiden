@@ -88,7 +88,7 @@ class Blockchain(gevent.Greenlet):
         for log in response:
             assert not log.removed
 
-        # channel opened event
+        # channel closing requested event
         filter_ = construct_event_filter_params(channel_close_requested_event_abi,
                                                 **filter_kwargs)[1]
         filter_params = [formatters.input_filter_params_formatter(filter_)]
@@ -132,6 +132,7 @@ class ChannelManager(object):
 
     def __init__(self, blockchain, receiver, state_filename=None):
         self.blockchain = blockchain
+        self.blockchain.set_channel_manager(self)
         # load state if file exists
         if state_filename is not None and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
@@ -289,6 +290,5 @@ class PublicAPI(object):
 
 blockchain = Blockchain(web3, contract)
 channel_manager = ChannelManager(blockchain, receiver)
-blockchain.set_channel_manager(channel_manager)
 blockchain.start()
 gevent.joinall([blockchain])
