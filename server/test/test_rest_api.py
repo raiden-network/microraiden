@@ -1,18 +1,22 @@
-import pytest
+import pytest # noqa
 from server import (
-    ChannelManagerState,
-    ChannelManager,
     blockchain,
-    contract
 )
-from test.utils import ChannelManagerMock
+
 from server_flask import PaymentProxy
+import header
+
 
 def testme(init_contract_address, manager_state_path):
-    myaddr = "0x" + "9"*40
-    app = PaymentProxy(blockchain, ChannelManager(
-        myaddr, blockchain,
-        state_filename=manager_state_path))
+    app = PaymentProxy(blockchain)
+    tc = app.app.test_client()
 
-    app.run(debug=True)
-    app.app.get("/")
+    rv = tc.get("/expensive/something")
+#    import pudb; pudb.set_trace()
+    assert rv.status_code == 402
+
+    headers = {
+        header.BALANCE_SIGNATURE: "0x123456789="
+    }
+    rv = tc.get("/expensive/something", headers=headers)
+    assert rv.status_code == 200

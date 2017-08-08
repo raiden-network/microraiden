@@ -5,7 +5,6 @@ from flask_restful import (
 
 from server import (
     ChannelManager,
-    ChannelManagerState,
     Blockchain,
 )
 
@@ -16,6 +15,8 @@ from resources import (
     ChannelManagementRoot
 )
 
+from test.utils import BlockchainMock
+
 
 class PaymentProxy:
     config = {
@@ -24,18 +25,18 @@ class PaymentProxy:
     }
 
     def __init__(self, blockchain):
-        assert isinstance(blockchain, Blockchain)
+        assert isinstance(blockchain, Blockchain) or isinstance(blockchain, BlockchainMock)
         self.app = Flask(__name__)
         self.api = Api(self.app)
         self.channel_manager = ChannelManager(
-            self.config['receiver_address'], blockchain,
-            lambda *args: ChannelManagerState(self.config['contract_address'],
-                                              self.config['receiver_address']))
+            blockchain,
+            self.config['receiver_address'])
+
         self.api.add_resource(Expensive, '/expensive/<path:content>',
                               resource_class_kwargs={
                                   'price': 1,
                                   'contract_address': self.config['contract_address'],
-                                  'receiver': self.config['receiver_address'],
+                                  'receiver_address': self.config['receiver_address'],
                                   'channel_manager': self.channel_manager})
 
         self.api.add_resource(ChannelManagementAdmin, "/cm/admin")
@@ -47,6 +48,6 @@ class PaymentProxy:
 
 
 if __name__ == '__main__':
-    blockchain = Blockchain(web3, contract)
+    blockchain = BlockchainMock(None, None)
     app = PaymentProxy(blockchain)
     app.run(debug=True)

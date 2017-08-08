@@ -8,10 +8,9 @@ except ImportError:
 with open('requirements.txt') as requirements:
     reqs = requirements.read().split()
     config = {
-        'packages': ['rmp-server'],
+        'packages': [],
         'scripts': [],
         'name': 'rmp-server',
         'install_requires': reqs
     }
     setup(**config)
-
