@@ -164,7 +164,7 @@ class ChannelManager(object):
         # prepare and send close tx
         signature = generate_signature(c, private_key)
         data = contract._encode_transaction_data('close', [sender, c.open_block_number,
-                                                 c.balance, signature])
+                                                           c.balance, signature])
         tx = Transaction(**{
             'nonce': self.web3.eth.getTransactionCount(self.state.receiver),
             'value': 0,
@@ -182,7 +182,7 @@ class ChannelManager(object):
 
     def sign_close(self, sender):
         c = self.state.channels[sender]
-        c.is_closed = True
+        c.is_closed = True  # FIXME block number
         lm = c.last_message
         # return signed lm
         self.state.store()
@@ -212,8 +212,7 @@ class ChannelManager(object):
 
 class Channel(object):
 
-    def __init__(self, receiver, sender, deposit):
-        self.receiver = receiver
+    def __init__(self, sender, deposit):
         self.sender = sender  # sender address
         self.deposit = deposit
 
@@ -223,6 +222,7 @@ class Channel(object):
         # if set, this is the absolut block_number where it can be settled
         self.settle_timeout = -1
         self.mtime = time.time()
+        self.ctime = time.time()  # channel creation time
 
 
 class PublicAPI(object):
