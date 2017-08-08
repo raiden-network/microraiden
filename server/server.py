@@ -2,6 +2,7 @@
 
 """
 import json
+import pickle
 import time
 from web3 import Web3
 from web3.providers.rpc import HTTPProvider
@@ -97,31 +98,32 @@ class Blockchain(gevent.Greenlet):
 class ChannelManagerState(object):
     "Serializable Datastructure"
 
-    def __init__(self, contract_address, receiver):
+    def __init__(self, contract_address, receiver, filename):
         self.contract_address = contract_address
         self.receiver = receiver
         self.head_hash = None
         self.head_number = 0
         self.channels = dict()
+        self.filename = filename
 
     def store(self):
-        pass
+        pickle.dump(self, self.filename)
 
     @classmethod
-    def load(cls):
-        pass
+    def load(cls, filename):
+        return pickle.load(open(filename))
 
 
 class ChannelManager(object):
 
-    def __init__(self, receiver, blockchain, state_store_fn, init_contract_address=None):
+    def __init__(self, receiver, blockchain, state_filename=None, init_contract_address=None):
         self.receiver = receiver
         self.blockchain = blockchain
-        self.state_store_fn = state_store_fn
         if init_contract_address:
             self.state = ChannelManagerState(init_contract_address, receiver)
         else:
-            self.state = self.state.load(state_store_fn)
+            assert state_filename is not None
+            self.state = self.state.load(state_filename)
 
     def set_head(self, number, _hash):
         "should be called by blockchain after all events have been delivered, to trigger store"
