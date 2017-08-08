@@ -1,20 +1,34 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Observable } from "rxjs/Observable";
 
 import { RMPConfig } from './rmp.config';
 
+type CallbackFunc = (error: Error, result: any) => void;
+
 @Injectable()
 export class RMPService {
 
-  constructor(private config: RMPConfig) { }
+  constructor(private config: RMPConfig,
+              private zone: NgZone) { }
 
-  getAccounts() {
-    return this.config.rmp.getAccounts();
+  private zoneEncap(cb: CallbackFunc): CallbackFunc {
+    return (err, res) => this.zone.run(() => cb(err, res));
   }
 
+  getAccounts(): Observable<string[]> {
+    const nodeCbObs = <() => Observable<string[]>>Observable.bindNodeCallback(
+      (cb) => this.config.rmp.getAccounts(this.zoneEncap(cb)));
+    return nodeCbObs()
+      .switchMap((res) => res && res[0] ? Observable.of(res) : Observable.throw(res))
+      .retryWhen((err) => err.delay(200));
+  }
+
+
   signMessage(msg, account): Observable<string> {
-    const nb = <(m: string, a: string) => Observable<string>>Observable.bindNodeCallback(this.config.rmp.signMessage);
-    return nb(msg, account);
+    const nodeCbObs = Observable.bindNodeCallback(
+      (m: string, a: string, cb: CallbackFunc) =>
+        this.config.rmp.signMessage(m, a, cb));
+    return nodeCbObs(msg, account);
   }
 
 }
