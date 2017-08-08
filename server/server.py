@@ -9,7 +9,7 @@ def gen_balance_proof_msg(channel_id, amount):
 
 
 def parse_balance_proof_msg(msg):
-    pass
+    return (None, None)
 
 
 class Blockchain(object):
@@ -74,8 +74,9 @@ class ChannelManager(object):
         else:
             self._load_state(state_store_fn)
 
-    def _load_state(self):
+    def _load_state(self, state_fn):
         # init if not available
+        self.state = state_fn()
         assert self.state.address == self.address
 
     def _store_state(self):
