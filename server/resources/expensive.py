@@ -62,7 +62,7 @@ class Expensive(Resource):
         try:
             data = RequestData(request.headers)
         except ValueError as e:
-            return 409, str(e)
+            return str(e), 409
 
         # mock
         if data.balance_signature:
