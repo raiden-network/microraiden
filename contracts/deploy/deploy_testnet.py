@@ -26,7 +26,8 @@ def wait(transfer_filter):
 
 def main():
     project = Project()
-    chain_name = "testrpc"
+    # chain_name = "testrpc"
+    chain_name = "kovan"
     print("Make sure {} chain is running, you can connect to it, or you'll get timeout".format(chain_name))
 
     with project.get_chain(chain_name) as chain:
@@ -35,15 +36,15 @@ def main():
 
         token = chain.provider.get_contract_factory("RDNToken")
         txhash = token.deploy(args=[1000, "RDNToken", 6, "RDN"])
-        receipt = check_succesful_tx(chain.web3, txhash)
+        receipt = check_succesful_tx(chain.web3, txhash, 250)
         token_addr = receipt["contractAddress"]
         print("RDNToken address is", token_addr)
 
-        channel_factory = chain.provider.get_contract_factory("RaidenPaymentChannel")
-        txhash = channel_factory.deploy()
-        receipt = check_succesful_tx(chain.web3, txhash)
+        channel_factory = chain.provider.get_contract_factory("RaidenMicroTransferChannels")
+        txhash = channel_factory.deploy(args=[token_addr, 100])
+        receipt = check_succesful_tx(chain.web3, txhash, 250)
         cf_address = receipt["contractAddress"]
-        print("RaidenPaymentChannel address is", cf_address)
+        print("RaidenMicroTransferChannels address is", cf_address)
 
         # approve 100 to contract
         token(token_addr).transact({"from": web3.eth.accounts[0]}).approve(cf_address, 90);
