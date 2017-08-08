@@ -35,7 +35,7 @@ class PaymentProxy:
                               resource_class_kwargs={
                                   'price': 1,
                                   'contract_address': self.config['contract_address'],
-                                  'receiver_address': self.config['receiver_address'],
+                                  'receiver': self.config['receiver_address'],
                                   'channel_manager': self.channel_manager})
 
         self.api.add_resource(ChannelManagementAdmin, "/cm/admin")
@@ -47,6 +47,6 @@ class PaymentProxy:
 
 
 if __name__ == '__main__':
-    blockchain = Blockchain(None)
+    blockchain = Blockchain(web3, contract)
     app = PaymentProxy(blockchain)
     app.run(debug=True)
