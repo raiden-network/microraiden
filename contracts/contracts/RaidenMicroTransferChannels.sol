@@ -3,6 +3,8 @@ pragma solidity ^0.4.11;
 import "./RDNToken/Token.sol";
 import "./lib/ECVerify.sol";
 
+// TODO There is only one channel sender > receiver with a contract at a time
+
 contract RaidenMicroTransferChannels {
 
     address token;
@@ -74,36 +76,63 @@ contract RaidenMicroTransferChannels {
         channels[key].deposit += _deposit;
     }
 
+    // Call closeChannel and settle if called by receiver
+    // Otherwise start challenge_period
     function close(
-        address counterparty,
+        address _receiver,
         uint32 _open_block_number,
         uint32 _balance,
         bytes _balance_msg_sig)
         external
     {
-        address sender;
-        address receiver;
-        bytes32 key = sha3(sender, receiver, _open_block_number);
+        if(msg.sender == _receiver) {
+            return closeChannel(_receiver, _open_block_number, _balance, _balance_msg_sig);
+        }
+
+        // create message which should be signed by sender
+        bytes32 message = balanceProofHash(_receiver, _open_block_number, _balance);
+        // derive address from signature
+        address sender = ECVerify.ecverify(message, _balance_msg_sig);
+
+        bytes32 key = sha3(sender, _receiver, _open_block_number);
         Channel channel = channels[key];
 
-        if(channel.open_block_number > 0 && channel.open_block_number != _open_block_number) {
-            sender = counterparty;
-            receiver = msg.sender;
-            key = sha3(sender, receiver, _open_block_number);
-            channel = channels[key];
-        }
-        closeChannel(sender, receiver, _open_block_number, _balance, _balance_msg_sig);
+
+        // Mark channel as closed
+        closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
+        ChannelCloseRequested(sender, _receiver, _open_block_number);
+    }
+
+    // Called by the sender with a balance proof signed by the receiver
+    // Call closeChannel and settle
+    function close(
+        address _receiver,
+        uint32 _open_block_number,
+        uint32 _balance,
+        bytes _balance_msg_sig,
+        bytes _closing_sig)
+        external
+    {
+        // derive address from signature
+        address receiver = ECVerify.ecverify(_balance_msg_sig, _closing_sig);
+        require(receiver == _receiver);
+
+        closeChannel(receiver, _open_block_number, _balance, _balance_msg_sig);
     }
 
     function closeChannel(
-        address _sender,
         address _receiver,
         uint32 _open_block_number,
         uint32 _balance,
         bytes _balance_msg_sig)
         private
     {
-        bytes32 key = sha3(_sender, _receiver, _open_block_number);
+        // create message which should be signed by sender
+        bytes32 message = balanceProofHash(_receiver, _open_block_number, _balance);
+        // derive address from signature
+        address sender = ECVerify.ecverify(message, _balance_msg_sig);
+
+        bytes32 key = sha3(sender, _receiver, _open_block_number);
         Channel channel = channels[key];
 
         // TODO delete this if we don't include open_block_number in the Channel struct
@@ -112,41 +141,17 @@ contract RaidenMicroTransferChannels {
         // was closed not called already?
         require(closing_requests[key].settle_block_number == 0);
 
-        // TODO
-        // If _balance_msg_sig is double signed by sender & receiver - close the channel
-        // If _balance_msg_sig only signed by the sender -> nothing (channel in challenge_period)
-        // If _balance_msg_sig only signed by the receiver -> nothing (channel in challenge_period) ??
-
-        // create message which should be signed by receiver
-        bytes32 message = balanceProofHash(_receiver, _open_block_number, _balance);
-        // derive address from signature
-        address signer = ECVerify.ecverify(message, _balance_msg_sig);
-
-        // require(signer == msg.sender);
-
-        // if receiver == ecrecover(balance_msg_sig, closing_sig):
-
-        // TODO throw if signatures not ok
-
-        // Mark channel as closed
-        closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
-        ChannelCloseRequested(_sender, _receiver, _open_block_number);
-
-        // if called by receiver call settle immediately
-        if (msg.sender == _receiver) {
-            settleChannel(_sender, _receiver, _open_block_number, _balance);
-        }
-
-        // TODO settle if double signed
+        settleChannel(sender, _receiver, _open_block_number, _balance);
     }
 
+    // Only called by receiver during the challenge_period
     function settle(
-        address _receiver,
+        address _sender,
         uint32 _open_block_number,
         uint32 _balance)
         public
     {
-        bytes32 key = sha3(msg.sender, _receiver, _open_block_number);
+        bytes32 key = sha3(_sender, msg.sender, _open_block_number);
         Channel memory channel = channels[key];
 
         require(channel.open_block_number != 0);
@@ -157,7 +162,7 @@ contract RaidenMicroTransferChannels {
 
         // Settle should only be called by the sender(client) after the challenge period
 	    require(block.number > closing_requests[key].settle_block_number);
-        settleChannel(msg.sender, _receiver, _open_block_number, _balance);
+        settleChannel(msg.sender, msg.sender, _open_block_number, _balance);
     }
 
     function settleChannel(
