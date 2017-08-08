@@ -5,18 +5,26 @@ import json
 import os
 import pickle
 import time
-from web3 import Web3
-from web3.providers.rpc import HTTPProvider
-from web3.utils.filters import construct_event_filter_params
 from ethereum.transactions import Transaction
+from ethereum.utils import decode_hex
 import gevent
 import rlp
+from web3 import Web3, formatters
+from web3.providers.rpc import HTTPProvider, RPCProvider
+from web3.utils.filters import construct_event_filter_params
 
 
-web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
+# web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
+web3 = Web3(RPCProvider())
 receiver = ''
-contract_address = ''
+contract_address = '0xDFC2F3Adb77Be607C8C13e68fd0Cf9242b4925f7'.lower()
 abi = json.loads("""[{"constant":true,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_token","type":"address"},{"name":"_value","type":"uint32"}],"name":"shaOfValue","outputs":[{"name":"data","type":"bytes32"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"bytes32"}],"name":"settle","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"bytes32"},{"name":"_balance","type":"uint32"},{"name":"_signature","type":"bytes"}],"name":"close","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_receiver","type":"address"},{"name":"_token","type":"address"},{"name":"_deposit","type":"uint32"},{"name":"_challengePeriod","type":"uint8"}],"name":"init","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"_sender","type":"address"},{"name":"_receiver","type":"address"},{"name":"_token","type":"address"}],"name":"getChannel","outputs":[{"name":"","type":"bytes32"},{"name":"","type":"address"},{"name":"","type":"int256"},{"name":"","type":"int256"}],"payable":false,"type":"function"},{"inputs":[],"payable":false,"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelCloseRequested","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelSettled","type":"event"}]""")
+channel_created_event_abi = [i for i in abi if (i['type'] == 'event' and
+                                                i['name'] == 'ChannelCreated')][0]
+channel_close_requested_event_abi = [i for i in abi if (i['type'] == 'event' and
+                                                        i['name'] == 'ChannelCloseRequested')][0]
+channel_settled_event_abi = [i for i in abi if (i['type'] == 'event' and
+                                                i['name'] == 'ChannelSettled')][0]
 contract = web3.eth.contract(abi)
 private_key = 'secret'
 
@@ -49,7 +57,7 @@ class Blockchain(gevent.Greenlet):
     def set_channel_manager(self, channel_manager):
         self.cm = channel_manager
 
-    def _run(self, sync_from=0):
+    def _run(self):
         """
         coroutine
         which watches all events from contract_address, that involve self.address
@@ -63,31 +71,35 @@ class Blockchain(gevent.Greenlet):
     def _update(self):
         # check that history hasn't changed
         last_block = web3.eth.getBlock(self.cm.state.head_number)
-        assert last_block.hash == self.cm.state.head_hash
+        assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
 
         # filter for events after block_number
         # TODO: argument filters
         filter_kwargs = {
             'fromBlock': self.cm.state.head_number + 1,
             'toBlock': 'latest',
-            'address': self.cm.contract_address
+            'address': self.cm.state.contract_address
         }
 
         # channel opened event
-        filter_ = construct_event_filter_params(CHANNEL_OPENED_EVENT_ABI, **filter_kwargs)
-        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_)
+        filter_ = construct_event_filter_params(channel_created_event_abi, **filter_kwargs)[1]
+        filter_params = [formatters.input_filter_params_formatter(filter_)]
+        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
         for log in response:
             assert not log.removed
 
         # channel opened event
-        filter_ = construct_event_filter_params(CHANNEL_CLOSE_REQUESTED_EVENT_ABI, **filter_kwargs)
-        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_)
+        filter_ = construct_event_filter_params(channel_close_requested_event_abi,
+                                                **filter_kwargs)[1]
+        filter_params = [formatters.input_filter_params_formatter(filter_)]
+        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
         for log in response:
             assert False
 
         # channel settled event
-        filter_ = construct_event_filter_params(CHANNEL_SETTLED_EVENT_ABI, **filter_kwargs)
-        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_)
+        filter_ = construct_event_filter_params(channel_settled_event_abi, **filter_kwargs)[1]
+        filter_params = [formatters.input_filter_params_formatter(filter_)]
+        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
         for log in response:
             assert False
 
@@ -139,6 +151,7 @@ class ChannelManager(object):
         assert sender not in self.state.channels  # shall we allow top-ups
         c = Channel(self.state.receiver, sender, deposit)
         self.state.channels[sender] = c
+        self.state.store()
 
     def event_channel_close_requested(self, sender, balance, settle_timeout):
         "channel was closed by sender without consent"
@@ -161,17 +174,17 @@ class ChannelManager(object):
         "receiver can always close the channel directly"
         c = self.state.channels[sender]
 
-        # prepare and send close tx
+        # prepare and send closing tx
         signature = generate_signature(c, private_key)
-        data = contract._encode_transaction_data('close', [sender, c.open_block_number,
-                                                 c.balance, signature])
+        tx_params = [sender, c.open_block_number, c.balance, signature]
+        data = contract._encode_transaction_data('close', tx_params)['data']
         tx = Transaction(**{
             'nonce': self.web3.eth.getTransactionCount(self.state.receiver),
             'value': 0,
             'to': self.state.contract_address,
             'gasprice': 0,
             'startgas': 0,
-            'data': data
+            'data': decode_hex(data)
         })
         tx.sign(self.private_key)
         self.web3.eth.sendRawTransaction(web3.toHex(rlp.encode(tx)))
@@ -275,4 +288,7 @@ class PublicAPI(object):
 
 
 blockchain = Blockchain(web3, contract)
-channel_maager = ChannelManager(blockchain, receiver)
+channel_manager = ChannelManager(blockchain, receiver)
+blockchain.set_channel_manager(channel_manager)
+blockchain.start()
+gevent.joinall([blockchain])
