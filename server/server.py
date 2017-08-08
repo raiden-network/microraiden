@@ -2,6 +2,7 @@
 
 """
 import json
+import os
 import pickle
 import time
 from web3 import Web3
@@ -13,7 +14,7 @@ import rlp
 
 
 web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
-address = ''
+receiver = ''
 contract_address = ''
 abi = json.loads("""[{"constant":true,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_token","type":"address"},{"name":"_value","type":"uint32"}],"name":"shaOfValue","outputs":[{"name":"data","type":"bytes32"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"bytes32"}],"name":"settle","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"bytes32"},{"name":"_balance","type":"uint32"},{"name":"_signature","type":"bytes"}],"name":"close","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_receiver","type":"address"},{"name":"_token","type":"address"},{"name":"_deposit","type":"uint32"},{"name":"_challengePeriod","type":"uint8"}],"name":"init","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"_sender","type":"address"},{"name":"_receiver","type":"address"},{"name":"_token","type":"address"}],"name":"getChannel","outputs":[{"name":"","type":"bytes32"},{"name":"","type":"address"},{"name":"","type":"int256"},{"name":"","type":"int256"}],"payable":false,"type":"function"},{"inputs":[],"payable":false,"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelCloseRequested","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelSettled","type":"event"}]""")
 contract = web3.eth.contract(abi)
@@ -98,7 +99,7 @@ class Blockchain(gevent.Greenlet):
 class ChannelManagerState(object):
     "Serializable Datastructure"
 
-    def __init__(self, contract_address, receiver, filename):
+    def __init__(self, contract_address, receiver, filename=None):
         self.contract_address = contract_address
         self.receiver = receiver
         self.head_hash = None
@@ -107,7 +108,8 @@ class ChannelManagerState(object):
         self.filename = filename
 
     def store(self):
-        pickle.dump(self, self.filename)
+        if self.filename:
+            pickle.dump(self, self.filename)
 
     @classmethod
     def load(cls, filename):
@@ -116,14 +118,14 @@ class ChannelManagerState(object):
 
 class ChannelManager(object):
 
-    def __init__(self, receiver, blockchain, state_filename=None, init_contract_address=None):
-        self.receiver = receiver
+    def __init__(self, blockchain, receiver, state_filename=None):
         self.blockchain = blockchain
-        if init_contract_address:
-            self.state = ChannelManagerState(init_contract_address, receiver)
+        # load state if file exists
+        if state_filename is not None and os.path.isfile(state_filename):
+            self.state = ChannelManagerState.load(state_filename)
+            assert receiver == self.state.receiver
         else:
-            assert state_filename is not None
-            self.state = self.state.load(state_filename)
+            self.state = ChannelManagerState(contract_address, receiver, state_filename)
 
     def set_head(self, number, _hash):
         "should be called by blockchain after all events have been delivered, to trigger store"
@@ -135,7 +137,7 @@ class ChannelManager(object):
 
     def event_channel_opened(self, sender, deposit):
         assert sender not in self.state.channels  # shall we allow top-ups
-        c = Channel(self.receiver, sender, deposit)
+        c = Channel(self.state.receiver, sender, deposit)
         self.state.channels[sender] = c
 
     def event_channel_close_requested(self, sender, balance, settle_timeout):
@@ -161,12 +163,12 @@ class ChannelManager(object):
 
         # prepare and send close tx
         signature = generate_signature(c, private_key)
-        data = contract._encode_transaction_data('close', sender, c.open_block_number,
-                                                  c.balance, signature)
+        data = contract._encode_transaction_data('close', [sender, c.open_block_number,
+                                                 c.balance, signature])
         tx = Transaction(**{
-            'nonce': self.web3.eth.getTransactionCount(self.receiver),
+            'nonce': self.web3.eth.getTransactionCount(self.state.receiver),
             'value': 0,
-            'to': self.contract_address,
+            'to': self.state.contract_address,
             'gasprice': 0,
             'startgas': 0,
             'data': data
@@ -273,4 +275,4 @@ class PublicAPI(object):
 
 
 blockchain = Blockchain(web3, contract)
-channel_maager = ChannelManager(receiver, blockchain)
+channel_maager = ChannelManager(blockchain, receiver)
