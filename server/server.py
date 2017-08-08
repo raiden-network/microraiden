@@ -24,7 +24,8 @@ def gen_balance_proof_msg(channel_id, amount):
 
 
 def parse_balance_proof_msg(msg):
-    return (None, None)
+    """Returns tuple (sender, balance)"""
+    return ("0x" + "5" * 40, 0)
 
 
 def generate_signature(channel, private_key):
