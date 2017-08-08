@@ -49,7 +49,7 @@ contract RaidenMicroTransferChannels {
         // store channel information
         channels[key] = Channel({deposit: _deposit, open_block_number: uint32(block.number)});
 
-        require(token.delegatecall(bytes4(sha3("approve(address,uint)")), msg.sender, _deposit));
+        require(token.delegatecall(bytes4(sha3("approve(address,uint256)")), msg.sender, _deposit));
 
         // transferFrom deposit from msg.sender to contract
         require(Token(token).transferFrom(msg.sender, address(this), _deposit));

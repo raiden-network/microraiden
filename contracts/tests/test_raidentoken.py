@@ -12,15 +12,21 @@ def contract(chain, accounts):
     (A, B, C) = accounts(3)
     RDNToken = chain.provider.get_contract_factory('RDNToken')
     deploy_txn_hash = RDNToken.deploy(args=[10000, "RDN", 2, "R"])
-    token = chain.wait.for_contract_address(deploy_txn_hash)
-    RaidenPaymentChannel = chain.provider.get_contract_factory('RaidenPaymentChannel')
-    deploy_txn_hash = RaidenPaymentChannel.deploy(args=[])
+    token_address = chain.wait.for_contract_address(deploy_txn_hash)
+    token = RDNToken(token_address)
+
+    RaidenMicroTransferChannels = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
+    deploy_txn_hash = RaidenMicroTransferChannels.deploy(args=[token_address, 100])
     address = chain.wait.for_contract_address(deploy_txn_hash)
-    RDNToken(token).transact({"from": A}).approve(address, 100)
-    assert RDNToken(token).call().balanceOf(address) == 0
-    contract = RaidenPaymentChannel(address)
-    contract.transact({"from": A}).init(B, token, 100, 10);
-    assert RDNToken(token).call().balanceOf(address) == 100
+
+    print('RaidenMicroTransferChannels contract address', address)
+
+    token.transact({"from": A}).approve(address, 100)
+    assert token.call().balanceOf(address) == 0
+
+    contract = RaidenMicroTransferChannels(address)
+    contract.transact({"from": A}).createChannel(B, 100)
+    assert token.call().balanceOf(address) == 100
     return contract
 
 
@@ -66,6 +72,6 @@ def test_sign_message_and_settlement(contract, accounts, chain):
     id  = contract.call().getChannel(A, B, token)
     assert id[1] == "0x0000000000000000000000000000000000000000"
     # check the balances of contract and sender (account A) and receiver (account B)
-    assert RDNToken(token).call().balanceOf(contract.address) == 0
-    assert RDNToken(token).call().balanceOf(A) == 9910
-    assert RDNToken(token).call().balanceOf(B) == 90
+    assert token.call().balanceOf(contract.address) == 0
+    assert token.call().balanceOf(A) == 9910
+    assert token.call().balanceOf(B) == 90
