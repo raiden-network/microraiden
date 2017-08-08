@@ -8,7 +8,7 @@ contract RaidenMicroTransferChannels {
     address token;
     uint8 challenge_period;
 
-    event ChannelCreated(address indexed _sender, address indexed _receiver, uint32 indexed open_block_number, uint32 _deposit);
+    event ChannelCreated(address indexed _sender, address indexed _receiver, uint32 indexed open_block_number, uint32 _deposit, bytes32 key);
     event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 open_block_number);
     event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 open_block_number);
 
@@ -39,7 +39,8 @@ contract RaidenMicroTransferChannels {
         external
     {
         // create id from sender, receiver and current block number
-        bytes32 key = sha3(msg.sender, _receiver, block.number);
+        uint32 open_block_number = uint32(block.number);
+        bytes32 key = sha3(msg.sender, _receiver, open_block_number);
 
         // require(channels[key] != Channel(0,0)); // Operator != not compatible with types struct
         require(channels[key].deposit == 0);
@@ -47,13 +48,13 @@ contract RaidenMicroTransferChannels {
         require(closing_requests[key].settle_block_number == 0);
 
         // store channel information
-        channels[key] = Channel({deposit: _deposit, open_block_number: uint32(block.number)});
+        channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
 
         require(token.delegatecall(bytes4(sha3("approve(address,uint256)")), msg.sender, _deposit));
 
         // transferFrom deposit from msg.sender to contract
         require(Token(token).transferFrom(msg.sender, address(this), _deposit));
-        ChannelCreated(msg.sender, _receiver, uint32(block.number), _deposit);
+        ChannelCreated(msg.sender, _receiver, open_block_number, _deposit, key);
     }
 
     function fundChannel(
@@ -184,10 +185,10 @@ contract RaidenMicroTransferChannels {
         uint32 _open_block_number)
         external
         constant
-        returns (bytes32, int, int)
+        returns (bytes32, uint, uint32, uint32)
     {
         bytes32 key = sha3(_sender, _receiver, _open_block_number);
-        return (key, channels[key].deposit, closing_requests[key].settle_block_number);
+        return (key, channels[key].deposit, channels[key].open_block_number, closing_requests[key].settle_block_number);
     }
 
     // Helper functions

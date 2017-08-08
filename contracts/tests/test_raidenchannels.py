@@ -8,7 +8,9 @@ import sign
 
 @pytest.fixture
 def contract(chain, accounts):
-    global token;
+    global token
+    global logs
+    logs = {}
     (A, B, C) = accounts(3)
     RDNToken = chain.provider.get_contract_factory('RDNToken')
     deploy_txn_hash = RDNToken.deploy(args=[10000, "RDN", 2, "R"])
@@ -18,15 +20,9 @@ def contract(chain, accounts):
     RaidenMicroTransferChannels = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
     deploy_txn_hash = RaidenMicroTransferChannels.deploy(args=[token_address, 100])
     address = chain.wait.for_contract_address(deploy_txn_hash)
-
     print('RaidenMicroTransferChannels contract address', address)
 
-    token.transact({"from": A}).approve(address, 100)
-    assert token.call().balanceOf(address) == 0
-
     contract = RaidenMicroTransferChannels(address)
-    contract.transact({"from": A}).createChannel(B, 100)
-    assert token.call().balanceOf(address) == 100
     return contract
 
 
@@ -35,6 +31,25 @@ def accounts(web3):
     def get(num):
         return [web3.eth.accounts[i] for i in range(num)]
     return get
+
+
+def save_logs(contract, event_name):
+    logs[event_name] = []
+
+    def add(log):
+        logs[event_name].append(log)
+
+    transfer_filter_past = contract.pastEvents(event_name)
+    past_events = transfer_filter_past.get()
+    for event in past_events:
+        add(event)
+
+    transfer_filter = contract.on(event_name)
+    # wait(transfer_filter)
+    events = transfer_filter.get()
+    for event in events:
+        add(event)
+    transfer_filter.watch(lambda x: add(x))
 
 
 def print_gas_used(web3, trxid, message):
@@ -49,9 +64,28 @@ def wait(transfer_filter):
 
 
 def test_open_channel(contract, accounts):
-    (A, B, C) = accounts(3)
-    id = contract.call().getChannel(A, B, token)
-    assert id[1] != "0x0000000000000000000000000000000000000000"
+    (A, B) = accounts(2)
+
+    token.transact({"from": A}).approve(contract.address, 100)
+    assert token.call().balanceOf(contract.address) == 0
+    contract.transact({"from": A}).createChannel(B, 100)
+    assert token.call().balanceOf(contract.address) == 100
+
+    save_logs(contract, 'ChannelCreated')
+    with Timeout(20) as timeout:
+        timeout.sleep(2)
+
+    print('--LOGS', logs)
+    log_args = logs['ChannelCreated'][0]['args']
+    open_block_number = log_args['open_block_number']
+
+    print('open_block_number', open_block_number)
+
+    channel_data = contract.call().getChannel(A, B, open_block_number)
+    print('--channel_data', channel_data)
+    assert channel_data[1] == 100
+    assert channel_data[2] == open_block_number
+    assert channel_data[3] == 0
 
 
 def test_sign_message_and_settlement(contract, accounts, chain):
