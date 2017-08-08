@@ -22,8 +22,8 @@ contract RaidenMicroTransferChannels {
     }
 
     struct ClosingRequest {
-        uint32 close_block_number;
-        uint closingBalance;
+        uint32 settle_block_number;
+        uint closing_balance;
     }
 
     function RaidenMicroTransferChannels(address _token, uint8 _challenge_period) {
@@ -44,7 +44,7 @@ contract RaidenMicroTransferChannels {
         // require(channels[key] != Channel(0,0)); // Operator != not compatible with types struct
         require(channels[key].deposit == 0);
         require(channels[key].open_block_number == 0);
-        require(closing_requests[key].close_block_number == 0);
+        require(closing_requests[key].settle_block_number == 0);
 
         // store channel information
         channels[key] = Channel({deposit: _deposit, open_block_number: uint32(block.number)});
@@ -68,7 +68,7 @@ contract RaidenMicroTransferChannels {
         bytes32 key = sha3(msg.sender, _receiver, _open_block_number);
 
         require(channels[key].deposit != 0);
-        require(closing_requests[key].close_block_number == 0);
+        require(closing_requests[key].settle_block_number == 0);
 
         channels[key].deposit += _deposit;
     }
@@ -91,10 +91,10 @@ contract RaidenMicroTransferChannels {
             key = sha3(sender, receiver, _open_block_number);
             channel = channels[key];
         }
-        privateClose(sender, receiver, _open_block_number, _balance, _balance_msg_sig);
+        closeChannel(sender, receiver, _open_block_number, _balance, _balance_msg_sig);
     }
 
-    function privateClose(
+    function closeChannel(
         address _sender,
         address _receiver,
         uint32 _open_block_number,
@@ -109,7 +109,7 @@ contract RaidenMicroTransferChannels {
         require(channel.open_block_number != 0);
 
         // was closed not called already?
-        require(closing_requests[key].close_block_number == 0);
+        require(closing_requests[key].settle_block_number == 0);
 
         // TODO
         // If _balance_msg_sig is double signed by sender & receiver - close the channel
@@ -121,21 +121,30 @@ contract RaidenMicroTransferChannels {
         // derive address from signature
         address signer = ECVerify.ecverify(message, _balance_msg_sig);
 
+        // require(signer == msg.sender);
+
+        // if receiver == ecrecover(balance_msg_sig, closing_sig):
+
         // TODO throw if signatures not ok
 
         // Mark channel as closed
-        closing_requests[key].close_block_number = uint32(block.number);
+        closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
         ChannelCloseRequested(_sender, _receiver, _open_block_number);
 
         // if called by receiver call settle immediately
         if (msg.sender == _receiver) {
-            settle(_sender, _open_block_number, _balance);
+            settleChannel(_sender, _receiver, _open_block_number, _balance);
         }
 
         // TODO settle if double signed
     }
 
-    function settle(address _receiver, uint32 _open_block_number, uint32 _balance) public {
+    function settle(
+        address _receiver,
+        uint32 _open_block_number,
+        uint32 _balance)
+        public
+    {
         bytes32 key = sha3(msg.sender, _receiver, _open_block_number);
         Channel memory channel = channels[key];
 
@@ -143,10 +152,10 @@ contract RaidenMicroTransferChannels {
         require(channel.open_block_number == _open_block_number);
 
         // Close should have been called
-        require(closing_requests[key].close_block_number != 0);
+        require(closing_requests[key].settle_block_number != 0);
 
         // Settle should only be called by the sender(client) after the challenge period
-	    require(block.number > closing_requests[key].close_block_number + challenge_period);
+	    require(block.number > closing_requests[key].settle_block_number);
         settleChannel(msg.sender, _receiver, _open_block_number, _balance);
     }
 
@@ -169,17 +178,23 @@ contract RaidenMicroTransferChannels {
         ChannelSettled(_sender, _receiver, _open_block_number);
     }
 
-    function getChannel(address _sender, address _receiver, uint32 _open_block_number)
+    function getChannel(
+        address _sender,
+        address _receiver,
+        uint32 _open_block_number)
         external
         constant
         returns (bytes32, int, int)
     {
         bytes32 key = sha3(_sender, _receiver, _open_block_number);
-        return (key, channels[key].deposit, closing_requests[key].close_block_number);
+        return (key, channels[key].deposit, closing_requests[key].settle_block_number);
     }
 
     // Helper functions
-    function balanceProofHash(address _receiver, uint32 _open_block_number, uint32 _balance)
+    function balanceProofHash(
+        address _receiver,
+        uint32 _open_block_number,
+        uint32 _balance)
         public
         constant
         returns (bytes32 data)

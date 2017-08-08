@@ -47,6 +47,7 @@ def main():
         print("RaidenMicroTransferChannels address is", cf_address)
 
         # approve 100 to contract
+        '''
         token(token_addr).transact({"from": web3.eth.accounts[0]}).approve(cf_address, 90);
 
         transfer_filter = channel_factory(cf_address).on('ChannelCreated')
@@ -57,6 +58,7 @@ def main():
         print(log_entries[0]['args']['_sender'])
         print(log_entries[0]['args']['_receiver'])
         print(log_entries[0]['args']['_id'])
+        '''
 
 if __name__ == "__main__":
     main()
