@@ -1,14 +1,14 @@
-from collections import namedtuple
-
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
-from ethereum.utils import privtoaddr, encode_hex, ecsign
+from ethereum.utils import privtoaddr, privtopub, encode_hex, decode_hex, sha3
 import json
 import os
 import requests
 
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.header import HTTPHeaders
+from coincurve import PrivateKey, PublicKey
+from coincurve.ecdsa import recover, deserialize_recoverable
 
 STATUS_OK = 200
 STATUS_PAYMENT_REQUIRED = 402
@@ -21,24 +21,17 @@ TOKEN_ABI_NAME = 'Token'
 HEADERS = HTTPHeaders.as_dict()
 
 
-class BalanceProof:
-    def __init__(self, balance, balance_sig):
-        self.balance = balance
-        self.balance_sig = balance_sig
-
-
 class ChannelInfo:
-    def __init__(self, sender, receiver, deposit, block, balance=0, balance_proof=BalanceProof(0, b'')):
+    def __init__(self, sender, receiver, deposit, block, balance=0, balance_sig=None):
         self.sender = sender
         self.receiver = receiver
         self.deposit = deposit
         self.block = block
         self.balance = balance
-        self.balance_proof = balance_proof
+        self.balance_sig = balance_sig
 
 
 class M2MClient(object):
-
     def __init__(
             self,
             api_endpoint,
@@ -100,12 +93,7 @@ class M2MClient(object):
             return []
         with open(channels_path) as channels_file:
             channels_raw = json.load(channels_file)
-            self.channels = []
-            for channel_raw in channels_raw:
-                balance_proof = BalanceProof(**channel_raw['balance_proof'])
-                channel_raw['balance_proof'] = balance_proof
-                channel = ChannelInfo(**channel_raw)
-                self.channels.append(channel)
+            self.channels = [ChannelInfo(**channel_raw) for channel_raw in channels_raw]
 
         print('Loaded {} open channels.'.format(len(self.channels)))
 
@@ -131,9 +119,9 @@ class M2MClient(object):
 
             price = int(headers[HEADERS['price']])
             print('Preparing payment of price {}.'.format(price))
-            balance_proof = self.perform_payment(headers[HEADERS['receiver_address']], price)
-            if balance_proof:
-                status, headers, body = self.perform_request(resource, balance_proof)
+            channel = self.perform_payment(headers[HEADERS['receiver_address']], price)
+            if channel:
+                status, headers, body = self.perform_request(resource, channel)
 
                 if status == STATUS_OK:
                     # TODO: use actual cost
@@ -170,15 +158,20 @@ class M2MClient(object):
             channel = self.open_channel(receiver, deposit)
 
         if channel:
-            return self.create_transfer(channel, value)
+            self.create_transfer(channel, value)
+            return channel
         else:
             return None
 
-    def perform_request(self, resource, balance_proof=None):
-        if balance_proof:
+    def perform_request(self, resource, channel=None):
+        if channel:
             headers = {
-                HEADERS['balance']: balance_proof[0],
-                HEADERS['balance_signature']: balance_proof[1]
+                HEADERS['contract_address']: self.channel_manager_address,
+                HEADERS['balance']: channel.balance,
+                HEADERS['balance_signature']: channel.balance_proof.balance_sig,
+                HEADERS['sender']: channel.sender,
+                HEADERS['receiver']: channel.receiver,
+                HEADERS['open_block']: channel.block
             }
         else:
             headers = None
@@ -220,7 +213,7 @@ class M2MClient(object):
         current_block = self.web3.eth.blockNumber
 
         tx = self.channel_manager_proxy.create_transaction(
-            'close', [channel.receiver, channel.block, channel.balance, channel.balance_proof.balance_signature]
+            'close', [channel.receiver, channel.block, channel.balance, channel.balance_proof.balance_sig]
         )
         if not self.dry_run:
             self.web3.eth.sendRawTransaction(tx)
@@ -238,10 +231,17 @@ class M2MClient(object):
     def create_transfer(self, channel, value):
         assert channel in self.channels
 
-        # TODO: create balance proof
-        msg, sig = '3', '4'
-        channel.balance_proof.balance = msg
-        channel.balance_proof.balance_signature = sig
-        # msg = (value, channel.receiver)
-        # sig = ecsign(msg, self.privkey)
-        return msg, sig
+        channel.balance += value
+
+        pk = PrivateKey.from_hex(self.privkey)
+        msg = self.channel_manager_proxy.contract.call().balanceMessageHash(
+            channel.receiver, channel.block, channel.balance
+        )
+        channel.balance_sig = pk.sign_recoverable(bytes(msg))
+
+        sender = self.channel_manager_proxy.contract.call().verifyBalanceProof(
+            channel.receiver, channel.block, channel.balance, channel.balance_sig
+        )
+        assert sender == channel.sender
+
+        return channel.balance_proof
