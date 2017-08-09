@@ -34,6 +34,7 @@ contract RaidenMicroTransferChannels {
      */
 
     event ChannelCreated(address indexed _sender, address indexed _receiver, uint32 _deposit);
+    event ChannelTopedUp (address _sender, address _receiver, uint32 _open_block_number, uint192 _added_depozit, uint192 _depozit);
     event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 _open_block_number, uint32 _balance);
     event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 _open_block_number);
 
@@ -86,8 +87,7 @@ contract RaidenMicroTransferChannels {
         address _receiver,
         uint32 _open_block_number,
         uint32 _balance,
-        bytes _balance_msg_sig
-        )
+        bytes _balance_msg_sig)
         public
         constant
         returns (address)
@@ -142,10 +142,10 @@ contract RaidenMicroTransferChannels {
     function topUp(
         address _receiver,
         uint32 _open_block_number,
-        uint32 _deposit)
+        uint32 _added_deposit)
         external
     {
-        require(_deposit != 0);
+        require(_added_deposit != 0);
         require(_open_block_number != 0);
 
         bytes32 key = getKey(msg.sender, _receiver, _open_block_number);
@@ -153,7 +153,8 @@ contract RaidenMicroTransferChannels {
         require(channels[key].deposit != 0);
         require(closing_requests[key].settle_block_number == 0);
 
-        channels[key].deposit += _deposit;
+        channels[key].deposit += _added_deposit;
+        ChannelTopedUp(msg.sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
     }
 
     // Close channel and settle if called by receiver with balance proof
@@ -168,11 +169,11 @@ contract RaidenMicroTransferChannels {
         address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
 
         if(msg.sender == _receiver) {
-            closeChannel(sender, _receiver, _open_block_number, _balance);
+            settleChannel(sender, _receiver, _open_block_number, _balance);
         }
         else {
             require(msg.sender == sender);
-            closeChannelChallengePeriod(_receiver, _open_block_number, _balance);
+            initChallengePeriod(_receiver, _open_block_number, _balance);
         }
     }
 
@@ -192,7 +193,7 @@ contract RaidenMicroTransferChannels {
 
         address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
         require(msg.sender == sender);
-        closeChannel(sender, receiver, _open_block_number, _balance);
+        settleChannel(sender, receiver, _open_block_number, _balance);
     }
 
     function getChannelInfo(
@@ -220,7 +221,7 @@ contract RaidenMicroTransferChannels {
         require(closing_requests[key].settle_block_number != 0);
 	    require(block.number > closing_requests[key].settle_block_number);
 
-        closeChannel(msg.sender, _receiver, _open_block_number, _balance);
+        settleChannel(msg.sender, _receiver, _open_block_number, _balance);
     }
 
     /*
@@ -229,7 +230,7 @@ contract RaidenMicroTransferChannels {
 
     // Only called by the sender
     // Sender can only trigger the challenge period only once
-    function closeChannelChallengePeriod(
+    function initChallengePeriod(
         address _receiver,
         uint32 _open_block_number,
         uint32 _balance)
@@ -244,7 +245,7 @@ contract RaidenMicroTransferChannels {
         ChannelCloseRequested(msg.sender, _receiver, _open_block_number, _balance);
     }
 
-    function closeChannel(
+    function settleChannel(
         address _sender,
         address _receiver,
         uint32 _open_block_number,

@@ -33,8 +33,8 @@ def contract(chain, accounts):
     token_address = chain.wait.for_contract_address(deploy_txn_hash)
     token = RDNToken(token_address)
 
-    print_logs(token, 'Approval', 'RDNToken')
-    print_logs(token, 'Transfer', 'RDNToken')
+    # print_logs(token, 'Approval', 'RDNToken')
+    # print_logs(token, 'Transfer', 'RDNToken')
 
     RaidenMicroTransferChannels = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
     deploy_txn_hash = RaidenMicroTransferChannels.deploy(args=[token_address, 5])
@@ -44,6 +44,7 @@ def contract(chain, accounts):
     contract = RaidenMicroTransferChannels(address)
 
     print_logs(contract, 'ChannelCreated', 'RaidenMicroTransferChannels')
+    print_logs(contract, 'ChannelTopedUp', 'RaidenMicroTransferChannels')
     print_logs(contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
     print_logs(contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
 
