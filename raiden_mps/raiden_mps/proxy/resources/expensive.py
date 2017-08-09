@@ -2,12 +2,12 @@ from flask import request
 from flask_restful import (
     Resource
 )
-from rmp.channel_manager import (
+from raiden_mps.channel_manager import (
     ChannelManager,
     parse_balance_proof_msg
 )
 
-import rmp.header as header
+from raiden_mps.header import HTTPHeaders as header
 
 
 class RequestData:

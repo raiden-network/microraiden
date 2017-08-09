@@ -7,8 +7,8 @@ import json
 import os
 import requests
 
-from micropayment.common.contract_proxy import ContractProxy
-from micropayment.common.http_header import HTTPHeaders
+from raiden_mps.contract_proxy import ContractProxy
+from raiden_mps.header import HTTPHeaders
 
 RESOURCE_BASE_PATH = '/expensive/'
 STATUS_OK = 400
@@ -36,7 +36,9 @@ class M2MClient(object):
         if channels:
             channel = channels[0]
         else:
-            channel = self.open_channel(receiver, CHANNEL_SIZE_FACTOR * value)
+            deposit = CHANNEL_SIZE_FACTOR * value
+            print('Creating new channel with deposit {} for receiver {}.')
+            channel = self.open_channel(receiver, deposit)
 
         return self.create_transfer(channel, value)
 
@@ -52,21 +54,23 @@ class M2MClient(object):
     def request_resource(self, resource):
         status, headers, body = self.perform_request(resource)
         if status == STATUS_PAYMENT_REQUIRED:
-            if headers[HEADERS['CONTRACT']] != self.channel_manager_address:
-                print('Invalid channel manager address requested. Aborting.')
+            channel_manager_address = headers[HEADERS['contract_address']]
+            if channel_manager_address != self.channel_manager_address:
+                print('Invalid channel manager address requested ({}). Aborting.'.format(channel_manager_address))
                 return None
 
-            print('Preparing payment. Price: {}', headers[HEADERS['PRICE']])
-            balance_proof = self.perform_payment(headers[HEADERS['RECEIVER']], headers[HEADERS['PRICE']])
+            price = int(headers[HEADERS['price']])
+            print('Preparing of price {}'.format(price))
+            balance_proof = self.perform_payment(headers[HEADERS['receiver_address']], price)
             status, headers, body = self.perform_request(resource, balance_proof)
 
             if status == STATUS_OK:
                 print('Resource payment successful. Final cost: {}'.format(headers[HEADERS['COST']]))
             elif status == STATUS_PAYMENT_REQUIRED:
-                if HEADERS['INSUF_FUNDS'] in headers:
+                if HEADERS['insuf_funds'] in headers:
                     print('Error: Insufficient funds in channel for balance proof.')
                     return None
-                elif HEADERS['INSUF_CONFS'] in headers:
+                elif HEADERS['insuf_confs'] in headers:
                     print('Error: Newly created channel does not have enough confirmations yet.')
                     return None
                 else:
@@ -90,10 +94,11 @@ class M2MClient(object):
             self.channels = json.dump(self.channels, channels_file)
 
     def open_channel(self, target, deposit):
-        tx = self.token_proxy.create_contract_call('approve', [self.channel_manager_address, deposit])
-        self.web3.eth.sendRawTransaction(tx)
-        tx = self.channel_manager_proxy.create_contract_call('createChannel', [target, deposit], nonce_offset=1)
-        self.web3.eth.sendRawTransaction(tx)
+        tx = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
+        tx = self.channel_manager_proxy.create_transaction('createChannel', [target, deposit], nonce_offset=1)
+        if not self.dry_run:
+            self.web3.eth.sendRawTransaction(tx)
+            self.web3.eth.sendRawTransaction(tx)
 
         # TODO: await event
         # self.web3._requestManager.request_blocking('eth_getLogs', [{'topics': []}])
@@ -111,10 +116,11 @@ class M2MClient(object):
 
     def close_channel(self, channel):
         assert channel in self.channels
-        tx = self.channel_manager_proxy.create_contract_call(
+        tx = self.channel_manager_proxy.create_transaction(
             'close', [channel.receiver, channel.block, channel.balance, channel.balance_proof]
         )
-        self.web3.eth.sendRawTransaction(tx)
+        if not self.dry_run:
+            self.web3.eth.sendRawTransaction(tx)
 
         # TODO: wait for channel close event
 
@@ -126,6 +132,7 @@ class M2MClient(object):
             rpc_endpoint,
             rpc_port,
             key_path,
+            dry_run,
             channel_manager_address,
             contract_abi_path,
             token_address
@@ -136,6 +143,9 @@ class M2MClient(object):
         self.rpc_endpoint = rpc_endpoint
         self.rpc_port = rpc_port
         self.channel_manager_address = channel_manager_address
+        self.dry_run = dry_run
+        if not contract_abi_path:
+            contract_abi_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json')
         with open(contract_abi_path) as abi_file:
             contract_abis = json.load(abi_file)
             self.channel_manager_abi = contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']

@@ -3,24 +3,26 @@ from flask_restful import (
     Api,
 )
 
-from .channel_manager import (
+from raiden_mps.channel_manager import (
     ChannelManager,
     Blockchain,
 )
 
-from .resources import (
+from raiden_mps.proxy.resources import (
     Expensive,
     ChannelManagementAdmin,
     ChannelManagementClose,
     ChannelManagementRoot
 )
 
-from .test.utils import BlockchainMock
+from raiden_mps.test.utils import BlockchainMock
+
+from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 
 
 class PaymentProxy:
     config = {
-        "contract_address": "0x" + "1" * 40,
+        "contract_address": CHANNEL_MANAGER_ADDRESS,
         "receiver_address": "0x" + "2" * 40,
     }
 

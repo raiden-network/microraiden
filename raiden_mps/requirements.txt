@@ -4,3 +4,5 @@ pytest
 ethereum
 web3
 gevent
+click
+requests

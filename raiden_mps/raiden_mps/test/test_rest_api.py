@@ -1,10 +1,10 @@
 import pytest # noqa
-from rmp.test.utils.channel_manager import (
+from raiden_mps.test.utils.channel_manager import (
     BlockchainMock,
 )
 
-from rmp.server_flask import PaymentProxy
-import rmp.header as header
+from raiden_mps.proxy.server_flask import PaymentProxy
+from raiden_mps.header import HTTPHeaders as header
 
 
 def test_resources(init_contract_address, manager_state_path):
