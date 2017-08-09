@@ -5,14 +5,10 @@ import json
 import os
 import pickle
 import time
-from ethereum.transactions import Transaction
-from ethereum.utils import decode_hex
+from ethereum.utils import privtoaddr, encode_hex
 import gevent
-import rlp
-from web3 import Web3, formatters
+from web3 import Web3
 from web3.providers.rpc import HTTPProvider, RPCProvider
-from web3.utils.filters import construct_event_filter_params
-from web3.utils.events import get_event_data
 from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 
@@ -36,13 +32,10 @@ class Blockchain(gevent.Greenlet):
     """
     poll_freqency = 5
 
-    def __init__(self, web3, contract):
+    def __init__(self, web3, contract_proxy, channel_manager):
         gevent.Greenlet.__init__(self)
         self.web3 = web3
-        self.contract = contract
-        self.cm = None
-
-    def set_channel_manager(self, channel_manager):
+        self.contract_proxy = contract_proxy
         self.cm = channel_manager
 
     def _run(self):
@@ -51,7 +44,6 @@ class Blockchain(gevent.Greenlet):
         which watches all events from contract_address, that involve self.address
         and updates ChannelManager
         """
-        assert self.cm
         while True:
             self._update()
             gevent.sleep(self.poll_freqency)
@@ -68,8 +60,7 @@ class Blockchain(gevent.Greenlet):
         }
 
         # channel created
-        import ipdb; ipdb.set_trace()
-        logs = contract_proxy.get_channel_created_logs(**block_range)
+        logs = self.contract_proxy.get_channel_created_logs(**block_range)
         for log in logs:
             if log['args']['_receiver'] != self.cm.state.receiver:
                 continue
@@ -79,44 +70,27 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_opened(sender, open_block_number, deposit)
 
         # channel close requested
-        logs = contract_proxy.get_channel_close_requested_logs(**block_range)
+        logs = self.contract_proxy.get_channel_close_requested_logs(**block_range)
         for log in logs:
             if log['args']['_receiver'] != self.cm.state.receiver:
                 continue
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             balance = log['args']['_balance']
+            timeout = contract_proxy.get_settle_timeout(receiver, sender, open_block_number)
             self.cm.event_channel_opened(sender, open_block_number, balance, timeout)
 
-        # channel closing requested event
-        filter_ = construct_event_filter_params(channel_close_requested_event_abi,
-                                                **filter_kwargs)[1]
-        filter_params = [formatters.input_filter_params_formatter(filter_)]
-        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
-        for log in response:
-            args = get_event_data(channel_created_event_abi, log)['args']
-            if args['_receiver'] != self.cm.state.receiver:
-                continue
-            sender = args['_sender']
-            open_block_number = args['open_block_number']
-            balance = args['_balance']
-            timeout = args['_timeout']
-            self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
-
         # channel settled event
-        filter_ = construct_event_filter_params(channel_settled_event_abi, **filter_kwargs)[1]
-        filter_params = [formatters.input_filter_params_formatter(filter_)]
-        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
-        for log in response:
-            args = get_event_data(channel_created_event_abi, log)['args']
-            if args['_receiver'] != self.cm.state.receiver:
+        logs = self.contract_proxy.get_channel_settled_logs(**block_range)
+        for log in logs:
+            if log['args']['_receiver'] != self.cm.state.receiver:
                 continue
-            sender = args['_sender']
-            open_block_number = args['_open_block_number']
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
             self.cm.event_channel_settled(sender, open_block_number)
 
         # update head hash and number
-        block = web3.eth.getBlock('latest')
+        block = self.web3.eth.getBlock('latest')
         self.cm.set_head(block.number, block.hash)
 
 
@@ -140,17 +114,24 @@ class ChannelManagerState(object):
         return pickle.load(open(filename))
 
 
-class ChannelManager(object):
+class ChannelManager(gevent.Greenlet):
 
-    def __init__(self, blockchain, receiver, state_filename=None):
-        self.blockchain = blockchain
-        self.blockchain.set_channel_manager(self)
-        # load state if file exists
+    def __init__(self, web3, contract_proxy, receiver, private_key, state_filename=None):
+        gevent.Greenlet.__init__(self)
+        self.blockchain = Blockchain(web3, contract_proxy, self)
+        self.receiver = receiver
+        self.private_key = private_key
+        assert '0x' + encode_hex(privtoaddr(self.private_key)) == self.receiver.lower()
+
         if state_filename is not None and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
             assert receiver == self.state.receiver
         else:
             self.state = ChannelManagerState(CHANNEL_MANAGER_ADDRESS, receiver, state_filename)
+
+    def _run(self):
+        self.blockchain.start()
+        gevent.joinall([self.blockchain])
 
     def set_head(self, number, _hash):
         "should be called by blockchain after all events have been delivered, to trigger store"
@@ -191,7 +172,8 @@ class ChannelManager(object):
         # send closing tx
         signature = ''
         tx_params = [sender, c.open_block_number, c.balance, signature]
-        self.web3.eth.sendRawTransaction(contract_proxy.create_contract_call('close', tx_params))
+        raw_tx = self.contract_proxy.create_contract_call('close', tx_params)
+        self.web3.eth.sendRawTransaction(raw_tx)
         # update local state
         c.is_closed = True
         self.state.store()
@@ -291,24 +273,18 @@ class PublicAPI(object):
         "returns the balance of server address at token"
         return self.cm.get_token_balance()
 
+
 if __name__ == "__main__":
     # web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
     web3 = Web3(RPCProvider())
     receiver = '0x004B52c58863C903Ab012537247b963C557929E8'
+    sender = '0xd1Bf222EF7289ae043b723939d86c8A91f3AAC3F'
     contract_address = CHANNEL_MANAGER_ADDRESS
     contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
     abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
-    channel_created_event_abi = [i for i in abi if (i['type'] == 'event' and
-                                                    i['name'] == 'ChannelCreated')][0]
-    channel_close_requested_event_abi = [i for i in abi if (i['type'] == 'event' and
-                                                            i['name'] == 'ChannelCloseRequested')][0]
-    channel_settled_event_abi = [i for i in abi if (i['type'] == 'event' and
-                                                    i['name'] == 'ChannelSettled')][0]
-    contract = web3.eth.contract(abi)(contract_address)
-    private_key = 'secret'
-    contract_proxy = ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9), 50000)
-
-    blockchain = Blockchain(web3, contract)
-    channel_manager = ChannelManager(blockchain, receiver)
-    blockchain.start()
-    gevent.joinall([blockchain])
+    private_key = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
+    contract_proxy = ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9),
+                                          50000)
+    channel_manager = ChannelManager(web3, contract_proxy, receiver, private_key)
+    channel_manager.start()
+    gevent.joinall([channel_manager])

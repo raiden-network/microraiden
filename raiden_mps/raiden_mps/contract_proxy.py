@@ -9,13 +9,14 @@ import time
 
 
 class ContractProxy:
+
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
         self.web3 = web3
         self.privkey = privkey
         self.caller_address = '0x' + encode_hex(privtoaddr(privkey))
         self.address = contract_address
         self.abi = abi
-        self.contract = self.web3.eth.contract(self.abi)
+        self.contract = self.web3.eth.contract(self.abi)(self.address)
         self.gas_price = gas_price
         self.gas_limit = gas_limit
 
@@ -55,7 +56,6 @@ class ContractProxy:
         return None
 
 
-
 class ChannelContractProxy(ContractProxy):
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
         super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit)
@@ -80,3 +80,6 @@ class ChannelContractProxy(ContractProxy):
             return event['args']['_receiver'] == receiver and event['args']['_sender'] == sender
 
         return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block, wait, timeout)
+
+    def get_settle_timeout(self, sender, receiver, open_block_number):
+        return self.contract.call().getChannelInfo(sender, receiver, open_block_number)[3]
