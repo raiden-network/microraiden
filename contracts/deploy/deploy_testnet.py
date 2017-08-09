@@ -9,7 +9,8 @@ from web3.utils.compat import (
 )
 senders = [
     '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38',
-    '0xd1bf222ef7289ae043b723939d86c8a91f3aac3f'
+    '0xd1bf222ef7289ae043b723939d86c8a91f3aac3f',
+    '0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a'
 ]
 
 def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
