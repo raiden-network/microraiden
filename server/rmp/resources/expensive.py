@@ -2,12 +2,12 @@ from flask import request
 from flask_restful import (
     Resource
 )
-from server import (
+from rmp.server import (
     ChannelManager,
     parse_balance_proof_msg
 )
 
-import header
+import rmp.header as header
 
 
 class RequestData:

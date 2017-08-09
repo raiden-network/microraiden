@@ -3,19 +3,19 @@ from flask_restful import (
     Api,
 )
 
-from server import (
+from .server import (
     ChannelManager,
     Blockchain,
 )
 
-from resources import (
+from .resources import (
     Expensive,
     ChannelManagementAdmin,
     ChannelManagementClose,
     ChannelManagementRoot
 )
 
-from test.utils import BlockchainMock
+from .test.utils import BlockchainMock
 
 
 class PaymentProxy:
@@ -45,9 +45,3 @@ class PaymentProxy:
 
     def run(self, debug=False):
         self.app.run(debug=debug)
-
-
-if __name__ == '__main__':
-    blockchain = BlockchainMock(None, None)
-    app = PaymentProxy(blockchain)
-    app.run(debug=True)
