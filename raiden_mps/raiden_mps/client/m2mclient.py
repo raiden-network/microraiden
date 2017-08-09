@@ -7,11 +7,10 @@ import json
 import os
 import requests
 
-from raiden_mps.contract_proxy import ContractProxy
+from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.header import HTTPHeaders
 
-RESOURCE_BASE_PATH = '/expensive/'
-STATUS_OK = 400
+STATUS_OK = 200
 STATUS_PAYMENT_REQUIRED = 402
 CHANNELS_DB = 'channels.json'
 GAS_PRICE = 20 * 1000 * 1000 * 1000
@@ -29,7 +28,7 @@ class M2MClient(object):
     def perform_payment(self, receiver, value):
         channels = [
             channel for channel in self.channels
-            if channel['source'] == self.account and channel['target'] == receiver
+            if channel.sender == self.account and channel.receiver == receiver
         ]
         assert len(channels) < 2
 
@@ -37,17 +36,20 @@ class M2MClient(object):
             channel = channels[0]
         else:
             deposit = CHANNEL_SIZE_FACTOR * value
-            print('Creating new channel with deposit {} for receiver {}.')
+            print('Creating new channel with deposit {} for receiver {}.'.format(receiver, deposit))
             channel = self.open_channel(receiver, deposit)
 
         return self.create_transfer(channel, value)
 
     def perform_request(self, resource, balance_proof=None):
         if balance_proof:
-            headers = {'RDN-Balance': balance_proof.balance, 'RDN-Balance-Signature': balance_proof.balance_signature}
+            headers = {
+                HEADERS['balance']: balance_proof[0],
+                HEADERS['balance_signature']: balance_proof[1]
+            }
         else:
             headers = None
-        url = 'http://{}:{}{}{}'.format(self.api_endpoint, self.api_port, RESOURCE_BASE_PATH, resource)
+        url = 'http://{}:{}/{}'.format(self.api_endpoint, self.api_port, resource)
         response = requests.get(url, headers=headers)
         return response.status_code, response.headers, response.json()
 
@@ -60,12 +62,12 @@ class M2MClient(object):
                 return None
 
             price = int(headers[HEADERS['price']])
-            print('Preparing of price {}'.format(price))
+            print('Preparing payment of price {}.'.format(price))
             balance_proof = self.perform_payment(headers[HEADERS['receiver_address']], price)
             status, headers, body = self.perform_request(resource, balance_proof)
 
             if status == STATUS_OK:
-                print('Resource payment successful. Final cost: {}'.format(headers[HEADERS['COST']]))
+                print('Resource payment successful. Final cost: {}'.format(headers[HEADERS['cost']]))
             elif status == STATUS_PAYMENT_REQUIRED:
                 if HEADERS['insuf_funds'] in headers:
                     print('Error: Insufficient funds in channel for balance proof.')
@@ -87,22 +89,34 @@ class M2MClient(object):
         with open(channels_path) as channels_file:
             channels_raw = json.load(channels_file)
             self.channels = [namedtuple('ChannelInfo', channel.keys())(**channel) for channel in channels_raw]
+        print('Loaded {} open channels.'.format(len(self.channels)))
 
     def store_channels(self):
         os.makedirs(self.datadir, exist_ok=True)
         with open(os.path.join(self.datadir, CHANNELS_DB), 'w') as channels_file:
-            self.channels = json.dump(self.channels, channels_file)
+            self.channels = json.dump([channel._asdict() for channel in self.channels], channels_file)
 
-    def open_channel(self, target, deposit):
-        tx = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
-        tx = self.channel_manager_proxy.create_transaction('createChannel', [target, deposit], nonce_offset=1)
+    def open_channel(self, receiver, deposit):
+        current_block = self.web3.eth.blockNumber
+        tx1 = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
+        tx2 = self.channel_manager_proxy.create_transaction('createChannel', [receiver, deposit], nonce_offset=1)
         if not self.dry_run:
-            self.web3.eth.sendRawTransaction(tx)
-            self.web3.eth.sendRawTransaction(tx)
+            self.web3.eth.sendRawTransaction(tx1)
+            self.web3.eth.sendRawTransaction(tx2)
 
-        # TODO: await event
+        print('Waiting for channel creation event on the blockchain...')
+        event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver, current_block + 1)
+        print('Event received. Channel created in block {}.'.format(event['blockNumber']))
         # self.web3._requestManager.request_blocking('eth_getLogs', [{'topics': []}])
-        channel = None
+        channel = ChannelInfo(
+            sender=event['args']['_sender'],
+            receiver=event['args']['_receiver'],
+            deposit=event['args']['_deposit'],
+            balance=0,
+            block=event['blockNumber'],
+            balance_proof=None
+        )
+        self.channels.append(channel)
         self.store_channels()
 
         return channel
@@ -110,8 +124,10 @@ class M2MClient(object):
     def create_transfer(self, channel, value):
         assert channel in self.channels
 
-        msg = (value, channel.receiver)
-        sig = ecsign(msg, self.privkey)
+        # TODO: create balance proof
+        msg, sig = '3', '4'
+        # msg = (value, channel.receiver)
+        # sig = ecsign(msg, self.privkey)
         return msg, sig
 
     def close_channel(self, channel):
@@ -159,7 +175,7 @@ class M2MClient(object):
         self.rpc = RPCProvider(self.rpc_endpoint, self.rpc_port)
         self.web3 = Web3(self.rpc)
 
-        self.channel_manager_proxy = ContractProxy(
+        self.channel_manager_proxy = ChannelContractProxy(
             self.web3,
             self.privkey,
             self.channel_manager_address,
