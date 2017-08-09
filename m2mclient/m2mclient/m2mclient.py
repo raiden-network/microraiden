@@ -7,8 +7,8 @@ import json
 import os
 import requests
 
-from micropayment.common.contract_proxy import ContractProxy
-from micropayment.common.http_header import HTTPHeaders
+from common.contract_proxy import ContractProxy
+from common.http_header import HTTPHeaders
 
 RESOURCE_BASE_PATH = '/expensive/'
 STATUS_OK = 400
@@ -36,7 +36,9 @@ class M2MClient(object):
         if channels:
             channel = channels[0]
         else:
-            channel = self.open_channel(receiver, CHANNEL_SIZE_FACTOR * value)
+            deposit = CHANNEL_SIZE_FACTOR * value
+            print('Creating new channel with deposit {} for receiver {}.')
+            channel = self.open_channel(receiver, deposit)
 
         return self.create_transfer(channel, value)
 
@@ -52,21 +54,22 @@ class M2MClient(object):
     def request_resource(self, resource):
         status, headers, body = self.perform_request(resource)
         if status == STATUS_PAYMENT_REQUIRED:
-            if headers[HEADERS['CONTRACT']] != self.channel_manager_address:
-                print('Invalid channel manager address requested. Aborting.')
+            if headers[HEADERS['contract']] != self.channel_manager_address:
+                print('Invalid channel manager address requested ({}). Aborting.'.format(headers[HEADERS['contract']]))
                 return None
 
-            print('Preparing payment. Price: {}', headers[HEADERS['PRICE']])
-            balance_proof = self.perform_payment(headers[HEADERS['RECEIVER']], headers[HEADERS['PRICE']])
+            price = int(headers[HEADERS['price']])
+            print('Preparing of price {}'.format(price))
+            balance_proof = self.perform_payment(headers[HEADERS['receiver']], price)
             status, headers, body = self.perform_request(resource, balance_proof)
 
             if status == STATUS_OK:
                 print('Resource payment successful. Final cost: {}'.format(headers[HEADERS['COST']]))
             elif status == STATUS_PAYMENT_REQUIRED:
-                if HEADERS['INSUF_FUNDS'] in headers:
+                if HEADERS['insuf_funds'] in headers:
                     print('Error: Insufficient funds in channel for balance proof.')
                     return None
-                elif HEADERS['INSUF_CONFS'] in headers:
+                elif HEADERS['insuf_confs'] in headers:
                     print('Error: Newly created channel does not have enough confirmations yet.')
                     return None
                 else:

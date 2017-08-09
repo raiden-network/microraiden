@@ -9,7 +9,7 @@ with open('requirements.txt') as requirements:
     reqs = requirements.read().split()
 
 config = {
-    'packages': ['m2mclient'],
+    'packages': ['client'],
     'scripts': [],
     'name': 'm2mclient',
     'install_requires': reqs
