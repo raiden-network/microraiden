@@ -1,4 +1,4 @@
-    """
+"""
 
 """
 import json
@@ -12,20 +12,21 @@ import rlp
 from web3 import Web3, formatters
 from web3.providers.rpc import HTTPProvider, RPCProvider
 from web3.utils.filters import construct_event_filter_params
+from web3.utils.events import get_event_data
 
 
 # web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
 web3 = Web3(RPCProvider())
-receiver = ''
-contract_address = '0xDFC2F3Adb77Be607C8C13e68fd0Cf9242b4925f7'.lower()
-abi = json.loads("""[{"constant":true,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_token","type":"address"},{"name":"_value","type":"uint32"}],"name":"shaOfValue","outputs":[{"name":"data","type":"bytes32"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"bytes32"}],"name":"settle","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"bytes32"},{"name":"_balance","type":"uint32"},{"name":"_signature","type":"bytes"}],"name":"close","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_receiver","type":"address"},{"name":"_token","type":"address"},{"name":"_deposit","type":"uint32"},{"name":"_challengePeriod","type":"uint8"}],"name":"init","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"_sender","type":"address"},{"name":"_receiver","type":"address"},{"name":"_token","type":"address"}],"name":"getChannel","outputs":[{"name":"","type":"bytes32"},{"name":"","type":"address"},{"name":"","type":"int256"},{"name":"","type":"int256"}],"payable":false,"type":"function"},{"inputs":[],"payable":false,"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelCloseRequested","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_sender","type":"address"},{"indexed":false,"name":"_receiver","type":"address"},{"indexed":false,"name":"_id","type":"bytes32"}],"name":"ChannelSettled","type":"event"}]""")
+receiver = '0x004B52c58863C903Ab012537247b963C557929E8'
+contract_address = '0x94856f00a8097103c4b623ede4a240f934b1062f'
+abi = json.load(open('../contracts/build/contracts.json'))['RaidenMicroTransferChannels']['abi']
 channel_created_event_abi = [i for i in abi if (i['type'] == 'event' and
                                                 i['name'] == 'ChannelCreated')][0]
 channel_close_requested_event_abi = [i for i in abi if (i['type'] == 'event' and
                                                         i['name'] == 'ChannelCloseRequested')][0]
 channel_settled_event_abi = [i for i in abi if (i['type'] == 'event' and
                                                 i['name'] == 'ChannelSettled')][0]
-contract = web3.eth.contract(abi)
+contract = web3.eth.contract(abi)(contract_address)
 private_key = 'secret'
 
 
@@ -86,7 +87,14 @@ class Blockchain(gevent.Greenlet):
         filter_params = [formatters.input_filter_params_formatter(filter_)]
         response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
         for log in response:
-            assert not log.removed
+            args = get_event_data(channel_created_event_abi, log)['args']
+            if args['_receiver'] != self.cm.state.receiver:
+                # skip events from channels where I'm not the receiver
+                continue
+            sender = args['_sender']
+            deposit = args['_deposit']
+            open_block_number = args['open_block_number']
+            self.cm.event_channel_opened(sender, open_block_number, deposit)
 
         # channel closing requested event
         filter_ = construct_event_filter_params(channel_close_requested_event_abi,
@@ -94,14 +102,26 @@ class Blockchain(gevent.Greenlet):
         filter_params = [formatters.input_filter_params_formatter(filter_)]
         response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
         for log in response:
-            assert False
+            args = get_event_data(channel_created_event_abi, log)['args']
+            if args['_receiver'] != self.cm.state.receiver:
+                continue
+            sender = args['_sender']
+            open_block_number = args['open_block_number']
+            balance = args['_balance']
+            timeout = args['_timeout']
+            self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
 
         # channel settled event
         filter_ = construct_event_filter_params(channel_settled_event_abi, **filter_kwargs)[1]
         filter_params = [formatters.input_filter_params_formatter(filter_)]
         response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
         for log in response:
-            assert False
+            args = get_event_data(channel_created_event_abi, log)['args']
+            if args['_receiver'] != self.cm.state.receiver:
+                continue
+            sender = args['_sender']
+            open_block_number = args['_open_block_number']
+            self.cm.event_channel_settled(sender, open_block_number)
 
         # update head hash and number
         block = web3.eth.getBlock('latest')
@@ -113,7 +133,7 @@ class ChannelManagerState(object):
 
     def __init__(self, contract_address, receiver, filename=None):
         self.contract_address = contract_address
-        self.receiver = receiver
+        self.receiver = receiver.lower()
         self.head_hash = None
         self.head_number = 0
         self.channels = dict()
@@ -148,16 +168,17 @@ class ChannelManager(object):
 
     # relevant events from the blockchain for receiver from contract
 
-    def event_channel_opened(self, sender, deposit):
+    def event_channel_opened(self, sender, open_block_number, deposit):
         assert sender not in self.state.channels  # shall we allow top-ups
-        c = Channel(self.state.receiver, sender, deposit)
+        c = Channel(self.state.receiver, sender, deposit, open_block_number)
         self.state.channels[sender] = c
         self.state.store()
 
-    def event_channel_close_requested(self, sender, balance, settle_timeout):
+    def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
         "channel was closed by sender without consent"
         assert sender in self.state.channels
         c = self.state.channels[sender]
+        assert c.open_block_number == open_block_number
         if c.balance > balance:
             self.close_channel(sender)  # dispute by closing the channel
         else:
@@ -165,7 +186,8 @@ class ChannelManager(object):
             c.is_closed = True
         self.state.store()
 
-    def event_channel_settled(self, sender):
+    def event_channel_settled(self, sender, open_block_number):
+        assert self.state.channels[sender].open_block_number == open_block_number
         del self.state.channels[sender]
         self.state.store()
 
@@ -226,9 +248,11 @@ class ChannelManager(object):
 
 class Channel(object):
 
-    def __init__(self, sender, deposit):
+    def __init__(self, receiver, sender, deposit, open_block_number):
+        self.receiver = receiver
         self.sender = sender  # sender address
         self.deposit = deposit
+        self.open_block_number = open_block_number
 
         self.balance = 0
         self.is_closed = False
