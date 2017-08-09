@@ -3,12 +3,12 @@ from raiden_mps.test.utils.channel_manager import (
     BlockchainMock,
 )
 
-from raiden_mps.proxy.server_flask import PaymentProxy
+from raiden_mps.proxy.server_flask import PaywalledProxy
 from raiden_mps.header import HTTPHeaders as header
 
 
 def test_resources(init_contract_address, manager_state_path):
-    app = PaymentProxy(BlockchainMock(None, None))
+    app = PaywalledProxy(BlockchainMock(None, None))
     tc = app.app.test_client()
 
     rv = tc.get("/expensive/something")
