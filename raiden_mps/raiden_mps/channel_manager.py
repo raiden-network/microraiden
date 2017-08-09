@@ -14,13 +14,15 @@ from web3.providers.rpc import HTTPProvider, RPCProvider
 from web3.utils.filters import construct_event_filter_params
 from web3.utils.events import get_event_data
 from common.contract_proxy import ChannelContractProxy
+from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 
 
 # web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
 web3 = Web3(RPCProvider())
 receiver = '0x004B52c58863C903Ab012537247b963C557929E8'
-contract_address = '0x94856f00a8097103c4b623ede4a240f934b1062f'
-abi = json.load(open('../../contracts/build/contracts.json'))['RaidenMicroTransferChannels']['abi']
+contract_address = CHANNEL_MANAGER_ADDRESS
+contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
+abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
 channel_created_event_abi = [i for i in abi if (i['type'] == 'event' and
                                                 i['name'] == 'ChannelCreated')][0]
 channel_close_requested_event_abi = [i for i in abi if (i['type'] == 'event' and
