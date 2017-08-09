@@ -24,10 +24,10 @@ export class RMPService {
   }
 
 
-  signMessage(msg, account): Observable<string> {
+  signHash(msg, account): Observable<string> {
     const nodeCbObs = Observable.bindNodeCallback(
       (m: string, a: string, cb: CallbackFunc) =>
-        this.config.rmp.signMessage(m, a, cb));
+        this.config.rmp.signHash(m, a, this.zoneEncap(cb)));
     return nodeCbObs(msg, account);
   }
 
