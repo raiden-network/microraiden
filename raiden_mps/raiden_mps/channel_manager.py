@@ -5,6 +5,7 @@ import json
 import os
 import pickle
 import time
+from coincurve import PrivateKey
 from ethereum.utils import privtoaddr, encode_hex
 import gevent
 from web3 import Web3
@@ -13,17 +14,24 @@ from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 
 
-def gen_balance_proof_msg(channel_id, amount):
+# TODO:
+# - test
+# - logging
+# - distinguish channels between "opened n blocks ago", "opened, but not enough confirmations yet"
+# - implement top ups
+# - settle closed channels
+
+
+class InvalidBalanceProof(Exception):
     pass
 
 
-def parse_balance_proof_msg(msg):
-    """Returns tuple (sender, balance)"""
-    return ("0x" + "5" * 40, 0)
+class NoOpenChannel(Exception):
+    pass
 
 
-def generate_signature(channel, private_key):
-    assert False
+class NoBalanceProofReceived(Exception):
+    pass
 
 
 class Blockchain(gevent.Greenlet):
@@ -142,16 +150,15 @@ class ChannelManager(gevent.Greenlet):
     # relevant events from the blockchain for receiver from contract
 
     def event_channel_opened(self, sender, open_block_number, deposit):
-        assert sender not in self.state.channels  # shall we allow top-ups
+        assert (sender, open_block_number) not in self.state.channels  # shall we allow top-ups
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
-        self.state.channels[sender] = c
+        self.state.channels[(sender, open_block_number)] = c
         self.state.store()
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
         "channel was closed by sender without consent"
-        assert sender in self.state.channels
-        c = self.state.channels[sender]
-        assert c.open_block_number == open_block_number
+        assert (sender, open_block_number) in self.state.channels
+        c = self.state.channels[(sender, open_block_number)]
         if c.balance > balance:
             self.close_channel(sender)  # dispute by closing the channel
         else:
@@ -160,8 +167,7 @@ class ChannelManager(gevent.Greenlet):
         self.state.store()
 
     def event_channel_settled(self, sender, open_block_number):
-        assert self.state.channels[sender].open_block_number == open_block_number
-        del self.state.channels[sender]
+        del self.state.channels[(sender, open_block_number)]
         self.state.store()
 
     # end events ####
@@ -169,21 +175,33 @@ class ChannelManager(gevent.Greenlet):
     def close_channel(self, sender):
         "receiver can always close the channel directly"
         c = self.state.channels[sender]
+        if c.last_signature is None:
+            raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
         # send closing tx
-        signature = ''
-        tx_params = [sender, c.open_block_number, c.balance, signature]
+        tx_params = [sender, c.open_block_number, c.balance, c.last_signature]
         raw_tx = self.contract_proxy.create_contract_call('close', tx_params)
         self.web3.eth.sendRawTransaction(raw_tx)
         # update local state
         c.is_closed = True
         self.state.store()
 
-    def sign_close(self, sender):
-        c = self.state.channels[sender]
+    def sign_close(self, sender, open_block_number, signature):
+        if (sender, open_block_number) not in self.channels:
+            raise NoOpenChannel('Channel does not exist or has been closed.')
+        c = self.channels[(sender, open_block_number)]
+        if c.is_closed:
+            raise NoOpenChannel('Channel closing has been requested already.')
+        if signature != c.last_signature:
+            raise InvalidBalanceProof('Balance proof does not match latest one.')
         c.is_closed = True  # FIXME block number
-        lm = c.last_message
-        # return signed lm
+        c.mtime = time.time()
+        to_sign = self.contract_proxy.contract.call().closingAgreementMessageHash(signature)
+        receiver_sig = PrivateKey.from_hex(self.private_key).sign(to_sign)
+        recovered_receiver = self.contract_proxy.contract.call().verifyClosingSignature(
+            signature, receiver_sig)
+        assert recovered_receiver == self.receiver.lower()
         self.state.store()
+        return receiver_sig
 
     def get_token_balance(self):
         balance = 0
@@ -191,21 +209,39 @@ class ChannelManager(gevent.Greenlet):
             balance += channel.balance
         return balance
 
-    def register_payment(self, msg):
+    def verifyBalanceProof(self, receiver, open_block_number, balance, signature):
+        """Verify that a balance proof is valid and return the sender.
+
+        Does not check the balance itself.
+
+        :returns: the channel
+        """
+        if receiver.lower() != self.receiver.lower():
+            raise InvalidBalanceProof('Channel has wrong receiver.')
+        signer = self.contract_proxy.contract.call().verifyBalanceProof(
+            self.receiver, open_block_number, balance, signature)
+        try:
+            c = self.state.channels[(signer, open_block_number)]
+        except KeyError:
+            raise NoOpenChannel('Channel does not exist or has been closed.')
+        if c.is_closed:
+            raise NoOpenChannel('Channel closing has been requested already.')
+        return c
+
+    def register_payment(self, receiver, open_block_number, balance, signature):
         """
         registers a payment message
         returns its sender and value
         """
-        sender, balance = parse_balance_proof_msg(msg)
-        assert sender in self.state.channels
-        c = self.state.channels[sender]
-        assert c.balance < balance
+        c = self.verifyBalanceProof(receiver, open_block_number, balance, signature)
+        if balance <= c.balance:
+            raise InvalidBalanceProof('The balance must not increase.')
         received = balance - c.balance
         c.balance = balance
-        c.last_message = msg
+        c.last_signature = signature
         c.mtime = time.time()
         self.state.store()
-        return (sender, received)
+        return (c.sender, received)
 
 
 class Channel(object):
@@ -218,7 +254,7 @@ class Channel(object):
 
         self.balance = 0
         self.is_closed = False
-        self.last_message = None
+        self.last_signature = None
         # if set, this is the absolut block_number where it can be settled
         self.settle_timeout = -1
         self.mtime = time.time()
@@ -283,7 +319,7 @@ if __name__ == "__main__":
     contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
     abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
     private_key = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
-    contract_proxy = ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9),
+    contract_proxy = ChannelContractProxy(web3, private_key, 2, abi, int(20e9),
                                           50000)
     channel_manager = ChannelManager(web3, contract_proxy, receiver, private_key)
     channel_manager.start()
