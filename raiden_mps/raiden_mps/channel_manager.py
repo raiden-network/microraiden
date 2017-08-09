@@ -13,25 +13,8 @@ from web3 import Web3, formatters
 from web3.providers.rpc import HTTPProvider, RPCProvider
 from web3.utils.filters import construct_event_filter_params
 from web3.utils.events import get_event_data
-from common.contract_proxy import ChannelContractProxy
+from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
-
-
-# web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
-web3 = Web3(RPCProvider())
-receiver = '0x004B52c58863C903Ab012537247b963C557929E8'
-contract_address = CHANNEL_MANAGER_ADDRESS
-contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
-abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
-channel_created_event_abi = [i for i in abi if (i['type'] == 'event' and
-                                                i['name'] == 'ChannelCreated')][0]
-channel_close_requested_event_abi = [i for i in abi if (i['type'] == 'event' and
-                                                        i['name'] == 'ChannelCloseRequested')][0]
-channel_settled_event_abi = [i for i in abi if (i['type'] == 'event' and
-                                                i['name'] == 'ChannelSettled')][0]
-contract = web3.eth.contract(abi)(contract_address)
-private_key = 'secret'
-contract_proxy = ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9), 50000)
 
 
 def gen_balance_proof_msg(channel_id, amount):
@@ -167,7 +150,7 @@ class ChannelManager(object):
             self.state = ChannelManagerState.load(state_filename)
             assert receiver == self.state.receiver
         else:
-            self.state = ChannelManagerState(contract_address, receiver, state_filename)
+            self.state = ChannelManagerState(CHANNEL_MANAGER_ADDRESS, receiver, state_filename)
 
     def set_head(self, number, _hash):
         "should be called by blockchain after all events have been delivered, to trigger store"
@@ -309,6 +292,22 @@ class PublicAPI(object):
         return self.cm.get_token_balance()
 
 if __name__ == "__main__":
+    # web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
+    web3 = Web3(RPCProvider())
+    receiver = '0x004B52c58863C903Ab012537247b963C557929E8'
+    contract_address = CHANNEL_MANAGER_ADDRESS
+    contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
+    abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
+    channel_created_event_abi = [i for i in abi if (i['type'] == 'event' and
+                                                    i['name'] == 'ChannelCreated')][0]
+    channel_close_requested_event_abi = [i for i in abi if (i['type'] == 'event' and
+                                                            i['name'] == 'ChannelCloseRequested')][0]
+    channel_settled_event_abi = [i for i in abi if (i['type'] == 'event' and
+                                                    i['name'] == 'ChannelSettled')][0]
+    contract = web3.eth.contract(abi)(contract_address)
+    private_key = 'secret'
+    contract_proxy = ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9), 50000)
+
     blockchain = Blockchain(web3, contract)
     channel_manager = ChannelManager(blockchain, receiver)
     blockchain.start()

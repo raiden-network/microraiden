@@ -94,8 +94,8 @@ class M2MClient(object):
             self.channels = json.dump(self.channels, channels_file)
 
     def open_channel(self, target, deposit):
-        tx = self.token_proxy.create_contract_call('approve', [self.channel_manager_address, deposit])
-        tx = self.channel_manager_proxy.create_contract_call('createChannel', [target, deposit], nonce_offset=1)
+        tx = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
+        tx = self.channel_manager_proxy.create_transaction('createChannel', [target, deposit], nonce_offset=1)
         if not self.dry_run:
             self.web3.eth.sendRawTransaction(tx)
             self.web3.eth.sendRawTransaction(tx)
@@ -116,7 +116,7 @@ class M2MClient(object):
 
     def close_channel(self, channel):
         assert channel in self.channels
-        tx = self.channel_manager_proxy.create_contract_call(
+        tx = self.channel_manager_proxy.create_transaction(
             'close', [channel.receiver, channel.block, channel.balance, channel.balance_proof]
         )
         if not self.dry_run:

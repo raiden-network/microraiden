@@ -11,15 +11,15 @@ class ContractProxy:
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
         self.web3 = web3
         self.privkey = privkey
+        self.caller_address = '0x' + encode_hex(privtoaddr(privkey))
         self.address = contract_address
         self.abi = abi
         self.contract = self.web3.eth.contract(self.abi)
         self.gas_price = gas_price
         self.gas_limit = gas_limit
 
-    def create_contract_call(self, func_name, args, nonce_offset=0):
-        caller_address = '0x' + encode_hex(privtoaddr(self.privkey))
-        nonce = self.web3.eth.getTransactionCount(caller_address) + nonce_offset
+    def create_transaction(self, func_name, args, nonce_offset=0):
+        nonce = self.web3.eth.getTransactionCount(self.caller_address) + nonce_offset
         data = self.contract._prepare_transaction(func_name, args)['data']
         data = decode_hex(data)
         tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, 0, data)
