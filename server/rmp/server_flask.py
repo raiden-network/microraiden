@@ -3,7 +3,7 @@ from flask_restful import (
     Api,
 )
 
-from .server import (
+from .channel_manager import (
     ChannelManager,
     Blockchain,
 )

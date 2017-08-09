@@ -1,6 +1,6 @@
 import pytest # noqa
-from rmp.server import (
-    blockchain,
+from rmp.test.utils.channel_manager import (
+    BlockchainMock,
 )
 
 from rmp.server_flask import PaymentProxy
@@ -8,7 +8,7 @@ import rmp.header as header
 
 
 def test_resources(init_contract_address, manager_state_path):
-    app = PaymentProxy(blockchain)
+    app = PaymentProxy(BlockchainMock(None, None))
     tc = app.app.test_client()
 
     rv = tc.get("/expensive/something")

@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import (
     Resource
 )
-from rmp.server import (
+from rmp.channel_manager import (
     ChannelManager,
     parse_balance_proof_msg
 )
