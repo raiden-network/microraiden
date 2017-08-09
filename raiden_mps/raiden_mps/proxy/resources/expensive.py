@@ -7,9 +7,10 @@ from raiden_mps.channel_manager import (
     parse_balance_proof_msg
 )
 
-from raiden_mps.proxy.content import PaywalledContent
 from raiden_mps.header import HTTPHeaders as header
 from raiden_mps.config import CM_API_ROOT
+
+from flask import Response
 
 
 class RequestData:
@@ -65,12 +66,12 @@ class Expensive(Resource):
             data = RequestData(request.headers)
         except ValueError as e:
             return str(e), 409
-        content = self.paywall_db.get_content(content)
-        if content is None:
+        proxy_handle = self.paywall_db.get_content(content)
+        if proxy_handle is None:
             return "NOT FOUND", 404
         # mock
         if data.balance_signature:
-            return self.reply_premium(data.sender_address, content)
+            return self.reply_premium(content, data.sender_address, proxy_handle)
         else:
             return self.reply_payment_required(content)
         # /mock
@@ -79,7 +80,7 @@ class Expensive(Resource):
         # else:
         #    return self.reply_payment_required()
 
-    def reply_premium(self, sender_address, content, sender_balance=0):
+    def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
         headers = {
             header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
@@ -87,8 +88,12 @@ class Expensive(Resource):
             header.SENDER_ADDRESS: sender_address,
             header.SENDER_BALANCE: sender_balance
         }
-        data, status_code = content.get(None)
-        return data, status_code, headers
+        response = proxy_handle.get(content)
+        if isinstance(response, Response):
+            return response
+        else:
+            data, status_code = response
+            return data, status_code, headers
 
     def reply_payment_required(self, content):
         headers = {
