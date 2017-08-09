@@ -20,8 +20,21 @@ CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'Token'
 HEADERS = HTTPHeaders.as_dict()
 
-ChannelInfo = namedtuple('ChannelInfo', ['sender', 'receiver', 'deposit', 'balance', 'block', 'balance_proof'])
-BalanceProof = namedtuple('BalanceProof', ['balance', 'balance_signature'])
+
+class BalanceProof:
+    def __init__(self, balance, balance_sig):
+        self.balance = balance
+        self.balance_sig = balance_sig
+
+
+class ChannelInfo:
+    def __init__(self, sender, receiver, deposit, block, balance=0, balance_proof=BalanceProof(0, b'')):
+        self.sender = sender
+        self.receiver = receiver
+        self.deposit = deposit
+        self.block = block
+        self.balance = balance
+        self.balance_proof = balance_proof
 
 
 class M2MClient(object):
@@ -36,10 +49,13 @@ class M2MClient(object):
             channel = channels[0]
         else:
             deposit = CHANNEL_SIZE_FACTOR * value
-            print('Creating new channel with deposit {} for receiver {}.'.format(receiver, deposit))
+            print('Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver))
             channel = self.open_channel(receiver, deposit)
 
-        return self.create_transfer(channel, value)
+        if channel:
+            return self.create_transfer(channel, value)
+        else:
+            return None
 
     def perform_request(self, resource, balance_proof=None):
         if balance_proof:
@@ -64,20 +80,25 @@ class M2MClient(object):
             price = int(headers[HEADERS['price']])
             print('Preparing payment of price {}.'.format(price))
             balance_proof = self.perform_payment(headers[HEADERS['receiver_address']], price)
-            status, headers, body = self.perform_request(resource, balance_proof)
+            if balance_proof:
+                status, headers, body = self.perform_request(resource, balance_proof)
 
-            if status == STATUS_OK:
-                print('Resource payment successful. Final cost: {}'.format(headers[HEADERS['cost']]))
-            elif status == STATUS_PAYMENT_REQUIRED:
-                if HEADERS['insuf_funds'] in headers:
-                    print('Error: Insufficient funds in channel for balance proof.')
-                    return None
-                elif HEADERS['insuf_confs'] in headers:
-                    print('Error: Newly created channel does not have enough confirmations yet.')
-                    return None
-                else:
-                    print('Error: Unknown error.')
-                    return None
+                if status == STATUS_OK:
+                    # TODO: use actual cost
+                    # print('Resource payment successful. Final cost: {}'.format(headers[HEADERS['cost']]))
+                    print('Resource payment successful. Final cost: {}'.format(0))
+                elif status == STATUS_PAYMENT_REQUIRED:
+                    if HEADERS['insuf_funds'] in headers:
+                        print('Error: Insufficient funds in channel for balance proof.')
+                        return None
+                    elif HEADERS['insuf_confs'] in headers:
+                        print('Error: Newly created channel does not have enough confirmations yet.')
+                        return None
+                    else:
+                        print('Error: Unknown error.')
+                        return None
+            else:
+                print('Error: Could not perform the payment.')
 
         else:
             print('Error code {} while requesting resource: {}', status, body)
@@ -88,13 +109,26 @@ class M2MClient(object):
             return []
         with open(channels_path) as channels_file:
             channels_raw = json.load(channels_file)
-            self.channels = [namedtuple('ChannelInfo', channel.keys())(**channel) for channel in channels_raw]
+            self.channels = []
+            for channel_raw in channels_raw:
+                balance_proof = BalanceProof(**channel_raw['balance_proof'])
+                channel_raw['balance_proof'] = balance_proof
+                channel = ChannelInfo(**channel_raw)
+                self.channels.append(channel)
+
         print('Loaded {} open channels.'.format(len(self.channels)))
 
     def store_channels(self):
         os.makedirs(self.datadir, exist_ok=True)
+
+        def serialize(o):
+            if isinstance(o, bytes):
+                return encode_hex(o)
+            else:
+                return o.__dict__
+
         with open(os.path.join(self.datadir, CHANNELS_DB), 'w') as channels_file:
-            self.channels = json.dump([channel._asdict() for channel in self.channels], channels_file)
+            json.dump(self.channels, channels_file, default=serialize, sort_keys=True, indent=4)
 
     def open_channel(self, receiver, deposit):
         current_block = self.web3.eth.blockNumber
@@ -106,18 +140,21 @@ class M2MClient(object):
 
         print('Waiting for channel creation event on the blockchain...')
         event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver, current_block + 1)
-        print('Event received. Channel created in block {}.'.format(event['blockNumber']))
-        # self.web3._requestManager.request_blocking('eth_getLogs', [{'topics': []}])
-        channel = ChannelInfo(
-            sender=event['args']['_sender'],
-            receiver=event['args']['_receiver'],
-            deposit=event['args']['_deposit'],
-            balance=0,
-            block=event['blockNumber'],
-            balance_proof=None
-        )
-        self.channels.append(channel)
-        self.store_channels()
+
+        if event:
+            print('Event received. Channel created in block {}.'.format(event['blockNumber']))
+            # self.web3._requestManager.request_blocking('eth_getLogs', [{'topics': []}])
+            channel = ChannelInfo(
+                event['args']['_sender'],
+                event['args']['_receiver'],
+                event['args']['_deposit'],
+                event['blockNumber']
+            )
+            self.channels.append(channel)
+            self.store_channels()
+        else:
+            print('Error: No event received.')
+            channel = None
 
         return channel
 
@@ -126,19 +163,32 @@ class M2MClient(object):
 
         # TODO: create balance proof
         msg, sig = '3', '4'
+        channel.balance_proof.balance = msg
+        channel.balance_proof.balance_signature = sig
         # msg = (value, channel.receiver)
         # sig = ecsign(msg, self.privkey)
         return msg, sig
 
     def close_channel(self, channel):
         assert channel in self.channels
+        print('Closing channel to {}.'.format(channel.receiver))
+        current_block = self.web3.eth.blockNumber
+
         tx = self.channel_manager_proxy.create_transaction(
-            'close', [channel.receiver, channel.block, channel.balance, channel.balance_proof]
+            'close', [channel.receiver, channel.block, channel.balance, channel.balance_proof.balance_signature]
         )
         if not self.dry_run:
             self.web3.eth.sendRawTransaction(tx)
 
-        # TODO: wait for channel close event
+        print('Waiting for close confirmation event.')
+        event = self.channel_manager_proxy.get_channel_requested_close_event_blocking(
+            channel.sender, channel.receiver, current_block + 1
+        )
+
+        if event:
+            print('Successfully sent channel close request in block {}.'.format(event['blockNumber']))
+        else:
+            print('Error: No event received.')
 
     def __init__(
             self,

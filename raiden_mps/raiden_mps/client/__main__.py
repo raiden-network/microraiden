@@ -55,6 +55,8 @@ def run(
     )
 
     client.request_resource('expensive/someresource')
+    channel = client.channels[0]
+    client.close_channel(channel)
 
 
 if __name__ == '__main__':

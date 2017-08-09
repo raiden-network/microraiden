@@ -43,6 +43,18 @@ class ContractProxy:
             log['args'] = get_event_data(event_abi, log)['args']
         return logs
 
+    def get_event_blocking(self, event_name, condition=None, from_block=0, to_block='latest', wait=3, timeout=60):
+        for i in range(0, timeout + wait, wait):
+            logs = self.get_logs(event_name, from_block, to_block)
+            matching_logs = [event for event in logs if not condition or condition(event)]
+            if matching_logs:
+                return matching_logs[0]
+            elif i < timeout:
+                time.sleep(wait)
+
+        return None
+
+
 
 class ChannelContractProxy(ContractProxy):
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
@@ -58,16 +70,13 @@ class ChannelContractProxy(ContractProxy):
         return super().get_logs('ChannelSettled', from_block, to_block)
 
     def get_channel_created_event_blocking(self, sender, receiver, from_block=0, to_block='latest', wait=3, timeout=60):
-        for i in range(0, timeout + wait, wait):
-            logs = self.get_channel_created_logs(from_block, to_block)
-            matching_logs = [
-                event for event in logs
-                if event['args']['_receiver'] == receiver and
-                   event['args']['_sender'] == sender
-            ]
-            if matching_logs:
-                return matching_logs[0]
-            elif i < timeout:
-                time.sleep(wait)
+        def condition(event):
+            return event['args']['_receiver'] == receiver and event['args']['_sender'] == sender
 
-        return None
+        return self.get_event_blocking('ChannelCreated', condition, from_block, to_block, wait, timeout)
+
+    def get_channel_requested_close_event_blocking(self, sender, receiver, from_block=0, to_block='latest', wait=3, timeout=60):
+        def condition(event):
+            return event['args']['_receiver'] == receiver and event['args']['_sender'] == sender
+
+        return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block, wait, timeout)
