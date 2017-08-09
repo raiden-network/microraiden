@@ -13,13 +13,14 @@ from web3 import Web3, formatters
 from web3.providers.rpc import HTTPProvider, RPCProvider
 from web3.utils.filters import construct_event_filter_params
 from web3.utils.events import get_event_data
+from common.contract_proxy import ChannelContractProxy
 
 
 # web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
 web3 = Web3(RPCProvider())
 receiver = '0x004B52c58863C903Ab012537247b963C557929E8'
 contract_address = '0x94856f00a8097103c4b623ede4a240f934b1062f'
-abi = json.load(open('../contracts/build/contracts.json'))['RaidenMicroTransferChannels']['abi']
+abi = json.load(open('../../contracts/build/contracts.json'))['RaidenMicroTransferChannels']['abi']
 channel_created_event_abi = [i for i in abi if (i['type'] == 'event' and
                                                 i['name'] == 'ChannelCreated')][0]
 channel_close_requested_event_abi = [i for i in abi if (i['type'] == 'event' and
@@ -28,6 +29,7 @@ channel_settled_event_abi = [i for i in abi if (i['type'] == 'event' and
                                                 i['name'] == 'ChannelSettled')][0]
 contract = web3.eth.contract(abi)(contract_address)
 private_key = 'secret'
+contract_proxy = ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9), 50000)
 
 
 def gen_balance_proof_msg(channel_id, amount):
@@ -75,26 +77,31 @@ class Blockchain(gevent.Greenlet):
         assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
 
         # filter for events after block_number
-        # TODO: argument filters
-        filter_kwargs = {
-            'fromBlock': self.cm.state.head_number + 1,
-            'toBlock': 'latest',
-            'address': self.cm.state.contract_address
+        block_range = {
+            'from_block': self.cm.state.head_number + 1,
+            'to_block': 'latest'
         }
 
-        # channel opened event
-        filter_ = construct_event_filter_params(channel_created_event_abi, **filter_kwargs)[1]
-        filter_params = [formatters.input_filter_params_formatter(filter_)]
-        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
-        for log in response:
-            args = get_event_data(channel_created_event_abi, log)['args']
-            if args['_receiver'] != self.cm.state.receiver:
-                # skip events from channels where I'm not the receiver
+        # channel created
+        import ipdb; ipdb.set_trace()
+        logs = contract_proxy.get_channel_created_logs(**block_range)
+        for log in logs:
+            if log['args']['_receiver'] != self.cm.state.receiver:
                 continue
-            sender = args['_sender']
-            deposit = args['_deposit']
-            open_block_number = args['open_block_number']
+            sender = log['args']['_sender']
+            deposit = log['args']['_deposit']
+            open_block_number = log['blockNumber']
             self.cm.event_channel_opened(sender, open_block_number, deposit)
+
+        # channel close requested
+        logs = contract_proxy.get_channel_close_requested_logs(**block_range)
+        for log in logs:
+            if log['args']['_receiver'] != self.cm.state.receiver:
+                continue
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
+            balance = log['args']['_balance']
+            self.cm.event_channel_opened(sender, open_block_number, balance, timeout)
 
         # channel closing requested event
         filter_ = construct_event_filter_params(channel_close_requested_event_abi,
@@ -196,22 +203,10 @@ class ChannelManager(object):
     def close_channel(self, sender):
         "receiver can always close the channel directly"
         c = self.state.channels[sender]
-
-        # prepare and send closing tx
-        signature = generate_signature(c, private_key)
+        # send closing tx
+        signature = ''
         tx_params = [sender, c.open_block_number, c.balance, signature]
-        data = contract._encode_transaction_data('close', tx_params)['data']
-        tx = Transaction(**{
-            'nonce': self.web3.eth.getTransactionCount(self.state.receiver),
-            'value': 0,
-            'to': self.state.contract_address,
-            'gasprice': 0,
-            'startgas': 0,
-            'data': decode_hex(data)
-        })
-        tx.sign(self.private_key)
-        self.web3.eth.sendRawTransaction(web3.toHex(rlp.encode(tx)))
-
+        self.web3.eth.sendRawTransaction(contract_proxy.create_contract_call('close', tx_params))
         # update local state
         c.is_closed = True
         self.state.store()
