@@ -54,8 +54,9 @@ def run(
         token_address
     )
 
-    client.request_resource('myresource')
-    # client.open_channel('0xd1bf222ef7289ae043b723939d86c8a91f3aac3f', 10)
+    client.request_resource('expensive/someresource')
+    channel = client.channels[0]
+    client.close_channel(channel)
 
 
 if __name__ == '__main__':

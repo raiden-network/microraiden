@@ -7,7 +7,9 @@ from raiden_mps.channel_manager import (
     parse_balance_proof_msg
 )
 
+from raiden_mps.proxy.content import PaywalledContent
 from raiden_mps.header import HTTPHeaders as header
+from raiden_mps.config import CM_API_ROOT
 
 
 class RequestData:
@@ -48,48 +50,51 @@ def is_valid_address(address):
 
 
 class Expensive(Resource):
-    def __init__(self, price, contract_address, receiver_address, channel_manager):
+    def __init__(self, contract_address, receiver_address, channel_manager, paywall_db):
         super(Expensive, self).__init__()
         assert isinstance(channel_manager, ChannelManager)
         assert is_valid_address(contract_address)
         assert is_valid_address(receiver_address)
-        self.price = price
         self.contract_address = is_valid_address(contract_address)
         self.receiver_address = is_valid_address(receiver_address)
         self.channel_manager = channel_manager
+        self.paywall_db = paywall_db
 
     def get(self, content):
         try:
             data = RequestData(request.headers)
         except ValueError as e:
             return str(e), 409
-
+        content = self.paywall_db.get_content(content)
+        if content is None:
+            return "NOT FOUND", 404
         # mock
         if data.balance_signature:
-            return self.reply_premium(data.sender_address)
+            return self.reply_premium(data.sender_address, content)
         else:
-            return self.reply_payment_required()
+            return self.reply_payment_required(content)
         # /mock
         # if self.channel_manager.register_payment(data.balance_signature):
         #    return self.reply_premium()
         # else:
         #    return self.reply_payment_required()
 
-    def reply_premium(self, sender_address, sender_balance=0):
+    def reply_premium(self, sender_address, content, sender_balance=0):
         headers = {
-            header.GATEWAY_PATH: "/",
+            header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.SENDER_ADDRESS: sender_address,
             header.SENDER_BALANCE: sender_balance
         }
-        return "PREMIUM CONTENT", 200, headers
+        data, status_code = content.get(None)
+        return data, status_code, headers
 
-    def reply_payment_required(self):
+    def reply_payment_required(self, content):
         headers = {
-            header.GATEWAY_PATH: "/",
+            header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
-            header.PRICE: self.price,
+            header.PRICE: content.price,
         }
         return "Payment required", 402, headers

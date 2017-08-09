@@ -5,16 +5,18 @@ import rlp
 from web3.formatters import input_filter_params_formatter, log_array_formatter
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
+import time
 
 
 class ContractProxy:
+
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
         self.web3 = web3
         self.privkey = privkey
         self.caller_address = '0x' + encode_hex(privtoaddr(privkey))
         self.address = contract_address
         self.abi = abi
-        self.contract = self.web3.eth.contract(self.abi)
+        self.contract = self.web3.eth.contract(self.abi)(self.address)
         self.gas_price = gas_price
         self.gas_limit = gas_limit
 
@@ -25,12 +27,14 @@ class ContractProxy:
         tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, 0, data)
         return self.web3.toHex(rlp.encode(tx.sign(self.privkey)))
 
-    def get_logs(self, event_abi, from_block=0, to_block='latest'):
+    def get_logs(self, event_name, from_block=0, to_block='latest'):
         filter_kwargs = {
             'fromBlock': from_block,
             'toBlock': to_block,
             'address': self.address
         }
+        event_abi = [i for i in self.abi if i['type'] == 'event' and i['name'] == event_name][0]
+        assert event_abi
         filter_ = construct_event_filter_params(event_abi, **filter_kwargs)[1]
         filter_params = [input_filter_params_formatter(filter_)]
         response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
@@ -40,26 +44,42 @@ class ContractProxy:
             log['args'] = get_event_data(event_abi, log)['args']
         return logs
 
+    def get_event_blocking(self, event_name, condition=None, from_block=0, to_block='latest', wait=3, timeout=60):
+        for i in range(0, timeout + wait, wait):
+            logs = self.get_logs(event_name, from_block, to_block)
+            matching_logs = [event for event in logs if not condition or condition(event)]
+            if matching_logs:
+                return matching_logs[0]
+            elif i < timeout:
+                time.sleep(wait)
+
+        return None
+
 
 class ChannelContractProxy(ContractProxy):
-
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
         super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit)
-        self.channel_created_event_abi = [
-            i for i in abi if (i['type'] == 'event' and i['name'] == 'ChannelCreated')][0]
-        self.channel_close_requested_event_abi = [
-            i for i in abi if (i['type'] == 'event' and i['name'] == 'ChannelCloseRequested')][0]
-        self.channel_settled_event_abi = [
-            i for i in abi if (i['type'] == 'event' and i['name'] == 'ChannelSettled')][0]
 
     def get_channel_created_logs(self, from_block=0, to_block='latest'):
-        return super().get_logs(self.channel_created_event_abi, from_block, to_block)
+        return super().get_logs('ChannelCreated', from_block, to_block)
 
     def get_channel_close_requested_logs(self, from_block=0, to_block='latest'):
-        return super().get_logs(self.channel_close_requested_event_abi, from_block, to_block)
+        return super().get_logs('ChannelCloseRequested', from_block, to_block)
 
     def get_channel_settled_logs(self, from_block=0, to_block='latest'):
-        return super().get_logs(self.channel_settled_event_abi, from_block, to_block)
+        return super().get_logs('ChannelSettled', from_block, to_block)
 
-    #def get_settle_timeout(self, receiver, sender, open_block_number):
-    #    contract.call().
+    def get_channel_created_event_blocking(self, sender, receiver, from_block=0, to_block='latest', wait=3, timeout=60):
+        def condition(event):
+            return event['args']['_receiver'] == receiver and event['args']['_sender'] == sender
+
+        return self.get_event_blocking('ChannelCreated', condition, from_block, to_block, wait, timeout)
+
+    def get_channel_requested_close_event_blocking(self, sender, receiver, from_block=0, to_block='latest', wait=3, timeout=60):
+        def condition(event):
+            return event['args']['_receiver'] == receiver and event['args']['_sender'] == sender
+
+        return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block, wait, timeout)
+
+    def get_settle_timeout(self, sender, receiver, open_block_number):
+        return self.contract.call().getChannelInfo(sender, receiver, open_block_number)[3]
