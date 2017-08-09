@@ -86,21 +86,23 @@ contract RaidenMicroTransferChannels {
         external
     {
         if(msg.sender == _receiver) {
-            return closeChannel(_receiver, _open_block_number, _balance, _balance_msg_sig);
+            closeChannel(_receiver, _open_block_number, _balance, _balance_msg_sig);
         }
+        else {
 
-        // create message which should be signed by sender
-        bytes32 message = balanceProofHash(_receiver, _open_block_number, _balance);
-        // derive address from signature
-        address sender = ECVerify.ecverify(message, _balance_msg_sig);
+            // create message which should be signed by sender
+            bytes32 message = balanceMessageHash(_receiver, _open_block_number, _balance);
+            // derive address from signature
+            address sender = ECVerify.ecverify(message, _balance_msg_sig);
 
-        bytes32 key = sha3(sender, _receiver, _open_block_number);
-        Channel channel = channels[key];
+            bytes32 key = sha3(sender, _receiver, _open_block_number);
+            Channel channel = channels[key];
 
 
-        // Mark channel as closed
-        closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
-        ChannelCloseRequested(sender, _receiver, _open_block_number);
+            // Mark channel as closed
+            closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
+            ChannelCloseRequested(sender, _receiver, _open_block_number);
+        }
     }
 
     // Called by the sender with a balance proof signed by the receiver
@@ -114,7 +116,7 @@ contract RaidenMicroTransferChannels {
         external
     {
         // derive address from signature
-        address receiver = ECVerify.ecverify(_balance_msg_sig, _closing_sig);
+        address receiver = ECVerify.ecverify(sha3(_balance_msg_sig), _closing_sig);
         require(receiver == _receiver);
 
         closeChannel(receiver, _open_block_number, _balance, _balance_msg_sig);
@@ -128,7 +130,7 @@ contract RaidenMicroTransferChannels {
         private
     {
         // create message which should be signed by sender
-        bytes32 message = balanceProofHash(_receiver, _open_block_number, _balance);
+        bytes32 message = balanceMessageHash(_receiver, _open_block_number, _balance);
         // derive address from signature
         address sender = ECVerify.ecverify(message, _balance_msg_sig);
 
@@ -162,7 +164,7 @@ contract RaidenMicroTransferChannels {
 
         // Settle should only be called by the sender(client) after the challenge period
 	    require(block.number > closing_requests[key].settle_block_number);
-        settleChannel(msg.sender, msg.sender, _open_block_number, _balance);
+        settleChannel(_sender, msg.sender, _open_block_number, _balance);
     }
 
     function settleChannel(
@@ -172,7 +174,7 @@ contract RaidenMicroTransferChannels {
         uint32 _balance)
         private
     {
-        bytes32 key = sha3(msg.sender, _receiver, _open_block_number);
+        bytes32 key = sha3(_sender, _receiver, _open_block_number);
         Channel memory channel = channels[key];
 
         // send minimum of _balance and deposit to receiver
@@ -197,7 +199,7 @@ contract RaidenMicroTransferChannels {
     }
 
     // Helper functions
-    function balanceProofHash(
+    function balanceMessageHash(
         address _receiver,
         uint32 _open_block_number,
         uint32 _balance)
@@ -206,6 +208,14 @@ contract RaidenMicroTransferChannels {
         returns (bytes32 data)
     {
         return sha3(_receiver, _open_block_number, _balance, address(this));
+    }
+
+    function balanceMessageSignatureHash(bytes _balance_msg_sig)
+        public
+        constant
+        returns (bytes32 data)
+    {
+        return sha3(_balance_msg_sig);
     }
 
     function max(uint a, uint b)
