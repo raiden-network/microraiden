@@ -1,5 +1,5 @@
 import pytest
-from rmp.channel_manager import ChannelManager
+from raiden_mps.channel_manager import ChannelManager
 
 CONTRACT_ADDRESS = '0xDFC2F3Adb77Be607C8C13e68fd0Cf9242b4925f7'.lower()
 RECEIVER_ADDRESS = ''
