@@ -26,7 +26,7 @@ contract RaidenMicroTransferChannels {
 
     struct ClosingRequest {
         uint32 settle_block_number;
-        uint closing_balance;
+        uint32 closing_balance;
     }
 
     /*
@@ -156,9 +156,8 @@ contract RaidenMicroTransferChannels {
         channels[key].deposit += _deposit;
     }
 
-    // Call closeChannel and settle if called by receiver if no closing_balance set
-    // Verify provided balances if called by the receiver during the challenge_period
-    // Start challenge_period if called by the sender
+    // Close channel and settle if called by receiver with balance proof
+    // Start challenge_period if called by the sender (no receiver signature)
     function close(
         address _receiver,
         uint32 _open_block_number,
@@ -166,22 +165,19 @@ contract RaidenMicroTransferChannels {
         bytes _balance_msg_sig)
         external
     {
+        address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
+
         if(msg.sender == _receiver) {
-            closeChannel(_receiver, _open_block_number, _balance, _balance_msg_sig);
+            closeChannel(sender, _receiver, _open_block_number, _balance);
         }
         else {
-            address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
-
-            bytes32 key = getKey(sender, _receiver, _open_block_number);
-
-            // Mark channel as closed
-            closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
-            ChannelCloseRequested(sender, _receiver, _open_block_number, _balance);
+            require(msg.sender == sender);
+            closeChannelChallengePeriod(_receiver, _open_block_number, _balance);
         }
     }
 
-    // Called by the sender with a balance proof signed by the receiver
-    // Call closeChannel and settle
+    // Called by the sender with a balance proof + receiver signature
+    // Close channel and settle
     function close(
         address _receiver,
         uint32 _open_block_number,
@@ -194,7 +190,9 @@ contract RaidenMicroTransferChannels {
         address receiver = verifyClosingSignature(_balance_msg_sig, _closing_sig);
         require(receiver == _receiver);
 
-        closeChannel(receiver, _open_block_number, _balance, _balance_msg_sig);
+        address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
+        require(msg.sender == sender);
+        closeChannel(sender, receiver, _open_block_number, _balance);
     }
 
     function getChannelInfo(
@@ -203,59 +201,50 @@ contract RaidenMicroTransferChannels {
         uint32 _open_block_number)
         external
         constant
-        returns (bytes32, uint, uint32, uint32)
+        returns (bytes32, uint, uint32, uint32, uint32)
     {
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
-        return (key, channels[key].deposit, channels[key].open_block_number, closing_requests[key].settle_block_number);
+        return (key, channels[key].deposit, channels[key].open_block_number, closing_requests[key].settle_block_number, closing_requests[key].closing_balance);
     }
 
-    // Only called by receiver during the challenge_period
+    // Only called by sender after the challenge_period has ended
+    // Close channel and settle
     function settle(
-        address _sender,
+        address _receiver,
         uint32 _open_block_number,
         uint32 _balance)
         external
     {
-        bytes32 key = getKey(_sender, msg.sender, _open_block_number);
-        Channel memory channel = channels[key];
+        bytes32 key = getKey(msg.sender, _receiver, _open_block_number);
 
-        require(channel.open_block_number != 0);
-        require(channel.open_block_number == _open_block_number);
-
-        // Close should have been called
         require(closing_requests[key].settle_block_number != 0);
-
-        // Settle should only be called by the sender(client) after the challenge period
 	    require(block.number > closing_requests[key].settle_block_number);
-        settleChannel(_sender, msg.sender, _open_block_number, _balance);
+
+        closeChannel(msg.sender, _receiver, _open_block_number, _balance);
     }
 
     /*
      *  Private functions
      */
 
-    function closeChannel(
+    // Only called by the sender
+    // Sender can only trigger the challenge period only once
+    function closeChannelChallengePeriod(
         address _receiver,
         uint32 _open_block_number,
-        uint32 _balance,
-        bytes _balance_msg_sig)
+        uint32 _balance)
         private
     {
-        address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
+        bytes32 key = getKey(msg.sender, _receiver, _open_block_number);
 
-        bytes32 key = getKey(sender, _receiver, _open_block_number);
-        Channel channel = channels[key];
-
-        // TODO delete this if we don't include open_block_number in the Channel struct
-        require(channel.open_block_number != 0);
-
-        // was closed not called already?
         require(closing_requests[key].settle_block_number == 0);
 
-        settleChannel(sender, _receiver, _open_block_number, _balance);
+        // Mark channel as closed
+        closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
+        ChannelCloseRequested(msg.sender, _receiver, _open_block_number, _balance);
     }
 
-    function settleChannel(
+    function closeChannel(
         address _sender,
         address _receiver,
         uint32 _open_block_number,
@@ -263,20 +252,25 @@ contract RaidenMicroTransferChannels {
         private
     {
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
-        Channel memory channel = channels[key];
+        Channel channel = channels[key];
+
+        // TODO delete this if we don't include open_block_number in the Channel struct
+        require(channel.open_block_number != 0);
 
         // send minimum of _balance and deposit to receiver
         require(Token(token_address).transfer(_receiver, min(_balance, channel.deposit)));
         // send maximum of deposit - balance and 0 to sender
         require(Token(token_address).transfer(_sender, max(channel.deposit - _balance, 0)));
 
-        // remove closed channel
-        delete channels[key];
-        ChannelSettled(_sender, _receiver, _open_block_number);
-
         assert(channel.deposit >= _balance);
         assert(Token(token_address).balanceOf(_receiver) == min(_balance, channel.deposit));
         assert(Token(token_address).balanceOf(_sender) == max(channel.deposit - _balance, 0));
+
+        // remove closed channel structures
+        delete channels[key];
+        delete closing_requests[key];
+
+        ChannelSettled(_sender, _receiver, _open_block_number);
     }
 
     /*
