@@ -3,19 +3,19 @@ from flask_restful import (
     Api,
 )
 
-from .channel_manager import (
+from raiden_mps.channel_manager import (
     ChannelManager,
     Blockchain,
 )
 
-from .resources import (
+from raiden_mps.proxy.resources import (
     Expensive,
     ChannelManagementAdmin,
     ChannelManagementClose,
     ChannelManagementRoot
 )
 
-from .test.utils import BlockchainMock
+from raiden_mps.test.utils import BlockchainMock
 
 
 class PaymentProxy:

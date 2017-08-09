@@ -7,6 +7,21 @@ from ethereum import tester
 import sign
 
 
+def print_logs(contract, event, name=''):
+    transfer_filter_past = contract.pastEvents(event)
+    past_events = transfer_filter_past.get()
+    if len(past_events):
+        print('--(', name, ') past events for ', event, past_events)
+
+    transfer_filter = contract.on(event)
+    events = transfer_filter.get()
+    if len(events):
+        print('--(', name, ') events for ', event, events)
+
+    transfer_filter.watch(lambda x: print('--(', name, ') event ', event, x['args']))
+
+
+
 @pytest.fixture
 def contract(chain, accounts):
     global token
@@ -18,12 +33,20 @@ def contract(chain, accounts):
     token_address = chain.wait.for_contract_address(deploy_txn_hash)
     token = RDNToken(token_address)
 
+    print_logs(token, 'Approval', 'RDNToken')
+    print_logs(token, 'Transfer', 'RDNToken')
+
     RaidenMicroTransferChannels = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
     deploy_txn_hash = RaidenMicroTransferChannels.deploy(args=[token_address, 5])
     address = chain.wait.for_contract_address(deploy_txn_hash)
     print('RaidenMicroTransferChannels contract address', address)
 
     contract = RaidenMicroTransferChannels(address)
+
+    print_logs(contract, 'ChannelCreated', 'RaidenMicroTransferChannels')
+    print_logs(contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
+    print_logs(contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
+
     return contract
 
 
@@ -41,8 +64,7 @@ def channel(contract, accounts):
     with Timeout(20) as timeout:
         timeout.sleep(2)
 
-    log_args = logs['ChannelCreated'][0]['args']
-    open_block_number = log_args['open_block_number']
+    open_block_number = logs['ChannelCreated'][0]['blockNumber']
 
     return (B, C, open_block_number)
 
@@ -84,26 +106,31 @@ def wait(transfer_filter):
             timeout.sleep(2)
 
 
-def test_open_channel(contract, accounts):
+def test_key_hash(contract, channel):
+    (sender, receiver, open_block_number) = channel
+    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
+
+    assert channel_data[0] == contract.call().getKey(sender, receiver, open_block_number)
+
+
+def test_open_channel(web3, contract, accounts):
     (A, B) = accounts(2)
 
     token.transact({"from": A}).approve(contract.address, 100)
     assert token.call().balanceOf(contract.address) == 0
     contract.transact({"from": A}).createChannel(B, 100)
+    print('----------------------')
+    # assert token.call().allowance(A, contract.address) == 100
     assert token.call().balanceOf(contract.address) == 100
 
     save_logs(contract, 'ChannelCreated')
     with Timeout(20) as timeout:
         timeout.sleep(2)
 
-    print('--LOGS', logs)
-    log_args = logs['ChannelCreated'][0]['args']
-    open_block_number = log_args['open_block_number']
+    open_block_number = logs['ChannelCreated'][0]['blockNumber']
 
-    print('open_block_number', open_block_number)
+    channel_data = contract.call().getChannelInfo(A, B, open_block_number)
 
-    channel_data = contract.call().getChannel(A, B, open_block_number)
-    print('--channel_data', channel_data)
     assert channel_data[1] == 100
     assert channel_data[2] == open_block_number
     assert channel_data[3] == 0
@@ -111,17 +138,15 @@ def test_open_channel(contract, accounts):
 
 def test_fund_channel(contract, channel):
     (sender, receiver, open_block_number) = channel
-    print('test_fund_channel', sender, receiver, open_block_number)
 
-    contract.transact({'from': sender}).fundChannel(receiver, open_block_number, 10)
+    contract.transact({'from': sender}).topUp(receiver, open_block_number, 10)
 
-    channel_data = contract.call().getChannel(sender, receiver, open_block_number)
+    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == 110
 
 
 def test_close_by_receiver(contract, channel):
     (sender, receiver, open_block_number) = channel
-    print('test_close_by_receiver', sender, receiver, open_block_number)
 
     balance = 40
     deposit = 100
@@ -146,7 +171,6 @@ def test_close_by_receiver(contract, channel):
 
 def test_close_by_sender_settle(web3, contract, channel):
     (sender, receiver, open_block_number) = channel
-    print('test_close_by_receiver', sender, receiver, open_block_number)
 
     balance = 40
     deposit = 100
@@ -154,9 +178,8 @@ def test_close_by_sender_settle(web3, contract, channel):
     balance_msg = contract.call().balanceMessageHash(receiver, open_block_number, balance)
     balance_msg_sig, addr = sign.check(bytes(balance_msg, "raw_unicode_escape"), tester.k1)
 
-    balance_msg_sig_hash = contract.call().balanceMessageSignatureHash(balance_msg_sig)
+    balance_msg_sig_hash = contract.call().closingAgreementMessageHash(balance_msg_sig)
 
-    # print('balance_msg_sig_hash', balance_msg_sig_hash)
     closing_sig, addr = sign.check(bytes(balance_msg_sig_hash, "raw_unicode_escape"), tester.k2)
 
     receiver_pre_balance = token.call().balanceOf(receiver)
@@ -176,7 +199,6 @@ def test_close_by_sender_settle(web3, contract, channel):
 
 def test_close_by_sender_challenge(web3, contract, channel):
     (sender, receiver, open_block_number) = channel
-    print('test_close_by_receiver', sender, receiver, open_block_number)
 
     balance = 40
     deposit = 100
@@ -190,7 +212,7 @@ def test_close_by_sender_challenge(web3, contract, channel):
 
     contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
 
-    channel_data = contract.call().getChannel(sender, receiver, open_block_number)
+    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[3] != 0  # settle_block_number
 
     with pytest.raises(tester.TransactionFailed):
