@@ -118,10 +118,11 @@ def test_open_channel(web3, contract, accounts):
 
     token.transact({"from": A}).approve(contract.address, 100)
     assert token.call().balanceOf(contract.address) == 0
+
     contract.transact({"from": A}).createChannel(B, 100)
-    print('----------------------')
-    # assert token.call().allowance(A, contract.address) == 100
+
     assert token.call().balanceOf(contract.address) == 100
+    assert token.call().allowance(A, contract.address) == 0
 
     save_logs(contract, 'ChannelCreated')
     with Timeout(20) as timeout:
@@ -169,7 +170,7 @@ def test_close_by_receiver(contract, channel):
     assert token.call().balanceOf(contract.address) == contract_post_balance
 
 
-def test_close_by_sender_settle(web3, contract, channel):
+def test_close_by_sender(web3, contract, channel):
     (sender, receiver, open_block_number) = channel
 
     balance = 40
@@ -177,16 +178,27 @@ def test_close_by_sender_settle(web3, contract, channel):
 
     balance_msg = contract.call().balanceMessageHash(receiver, open_block_number, balance)
     balance_msg_sig, addr = sign.check(bytes(balance_msg, "raw_unicode_escape"), tester.k1)
+    balance_msg_sig_false, addr = sign.check(bytes(balance_msg, "raw_unicode_escape"), tester.k2)
 
     balance_msg_sig_hash = contract.call().closingAgreementMessageHash(balance_msg_sig)
+    balance_msg_sig_hash_false = contract.call().closingAgreementMessageHash(balance_msg_sig_false)
 
     closing_sig, addr = sign.check(bytes(balance_msg_sig_hash, "raw_unicode_escape"), tester.k2)
+    closing_sig_false, addr = sign.check(bytes(balance_msg_sig_hash, "raw_unicode_escape"), tester.k1)
+    closing_sig_false2, addr = sign.check(bytes(balance_msg_sig_hash_false, "raw_unicode_escape"), tester.k2)
 
     receiver_pre_balance = token.call().balanceOf(receiver)
     sender_pre_balance = token.call().balanceOf(sender)
     contract_pre_balance = token.call().balanceOf(contract.address)
 
-    contract.transact({'from': receiver}).close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    with pytest.raises(ValueError):
+        contract.transact({'from': sender}).close(receiver, open_block_number, balance)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig, closing_sig_false)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig, closing_sig_false2)
+
+    contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = deposit - balance
@@ -197,7 +209,7 @@ def test_close_by_sender_settle(web3, contract, channel):
     assert token.call().balanceOf(contract.address) == contract_post_balance
 
 
-def test_close_by_sender_challenge(web3, contract, channel):
+def test_close_by_sender_challenge_settle_by_receiver(web3, contract, channel):
     (sender, receiver, open_block_number) = channel
 
     balance = 40
@@ -216,11 +228,49 @@ def test_close_by_sender_challenge(web3, contract, channel):
     assert channel_data[3] != 0  # settle_block_number
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': receiver}).settle(sender, open_block_number, balance)
+        contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
+
+    contract.transact({'from': receiver}).close(receiver, open_block_number, balance, balance_msg_sig)
+
+    receiver_post_balance = receiver_pre_balance + balance
+    sender_post_balance = deposit - balance
+    contract_post_balance = contract_pre_balance - deposit
+
+    assert token.call().balanceOf(receiver) == receiver_post_balance
+    assert token.call().balanceOf(sender) == sender_post_balance
+    assert token.call().balanceOf(contract.address) == contract_post_balance
+
+
+def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
+    (sender, receiver, open_block_number) = channel
+
+    balance = 40
+    deposit = 100
+
+    balance_msg = contract.call().balanceMessageHash(receiver, open_block_number, balance)
+    balance_msg_sig, addr = sign.check(bytes(balance_msg, "raw_unicode_escape"), tester.k1)
+
+    receiver_pre_balance = token.call().balanceOf(receiver)
+    sender_pre_balance = token.call().balanceOf(sender)
+    contract_pre_balance = token.call().balanceOf(contract.address)
+
+    contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
+
+    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
+    assert channel_data[3] != 0  # settle_block_number
+
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
+
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': receiver}).settle(receiver, open_block_number, balance)
 
     web3.testing.mine(6)
 
-    contract.transact({'from': receiver}).settle(sender, open_block_number, balance)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': receiver}).settle(receiver, open_block_number, balance)
+
+    contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = deposit - balance
