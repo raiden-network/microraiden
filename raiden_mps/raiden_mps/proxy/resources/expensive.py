@@ -4,6 +4,7 @@ from flask_restful import (
 )
 from raiden_mps.channel_manager import (
     ChannelManager,
+    NoOpenChannel
 )
 # from raiden_mps.utils import parse_balance_proof_msg
 
@@ -27,24 +28,40 @@ class RequestData:
         price = headers.get(header.PRICE, None)
         contract_address = headers.get(header.CONTRACT_ADDRESS, None)
         receiver_address = headers.get(header.RECEIVER_ADDRESS, None)
+        sender_address = headers.get(header.SENDER_ADDRESS, None)
         payment = headers.get(header.PAYMENT, None)
         balance_signature = headers.get(header.BALANCE_SIGNATURE, None)
+        open_block = headers.get(header.OPEN_BLOCK, None)
+        balance = headers.get(header.BALANCE, None)
         if price:
             price = int(price)
+        if open_block:
+            open_block = int(open_block)
+        if balance:
+            balance = int(balance)
         if price and price < 0:
             raise ValueError("Price must be >= 0")
         if contract_address and not is_valid_address(contract_address):
             raise ValueError("Invalid contract address")
         if receiver_address and not is_valid_address(receiver_address):
             raise ValueError("Invalid receiver address")
+        if sender_address and not is_valid_address(sender_address):
+            raise ValueError("Invalid sender address")
         if payment and not isinstance(payment, int):
             raise ValueError("Payment must be an integer")
+        if open_block and open_block < 0:
+            raise ValueError("Open block must be >= 0")
+        if balance and balance < 0:
+            raise ValueError("Balance must be >= 0")
 
         self.price = price
         self.contract_address = contract_address
         self.receiver_address = receiver_address
         self.payment = payment
         self.balance_signature = balance_signature
+        self.sender_address = sender_address
+        self.open_block_number = open_block
+        self.balance = balance
 
 
 def is_valid_address(address):
@@ -63,7 +80,6 @@ class Expensive(Resource):
         self.paywall_db = paywall_db
 
     def get(self, content):
-#        import pudb;pudb.set_trace()
         try:
             data = RequestData(request.headers)
         except ValueError as e:
@@ -73,6 +89,13 @@ class Expensive(Resource):
             return "NOT FOUND", 404
         if data.balance_signature:
             # check the balance proof
+            try:
+                self.channel_manager.verifyBalanceProof(self.receiver_address,
+                                                        data.open_block_number,
+                                                        data.balance,
+                                                        data.balance_signature)
+            except NoOpenChannel as e:
+                return str(e), 402, {header.INSUF_CONFS: "1"}
             return self.reply_premium(content, data.sender_address, proxy_handle)
         else:
             return self.reply_payment_required(content, proxy_handle)

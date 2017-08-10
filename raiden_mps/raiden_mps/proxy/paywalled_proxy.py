@@ -5,7 +5,6 @@ from flask_restful import (
 
 from raiden_mps.channel_manager import (
     ChannelManager,
-    Blockchain,
 )
 
 from raiden_mps.proxy.resources import (
@@ -15,7 +14,6 @@ from raiden_mps.proxy.resources import (
     ChannelManagementRoot
 )
 
-from raiden_mps.test.utils import BlockchainMock
 from raiden_mps.proxy.content import PaywallDatabase
 
 from web3 import Web3
@@ -25,8 +23,7 @@ import raiden_mps.utils as utils
 
 
 class PaywalledProxy:
-    def __init__(self, blockchain, config, flask_app=None):
-        assert isinstance(blockchain, Blockchain) or isinstance(blockchain, BlockchainMock)
+    def __init__(self, config, flask_app=None):
         if not flask_app:
             self.app = Flask(__name__)
         else:
