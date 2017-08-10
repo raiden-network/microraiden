@@ -3,9 +3,7 @@ pragma solidity ^0.4.11;
 import "./RDNToken/Token.sol";
 import "./lib/ECVerify.sol";
 
-// TODO There is only one channel sender > receiver with a contract at a time
-
-/// @title RaidenMicroTransferChannels - Standard token implementation.
+/// @title Raiden MicroTransfer Channels Contract.
 contract RaidenMicroTransferChannels {
 
     /*
@@ -39,9 +37,12 @@ contract RaidenMicroTransferChannels {
     event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 _open_block_number);
 
     /*
-     *  Init function
+     *  Constructor
      */
 
+    /// @dev Constructor for creating the Raiden microtransfer channels contract.
+    /// @param _token The address of the Token used by the channels.
+    /// @param _challenge_period A fixed number of blocks representing the challenge period after a sender requests the closing of the channel without the receiver's signature.
     function RaidenMicroTransferChannels(address _token, uint8 _challenge_period) {
         require(_token != 0x0);
         require(_challenge_period > 0);
@@ -53,6 +54,11 @@ contract RaidenMicroTransferChannels {
      *  Public helper functions (constant)
      */
 
+    /// @dev Returns the unique channel identifier used in the contract.
+    /// @param _sender The address that sends token payments.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @return Unique channel identifier.
     function getKey(
         address _sender,
         address _receiver,
@@ -64,6 +70,11 @@ contract RaidenMicroTransferChannels {
         return sha3(_sender, _receiver, _open_block_number);
     }
 
+    /// @dev Returns a hash of the balance message needed to be signed by the sender.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
+    /// @return Hash of the balance message.
     function balanceMessageHash(
         address _receiver,
         uint32 _open_block_number,
@@ -75,6 +86,9 @@ contract RaidenMicroTransferChannels {
         return sha3(_receiver, _open_block_number, _balance, address(this));
     }
 
+    /// @dev Returns a hash of the balance message that was signed by the sender, so it can be subsequently signed by the receiver.
+    /// @param _balance_msg_sig The balance message signed by the sender.
+    /// @return Hash of the balance message signed by the sender.
     function closingAgreementMessageHash(bytes _balance_msg_sig)
         public
         constant
@@ -83,6 +97,12 @@ contract RaidenMicroTransferChannels {
         return sha3(_balance_msg_sig);
     }
 
+    /// @dev Returns the sender address extracted from the balance proof.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
+    /// @param _balance_msg_sig The balance message signed by the sender.
+    /// @return Address of the token payments sender.
     function verifyBalanceProof(
         address _receiver,
         uint32 _open_block_number,
@@ -99,6 +119,10 @@ contract RaidenMicroTransferChannels {
         return sender;
     }
 
+    /// @dev Returns the receiver address extracted from the closing signature and the signed balance message.
+    /// @param _balance_msg_sig The balance message signed by the sender.
+    /// @param _closing_sig The hash of the signed balance message, signed by the receiver.
+    /// @return Address of the token payments receiver.
     function verifyClosingSignature(
         bytes _balance_msg_sig,
         bytes _closing_sig)
@@ -115,6 +139,9 @@ contract RaidenMicroTransferChannels {
      *  External functions
      */
 
+    /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract.
+    /// @param _receiver The address that receives token payments.
+    /// @param _deposit The amount of tokens that the sender escrows.
     function createChannel(
         address _receiver,
         uint32 _deposit)
@@ -139,6 +166,10 @@ contract RaidenMicroTransferChannels {
     }
 
     // TODO (WIP) Funds channel with an additional depozit of tokens
+    /// @dev Increase the sender's current depozit.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _added_deposit The added token deposit with which the current deposit is increased.
     function topUp(
         address _receiver,
         uint32 _open_block_number,
@@ -157,8 +188,11 @@ contract RaidenMicroTransferChannels {
         ChannelTopedUp(msg.sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
     }
 
-    // Close channel and settle if called by receiver with balance proof
-    // Start challenge_period if called by the sender (no receiver signature)
+    /// @dev Function called when any of the parties wants to close the channel and settle; receiver needs a balance proof to immediately settle, sender triggers a challenge period.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
+    /// @param _balance_msg_sig The balance message signed by the sender.
     function close(
         address _receiver,
         uint32 _open_block_number,
@@ -177,8 +211,12 @@ contract RaidenMicroTransferChannels {
         }
     }
 
-    // Called by the sender with a balance proof + receiver signature
-    // Close channel and settle
+    /// @dev Function called by the sender, when he has a closing signature from the receiver; channel is closed immediately.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
+    /// @param _balance_msg_sig The balance message signed by the sender.
+    /// @param _closing_sig The hash of the signed balance message, signed by the receiver.
     function close(
         address _receiver,
         uint32 _open_block_number,
@@ -196,20 +234,27 @@ contract RaidenMicroTransferChannels {
         settleChannel(sender, receiver, _open_block_number, _balance);
     }
 
+    /// @dev Function for getting information about a channel.
+    /// @param _sender The address that sends token payments.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @return Channel information (unique_identifier, deposit, settle_block_number, closing_balance).
     function getChannelInfo(
         address _sender,
         address _receiver,
         uint32 _open_block_number)
         external
         constant
-        returns (bytes32, uint, uint32, uint32, uint32)
+        returns (bytes32, uint192, uint32, uint32)
     {
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
-        return (key, channels[key].deposit, channels[key].open_block_number, closing_requests[key].settle_block_number, closing_requests[key].closing_balance);
+        return (key, channels[key].deposit, closing_requests[key].settle_block_number, closing_requests[key].closing_balance);
     }
 
-    // Only called by sender after the challenge_period has ended
-    // Close channel and settle
+    /// @dev Function called by the sender after the challenge period has ended, in case the receiver has not closed the channel.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
     function settle(
         address _receiver,
         uint32 _open_block_number,
@@ -228,8 +273,10 @@ contract RaidenMicroTransferChannels {
      *  Private functions
      */
 
-    // Only called by the sender
-    // Sender can only trigger the challenge period only once
+    /// @dev Sender starts the challenge period; this can only happend once.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
     function initChallengePeriod(
         address _receiver,
         uint32 _open_block_number,
@@ -242,9 +289,15 @@ contract RaidenMicroTransferChannels {
 
         // Mark channel as closed
         closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
+        closing_requests[key].closing_balance = _balance;
         ChannelCloseRequested(msg.sender, _receiver, _open_block_number, _balance);
     }
 
+    /// @dev Closes the channel and settles by transfering the balance to the receiver and the rest of the depozit back to the sender.
+    /// @param _sender The address that sends token payments.
+    /// @param _receiver The address that receives token payments.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
     function settleChannel(
         address _sender,
         address _receiver,
@@ -278,6 +331,10 @@ contract RaidenMicroTransferChannels {
      *  Internal functions
      */
 
+    /// @dev Internal function for getting the maximum between two numbers.
+    /// @param a First number to compare.
+    /// @param b Second number to compare.
+    /// @return The maximum between the two provided numbers.
     function max(uint a, uint b)
         internal
         constant
@@ -287,6 +344,10 @@ contract RaidenMicroTransferChannels {
         else return b;
     }
 
+    /// @dev Internal function for getting the minimum between two numbers.
+    /// @param a First number to compare.
+    /// @param b Second number to compare.
+    /// @return The minimum between the two provided numbers.
     function min(uint a, uint b)
         internal
         constant
