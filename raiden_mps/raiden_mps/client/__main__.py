@@ -56,17 +56,18 @@ def run(
     )
 
     # client.request_resource('doggo.jpg')
-    channel = client.open_channel('0x003573995FAd11dF98746D286cFE6d87be3d508b', 5)
-    client.close_channel(channel)
-    client.create_transfer(channel, 1)
+    rmp_client = client.rmp_client
+    channel = rmp_client.open_channel('0x003573995FAd11dF98746D286cFE6d87be3d508b', 5)
+    rmp_client.close_channel(channel)
+    rmp_client.create_transfer(channel, 1)
     print('Balance signature: {}'.format(encode_hex(channel.balance_sig)))
 
-    # settling_channels = [channel for channel in client.channels if channel.state.name == 'settling']
-    # for channel in settling_channels:
-    #     client.settle_channel(channel)
-    # open_channels = [channel for channel in client.channels if channel.state.name == 'open']
-    # for channel in open_channels:
-    #     client.close_channel(channel, 0)
+    settling_channels = [channel for channel in rmp_client.channels if channel.state.name == 'settling']
+    for channel in settling_channels:
+        rmp_client.settle_channel(channel)
+    open_channels = [channel for channel in rmp_client.channels if channel.state.name == 'open']
+    for channel in open_channels:
+        rmp_client.close_channel(channel, 0)
 
 
 if __name__ == '__main__':
