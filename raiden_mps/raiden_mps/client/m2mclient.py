@@ -178,7 +178,7 @@ class M2MClient(object):
             headers = None
         url = 'http://{}:{}/{}'.format(self.api_endpoint, self.api_port, resource)
         response = requests.get(url, headers=headers)
-        return response.status_code, response.headers, response.json()
+        return response.status_code, response.headers, response.content
 
     def open_channel(self, receiver, deposit):
         current_block = self.web3.eth.blockNumber
@@ -242,5 +242,7 @@ class M2MClient(object):
             channel.receiver, channel.block, channel.balance, channel.balance_sig
         )
         assert sender == channel.sender
+
+        self.store_channels()
 
         return channel.balance_sig
