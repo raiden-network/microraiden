@@ -27,17 +27,23 @@ class RaidenMicropaymentsClient {
     tokenAddr = tokenAddr || window["RDNtokenAddr"];
     tokenABI = tokenABI || window["RDNtokenABI"];
     this.token = this.web3.eth.contract(tokenABI).at(tokenAddr);
-
-    this.loadStoredChannel();
   }
 
-  loadStoredChannel() {
+  loadStoredChannel(account, receiver) {
     if (typeof localStorage === "undefined" || localStorage === null) {
       var LocalStorage = require('node-localstorage').LocalStorage;
       localStorage = new LocalStorage('./local_storage');
     }
-    if (localStorage.channel) {
-      this.channel = JSON.parse(localStorage.channel);
+    if (!localStorage) {
+      this.channel = undefined;
+      return;
+    }
+    const key = account + "|" + receiver;
+    const value = localStorage.getItem(key);
+    if (value) {
+      this.channel = JSON.parse(value);
+    } else {
+      this.channel = undefined;
     }
   }
 
@@ -53,13 +59,21 @@ class RaidenMicropaymentsClient {
   setChannelInfo(channel) {
     this.channel = channel;
     if (localStorage) {
-      localStorage.channel = JSON.stringify(this.channel);
+      const key = channel.account + "|" + channel.receiver;
+      localStorage.setItem(key, JSON.stringify(this.channel));
     }
   }
 
-  isChannelOpen(callback) {
-    if (!this.channel.receiver || !this.channel.openBlockNumber
+  isChannelValid() {
+    if (!this.channel || !this.channel.receiver || !this.channel.openBlockNumber
       || isNaN(this.channel.balance) || !this.channel.account) {
+      return false;
+    }
+    return true;
+  }
+
+  isChannelOpen(callback) {
+    if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
     this.contract.ChannelCloseRequested({
@@ -69,10 +83,10 @@ class RaidenMicropaymentsClient {
     }, {
       fromBlock: this.channel.openBlockNumber,
       toBlock: 'latest'
-    }).get((e, r) => {
-      if (e) {
-        return callback(e);
-      } else if (!r || r.length === 0) {
+    }).get((err, res) => {
+      if (err) {
+        return callback(err);
+      } else if (!res || res.length === 0) {
         return callback(null, true);
       } else {
         return callback(null, false);
@@ -81,6 +95,9 @@ class RaidenMicropaymentsClient {
   }
 
   openChannel(account, receiver, deposit, callback) {
+    if (this.isChannelValid()) {
+      console.warn("Already valid channel will be forgotten:", this.channel);
+    }
     // send 'approve' transaction
     this.token.approve.sendTransaction(
       this.contract.address,
@@ -90,7 +107,6 @@ class RaidenMicropaymentsClient {
         if (err) {
           return callback(err);
         }
-        const approveTxHash = res;
         // send 'createChannel' transaction
         this.contract.createChannel.sendTransaction(
           receiver,
@@ -116,7 +132,48 @@ class RaidenMicropaymentsClient {
       });
   }
 
+  topUpChannel(deposit, callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
+    }
+    // send 'approve' transaction
+    this.token.approve.sendTransaction(
+      this.contract.address,
+      deposit,
+      {from: account},
+      (err, res) => {
+        if (err) {
+          return callback(err);
+        }
+        // send 'createChannel' transaction
+        this.contract.topUp.sendTransaction(
+          this.channel.receiver,
+          this.channel.openBlockNumber,
+          deposit,
+          {from: account},
+          (err, res) => {
+            if (err) {
+              return callback(err);
+            }
+            const topUpTxHash = res;
+            // wait for 'topUp' transaction to be mined
+            this.waitTx(topUpTxHash, (err, res) => {
+              if (err) {
+                return callback(err);
+              }
+              const block = res;
+              // return block number
+              return callback(null, block.number);
+            });
+          }
+        )
+      });
+  }
+
   signBalance(newBalance, callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
+    }
     if (newBalance === null) {
       newBalance = this.channel.balance;
     }
@@ -132,21 +189,26 @@ class RaidenMicropaymentsClient {
         if (err) {
           return callback(err);
         }
+        const msgHash = res;
         // ask for signing of this message
-        this.signHash(res, this.account, (err, res) => {
+        this.signHash(msgHash, this.account, (err, res) => {
           if (err) {
             return callback(err);
           }
+          const sign = res;
           // return signed message
           if (newBalance === this.channel.balance && !this.channel.sign) {
-            this.channel.sign = res;
+            this.channel.sign = sign;
           }
-          return callback(null, res);
+          return callback(null, sign);
         });
       });
   }
 
   incrementBalanceAndSign(amount, callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
+    }
     const newBalance = this.channel.balance + amount;
     // get current deposit
     this.contract.getChannelInfo.call(
@@ -168,20 +230,24 @@ class RaidenMicropaymentsClient {
           if (err) {
             return callback(err);
           }
+          const sign = res;
           this.setChannelInfo(Object.assign(
             {},
             this.channel,
             {
               balance: newBalance,
-              sign: res
+              sign: sign
             }
           ));
-          return callback(null, res);
+          return callback(null, sign);
         });
       });
   }
 
   closeChannel(receiverSig, callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
+    }
     return this.isChannelOpen((err, res) => {
       if (err) {
         return callback(err);
@@ -198,11 +264,12 @@ class RaidenMicropaymentsClient {
         if (err) {
           return callback(err);
         }
+        const sign = res;
         const params = [
           this.channel.receiver,
           this.channel.openBlockNumber,
           this.channel.balance,
-          res
+          sign
         ];
         if (receiverSig) {
           params.push(receiverSig);
@@ -214,15 +281,48 @@ class RaidenMicropaymentsClient {
             if (err) {
               return callback(err);
             }
-            return this.waitTx(res, (err, res) => {
+            const txHash = res;
+            return this.waitTx(txHash, (err, res) => {
               if (err) {
                 return callback(err);
               }
-              return callback(null, res.number);
+              const block = res;
+              return callback(null, block.number);
             });
           }
         );
       });
+    });
+  }
+
+  settleChannel(callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
+    }
+    return this.isChannelOpen((err, res) => {
+      if (err) {
+        return callback(err);
+      } else if (res) {
+        return callback(new Error("Tried settling open channel"));
+      }
+      return this.contract.settle.sendTransaction(
+        this.channel.receiver,
+        this.channel.openBlockNumber,
+        {from: this.channel.account},
+        (err, res) => {
+          if (err) {
+            return callback(err);
+          }
+          const txHash = res;
+          return this.waitTx(txHash, (err, res) => {
+            if (err) {
+              return callback(err);
+            }
+            const block = res;
+            return callback(null, block.number);
+          });
+        }
+      );
     });
   }
 
@@ -238,10 +338,12 @@ class RaidenMicropaymentsClient {
         filter.stopWatching();
         filter = null;
         console.warn('!! Tx expired !!');
-        if (callback)
-        return callback(new Error("Tx expired"));
-        else
-        return false;
+        if (callback) {
+          return callback(new Error("Tx expired"));
+        }
+        else {
+          return false;
+        }
       }
       // Get info about latest Ethereum block
       let block = this.web3.eth.getBlock(blockHash);
