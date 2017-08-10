@@ -3,8 +3,10 @@ import os
 import pytest
 from populus.project import Project
 from populus.utils.wait import wait_for_transaction_receipt
-from populus.contracts.contract import construct_contract_factory
+from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.channel_manager import ChannelManager
+from ethereum.tester import accounts, keys
+from ethereum.utils import encode_hex
 
 
 test_dir = os.path.dirname(os.path.dirname(__file__))
@@ -22,14 +24,25 @@ def check_succesful_tx(web3, txid, timeout=180):
     assert txinfo["gas"] != receipt["gasUsed"]
     return receipt
 
+
 @pytest.fixture
-def sender():
-    return '0x82a978b3f5962a5b0957d9ee9eef472ee55b42f1'  # funded default account of testrpc
+def sender_address():
+    return encode_hex(accounts[0]).decode()
 
 
 @pytest.fixture
-def receiver():
-    return '0x7d577a597b2742b498cb5cf0c26cdcd726d39e6e'  # funded default account of testrpc
+def receiver_address():
+    return encode_hex(accounts[1]).decode()
+
+
+@pytest.fixture
+def sender_privkey():
+    return encode_hex(keys[0]).decode()
+
+
+@pytest.fixture
+def receiver_privkey():
+    return encode_hex(keys[1]).decode()
 
 
 @pytest.fixture
@@ -47,7 +60,7 @@ def web3(chain):
 
 
 @pytest.fixture
-def contracts(web3, chain, sender):
+def contracts(web3, chain, sender_address):
     # deploy contracts
     token_contract_data = compiled_contracts['RDNToken']
     token_factory = web3.eth.contract(
@@ -63,7 +76,7 @@ def contracts(web3, chain, sender):
 
     channel_contract_data = compiled_contracts['RaidenMicroTransferChannels']
     channel_factory = web3.eth.contract(
-        contract_name='RDNToken',
+        contract_name='RaidenMicroTransferChannels',
         abi=channel_contract_data["abi"],
         bytecode=channel_contract_data["bytecode"],
         bytecode_runtime=channel_contract_data["bytecode_runtime"]
@@ -74,10 +87,29 @@ def contracts(web3, chain, sender):
     channel_contract = channel_factory(cf_address)
 
     # send RDNTokens to sender
-    token_contract.transact({"from": web3.eth.accounts[0]}).transfer(sender, 400)
+    token_contract.transact({"from": web3.eth.accounts[0]}).transfer(sender_address, 400)
 
     return token_contract, channel_contract
 
 
-def test_channel_opening(contracts, sender, receiver):
+@pytest.fixture
+def token_contract(contracts):
+    return contracts[0]
+
+
+@pytest.fixture
+def channel_manager_contract_proxy(contracts, receiver_privkey):
+    contract = contracts[1]
+    pytest.set_trace()
+    contract_proxy = ChannelContractProxy(contract.web3, receiver_privkey, contract.address,
+                                          contract.abi, int(20e9), 50000)
+    return contracts[1]
+
+
+@pytest.fixture
+def channel_manager(channel_manager_contract, receiver_account):
+    channel_manager = ChannelManager()
+
+
+def test_channel_opening(channel_manager_contract_proxy, sender_account, receiver_account):
     pass
