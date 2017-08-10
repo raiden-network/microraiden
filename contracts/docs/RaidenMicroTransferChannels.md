@@ -34,7 +34,7 @@
 |---|-----|----|--------|-----------|
 |0|_receiver|address|||
 |1|_open_block_number|uint32|||
-|2|_balance|uint32|||
+|2|_balance|uint192|||
 
 
 ##### Returns
@@ -101,7 +101,7 @@ empty list
 |0|param0|bytes32|||
 |1|param1|uint192|||
 |2|param2|uint32|||
-|3|param3|uint32|||
+|3|param3|uint192|||
 
 
 #### getKey
@@ -153,7 +153,7 @@ empty list
 |---|-----|----|--------|-----------|
 |0|_receiver|address|||
 |1|_open_block_number|uint32|||
-|2|_balance|uint32|||
+|2|_balance|uint192|||
 |3|_balance_msg_sig|bytes|||
 
 
@@ -201,7 +201,7 @@ empty list
 |---|-----|----|--------|-----------|
 |0|_receiver|address|||
 |1|_open_block_number|uint32|||
-|2|_balance|uint32|||
+|2|_balance|uint192|||
 |3|_balance_msg_sig|bytes|||
 |4|_closing_sig|bytes|||
 
@@ -216,7 +216,7 @@ empty list
 |#  |Param|Type|TypeHint|Description|
 |---|-----|----|--------|-----------|
 |0|_receiver|address|||
-|1|_deposit|uint32|||
+|1|_deposit|uint192|||
 
 
 #### initChallengePeriod
@@ -230,7 +230,7 @@ empty list
 |---|-----|----|--------|-----------|
 |0|_receiver|address|||
 |1|_open_block_number|uint32|||
-|2|_balance|uint32|||
+|2|_balance|uint192|||
 
 
 #### settle
@@ -258,7 +258,7 @@ empty list
 |0|_sender|address|||
 |1|_receiver|address|||
 |2|_open_block_number|uint32|||
-|3|_balance|uint32|||
+|3|_balance|uint192|||
 
 
 #### topUp
@@ -272,7 +272,7 @@ empty list
 |---|-----|----|--------|-----------|
 |0|_receiver|address|||
 |1|_open_block_number|uint32|||
-|2|_added_deposit|uint32|||
+|2|_added_deposit|uint192|||
 
 
 
@@ -292,7 +292,7 @@ Events
 |---|-----|----|--------|-----------|
 |0|_sender|address|||
 |1|_receiver|address|||
-|2|_deposit|uint32|||
+|2|_deposit|uint192|||
 
 
 #### ChannelTopedUp
@@ -323,7 +323,7 @@ Events
 |0|_sender|address|||
 |1|_receiver|address|||
 |2|_open_block_number|uint32|||
-|3|_balance|uint32|||
+|3|_balance|uint192|||
 
 
 #### ChannelSettled
@@ -373,7 +373,7 @@ Events
 |#  |Param|Type|TypeHint|Description|
 |---|-----|----|--------|-----------|
 |0|settle_block_number|uint32|||
-|1|closing_balance|uint32|||
+|1|closing_balance|uint192|||
 
 
 
