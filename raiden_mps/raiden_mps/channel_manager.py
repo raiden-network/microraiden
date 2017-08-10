@@ -72,7 +72,7 @@ class Blockchain(gevent.Greenlet):
         }
         block_range_confirmed = {
             'from_block': self.cm.state.head_number + 1,
-            'to_block': web3.eth.blockNumber - self.n_confirmations
+            'to_block': self.web3.eth.blockNumber - self.n_confirmations
         }
 
         # unconfirmed channel created
