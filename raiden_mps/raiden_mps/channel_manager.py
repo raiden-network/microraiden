@@ -129,6 +129,7 @@ class ChannelManager(gevent.Greenlet):
         self.blockchain = Blockchain(web3, contract_proxy, self)
         self.receiver = receiver
         self.private_key = private_key
+        self.contract_proxy = contract_proxy
         assert '0x' + encode_hex(privtoaddr(self.private_key)) == self.receiver.lower()
 
         if state_filename is not None and os.path.isfile(state_filename):
