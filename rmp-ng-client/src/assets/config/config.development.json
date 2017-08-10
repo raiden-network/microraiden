@@ -1,7 +1,20 @@
 {
   "web3url": "/web3",
-  "contractAddr": "0x0d43084eef59dc59ba378129e918e2707c209bc5",
+  "contractAddr": "0xd557fe97695dacaf3e8e0ca8fb4dc3c6b60efff6",
   "contractABI": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "challenge_period",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
     {
       "constant": true,
       "inputs": [
@@ -26,7 +39,7 @@
         },
         {
           "name": "",
-          "type": "uint256"
+          "type": "uint192"
         },
         {
           "name": "",
@@ -52,7 +65,7 @@
           "type": "uint32"
         },
         {
-          "name": "_deposit",
+          "name": "_added_deposit",
           "type": "uint32"
         }
       ],
@@ -83,15 +96,11 @@
       "constant": false,
       "inputs": [
         {
-          "name": "_sender",
+          "name": "_receiver",
           "type": "address"
         },
         {
           "name": "_open_block_number",
-          "type": "uint32"
-        },
-        {
-          "name": "_balance",
           "type": "uint32"
         }
       ],
@@ -174,6 +183,19 @@
       ],
       "name": "close",
       "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "token_address",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
       "payable": false,
       "type": "function"
     },
@@ -315,6 +337,38 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_open_block_number",
+          "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "name": "_added_depozit",
+          "type": "uint192"
+        },
+        {
+          "indexed": false,
+          "name": "_depozit",
+          "type": "uint192"
+        }
+      ],
+      "name": "ChannelTopedUp",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": true,
           "name": "_sender",
           "type": "address"
@@ -361,7 +415,7 @@
       "type": "event"
     }
   ],
-  "tokenAddr": "0x4baf3ed928b01beb1b47818a39beebaef008fbdb",
+  "tokenAddr": "0xa811ff09d343ae0b1e3dfdcd5184e7322f7d7d48",
   "tokenABI": [
     {
       "constant": true,

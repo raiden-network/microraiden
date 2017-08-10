@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Raiden MPC Index</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
+</head>
+<body>
+  <script type="text/javascript" src="rmp.js"></script>
+  <script type="text/javascript">
+$.getJSON("parameters.json", (json) => {
+  window.RDNcontractAddr = json["contractAddr"];
+  window.RDNcontractABI = json["contractABI"];
+  window.RDNtokenAddr = json["tokenAddr"];
+  window.RDNtokenABI = json["tokenABI"];
+
+  $(document).ready(() => $("#test").html(window.RDNcontractAddr));
+});
+  </script>
+  <div id="test"></div>
+</body>
+</html>

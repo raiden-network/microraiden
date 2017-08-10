@@ -4,19 +4,21 @@ const Web3 = require("web3");
 export class RaidenMicropaymentsClient {
 
   constructor(
-      web3url,
-      contractAddr,
-      contractABI,
-      tokenAddr,
-      tokenABI,
+    web3url,
+    contractAddr,
+    contractABI,
+    tokenAddr,
+    tokenABI,
   ) {
     if (!web3url) {
       web3url = "http://localhost:8545";
     }
-    if (web3url.currentProvider)
+    if (web3url.currentProvider) {
       this.web3 = new Web3(web3.currentProvider);
-    else if (typeof web3url === 'string')
+    }
+    else if (typeof web3url === 'string') {
       this.web3 = new Web3(new Web3.providers.HttpProvider(web3url));
+    }
 
     contractAddr = contractAddr || window["RDNcontractAddr"];
     contractABI = contractABI || window["RDNcontractABI"];
@@ -25,6 +27,18 @@ export class RaidenMicropaymentsClient {
     tokenAddr = tokenAddr || window["RDNtokenAddr"];
     tokenABI = tokenABI || window["RDNtokenABI"];
     this.token = this.web3.eth.contract(tokenABI).at(tokenAddr);
+
+    this.loadStoredChannel();
+  }
+
+  loadStoredChannel() {
+    if (typeof localStorage === "undefined" || localStorage === null) {
+      var LocalStorage = require('node-localstorage').LocalStorage;
+      localStorage = new LocalStorage('./local_storage');
+    }
+    if (localStorage.channel) {
+      this.channel = JSON.parse(localStorage.channel);
+    }
   }
 
   getAccounts(callback) {
@@ -37,17 +51,21 @@ export class RaidenMicropaymentsClient {
   }
 
   setChannelInfo(channel) {
-    this.channel = channel
+    this.channel = channel;
+    if (localStorage) {
+      localStorage.channel = JSON.stringify(this.channel);
+    }
   }
 
   isChannelOpen(callback) {
     if (!this.channel.receiver || !this.channel.openBlockNumber
-        || isNaN(this.channel.balance) || !this.channel.account) {
+      || isNaN(this.channel.balance) || !this.channel.account) {
       return callback(new Error("No valid channelInfo"));
     }
     this.contract.ChannelCloseRequested({
-      sender: this.account,
-      receiver: this.channel.receiver
+      _sender: this.account,
+      _receiver: this.channel.receiver,
+      _open_block_number: this.channel.openBlockNumber,
     }, {
       fromBlock: this.channel.openBlockNumber,
       toBlock: 'latest'
@@ -95,11 +113,42 @@ export class RaidenMicropaymentsClient {
             });
           }
         )
-    });
+      });
+  }
+
+  signBalance(newBalance, callback) {
+    if (newBalance === null) {
+      newBalance = this.channel.balance;
+    }
+    if (newBalance === this.channel.balance && this.channel.sign) {
+      return callback(null, this.channel.sign);
+    }
+    return this.contract.balanceMessageHash.call(
+      this.channel.receiver,
+      this.channel.openBlockNumber,
+      newBalance,
+      {from: this.channel.account},
+      (err, res) => {
+        if (err) {
+          return callback(err);
+        }
+        // ask for signing of this message
+        this.signHash(res, this.account, (err, res) => {
+          if (err) {
+            return callback(err);
+          }
+          // return signed message
+          if (newBalance === this.channel.balance && !this.channel.sign) {
+            this.channel.sign = res;
+          }
+          return callback(null, res);
+        });
+      });
   }
 
   incrementBalanceAndSign(amount, callback) {
     const newBalance = this.channel.balance + amount;
+    // get current deposit
     this.contract.getChannelInfo.call(
       this.channel.account,
       this.channel.receiver,
@@ -111,28 +160,77 @@ export class RaidenMicropaymentsClient {
         }
         const deposit = res[1];
         if (newBalance > deposit) {
-          return callback(new Error("Insuficient funds"));
+          return callback(new Error("Insuficient funds: current = "+deposit+
+            ", required = +"+newBalance-deposit));
         }
-        this.contract.balanceMessageHash.call(
+        // get hash for new balance proof
+        return this.signBalance(newBalance, (err, res) => {
+          if (err) {
+            return callback(err);
+          }
+          this.setChannelInfo(Object.assign(
+            {},
+            this.channel,
+            {
+              balance: newBalance,
+              sign: res
+            }
+          ));
+          return callback(null, res);
+        });
+      });
+  }
+
+  closeChannel(receiverSig, callback) {
+    return this.isChannelOpen((err, res) => {
+      if (err) {
+        return callback(err);
+      } else if (!res) {
+        return callback(new Error("Tried closing already closed channel"));
+      }
+      let func;
+      if (!this.channel.sign) {
+        func = (cb) => this.signBalance(this.channel.balance, cb);
+      } else {
+        func = (cb) => cb(null, this.channel.sign);
+      }
+      return func((err, res) => {
+        if (err) {
+          return callback(err);
+        }
+        const params = [
           this.channel.receiver,
           this.channel.openBlockNumber,
-          newBalance,
+          this.channel.balance,
+          res
+        ];
+        if (receiverSig) {
+          params.push(receiverSig);
+        }
+        return this.contract.close.sendTransaction(
+          ...params,
           {from: this.channel.account},
           (err, res) => {
             if (err) {
               return callback(err);
             }
-            this.setChannelInfo(Object.assign({}, this.channel, {balance: newBalance}));
-            return callback(null, res);
-          });
+            return this.waitTx(res, (err, res) => {
+              if (err) {
+                return callback(err);
+              }
+              return callback(null, res.number);
+            });
+          }
+        );
       });
+    });
   }
 
   waitTx(txHash, callback) {
     /*
-    * Watch for a particular transaction hash and call the awaiting function when done;
-    * Got it from: https://github.com/ethereum/web3.js/issues/393
-    */
+     * Watch for a particular transaction hash and call the awaiting function when done;
+     * Got it from: https://github.com/ethereum/web3.js/issues/393
+     */
     let blockCounter = 15;
     // Wait for tx to be finished
     let filter = this.web3.eth.filter('latest').watch((err, blockHash) => {
@@ -141,9 +239,9 @@ export class RaidenMicropaymentsClient {
         filter = null;
         console.warn('!! Tx expired !!');
         if (callback)
-          return callback(new Error("Tx expired"));
+        return callback(new Error("Tx expired"));
         else
-          return false;
+        return false;
       }
       // Get info about latest Ethereum block
       let block = this.web3.eth.getBlock(blockHash);
@@ -154,13 +252,13 @@ export class RaidenMicropaymentsClient {
         filter.stopWatching();
         filter = null;
         if (callback)
-          return callback(null, block);
+        return callback(null, block);
         else
-          return block;
-      // Tx hash not found yet?
-      } else {
-        // console.log('Waiting tx..', blockCounter);
-      }
+        return block;
+        // Tx hash not found yet?
+        } else {
+          console.log('Waiting tx..', blockCounter);
+        }
     });
   }
 
