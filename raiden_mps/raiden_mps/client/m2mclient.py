@@ -1,6 +1,7 @@
+from eth_utils import force_bytes
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
-from ethereum.utils import privtoaddr, encode_hex
+from ethereum.utils import privtoaddr, encode_hex, sha3
 import json
 import os
 import requests
@@ -151,6 +152,7 @@ class M2MClient(object):
 
         if channels:
             channel = channels[0]
+            print('Found open channel, opened at block #{}.'.format(channel.block))
         else:
             deposit = CHANNEL_SIZE_FACTOR * value
             print('Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver))
@@ -166,11 +168,11 @@ class M2MClient(object):
         if channel:
             headers = {
                 HEADERS['contract_address']: self.channel_manager_address,
-                HEADERS['balance']: channel.balance,
-                HEADERS['balance_signature']: channel.balance_proof.balance_sig,
-                HEADERS['sender']: channel.sender,
-                HEADERS['receiver']: channel.receiver,
-                HEADERS['open_block']: channel.block
+                HEADERS['balance']: str(channel.balance),
+                HEADERS['balance_signature']: encode_hex(channel.balance_sig),
+                HEADERS['sender_address']: channel.sender,
+                HEADERS['receiver_address']: channel.receiver,
+                HEADERS['open_block']: str(channel.block)
             }
         else:
             headers = None
@@ -191,7 +193,6 @@ class M2MClient(object):
 
         if event:
             print('Event received. Channel created in block {}.'.format(event['blockNumber']))
-            # self.web3._requestManager.request_blocking('eth_getLogs', [{'topics': []}])
             channel = ChannelInfo(
                 event['args']['_sender'],
                 event['args']['_receiver'],
@@ -232,12 +233,11 @@ class M2MClient(object):
 
         channel.balance += value
 
-        pk = PrivateKey.from_hex(self.privkey)
-        msg = self.channel_manager_proxy.contract.call().balanceMessageHash(
-            channel.receiver, channel.block, channel.balance
+        channel.balance_sig = self.channel_manager_proxy.sign_balance_proof(
+            self.privkey, channel.receiver, channel.block, channel.balance
         )
-        channel.balance_sig = pk.sign_recoverable(bytes(msg))
 
+        # This part is optional but can't hurt.
         sender = self.channel_manager_proxy.contract.call().verifyBalanceProof(
             channel.receiver, channel.block, channel.balance, channel.balance_sig
         )

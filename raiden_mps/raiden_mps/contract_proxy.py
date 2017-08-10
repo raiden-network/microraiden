@@ -1,4 +1,4 @@
-from eth_utils import decode_hex
+from eth_utils import decode_hex, force_bytes
 from ethereum.transactions import Transaction
 from ethereum.utils import privtoaddr, encode_hex
 import rlp
@@ -6,10 +6,10 @@ from web3.formatters import input_filter_params_formatter, log_array_formatter
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 import gevent
+from raiden_mps.sign import sign
 
 
 class ContractProxy:
-
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
         self.web3 = web3
         self.privkey = privkey
@@ -69,7 +69,9 @@ class ChannelContractProxy(ContractProxy):
     def get_channel_settled_logs(self, from_block=0, to_block='latest'):
         return super().get_logs('ChannelSettled', from_block, to_block)
 
-    def get_channel_created_event_blocking(self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60):
+    def get_channel_created_event_blocking(
+            self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60
+    ):
         def condition(event):
             return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender
 
@@ -85,3 +87,11 @@ class ChannelContractProxy(ContractProxy):
 
     def get_settle_timeout(self, sender, receiver, open_block_number):
         return self.contract.call().getChannelInfo(sender, receiver, open_block_number)[3]
+
+    def sign_balance_proof(self, privkey, receiver, open_block_number, balance):
+        # privkey must be hex encoded
+        msg = self.contract.call().balanceMessageHash(
+            receiver, open_block_number, balance
+        )
+        msg = force_bytes(msg)
+        return sign(privkey, msg)
