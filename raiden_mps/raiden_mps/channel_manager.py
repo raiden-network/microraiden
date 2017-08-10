@@ -62,7 +62,6 @@ class Blockchain(gevent.Greenlet):
             gevent.sleep(self.poll_freqency)
 
     def _update(self):
-        self.log.debug('filtering for events')
         # check that history hasn't changed
         last_block = self.web3.eth.getBlock(self.cm.state.head_number)
         assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
@@ -76,6 +75,9 @@ class Blockchain(gevent.Greenlet):
             'from_block': max(0, self.cm.state.head_number + 1 - self.n_confirmations),
             'to_block': max(self.web3.eth.blockNumber - self.n_confirmations, 0)
         }
+        self.log.debug('filtering for events u:%s-%s c:%s-%s',
+                       block_range_unconfirmed['from_block'], block_range_unconfirmed['to_block'],
+                       block_range_confirmed['from_block'], block_range_confirmed['to_block'])
 
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**block_range_unconfirmed)

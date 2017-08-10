@@ -1,12 +1,16 @@
 import json
 import os
 
+import time
 import requests
-from ethereum.utils import privtoaddr, encode_hex, decode_hex
+from ethereum.utils import (
+    privtoaddr,
+    encode_hex,
+)
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
-from client.channel_info import ChannelInfo
+from raiden_mps.client.channel_info import ChannelInfo
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.header import HTTPHeaders
 
@@ -19,6 +23,11 @@ CHANNEL_SIZE_FACTOR = 3
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'Token'
 HEADERS = HTTPHeaders.as_dict()
+
+import logging
+log = logging.getLogger(__name__)
+
+
 
 
 class M2MClient(object):
@@ -110,16 +119,49 @@ class M2MClient(object):
         with open(os.path.join(self.datadir, CHANNELS_DB), 'w') as channels_file:
             ChannelInfo.to_json(self.channels, channels_file)
 
-    def request_resource(self, resource):
+    def request_resource(self, resource, tries_max=10):
+        channel = None
+        for try_n in range(tries_max):
+            log.info("getting %s %d/%d", resource, try_n, tries_max)
+            status, headers, body = self.perform_request(resource, channel)
+#            import pudb;pudb.set_trace()
+            if status == STATUS_OK:
+                return body
+            elif status == STATUS_PAYMENT_REQUIRED:
+                if HEADERS['insuf_funds'] in headers:
+                    log.error('Error: Insufficient funds in channel for presented balance proof.')
+                    continue
+                elif HEADERS['insuf_confs'] in headers:
+                    log.error(
+                        'Error: Newly created channel does not have enough confirmations yet. Waiting for {} more.'
+                        .format(headers[HEADERS['insuf_confs']])
+                    )
+                    time.sleep(9)
+                else:
+                    channel_manager_address = headers[HEADERS['contract_address']]
+                    if channel_manager_address != self.channel_manager_address:
+                        log.error('Invalid channel manager address requested ({}). Aborting.'.format(channel_manager_address))
+                        return None
+
+                    price = int(headers[HEADERS['price']])
+                    log.debug('Preparing payment of price {}.'.format(price))
+                    channel = self.perform_payment(headers[HEADERS['receiver_address']], price)
+                    if not channel:
+                        raise
+
+
+
+
+    def request_resourceX(self, resource):
         status, headers, body = self.perform_request(resource)
         if status == STATUS_PAYMENT_REQUIRED:
             channel_manager_address = headers[HEADERS['contract_address']]
             if channel_manager_address != self.channel_manager_address:
-                print('Invalid channel manager address requested ({}). Aborting.'.format(channel_manager_address))
+                log.error('Invalid channel manager address requested ({}). Aborting.'.format(channel_manager_address))
                 return None
 
             price = int(headers[HEADERS['price']])
-            print('Preparing payment of price {}.'.format(price))
+            log.error('Preparing payment of price {}.'.format(price))
             channel = self.perform_payment(headers[HEADERS['receiver_address']], price)
             if channel:
                 status, headers, body = self.perform_request(resource, channel)
@@ -127,22 +169,22 @@ class M2MClient(object):
                 if status == STATUS_OK:
                     # TODO: use actual cost
                     # print('Resource payment successful. Final cost: {}'.format(headers[HEADERS['cost']]))
-                    print('Resource payment successful. Final cost: {}'.format(0))
+                    log.info('Resource payment successful. Final cost: {}'.format(0))
                 elif status == STATUS_PAYMENT_REQUIRED:
                     if HEADERS['insuf_funds'] in headers:
-                        print('Error: Insufficient funds in channel for presented balance proof.')
+                        log.error('Error: Insufficient funds in channel for presented balance proof.')
                     elif HEADERS['insuf_confs'] in headers:
-                        print(
+                        log.error(
                             'Error: Newly created channel does not have enough confirmations yet. Waiting for {} more.'
                             .format(headers[HEADERS['insuf_confs']])
                         )
                     else:
-                        print('Error: Unknown error.')
+                        log.error('Error: Unknown error.')
             else:
-                print('Error: Could not perform the payment.')
+                log.error('Error: Could not perform the payment.')
 
         else:
-            print('Error code {} while requesting resource: {}'.format(status, body))
+            log.error('Error code {} while requesting resource: {}'.format(status, body))
 
     def perform_payment(self, receiver, value):
         channels = [
@@ -151,14 +193,14 @@ class M2MClient(object):
                channel.state == ChannelInfo.State.open
         ]
         if len(channels) > 1:
-            print('Warning: {} open channels found. Choosing a random one.'.format(len(channels)))
+            log.warn('Warning: {} open channels found. Choosing a random one.'.format(len(channels)))
 
         if channels:
             channel = channels[0]
-            print('Found open channel, opened at block #{}.'.format(channel.block))
+            log.info('Found open channel, opened at block #{}.'.format(channel.block))
         else:
             deposit = CHANNEL_SIZE_FACTOR * value
-            print('Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver))
+            log.info('Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver))
             channel = self.open_channel(receiver, deposit)
 
         if channel:

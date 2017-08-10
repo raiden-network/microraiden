@@ -44,4 +44,8 @@ def main(
 
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("blockchain").setLevel(logging.DEBUG)
     main()

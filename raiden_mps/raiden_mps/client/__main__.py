@@ -2,9 +2,11 @@
 
 import click
 import os
+import logging
 
 from raiden_mps.client.m2mclient import M2MClient
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS
+
 
 
 @click.command()
@@ -54,11 +56,17 @@ def run(
         token_address
     )
 
-    client.request_resource('doggo.jpg')
+    resource = 'doggo.jpg'
+    client.request_resource(resource)
+
+
+
     open_channels = [channel for channel in client.channels if channel.state.name == 'open']
     for channel in open_channels:
         client.close_channel(channel, 0)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
     run()
