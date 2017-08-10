@@ -138,9 +138,12 @@ class M2MClient(object):
                     print('Resource payment successful. Final cost: {}'.format(0))
                 elif status == STATUS_PAYMENT_REQUIRED:
                     if HEADERS['insuf_funds'] in headers:
-                        print('Error: Insufficient funds in channel for balance proof.')
+                        print('Error: Insufficient funds in channel for presented balance proof.')
                     elif HEADERS['insuf_confs'] in headers:
-                        print('Error: Newly created channel does not have enough confirmations yet.')
+                        print(
+                            'Error: Newly created channel does not have enough confirmations yet. Waiting for {} more.'
+                            .format(headers[HEADERS['insuf_confs']])
+                        )
                     else:
                         print('Error: Unknown error.')
             else:
