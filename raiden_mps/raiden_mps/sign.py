@@ -1,5 +1,6 @@
 from coincurve import PrivateKey
 
+
 def sign(privkey, msg):
     pk = PrivateKey.from_hex(privkey)
     assert len(msg) == 32

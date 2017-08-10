@@ -1,34 +1,39 @@
-from eth_utils import force_bytes
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
-from ethereum.utils import privtoaddr, encode_hex, sha3
+from ethereum.utils import privtoaddr, encode_hex
 import json
 import os
 import requests
+from enum import Enum
 
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.header import HTTPHeaders
-from coincurve import PrivateKey
 
 STATUS_OK = 200
 STATUS_PAYMENT_REQUIRED = 402
 CHANNELS_DB = 'channels.json'
 GAS_PRICE = 20 * 1000 * 1000 * 1000
 GAS_LIMIT = 314159
-CHANNEL_SIZE_FACTOR = 10
+CHANNEL_SIZE_FACTOR = 3
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'Token'
 HEADERS = HTTPHeaders.as_dict()
 
 
 class ChannelInfo:
-    def __init__(self, sender, receiver, deposit, block, balance=0, balance_sig=None):
+    class State(Enum):
+        open = 1
+        closed = 2
+        settled = 3
+
+    def __init__(self, sender, receiver, deposit, block, balance=0, balance_sig=None, state=State.open):
         self.sender = sender
         self.receiver = receiver
         self.deposit = deposit
         self.block = block
         self.balance = balance
         self.balance_sig = balance_sig
+        self.state = state
 
 
 class M2MClient(object):
@@ -93,6 +98,8 @@ class M2MClient(object):
             return []
         with open(channels_path) as channels_file:
             channels_raw = json.load(channels_file)
+            for channel_raw in channels_raw:
+                channel_raw['state'] = ChannelInfo.State[channel_raw['state']]
             self.channels = [ChannelInfo(**channel_raw) for channel_raw in channels_raw]
 
         print('Loaded {} open channels.'.format(len(self.channels)))
@@ -103,6 +110,8 @@ class M2MClient(object):
         def serialize(o):
             if isinstance(o, bytes):
                 return encode_hex(o)
+            elif isinstance(o, ChannelInfo.State):
+                return o.name
             else:
                 return o.__dict__
 
@@ -130,13 +139,10 @@ class M2MClient(object):
                 elif status == STATUS_PAYMENT_REQUIRED:
                     if HEADERS['insuf_funds'] in headers:
                         print('Error: Insufficient funds in channel for balance proof.')
-                        return None
                     elif HEADERS['insuf_confs'] in headers:
                         print('Error: Newly created channel does not have enough confirmations yet.')
-                        return None
                     else:
                         print('Error: Unknown error.')
-                        return None
             else:
                 print('Error: Could not perform the payment.')
 
@@ -146,7 +152,8 @@ class M2MClient(object):
     def perform_payment(self, receiver, value):
         channels = [
             channel for channel in self.channels
-            if channel.sender.lower() == self.account.lower() and channel.receiver.lower() == receiver.lower()
+            if channel.sender.lower() == self.account.lower() and channel.receiver.lower() == receiver.lower() and
+               channel.state == ChannelInfo.State.open
         ]
         assert len(channels) < 2
 
@@ -206,6 +213,12 @@ class M2MClient(object):
             channel = None
 
         return channel
+
+    def topup_channel(self):
+        pass
+
+    def settle_channel(self):
+        pass
 
     def close_channel(self, channel):
         assert channel in self.channels

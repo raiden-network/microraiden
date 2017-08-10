@@ -55,8 +55,8 @@ def run(
     )
 
     client.request_resource('doggo.jpg')
-    channel = client.channels[0]
-    client.close_channel(channel)
+    # channel = client.channels[0]
+    # client.close_channel(channel)
 
 
 if __name__ == '__main__':
