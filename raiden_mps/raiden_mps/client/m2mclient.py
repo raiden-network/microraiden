@@ -95,6 +95,8 @@ class M2MClient(object):
         self.channels = ChannelInfo.merge_infos(self.channels, created_channels, settling_channels, closed_channels)
         self.store_channels()
 
+        print('Synced a total of {} channels.'.format(len(self.channels)))
+
     def load_channels(self):
         channels_path = os.path.join(self.datadir, CHANNELS_DB)
         if not os.path.exists(channels_path):
@@ -102,7 +104,7 @@ class M2MClient(object):
         with open(channels_path) as channels_file:
             self.channels = ChannelInfo.from_json(channels_file)
 
-        print('Loaded {} open channels.'.format(len(self.channels)))
+        print('Loaded {} channels from disk.'.format(len(self.channels)))
 
     def store_channels(self):
         os.makedirs(self.datadir, exist_ok=True)
@@ -184,6 +186,7 @@ class M2MClient(object):
         return response.status_code, response.headers, response.content
 
     def open_channel(self, receiver, deposit):
+        print('Creating channel to {} with an initial deposit of {}.'.format(receiver, deposit))
         current_block = self.web3.eth.blockNumber
         tx1 = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
         tx2 = self.channel_manager_proxy.create_transaction('createChannel', [receiver, deposit], nonce_offset=1)
@@ -213,9 +216,6 @@ class M2MClient(object):
     def topup_channel(self):
         pass
 
-    def settle_channel(self):
-        pass
-
     def close_channel(self, channel, balance=None):
         """If no balance is specified the last stored balance proof will be used."""
         assert channel in self.channels
@@ -242,6 +242,38 @@ class M2MClient(object):
         if event:
             print('Successfully sent channel close request in block {}.'.format(event['blockNumber']))
             channel.state = ChannelInfo.State.settling
+            self.store_channels()
+        else:
+            print('Error: No event received.')
+
+    def settle_channel(self, channel):
+        assert channel.state == ChannelInfo.State.settling
+        print('Attempting to settle channel to {} created at block #{}.'.format(channel.receiver, channel.block))
+
+        settle_block = self.channel_manager_proxy.contract.call().getChannelInfo(
+            channel.sender, channel.receiver, channel.block
+        )[2]
+
+        current_block = self.web3.eth.blockNumber
+        wait_remaining = settle_block - current_block
+        if wait_remaining > 0:
+            print('Warning: {} more blocks until this channel can be settled. Aborting.'.format(wait_remaining))
+            return
+
+        tx = self.channel_manager_proxy.create_transaction(
+            'settle', [channel.receiver, channel.block]
+        )
+        if not self.dry_run:
+            self.web3.eth.sendRawTransaction(tx)
+
+        print('Waiting for settle confirmation event...')
+        event = self.channel_manager_proxy.get_channel_settle_event_blocking(
+            channel.sender, channel.receiver, channel.block, current_block + 1
+        )
+
+        if event:
+            print('Successfully settled channel in block {}.'.format(event['blockNumber']))
+            channel.state = ChannelInfo.State.closed
             self.store_channels()
         else:
             print('Error: No event received.')

@@ -3,6 +3,7 @@
 import click
 import os
 
+from ethereum.utils import encode_hex
 from raiden_mps.client.m2mclient import M2MClient
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS
 
@@ -54,10 +55,18 @@ def run(
         token_address
     )
 
-    client.request_resource('doggo.jpg')
-    open_channels = [channel for channel in client.channels if channel.state.name == 'open']
-    for channel in open_channels:
-        client.close_channel(channel, 0)
+    # client.request_resource('doggo.jpg')
+    channel = client.open_channel('0x003573995FAd11dF98746D286cFE6d87be3d508b', 5)
+    client.close_channel(channel)
+    client.create_transfer(channel, 1)
+    print('Balance signature: {}'.format(encode_hex(channel.balance_sig)))
+
+    # settling_channels = [channel for channel in client.channels if channel.state.name == 'settling']
+    # for channel in settling_channels:
+    #     client.settle_channel(channel)
+    # open_channels = [channel for channel in client.channels if channel.state.name == 'open']
+    # for channel in open_channels:
+    #     client.close_channel(channel, 0)
 
 
 if __name__ == '__main__':
