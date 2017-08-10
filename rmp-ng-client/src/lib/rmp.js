@@ -1,7 +1,7 @@
 "use strict";
-const Web3 = require("web3");
+//const Web3 = require("web3");
 
-export class RaidenMicropaymentsClient {
+class RaidenMicropaymentsClient {
 
   constructor(
     web3url,
@@ -264,4 +264,13 @@ export class RaidenMicropaymentsClient {
 
 }
 
-export default RaidenMicropaymentsClient;
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports.RaidenMicropaymentsClient = RaidenMicropaymentsClient;
+} else if (typeof define === 'function' && define.amd) {
+  define([], function() {
+    return RaidenMicropaymentsClient;
+  });
+} else {
+  window.RaidenMicropaymentsClient = RaidenMicropaymentsClient;
+}
+

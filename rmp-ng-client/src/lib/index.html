@@ -6,12 +6,12 @@
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
 
   <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
+  <script type="text/javascript" src="web3.js"></script>
+  <script type="text/javascript" src="rmp.js"></script>
 </head>
 <body>
-  <script type="text/javascript" src="rmp.js"></script>
   <script type="text/javascript">
 $.getJSON("parameters.json", (json) => {
   window.RDNcontractAddr = json["contractAddr"];
@@ -19,9 +19,15 @@ $.getJSON("parameters.json", (json) => {
   window.RDNtokenAddr = json["tokenAddr"];
   window.RDNtokenABI = json["tokenABI"];
 
-  $(document).ready(() => $("#test").html(window.RDNcontractAddr));
+  $(document).ready(() => {
+    var rmpc = new RaidenMicropaymentsClient(window.web3);
+    rmpc.getAccounts((err, res) => $("#test").html(res[0]));
+  });
 });
   </script>
-  <div id="test"></div>
+  <h1>
+    Your account:
+    <div id="test"></div>
+  </h1>
 </body>
 </html>
