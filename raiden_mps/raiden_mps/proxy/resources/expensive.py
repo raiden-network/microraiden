@@ -4,8 +4,8 @@ from flask_restful import (
 )
 from raiden_mps.channel_manager import (
     ChannelManager,
-    # parse_balance_proof_msg
 )
+# from raiden_mps.utils import parse_balance_proof_msg
 
 from raiden_mps.header import HTTPHeaders as header
 from raiden_mps.config import CM_API_ROOT
@@ -19,7 +19,8 @@ class RequestData:
         from werkzeug.datastructures import EnvironHeaders
         assert isinstance(headers, EnvironHeaders)
         self.check_headers(headers)
-        # self.sender_address, _ = parse_balance_proof_msg(self.balance_signature)
+#        self.sender_address, _ = parse_balance_proof_msg(self.balance_signature, 2, 3, 4)
+        self.sender_address = 0
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
@@ -69,16 +70,11 @@ class Expensive(Resource):
         proxy_handle = self.paywall_db.get_content(content)
         if proxy_handle is None:
             return "NOT FOUND", 404
-        # mock
         if data.balance_signature:
+            # check the balance proof
             return self.reply_premium(content, data.sender_address, proxy_handle)
         else:
-            return self.reply_payment_required(content)
-        # /mock
-        # if self.channel_manager.register_payment(data.balance_signature):
-        #    return self.reply_premium()
-        # else:
-        #    return self.reply_payment_required()
+            return self.reply_payment_required(content, proxy_handle)
 
     def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
         headers = {
@@ -95,11 +91,11 @@ class Expensive(Resource):
             data, status_code = response
             return data, status_code, headers
 
-    def reply_payment_required(self, content):
+    def reply_payment_required(self, content, proxy_handle):
         headers = {
             header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
-            header.PRICE: content.price,
+            header.PRICE: proxy_handle.price,
         }
         return "Payment required", 402, headers

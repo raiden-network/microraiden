@@ -21,6 +21,8 @@ from raiden_mps.proxy.content import PaywallDatabase
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
+import raiden_mps.utils as utils
+
 
 class PaywalledProxy:
     def __init__(self, blockchain, config, flask_app=None):
@@ -33,9 +35,10 @@ class PaywalledProxy:
         self.paywall_db = PaywallDatabase()
         self.config = config
         self.api = Api(self.app)
+        web3 = Web3(RPCProvider())
         self.channel_manager = ChannelManager(
-            Web3(RPCProvider()),
-            None,
+            web3,
+            utils.get_contract_proxy(web3, config['private_key']),
             config['receiver_address'],
             config['private_key']
         )

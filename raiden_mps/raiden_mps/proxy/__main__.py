@@ -14,6 +14,7 @@ if __package__ is None:
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
 from raiden_mps.proxy.content import (
+    PaywalledFile,
     PaywalledContent,
     PaywalledProxyUrl
 )
@@ -44,8 +45,9 @@ def main(
         blockchain = Blockchain(None, None)
     app = PaywalledProxy(blockchain, config)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
-    app.add_content(PaywalledContent("doggo.jpg", 1, lambda _: ("HI I AM A DOGGO", 200)))
-    app.add_content(PaywalledContent("teapot.jpg", 1, lambda _: ("HI I AM A TEAPOT", 418)))
+    app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
+    app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
+    app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
     app.add_content(PaywalledProxyUrl("p\/.*", 1))
     app.run(debug=True)
 

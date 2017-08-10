@@ -61,6 +61,22 @@ class PaywalledContent:
         return "OK"
 
 
+class PaywalledFile(PaywalledContent):
+    def __init__(self, path, price, filepath):
+        super(PaywalledFile, self).__init__(path, price)
+        assert isinstance(filepath, str)
+        self.filepath = filepath
+
+    def get(self, request):
+        try:
+            data = open(self.filepath).read()
+            return 200, data
+        except FileNotFoundError:
+            return 404, "NOT FOUND"
+        except:
+            return 500, ""
+
+
 class PaywalledProxyUrl:
     def __init__(self, path, price):
         assert isinstance(path, str)

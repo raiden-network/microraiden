@@ -187,7 +187,7 @@ class M2MClient(object):
             self.web3.eth.sendRawTransaction(tx2)
 
         print('Waiting for channel creation event on the blockchain...')
-        event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver, current_block + 1)
+        event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver, current_block + 5)
 
         if event:
             print('Event received. Channel created in block {}.'.format(event['blockNumber']))
