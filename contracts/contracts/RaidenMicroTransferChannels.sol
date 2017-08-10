@@ -254,11 +254,9 @@ contract RaidenMicroTransferChannels {
     /// @dev Function called by the sender after the challenge period has ended, in case the receiver has not closed the channel.
     /// @param _receiver The address that receives token payments.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
-    /// @param _balance The amount of tokens owed by the sender to the receiver.
     function settle(
         address _receiver,
-        uint32 _open_block_number,
-        uint32 _balance)
+        uint32 _open_block_number)
         external
     {
         bytes32 key = getKey(msg.sender, _receiver, _open_block_number);
@@ -266,7 +264,7 @@ contract RaidenMicroTransferChannels {
         require(closing_requests[key].settle_block_number != 0);
 	    require(block.number > closing_requests[key].settle_block_number);
 
-        settleChannel(msg.sender, _receiver, _open_block_number, _balance);
+        settleChannel(msg.sender, _receiver, _open_block_number, closing_requests[key].closing_balance);
     }
 
     /*
