@@ -3,17 +3,17 @@ from flask_restful import Resource
 
 class ChannelManagementRoot(Resource):
     def get(self):
-        return 200, "OK"
+        return "OK"
 
 
 class ChannelManagementClose(Resource):
     def get(self):
-        return 200, "OK /close"
+        return "OK"
 
     def post(self):
-        return 200
+        return ""
 
 
 class ChannelManagementAdmin(Resource):
     def get(self):
-        return 200, "OK /admin"
+        return "OK"

@@ -9,5 +9,5 @@ __all__ = (
     'Expensive',
     'ChannelManagementRoot',
     'ChannelManagementClose',
-    'ChannelManagementAdmin'
+    'ChannelManagementAdmin',
 )

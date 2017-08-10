@@ -1,0 +1,10 @@
+coincurve
+flask
+flask_restful
+pytest
+ethereum
+web3
+gevent
+click
+requests
+werkzeug

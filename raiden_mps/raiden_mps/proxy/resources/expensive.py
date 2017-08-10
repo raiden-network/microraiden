@@ -2,21 +2,25 @@ from flask import request
 from flask_restful import (
     Resource
 )
-from server import (
+from raiden_mps.channel_manager import (
     ChannelManager,
-    parse_balance_proof_msg
 )
+# from raiden_mps.utils import parse_balance_proof_msg
 
-import header
+from raiden_mps.header import HTTPHeaders as header
+from raiden_mps.config import CM_API_ROOT
+
+from flask import Response
 
 
 class RequestData:
     def __init__(self, headers):
         """parse a flask request object and check if the data received are valid"""
-        from werkzeug import EnvironHeaders
+        from werkzeug.datastructures import EnvironHeaders
         assert isinstance(headers, EnvironHeaders)
         self.check_headers(headers)
-        self.sender_address, _ = parse_balance_proof_msg(self.balance_signature)
+#        self.sender_address, _ = parse_balance_proof_msg(self.balance_signature, 2, 3, 4)
+        self.sender_address = 0
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
@@ -48,48 +52,57 @@ def is_valid_address(address):
 
 
 class Expensive(Resource):
-    def __init__(self, price, contract_address, receiver_address, channel_manager):
+    def __init__(self, contract_address, receiver_address, channel_manager, paywall_db):
         super(Expensive, self).__init__()
         assert isinstance(channel_manager, ChannelManager)
         assert is_valid_address(contract_address)
         assert is_valid_address(receiver_address)
-        self.price = price
         self.contract_address = is_valid_address(contract_address)
         self.receiver_address = is_valid_address(receiver_address)
         self.channel_manager = channel_manager
+        self.paywall_db = paywall_db
 
     def get(self, content):
+#        import pudb;pudb.set_trace()
         try:
             data = RequestData(request.headers)
         except ValueError as e:
-            return 409, str(e)
-
-        # mock
+            return str(e), 409
+        proxy_handle = self.paywall_db.get_content(content)
+        if proxy_handle is None:
+            return "NOT FOUND", 404
         if data.balance_signature:
-            return self.reply_premium(data.sender_address)
+            # check the balance proof
+            return self.reply_premium(content, data.sender_address, proxy_handle)
         else:
-            return self.reply_payment_required()
-        # /mock
-        # if self.channel_manager.register_payment(data.balance_signature):
-        #    return self.reply_premium()
-        # else:
-        #    return self.reply_payment_required()
+            return self.reply_payment_required(content, proxy_handle)
 
-    def reply_premium(self, sender_address, sender_balance=0):
+    def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
         headers = {
-            header.GATEWAY_PATH: "/",
+            header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.SENDER_ADDRESS: sender_address,
             header.SENDER_BALANCE: sender_balance
         }
-        return "PREMIUM CONTENT", 200, headers
+        response = proxy_handle.get(content)
+        if isinstance(response, Response):
+            return response
+        else:
+            data, status_code = response
+            return data, status_code, headers
 
-    def reply_payment_required(self):
+    def reply_payment_required(self, content, proxy_handle):
+        if callable(proxy_handle.price):
+            price = proxy_handle.price(content)
+        elif isinstance(proxy_handle.price, int):
+            price = proxy_handle.price
+        else:
+            return "Invalid price attribute", 500
         headers = {
-            header.GATEWAY_PATH: "/",
+            header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
-            header.PRICE: self.price,
+            header.PRICE: price
         }
         return "Payment required", 402, headers

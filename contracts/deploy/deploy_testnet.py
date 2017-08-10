@@ -7,6 +7,11 @@ from web3 import Web3
 from web3.utils.compat import (
     Timeout,
 )
+senders = [
+    '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38',
+    '0xd1bf222ef7289ae043b723939d86c8a91f3aac3f',
+    '0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a'
+]
 
 def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
     """See if transaction went through (Solidity code did not throw).
@@ -26,7 +31,8 @@ def wait(transfer_filter):
 
 def main():
     project = Project()
-    chain_name = "testrpc"
+    # chain_name = "testrpc"
+    chain_name = "kovan"
     print("Make sure {} chain is running, you can connect to it, or you'll get timeout".format(chain_name))
 
     with project.get_chain(chain_name) as chain:
@@ -34,28 +40,20 @@ def main():
         print("Web3 provider is", web3.currentProvider)
 
         token = chain.provider.get_contract_factory("RDNToken")
-        txhash = token.deploy(args=[1000, "RDNToken", 6, "RDN"])
-        receipt = check_succesful_tx(chain.web3, txhash)
+        txhash = token.deploy(args=[10000, "RDNToken", 6, "RDN"])
+        receipt = check_succesful_tx(chain.web3, txhash, 250)
         token_addr = receipt["contractAddress"]
         print("RDNToken address is", token_addr)
 
-        channel_factory = chain.provider.get_contract_factory("RaidenPaymentChannel")
-        txhash = channel_factory.deploy()
-        receipt = check_succesful_tx(chain.web3, txhash)
+        channel_factory = chain.provider.get_contract_factory("RaidenMicroTransferChannels")
+        txhash = channel_factory.deploy(args=[token_addr, 100])
+        receipt = check_succesful_tx(chain.web3, txhash, 250)
         cf_address = receipt["contractAddress"]
-        print("RaidenPaymentChannel address is", cf_address)
+        print("RaidenMicroTransferChannels address is", cf_address)
 
-        # approve 100 to contract
-        token(token_addr).transact({"from": web3.eth.accounts[0]}).approve(cf_address, 90);
+        for sender in senders:
+            token(token_addr).transact({"from": web3.eth.accounts[1]}).transfer(sender, 400);
 
-        transfer_filter = channel_factory(cf_address).on('ChannelCreated')
-        txhash = channel_factory(cf_address).transact({"from": web3.eth.accounts[0]}).init(web3.eth.accounts[1], token_addr, 90, 10)
-        check_succesful_tx(web3, txhash)
-        wait(transfer_filter)
-        log_entries = transfer_filter.get()
-        print(log_entries[0]['args']['_sender'])
-        print(log_entries[0]['args']['_receiver'])
-        print(log_entries[0]['args']['_id'])
 
 if __name__ == "__main__":
     main()
