@@ -55,8 +55,9 @@ def run(
     )
 
     client.request_resource('doggo.jpg')
-    # channel = client.channels[0]
-    # client.close_channel(channel)
+    open_channels = [channel for channel in client.channels if channel.state.name == 'open']
+    for channel in open_channels:
+        client.close_channel(channel, 0)
 
 
 if __name__ == '__main__':
