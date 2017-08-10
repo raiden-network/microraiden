@@ -1,14 +1,13 @@
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
-from ethereum.utils import privtoaddr, privtopub, encode_hex, decode_hex, sha3
+from ethereum.utils import privtoaddr, encode_hex
 import json
 import os
 import requests
 
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.header import HTTPHeaders
-from coincurve import PrivateKey, PublicKey
-from coincurve.ecdsa import recover, deserialize_recoverable
+from coincurve import PrivateKey
 
 STATUS_OK = 200
 STATUS_PAYMENT_REQUIRED = 402
@@ -141,7 +140,7 @@ class M2MClient(object):
                 print('Error: Could not perform the payment.')
 
         else:
-            print('Error code {} while requesting resource: {}', status, body)
+            print('Error code {} while requesting resource: {}'.format(status, body))
 
     def perform_payment(self, receiver, value):
         channels = [
@@ -213,7 +212,7 @@ class M2MClient(object):
         current_block = self.web3.eth.blockNumber
 
         tx = self.channel_manager_proxy.create_transaction(
-            'close', [channel.receiver, channel.block, channel.balance, channel.balance_proof.balance_sig]
+            'close', [channel.receiver, channel.block, channel.balance, channel.balance_sig]
         )
         if not self.dry_run:
             self.web3.eth.sendRawTransaction(tx)

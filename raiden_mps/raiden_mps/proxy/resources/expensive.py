@@ -4,7 +4,7 @@ from flask_restful import (
 )
 from raiden_mps.channel_manager import (
     ChannelManager,
-    parse_balance_proof_msg
+    # parse_balance_proof_msg
 )
 
 from raiden_mps.proxy.content import PaywalledContent
@@ -15,10 +15,10 @@ from raiden_mps.config import CM_API_ROOT
 class RequestData:
     def __init__(self, headers):
         """parse a flask request object and check if the data received are valid"""
-        from werkzeug import EnvironHeaders
+        from werkzeug.datastructures import EnvironHeaders
         assert isinstance(headers, EnvironHeaders)
         self.check_headers(headers)
-        self.sender_address, _ = parse_balance_proof_msg(self.balance_signature)
+        # self.sender_address, _ = parse_balance_proof_msg(self.balance_signature)
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
