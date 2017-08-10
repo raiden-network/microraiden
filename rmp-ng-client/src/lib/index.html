@@ -6,28 +6,64 @@
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
   <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
   <script type="text/javascript" src="web3.js"></script>
   <script type="text/javascript" src="rmp.js"></script>
 </head>
 <body>
-  <script type="text/javascript">
-$.getJSON("parameters.json", (json) => {
-  window.RDNcontractAddr = json["contractAddr"];
-  window.RDNcontractABI = json["contractABI"];
-  window.RDNtokenAddr = json["tokenAddr"];
-  window.RDNtokenABI = json["tokenABI"];
+  <div class="container">
+    <div class="well">
+      <h1>Payment Requested</h1>
+    </div>
+    <h3>This website is requesting a payment of <strong id="amount"></strong> "<span id="token"></span>" tokens</h3>
 
-  $(document).ready(() => {
-    var rmpc = new RaidenMicropaymentsClient(window.web3);
-    rmpc.getAccounts((err, res) => $("#test").html(res[0]));
-  });
-});
-  </script>
-  <h1>
-    Your account:
-    <div id="test"></div>
-  </h1>
+    <div class="form-horizontal">
+      <div class="form-group">
+        <label class="control-label col-sm-2" for="accounts">Account:</label>
+        <div class="col-sm-10">
+          <select class="form-control" id="accounts"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="row main_switch" id="channel_present">
+      <h3>A channel was found for this address</h3>
+      <pre id="channel_present_desc"></pre>
+      <span>Press the button to pay the requested amount</span>
+      <button type="button" class="btn btn-primary" id="channel_present_sign">Sign</button>
+    </div>
+
+    <div class="row main_switch" id="channel_missing">
+      <div class="alert alert-warning">
+        <strong>Attention!</strong>
+        No channel was found registered for this account on this website.
+      </div>
+      <span>
+        In order to proceed, you must:
+        <ol>
+          <li>
+            Pre-approve a desired token deposit for current and future transfers.
+          </li>
+          <li>
+            Open a channel with this site
+          </li>
+          <li>
+            For each payment, sign a message confirming the balance with the new payment
+          </li>
+        </ol>
+      </span>
+      <div class="input-group" style="max-width:15em;">
+        <input type="number" class="form-control" id="channel_missing_deposit" placeholder="Deposit" style="text-align:right;" min="0"/>
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-primary" id="channel_missing_start">Start</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="main.js"></script>
 </body>
 </html>
