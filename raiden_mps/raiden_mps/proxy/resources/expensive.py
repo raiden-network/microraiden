@@ -63,6 +63,7 @@ class Expensive(Resource):
         self.paywall_db = paywall_db
 
     def get(self, content):
+#        import pudb;pudb.set_trace()
         try:
             data = RequestData(request.headers)
         except ValueError as e:
@@ -92,10 +93,16 @@ class Expensive(Resource):
             return data, status_code, headers
 
     def reply_payment_required(self, content, proxy_handle):
+        if callable(proxy_handle.price):
+            price = proxy_handle.price(content)
+        elif isinstance(proxy_handle.price, int):
+            price = proxy_handle.price
+        else:
+            return "Invalid price attribute", 500
         headers = {
             header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
-            header.PRICE: proxy_handle.price,
+            header.PRICE: price
         }
         return "Payment required", 402, headers

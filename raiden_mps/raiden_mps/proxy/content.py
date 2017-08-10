@@ -50,7 +50,7 @@ class PaywalledContent:
         """
     def __init__(self, path, price, get_fn=None):
         assert isinstance(path, str)
-        assert isinstance(price, int)
+        assert isinstance(price, int) or callable(price)
         self.path = path
         self.price = price
         if get_fn is not None:
