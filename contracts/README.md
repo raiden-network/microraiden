@@ -19,4 +19,15 @@ The Smart Contracts can be installed separately from the other components of the
 
  * compilation: `populus compile`
  * unittest:    `pytest`
- * deploy:      `python deploy_testrpc.py`
+ * deploy:      `python deploy_testnet.py`
+
+
+### Docs creation
+
+Run `docs.sh`
+
+Prerequisites
+```
+npm install -g solidity-doc
+
+```
