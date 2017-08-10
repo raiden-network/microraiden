@@ -1,23 +1,17 @@
 """
 
 """
-import json
 import os
 import pickle
 import time
-from coincurve import PrivateKey
 from ethereum.utils import privtoaddr, encode_hex
 import gevent
-from web3 import Web3
-from web3.providers.rpc import HTTPProvider, RPCProvider
-from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import logging
 
 
 # TODO:
 # - test
-# - distinguish channels between "opened n blocks ago", "opened, but not enough confirmations yet"
 # - implement top ups
 # - settle closed channels
 
@@ -397,19 +391,3 @@ class PublicAPI(object):
     def settled_balance(self):
         "returns the balance of server address at token"
         return self.cm.get_token_balance()
-
-
-if __name__ == "__main__":
-    # web3 = Web3(HTTPProvider('https://ropsten.infura.io/uKfMiq3I9Nk1ZkoRalwF'))
-    web3 = Web3(RPCProvider())
-    receiver = '0x004B52c58863C903Ab012537247b963C557929E8'
-    sender = '0xd1Bf222EF7289ae043b723939d86c8A91f3AAC3F'
-    contract_address = CHANNEL_MANAGER_ADDRESS
-    contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
-    abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
-    private_key = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
-    contract_proxy = ChannelContractProxy(web3, private_key, 2, abi, int(20e9),
-                                          50000)
-    channel_manager = ChannelManager(web3, contract_proxy, receiver, private_key)
-    channel_manager.start()
-    gevent.joinall([channel_manager])
