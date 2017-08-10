@@ -61,7 +61,7 @@ class Blockchain(gevent.Greenlet):
     def _update(self):
         self.log.debug('filtering for events')
         # check that history hasn't changed
-        last_block = web3.eth.getBlock(self.cm.state.head_number)
+        last_block = self.web3.eth.getBlock(self.cm.state.head_number)
         assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
 
         # filter for events after block_number
@@ -90,11 +90,10 @@ class Blockchain(gevent.Greenlet):
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             balance = log['args']['_balance']
-            timeout = contract_proxy.get_settle_timeout(receiver, sender, open_block_number)
+            timeout = self.contract_proxy.get_settle_timeout(self.cm.state.receiver, sender, open_block_number)
             self.log.debug('received ChannelCloseRequested event (sender {}, block number {})',
                            sender, open_block_number)
-            self.cm.event_channel_opened(sender, open_block_number, balance, timeout)
-
+            self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
         # channel settled event
         logs = self.contract_proxy.get_channel_settled_logs(**block_range)
         for log in logs:
@@ -172,7 +171,11 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
         "channel was closed by sender without consent"
-        assert (sender, open_block_number) in self.state.channels
+#        import pudb;pudb.set_trace()
+        if not (sender, open_block_number) in self.state.channels:
+            self.log.warn('attempt to close a non existing channel (sender %s, block_number %s)' , 
+                          sender, open_block_number)
+            return
         c = self.state.channels[(sender, open_block_number)]
         if c.balance > balance:
             self.log.info('sender tried to cheat, sending challenge (sender {}, block number {})',

@@ -11,7 +11,7 @@ from raiden_mps.channel_manager import (
 from raiden_mps.header import HTTPHeaders as header
 from raiden_mps.config import CM_API_ROOT
 
-from flask import Response
+from flask import Response, make_response
 
 
 class RequestData:
@@ -64,12 +64,23 @@ class RequestData:
         self.balance = balance
 
 
+class LightClientProxy:
+    def __init__(self, index_html):
+        self.data = open(index_html).read()
+
+    def get(self):
+        return self.data
+
+
 def is_valid_address(address):
     return address
 
 
 class Expensive(Resource):
-    def __init__(self, contract_address, receiver_address, channel_manager, paywall_db):
+    def __init__(self, contract_address, receiver_address,
+                 channel_manager, paywall_db,
+                 light_client_proxy=None
+                 ):
         super(Expensive, self).__init__()
         assert isinstance(channel_manager, ChannelManager)
         assert is_valid_address(contract_address)
@@ -78,6 +89,7 @@ class Expensive(Resource):
         self.receiver_address = is_valid_address(receiver_address)
         self.channel_manager = channel_manager
         self.paywall_db = paywall_db
+        self.light_client_proxy = light_client_proxy
 
     def get(self, content):
         try:
@@ -123,9 +135,12 @@ class Expensive(Resource):
         else:
             return "Invalid price attribute", 500
         headers = {
+            "Content-Type": "text/html",
             header.GATEWAY_PATH: CM_API_ROOT,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.PRICE: price
         }
-        return "Payment required", 402, headers
+        if self.light_client_proxy:
+            data = self.light_client_proxy.get()
+        return make_response(data, 402, headers)
