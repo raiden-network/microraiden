@@ -1,11 +1,12 @@
-from web3 import Web3
-from web3.providers.rpc import RPCProvider
-from ethereum.utils import privtoaddr, encode_hex
 import json
 import os
-import requests
-from enum import Enum
 
+import requests
+from ethereum.utils import privtoaddr, encode_hex, decode_hex
+from web3 import Web3
+from web3.providers.rpc import RPCProvider
+
+from client.channel_info import ChannelInfo
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.header import HTTPHeaders
 
@@ -18,22 +19,6 @@ CHANNEL_SIZE_FACTOR = 3
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'Token'
 HEADERS = HTTPHeaders.as_dict()
-
-
-class ChannelInfo:
-    class State(Enum):
-        open = 1
-        closed = 2
-        settled = 3
-
-    def __init__(self, sender, receiver, deposit, block, balance=0, balance_sig=None, state=State.open):
-        self.sender = sender
-        self.receiver = receiver
-        self.deposit = deposit
-        self.block = block
-        self.balance = balance
-        self.balance_sig = balance_sig
-        self.state = state
 
 
 class M2MClient(object):
@@ -91,32 +76,39 @@ class M2MClient(object):
         )
 
         self.load_channels()
+        self.sync_channels()
+
+    def sync_channels(self):
+        created_events = self.channel_manager_proxy.get_channel_created_logs()
+        close_requested_events = self.channel_manager_proxy.get_channel_close_requested_logs()
+        settled_events = self.channel_manager_proxy.get_channel_settled_logs()
+
+        created_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in created_events]
+        created_channels = [channel for channel in created_channels if channel.sender == self.account]
+        settling_channels = [
+            ChannelInfo.from_event(event, ChannelInfo.State.settling) for event in close_requested_events
+        ]
+        settling_channels = [channel for channel in settling_channels if channel.sender == self.account]
+        closed_channels = [ChannelInfo.from_event(event, ChannelInfo.State.closed) for event in settled_events]
+        closed_channels = [channel for channel in closed_channels if channel.sender == self.account]
+
+        self.channels = ChannelInfo.merge_infos(self.channels, created_channels, settling_channels, closed_channels)
+        self.store_channels()
 
     def load_channels(self):
         channels_path = os.path.join(self.datadir, CHANNELS_DB)
         if not os.path.exists(channels_path):
             return []
         with open(channels_path) as channels_file:
-            channels_raw = json.load(channels_file)
-            for channel_raw in channels_raw:
-                channel_raw['state'] = ChannelInfo.State[channel_raw['state']]
-            self.channels = [ChannelInfo(**channel_raw) for channel_raw in channels_raw]
+            self.channels = ChannelInfo.from_json(channels_file)
 
         print('Loaded {} open channels.'.format(len(self.channels)))
 
     def store_channels(self):
         os.makedirs(self.datadir, exist_ok=True)
 
-        def serialize(o):
-            if isinstance(o, bytes):
-                return encode_hex(o)
-            elif isinstance(o, ChannelInfo.State):
-                return o.name
-            else:
-                return o.__dict__
-
         with open(os.path.join(self.datadir, CHANNELS_DB), 'w') as channels_file:
-            json.dump(self.channels, channels_file, default=serialize, sort_keys=True, indent=4)
+            ChannelInfo.to_json(self.channels, channels_file)
 
     def request_resource(self, resource):
         status, headers, body = self.perform_request(resource)
@@ -158,7 +150,8 @@ class M2MClient(object):
             if channel.sender.lower() == self.account.lower() and channel.receiver.lower() == receiver.lower() and
                channel.state == ChannelInfo.State.open
         ]
-        assert len(channels) < 2
+        if len(channels) > 1:
+            print('Warning: {} open channels found. Choosing a random one.'.format(len(channels)))
 
         if channels:
             channel = channels[0]
@@ -223,10 +216,17 @@ class M2MClient(object):
     def settle_channel(self):
         pass
 
-    def close_channel(self, channel):
+    def close_channel(self, channel, balance=None):
+        """If no balance is specified the last stored balance proof will be used."""
         assert channel in self.channels
-        print('Closing channel to {}.'.format(channel.receiver))
+        print('Closing channel to {} created at block #{}.'.format(channel.receiver, channel.block))
         current_block = self.web3.eth.blockNumber
+
+        if balance:
+            channel.balance = 0
+            self.create_transfer(channel, balance)
+        elif not channel.balance_sig:
+            self.create_transfer(channel, 0)
 
         tx = self.channel_manager_proxy.create_transaction(
             'close', [channel.receiver, channel.block, channel.balance, channel.balance_sig]
@@ -241,6 +241,8 @@ class M2MClient(object):
 
         if event:
             print('Successfully sent channel close request in block {}.'.format(event['blockNumber']))
+            channel.state = ChannelInfo.State.settling
+            self.store_channels()
         else:
             print('Error: No event received.')
 
