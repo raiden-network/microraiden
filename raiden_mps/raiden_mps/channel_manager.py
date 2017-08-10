@@ -14,6 +14,14 @@ from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 
 
+# TODO:
+# - test
+# - logging
+# - distinguish channels between "opened n blocks ago", "opened, but not enough confirmations yet"
+# - implement top ups
+# - settle closed channels
+
+
 class InvalidBalanceProof(Exception):
     pass
 
@@ -177,12 +185,15 @@ class ChannelManager(gevent.Greenlet):
         c.is_closed = True
         self.state.store()
 
-    def sign_close(self, receiver, open_block_number, balance, signature):
-        c = self.verifyBalanceProof(receiver, open_block_number, balance, signature)
-        if c.balance != balance:  # we're nice and don't accept favorably wrong balances
-            raise InvalidBalanceProof('Wrong balance')
+    def sign_close(self, sender, open_block_number, signature):
+        if (sender, open_block_number) not in self.channels:
+            raise NoOpenChannel('Channel does not exist or has been closed.')
+        c = self.channels[(sender, open_block_number)]
+        if c.is_closed:
+            raise NoOpenChannel('Channel closing has been requested already.')
+        if signature != c.last_signature:
+            raise InvalidBalanceProof('Balance proof does not match latest one.')
         c.is_closed = True  # FIXME block number
-        c.last_signature = signature
         c.mtime = time.time()
         to_sign = self.contract_proxy.contract.call().closingAgreementMessageHash(signature)
         receiver_sig = PrivateKey.from_hex(self.private_key).sign(to_sign)
@@ -230,7 +241,7 @@ class ChannelManager(gevent.Greenlet):
         c.last_signature = signature
         c.mtime = time.time()
         self.state.store()
-        return (signer, received)
+        return (c.sender, received)
 
 
 class Channel(object):

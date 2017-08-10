@@ -11,6 +11,7 @@ class HTTPHeaders():
     INSUF_FUNDS = 'RDN-Insufficient-Funds'
     INSUF_CONFS = 'RDN-Insufficient-Confirmations'
     COST = 'RDN-Cost'
+    OPEN_BLOCK = 'RDN-Open-Block'
 
     @classmethod
     def as_dict(cls):

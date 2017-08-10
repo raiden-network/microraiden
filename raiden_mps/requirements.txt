@@ -1,3 +1,4 @@
+coincurve
 flask
 flask_restful
 pytest
@@ -6,3 +7,4 @@ web3
 gevent
 click
 requests
+werkzeug

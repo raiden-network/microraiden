@@ -29,7 +29,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.rmp.getAccounts()
-      .subscribe((accounts) => this.accounts = accounts);
+      .subscribe((accounts) => {
+        this.accounts = accounts;
+        this.form.get('account').setValue(accounts[0]);
+      });
   }
 
   ngOnDestroy() {
@@ -37,7 +40,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onFormSubmit() {
-    console.log("B", this.form.value);
-    this.signed$ = this.rmp.signMessage(this.form.value.message, this.form.value.account);
+    this.signed$ = this.rmp.signHash(this.form.value.message, this.form.value.account);
   }
 }
