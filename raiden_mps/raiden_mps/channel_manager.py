@@ -113,6 +113,7 @@ class Blockchain(gevent.Greenlet):
             self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
+
         # channel settled event
         logs = self.contract_proxy.get_channel_settled_logs(**block_range_confirmed)
         for log in logs:
@@ -249,8 +250,7 @@ class ChannelManager(gevent.Greenlet):
             raise InvalidBalanceProof('Balance proof does not match latest one.')
         c.is_closed = True  # FIXME block number
         c.mtime = time.time()
-        to_sign = self.contract_proxy.contract.call().closingAgreementMessageHash(signature)
-        receiver_sig = PrivateKey.from_hex(self.private_key).sign(to_sign)
+        receiver_sig = self.contract_proxy.sign_close(self.private_key, signature)
         recovered_receiver = self.contract_proxy.contract.call().verifyClosingSignature(
             signature, receiver_sig)
         assert recovered_receiver == self.receiver.lower()

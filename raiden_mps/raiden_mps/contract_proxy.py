@@ -104,3 +104,8 @@ class ChannelContractProxy(ContractProxy):
         )
         msg = force_bytes(msg)
         return sign(privkey, msg)
+
+    def sign_close(self, privkey, signature):
+        msg = self.contract_proxy.contract.call().closingAgreementMessageHash(signature)
+        msg = force_bytes(msg)
+        return sign(privkey, msg)
