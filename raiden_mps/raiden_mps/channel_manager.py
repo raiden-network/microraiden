@@ -21,6 +21,8 @@ import logging
 # - implement top ups
 # - settle closed channels
 
+logging.basicConfig(level=logging.DEBUG)
+
 
 class InvalidBalanceProof(Exception):
     pass
@@ -71,8 +73,8 @@ class Blockchain(gevent.Greenlet):
             'to_block': 'latest'
         }
         block_range_confirmed = {
-            'from_block': self.cm.state.head_number + 1,
-            'to_block': self.web3.eth.blockNumber - self.n_confirmations
+            'from_block': max(0, self.cm.state.head_number + 1 - self.n_confirmations),
+            'to_block': max(self.web3.eth.blockNumber - self.n_confirmations, 0)
         }
 
         # unconfirmed channel created
@@ -198,7 +200,6 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
         "channel was closed by sender without consent"
-#        import pudb;pudb.set_trace()
         if not (sender, open_block_number) in self.state.channels:
             self.log.warn('attempt to close a non existing channel (sender %ss, block_number %ss)',
                           sender, open_block_number)
