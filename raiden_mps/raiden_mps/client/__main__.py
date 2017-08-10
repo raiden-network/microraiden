@@ -54,7 +54,7 @@ def run(
         token_address
     )
 
-    client.request_resource('expensive/someresource')
+    client.request_resource('doggo.jpg')
     channel = client.channels[0]
     client.close_channel(channel)
 

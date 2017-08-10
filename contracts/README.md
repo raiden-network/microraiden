@@ -1,4 +1,4 @@
-# RaidenPaymentChannel Smart Contract
+# RaidenMicroTransferChannels Smart Contract
 
 Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Contracts.
 

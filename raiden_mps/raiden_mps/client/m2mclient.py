@@ -145,7 +145,7 @@ class M2MClient(object):
     def perform_payment(self, receiver, value):
         channels = [
             channel for channel in self.channels
-            if channel.sender == self.account and channel.receiver == receiver
+            if channel.sender.lower() == self.account.lower() and channel.receiver.lower() == receiver.lower()
         ]
         assert len(channels) < 2
 
@@ -243,4 +243,4 @@ class M2MClient(object):
         )
         assert sender == channel.sender
 
-        return channel.balance_proof
+        return channel.balance_sig

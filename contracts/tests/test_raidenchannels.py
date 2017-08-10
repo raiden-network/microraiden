@@ -133,9 +133,9 @@ def test_open_channel(web3, contract, accounts):
 
     channel_data = contract.call().getChannelInfo(A, B, open_block_number)
 
-    assert channel_data[1] == 100
-    assert channel_data[2] == open_block_number
-    assert channel_data[3] == 0
+    assert channel_data[1] == 100  # deposit
+    assert channel_data[2] == 0  # settle_block_number
+    assert channel_data[3] == 0  # closing_balance
 
 
 def test_fund_channel(contract, channel):
@@ -144,7 +144,7 @@ def test_fund_channel(contract, channel):
     contract.transact({'from': sender}).topUp(receiver, open_block_number, 10)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
-    assert channel_data[1] == 110
+    assert channel_data[1] == 110  # deposit
 
 
 def test_close_by_receiver(contract, channel):
@@ -226,7 +226,7 @@ def test_close_by_sender_challenge_settle_by_receiver(web3, contract, channel):
     contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
-    assert channel_data[3] != 0  # settle_block_number
+    assert channel_data[2] != 0  # settle_block_number
 
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
@@ -258,7 +258,7 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
     contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
-    assert channel_data[3] != 0  # settle_block_number
+    assert channel_data[2] != 0  # settle_block_number
 
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
