@@ -244,7 +244,6 @@ empty list
 |---|-----|----|--------|-----------|
 |0|_receiver|address|||
 |1|_open_block_number|uint32|||
-|2|_balance|uint32|||
 
 
 #### settleChannel

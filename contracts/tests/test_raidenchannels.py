@@ -229,7 +229,7 @@ def test_close_by_sender_challenge_settle_by_receiver(web3, contract, channel):
     assert channel_data[2] != 0  # settle_block_number
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
+        contract.transact({'from': sender}).settle(receiver, open_block_number)
 
     contract.transact({'from': receiver}).close(receiver, open_block_number, balance, balance_msg_sig)
 
@@ -261,17 +261,17 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
     assert channel_data[2] != 0  # settle_block_number
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
+        contract.transact({'from': sender}).settle(receiver, open_block_number)
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': receiver}).settle(receiver, open_block_number, balance)
+        contract.transact({'from': receiver}).settle(receiver, open_block_number)
 
     web3.testing.mine(6)
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': receiver}).settle(receiver, open_block_number, balance)
+        contract.transact({'from': receiver}).settle(receiver, open_block_number)
 
-    contract.transact({'from': sender}).settle(receiver, open_block_number, balance)
+    contract.transact({'from': sender}).settle(receiver, open_block_number)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = deposit - balance
