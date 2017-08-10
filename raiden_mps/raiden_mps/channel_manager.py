@@ -40,11 +40,12 @@ class Blockchain(gevent.Greenlet):
     """
     poll_freqency = 5
 
-    def __init__(self, web3, contract_proxy, channel_manager):
+    def __init__(self, web3, contract_proxy, channel_manager, n_confirmations=5):
         gevent.Greenlet.__init__(self)
         self.web3 = web3
         self.contract_proxy = contract_proxy
         self.cm = channel_manager
+        self.n_confirmations = n_confirmations
         self.log = logging.getLogger('blockchain')
 
     def _run(self):
@@ -53,7 +54,7 @@ class Blockchain(gevent.Greenlet):
         which watches all events from contract_address, that involve self.address
         and updates ChannelManager
         """
-        self.log.info('starting blockchain polling (frequency {}s)', self.poll_freqency)
+        self.log.info('starting blockchain polling (frequency %ss)', self.poll_freqency)
         while True:
             self._update()
             gevent.sleep(self.poll_freqency)
@@ -65,25 +66,41 @@ class Blockchain(gevent.Greenlet):
         assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
 
         # filter for events after block_number
-        block_range = {
+        block_range_unconfirmed = {
             'from_block': self.cm.state.head_number + 1,
             'to_block': 'latest'
         }
+        block_range_confirmed = {
+            'from_block': self.cm.state.head_number + 1,
+            'to_block': web3.eth.blockNumber - self.n_confirmations
+        }
 
-        # channel created
-        logs = self.contract_proxy.get_channel_created_logs(**block_range)
+        # unconfirmed channel created
+        logs = self.contract_proxy.get_channel_created_logs(**block_range_unconfirmed)
         for log in logs:
             if log['args']['_receiver'] != self.cm.state.receiver:
                 continue
             sender = log['args']['_sender']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
-            self.log.debug('received ChannelOpened event (sender {}, block number {})',
+            self.log.debug('received unconfirmed ChannelOpened event (sender %s, block number %s)',
+                           sender, open_block_number)
+            self.cm.unconfirmed_event_channel_opened(sender, open_block_number, deposit)
+
+        # channel created
+        logs = self.contract_proxy.get_channel_created_logs(**block_range_confirmed)
+        for log in logs:
+            if log['args']['_receiver'] != self.cm.state.receiver:
+                continue
+            sender = log['args']['_sender']
+            deposit = log['args']['_deposit']
+            open_block_number = log['blockNumber']
+            self.log.debug('received ChannelOpened event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_opened(sender, open_block_number, deposit)
 
         # channel close requested
-        logs = self.contract_proxy.get_channel_close_requested_logs(**block_range)
+        logs = self.contract_proxy.get_channel_close_requested_logs(**block_range_confirmed)
         for log in logs:
             if log['args']['_receiver'] != self.cm.state.receiver:
                 continue
@@ -91,17 +108,17 @@ class Blockchain(gevent.Greenlet):
             open_block_number = log['args']['_open_block_number']
             balance = log['args']['_balance']
             timeout = self.contract_proxy.get_settle_timeout(self.cm.state.receiver, sender, open_block_number)
-            self.log.debug('received ChannelCloseRequested event (sender {}, block number {})',
+            self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
         # channel settled event
-        logs = self.contract_proxy.get_channel_settled_logs(**block_range)
+        logs = self.contract_proxy.get_channel_settled_logs(**block_range_confirmed)
         for log in logs:
             if log['args']['_receiver'] != self.cm.state.receiver:
                 continue
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
-            self.log.debug('received ChannelSettled event (sender {}, block number {})',
+            self.log.debug('received ChannelSettled event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_settled(sender, open_block_number)
 
@@ -121,6 +138,7 @@ class ChannelManagerState(object):
         self.channels = dict()
         self.filename = filename
         self.log = logging.getLogger('channel_manager_state')
+        self.unconfirmed_channels = dict()
 
     def store(self):
         if self.filename:
@@ -163,33 +181,42 @@ class ChannelManager(gevent.Greenlet):
     # relevant events from the blockchain for receiver from contract
 
     def event_channel_opened(self, sender, open_block_number, deposit):
-        assert (sender, open_block_number) not in self.state.channels  # shall we allow top-ups
+        assert (sender, open_block_number) not in self.state.channels
+        self.state.unconfirmed_channels.pop((sender, open_block_number), None)
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
-        self.log.info('new channel opened (sender {}, block number {})', sender, open_block_number)
+        self.log.info('new channel opened (sender %s, block number %s)', sender, open_block_number)
         self.state.channels[(sender, open_block_number)] = c
+        self.state.store()
+
+    def unconfirmed_event_channel_opened(self, sender, open_block_number, deposit):
+        assert (sender, open_block_number) not in self.state.channels
+        assert (sender, open_block_number) not in self.state.unconfirmed_channels
+        c = Channel(self.state.receiver, sender, deposit, open_block_number)
+        self.state.unconfirmed_channels[(sender, open_block_number)] = c
+        self.log.info('unconfirmed channel event received ')
         self.state.store()
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
         "channel was closed by sender without consent"
 #        import pudb;pudb.set_trace()
         if not (sender, open_block_number) in self.state.channels:
-            self.log.warn('attempt to close a non existing channel (sender %s, block_number %s)' , 
+            self.log.warn('attempt to close a non existing channel (sender %ss, block_number %ss)',
                           sender, open_block_number)
             return
         c = self.state.channels[(sender, open_block_number)]
         if c.balance > balance:
-            self.log.info('sender tried to cheat, sending challenge (sender {}, block number {})',
+            self.log.info('sender tried to cheat, sending challenge (sender %s, block number %s)',
                           sender, open_block_number)
             self.close_channel(sender, open_block_number)  # dispute by closing the channel
         else:
-            self.log.info('valid channel close request received (sender {}, block number {})',
+            self.log.info('valid channel close request received (sender %s, block number %s)',
                           sender, open_block_number)
             c.settle_timeout = settle_timeout
             c.is_closed = True
         self.state.store()
 
     def event_channel_settled(self, sender, open_block_number):
-        self.log.info('Forgetting settled channel (sender {}, block number {})',
+        self.log.info('Forgetting settled channel (sender %s, block number %s)',
                       sender, open_block_number)
         del self.state.channels[(sender, open_block_number)]
         self.state.store()
@@ -204,7 +231,7 @@ class ChannelManager(gevent.Greenlet):
         # send closing tx
         tx_params = [sender, open_block_number, c.balance, c.last_signature]
         raw_tx = self.contract_proxy.create_contract_call('close', tx_params)
-        self.log.info('sending channel close transaction (sender {}, block number {})',
+        self.log.info('sending channel close transaction (sender %s, block number %s)',
                       sender, open_block_number)
         self.web3.eth.sendRawTransaction(raw_tx)
         # update local state
@@ -227,7 +254,7 @@ class ChannelManager(gevent.Greenlet):
             signature, receiver_sig)
         assert recovered_receiver == self.receiver.lower()
         self.state.store()
-        self.log.info('signed consenual closing message (sender {}, block number {})',
+        self.log.info('signed consenual closing message (sender %s, block number %s)',
                       sender, open_block_number)
         return receiver_sig
 
@@ -269,7 +296,7 @@ class ChannelManager(gevent.Greenlet):
         c.last_signature = signature
         c.mtime = time.time()
         self.state.store()
-        self.log.debug('registered payment (sender {}, block number {}, new balance {})',
+        self.log.debug('registered payment (sender %s, block number %s, new balance %s)',
                        c.sender, open_block_number, balance)
         return (c.sender, received)
 
