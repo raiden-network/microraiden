@@ -300,6 +300,37 @@ class ChannelManager(gevent.Greenlet):
                        c.sender, open_block_number, balance)
         return (c.sender, received)
 
+    def channels_to_dict(self):
+        d = {}
+        for sender, block_number in self.state.channels:
+            channel = self.state.channels[(sender, block_number)]
+            channel_dict = {
+                'deposit': channel.deposit,
+                'balance': channel.balance,
+                'mtime': channel.mtime,
+                'ctime': channel.ctime,
+                'settle_timeout': channel.settle_timeout,
+                'last_signature': channel.last_signature,
+                'is_closed': channel.is_closed
+            }
+            if sender not in d:
+                d[sender] = {}
+            d[sender][block_number] = channel_dict
+        return d
+
+    def unconfirmed_channels_to_dict(self):
+        d = {}
+        for sender, block_number in self.state.unconfirmed_channels:
+            channel = self.state.unconfirmed_channels[(sender, block_number)]
+            channel_dict = {
+                'deposit': channel.deposit,
+                'ctime': channel.ctime
+            }
+            if sender not in d:
+                d[sender] = {}
+            d[sender][block_number] = channel_dict
+        return d
+
 
 class Channel(object):
 
