@@ -14,27 +14,11 @@ HEADERS = HTTPHeaders.as_dict()
 class M2MClient(object):
     def __init__(
             self,
+            rmp_client,
             api_endpoint,
-            api_port,
-            datadir,
-            rpc_endpoint,
-            rpc_port,
-            key_path,
-            dry_run,
-            channel_manager_address,
-            contract_abi_path,
-            token_address
+            api_port
     ):
-        self.rmp_client = RMPClient(
-            datadir,
-            rpc_endpoint,
-            rpc_port,
-            key_path,
-            dry_run,
-            channel_manager_address,
-            contract_abi_path,
-            token_address
-        )
+        self.rmp_client = rmp_client
         self.api_endpoint = api_endpoint
         self.api_port = api_port
 

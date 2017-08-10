@@ -4,6 +4,8 @@ import click
 import os
 
 from ethereum.utils import encode_hex
+
+from client.rmp_client import RMPClient
 from raiden_mps.client.m2mclient import M2MClient
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS
 
@@ -42,9 +44,7 @@ def run(
         contract_abi_path,
         token_address
 ):
-    client = M2MClient(
-        api_endpoint,
-        api_port,
+    rmp_client = RMPClient(
         datadir,
         rpc_endpoint,
         rpc_port,
@@ -52,11 +52,14 @@ def run(
         dry_run,
         channel_manager_address,
         contract_abi_path,
-        token_address
+        token_address)
+    client = M2MClient(
+        rmp_client,
+        api_endpoint,
+        api_port
     )
 
     # client.request_resource('doggo.jpg')
-    rmp_client = client.rmp_client
     channel = rmp_client.open_channel('0x003573995FAd11dF98746D286cFE6d87be3d508b', 5)
     rmp_client.close_channel(channel)
     rmp_client.create_transfer(channel, 1)
