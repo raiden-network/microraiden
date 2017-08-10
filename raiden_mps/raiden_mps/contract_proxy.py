@@ -44,7 +44,7 @@ class ContractProxy:
             log['args'] = get_event_data(event_abi, log)['args']
         return logs
 
-    def get_event_blocking(self, event_name, condition=None, from_block=0, to_block='latest', wait=3, timeout=60):
+    def get_event_blocking(self, event_name, condition=None, from_block=0, to_block='pending', wait=3, timeout=60):
         for i in range(0, timeout + wait, wait):
             logs = self.get_logs(event_name, from_block, to_block)
             matching_logs = [event for event in logs if not condition or condition(event)]
@@ -71,7 +71,7 @@ class ChannelContractProxy(ContractProxy):
 
     def get_channel_created_event_blocking(self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60):
         def condition(event):
-            return event['args']['_receiver'] == receiver and event['args']['_sender'] == sender
+            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender
 
         return self.get_event_blocking('ChannelCreated', condition, from_block, to_block, wait, timeout)
 
@@ -79,7 +79,7 @@ class ChannelContractProxy(ContractProxy):
             self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60
     ):
         def condition(event):
-            return event['args']['_receiver'] == receiver and event['args']['_sender'] == sender
+            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender
 
         return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block, wait, timeout)
 
