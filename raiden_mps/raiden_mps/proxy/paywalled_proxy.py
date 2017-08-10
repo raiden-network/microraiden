@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 from flask import Flask
 from flask_restful import (
     Api,
@@ -24,7 +26,7 @@ from web3.providers.rpc import RPCProvider
 import raiden_mps.utils as utils
 
 
-JSLIB_DIR = '/tmp/rmp-client/'
+JSLIB_DIR = 'raiden_mps/data/html/'
 INDEX_HTML = JSLIB_DIR + 'index.html'
 
 
@@ -67,8 +69,6 @@ class PaywalledProxy:
         self.paywall_db.add_content(content)
 
     def run(self, debug=False):
-#        from gevent import monkey_patch
         from gevent.wsgi import WSGIServer
-        server = WSGIServer(('localhost',5000), self.app)
+        server = WSGIServer(('localhost', 5000), self.app)
         server.serve_forever()
-#        self.app.run(debug=debug

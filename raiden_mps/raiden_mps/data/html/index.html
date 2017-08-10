@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Raiden MPC Index</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script type="text/javascript" src="http://code.jquery.com/jquery-3.2.1.js"></script>
+  <script type="text/javascript" src="/js/web3.js"></script>
+  <script type="text/javascript" src="/js/rmp.js"></script>
+</head>
+<body>
+  <script type="text/javascript">
+$.getJSON("parameters.json", (json) => {
+  window.RDNcontractAddr = json["contractAddr"];
+  window.RDNcontractABI = json["contractABI"];
+  window.RDNtokenAddr = json["tokenAddr"];
+  window.RDNtokenABI = json["tokenABI"];
+
+  $(document).ready(() => {
+    var rmpc = new RaidenMicropaymentsClient(window.web3);
+    rmpc.getAccounts((err, res) => $("#test").html(res[0]));
+  });
+});
+  </script>
+  <h1>
+    Your account:
+    <div id="test"></div>
+  </h1>
+</body>
+</html>
