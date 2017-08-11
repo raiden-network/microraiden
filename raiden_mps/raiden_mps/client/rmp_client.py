@@ -76,18 +76,16 @@ class RMPClient:
         information available on the blockchain to make up for local data loss. Naturally, balance signatures cannot be
         recovered from the blockchain. Closed channels are discarded from local storage.
         """
-        created_events = self.channel_manager_proxy.get_channel_created_logs()
-        close_requested_events = self.channel_manager_proxy.get_channel_close_requested_logs()
-        settled_events = self.channel_manager_proxy.get_channel_settled_logs()
+        filters = {'_sender': self.account}
+        created_events = self.channel_manager_proxy.get_channel_created_logs(filters=filters)
+        close_requested_events = self.channel_manager_proxy.get_channel_close_requested_logs(filters=filters)
+        settled_events = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
 
         created_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in created_events]
-        created_channels = [channel for channel in created_channels if channel.sender == self.account]
         settling_channels = [
             ChannelInfo.from_event(event, ChannelInfo.State.settling) for event in close_requested_events
         ]
-        settling_channels = [channel for channel in settling_channels if channel.sender == self.account]
         closed_channels = [ChannelInfo.from_event(event, ChannelInfo.State.closed) for event in settled_events]
-        closed_channels = [channel for channel in closed_channels if channel.sender == self.account]
 
         self.channels = ChannelInfo.merge_infos(self.channels, created_channels, settling_channels, closed_channels)
         self.store_channels()
@@ -100,9 +98,14 @@ class RMPClient:
         """
         channels_path = os.path.join(self.datadir, CHANNELS_DB)
         if not os.path.exists(channels_path):
-            return []
+            return
         with open(channels_path) as channels_file:
-            self.channels = ChannelInfo.from_json(channels_file)
+            try:
+                store = json.load(channels_file)
+                if isinstance(store, dict) and self.channel_manager_address in store:
+                    self.channels = ChannelInfo.deserialize(store[self.channel_manager_address])
+            except json.decoder.JSONDecodeError:
+                log.warning('Failed to load local channel storage.')
 
         log.info('Loaded {} channels from disk.'.format(len(self.channels)))
 
@@ -112,8 +115,21 @@ class RMPClient:
         """
         os.makedirs(self.datadir, exist_ok=True)
 
-        with open(os.path.join(self.datadir, CHANNELS_DB), 'w') as channels_file:
-            ChannelInfo.to_json(self.channels, channels_file)
+        store_path = os.path.join(self.datadir, CHANNELS_DB)
+        if os.path.exists(store_path):
+            with open(store_path) as channels_file:
+                try:
+                    store = json.load(channels_file)
+                except json.decoder.JSONDecodeError:
+                    store = dict()
+        else:
+            store = dict()
+        if not isinstance(store, dict):
+            store = dict()
+
+        with open(store_path, 'w') as channels_file:
+            store[self.channel_manager_address] = ChannelInfo.serialize(self.channels)
+            json.dump(store, channels_file, indent=4)
 
     def open_channel(self, receiver, deposit):
         """

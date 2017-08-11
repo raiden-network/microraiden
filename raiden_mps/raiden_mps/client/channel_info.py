@@ -20,24 +20,22 @@ class ChannelInfo:
         self.state = state
 
     @staticmethod
-    def from_json(json_file):
-        channels_raw = json.load(json_file)
+    def deserialize(channels_raw):
         for channel_raw in channels_raw:
             channel_raw['state'] = ChannelInfo.State[channel_raw['state']]
             channel_raw['balance_sig'] = decode_hex(channel_raw['balance_sig']) if channel_raw['balance_sig'] else None
         return [ChannelInfo(**channel_raw) for channel_raw in channels_raw]
 
     @staticmethod
-    def to_json(channels, json_file):
-        def serialize(o):
-            if isinstance(o, bytes):
-                return encode_hex(o)
-            elif isinstance(o, ChannelInfo.State):
-                return o.name
-            else:
-                return o.__dict__
+    def serialize(channels):
+        channels_raw = []
+        for channel in channels:
+            channel_raw = channel.__dict__.copy()
+            channel_raw['state'] = channel.state.name
+            channel_raw['balance_sig'] = encode_hex(channel.balance_sig) if channel.balance_sig else None
+            channels_raw.append(channel_raw)
 
-        json.dump(channels, json_file, default=serialize, sort_keys=True, indent=4)
+        return channels_raw
 
     @staticmethod
     def from_event(event, state):

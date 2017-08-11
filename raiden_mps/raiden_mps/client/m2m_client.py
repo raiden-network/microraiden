@@ -99,10 +99,10 @@ class M2MClient(object):
             channel for channel in self.rmp_client.channels
             if channel.sender.lower() == self.rmp_client.account.lower() and
                channel.receiver.lower() == receiver.lower() and
-               channel.state == ChannelInfo.State.open and channel.deposit - channel.balance > value
+               channel.state == ChannelInfo.State.open and channel.deposit - channel.balance >= value
         ]
         if len(channels) > 1:
-            log.warn('Warning: {} open channels found. Choosing a random one.'.format(len(channels)))
+            log.warning('Warning: {} open channels found. Choosing a random one.'.format(len(channels)))
 
         if channels:
             channel = channels[0]
