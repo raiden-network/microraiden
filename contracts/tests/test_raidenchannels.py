@@ -148,6 +148,9 @@ def test_channel_create(web3, contract):
     token.transact({"from": Owner}).transfer(B, depozit_B)
     token.transact({"from": Owner}).transfer(D, depozit_D)
 
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({"from": B}).createChannel(A, depozit_B)
+
     # Approve token allowance
     token.transact({"from": B}).approve(contract.address, depozit_B)
 
