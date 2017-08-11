@@ -16,28 +16,34 @@ class ChannelManagementChannels(Resource):
         super(ChannelManagementChannels, self).__init__()
         self.channel_manager = channel_manager
 
-    def get(self, channel_id):
-        import pudb; pudb.set_trace()
+    def get(self, sender_address):
         x = self.channel_manager.state.channels
-        ret = {}
-        for k, v in x.items():
-            ret[k[0]] = {}
-        for k, v in x.items():
-            ret[k[0]][k[1]] = str(v)
+        block_opens = [k[1] for k, v in x.items() if k[0] == sender_address]
 
-        return json.dumps(ret), 200
+        return json.dumps(block_opens), 200
 
-    def delete(self, channel_id):
+    def delete(self, sender_address):
         parser = reqparse.RequestParser()
-        parser.add_argument('sender', type=str, help='counterparty')
         parser.add_argument('open_block', type=int, help='block the channel was opened')
         parser.add_argument('signature', help='last balance proof signature')
         args = parser.parse_args()
+        if args.signature is None:
+            return "Bad signature format", 400
         ret = self.channel_manager.sign_close(args.sender, args.open_block, args.signature)
         return ret, 200
 
 
-
 class ChannelManagementAdmin(Resource):
+    def __init__(self, channel_manager):
+        super(ChannelManagementAdmin, self).__init__()
+        self.channel_manager = channel_manager
+
     def get(self):
         return "OK"
+
+    def delete(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('open_block', type=int, help='block the channel was opened')
+        parser.add_argument('sender')
+        args = parser.parse_args()
+        self.channel_manager.close_channel(args.sender, args.open_block)

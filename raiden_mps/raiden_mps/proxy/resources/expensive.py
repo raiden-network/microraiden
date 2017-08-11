@@ -19,13 +19,23 @@ import raiden_mps.config as config
 
 
 class RequestData:
-    def __init__(self, headers):
+    def __init__(self, headers, cookies=None):
         """parse a flask request object and check if the data received are valid"""
         from werkzeug.datastructures import EnvironHeaders
         assert isinstance(headers, EnvironHeaders)
         self.check_headers(headers)
+        if cookies:
+            self.check_cookies(cookies)
 #        self.sender_address, _ = parse_balance_proof_msg(self.balance_signature, 2, 3, 4)
         self.sender_address = 0
+
+    def check_cookies(self, cookies):
+        if header.BALANCE_SIGNATURE in cookies:
+            balance_signature = cookies.get(header.BALANCE_SIGNATURE)
+        if header.OPEN_BLOCK in cookies:
+            open_block = int(cookies.get(header.OPEN_BLOCK))
+        self.balance_signature = balance_signature
+        self.open_block = open_block
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
@@ -106,7 +116,7 @@ class Expensive(Resource):
 
     def get(self, content):
         try:
-            data = RequestData(request.headers)
+            data = RequestData(request.headers, request.cookies)
         except ValueError as e:
             return str(e), 409
         proxy_handle = self.paywall_db.get_content(content)
@@ -162,4 +172,8 @@ class Expensive(Resource):
             data = self.light_client_proxy.get(self.receiver_address, price, config.TOKEN_ADDRESS)
         else:
             data = ""
-        return make_response(data, 402, headers)
+        reply = make_response(data, 402, headers)
+        for hdr in (header.GATEWAY_PATH, header.CONTRACT_ADDRESS,
+                    header.RECEIVER_ADDRESS, header.PRICE):
+            reply.set_cookie(hdr, str(headers[hdr]))
+        return reply
