@@ -319,11 +319,15 @@ contract RaidenMicroTransferChannels {
 
         // send minimum of _balance and deposit to receiver
         uint send_to_receiver = min(_balance, channel.deposit);
-        require(token.transfer(_receiver, send_to_receiver));
+        if(send_to_receiver > 0) {
+            require(token.transfer(_receiver, send_to_receiver));
+        }
 
         // send maximum of deposit - balance and 0 to sender
         uint send_to_sender = max(channel.deposit - _balance, 0);
-        require(token.transfer(_sender, send_to_sender));
+        if(send_to_sender > 0) {
+            require(token.transfer(_sender, send_to_sender));
+        }
 
         assert(channel.deposit >= _balance);
 

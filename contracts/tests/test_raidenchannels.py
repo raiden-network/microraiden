@@ -46,7 +46,7 @@ def contract(chain, web3):
     contract = RaidenMicroTransferChannels(address)
 
     print_logs(contract, 'ChannelCreated', 'RaidenMicroTransferChannels')
-    print_logs(contract, 'ChannelTopedUp', 'RaidenMicroTransferChannels')
+    print_logs(contract, 'ChannelToppedUp', 'RaidenMicroTransferChannels')
     print_logs(contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
     print_logs(contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
 
