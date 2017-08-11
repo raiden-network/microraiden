@@ -119,6 +119,8 @@ class Blockchain(gevent.Greenlet):
         # unconfirmed channel top ups
         logs = self.contract_proxy.get_channel_topup_logs(**filters_unconfirmed)
         for log in logs:
+            if log['args']['_receiver'] != self.cm.state.receiver:
+                continue
             assert log['args']['_receiver'] == self.cm.state.receiver
             txhash = log['transactionHash']
             sender = log['args']['_sender']
@@ -133,6 +135,8 @@ class Blockchain(gevent.Greenlet):
         # confirmed channel top ups
         logs = self.contract_proxy.get_channel_topup_logs(**filters_confirmed)
         for log in logs:
+            if log['args']['_receiver'] != self.cm.state.receiver:
+                continue
             assert log['args']['_receiver'] == self.cm.state.receiver
             txhash = log['transactionHash']
             sender = log['args']['_sender']
@@ -278,11 +282,11 @@ class ChannelManager(gevent.Greenlet):
         if c.last_signature is None:
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
         # send closing tx
-        tx_params = [sender, open_block_number, c.balance, c.last_signature]
-        raw_tx = self.contract_proxy.create_contract_call('close', tx_params)
+        tx_params = [self.state.receiver, open_block_number, c.balance, decode_hex(c.last_signature)]
+        raw_tx = self.contract_proxy.create_transaction('close', tx_params)
         self.log.info('sending channel close transaction (sender %s, block number %s)',
                       sender, open_block_number)
-        self.web3.eth.sendRawTransaction(raw_tx)
+        self.blockchain.web3.eth.sendRawTransaction(raw_tx)
         # update local state
         c.is_closed = True
         self.state.store()

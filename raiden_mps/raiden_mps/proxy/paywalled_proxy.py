@@ -59,9 +59,10 @@ class PaywalledProxy:
         self.api.add_resource(StaticFilesServer, "/js/<path:content>",
                               resource_class_kwargs={'directory': JSLIB_DIR})
         self.api.add_resource(Expensive, "/<path:content>", resource_class_kwargs=cfg)
-
-        self.api.add_resource(ChannelManagementAdmin, "/cm/admin")
-        self.api.add_resource(ChannelManagementChannels, "/cm/channels/", "/cm/channels/<string:channel_id>",
+        self.api.add_resource(ChannelManagementAdmin, "/cm/admin",
+                              resource_class_kwargs={'channel_manager': self.channel_manager})
+        self.api.add_resource(ChannelManagementChannels, "/cm/channels/",
+                                                         "/cm/channels/<string:sender_address>",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementRoot, "/cm")
 
