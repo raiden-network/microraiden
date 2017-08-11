@@ -35,6 +35,7 @@ function pageReady(json) {
   function retrySigned() {
     Cookies.set("RDN-Sender-Balance", rmpc.channel.balance);
     Cookies.set("RDN-Balance-Signature", rmpc.channel.sign);
+    Cookies.set("RDN-Open-Block", rmpc.channel.block);
     location.reload();
   }
 
@@ -53,13 +54,15 @@ function pageReady(json) {
 
   function refreshAccounts() {
     $select.empty();
-    rmpc.getAccounts((err, res) => $.each(res, (k,v) => {
-      const o = $("<option></option>").attr("value", v).text(v);
-      $select.append(o);
-      if (k === 0) {
-        o.change()
-      };
-    }));
+    rmpc.getAccounts((err, accounts) =>
+      $.each(accounts, (k,v) => {
+        const o = $("<option></option>").attr("value", v).text(v);
+        $select.append(o);
+        if (k === 0) {
+          o.change()
+        };
+      })
+    );
   }
 
   refreshAccounts();
@@ -77,7 +80,7 @@ function pageReady(json) {
     const deposit = +$("#channel_missing_deposit").val();
     const account = $("#accounts").val();
     mainSwitch("#channel_opening");
-    rmpc.openChannel(account, RMPparams.receiver, deposit, (err, res) => {
+    rmpc.openChannel(account, RMPparams.receiver, deposit, (err, sign) => {
       if (err) {
         refreshAccounts();
         return window.alert("An error ocurred trying to open a channel: "+err);
@@ -88,7 +91,7 @@ function pageReady(json) {
           console.error(err);
           return window.alert("An error ocurred trying to sign the transfer: "+err);
         }
-        console.log("SIGNED!", res);
+        console.log("SIGNED!", sign);
         return retrySigned();
       });
     });

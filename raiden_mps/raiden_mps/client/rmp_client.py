@@ -80,14 +80,18 @@ class RMPClient:
         created_events = self.channel_manager_proxy.get_channel_created_logs(filters=filters)
         close_requested_events = self.channel_manager_proxy.get_channel_close_requested_logs(filters=filters)
         settled_events = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
+        topup_events = self.channel_manager_proxy.get_channel_topped_up_logs(filters=filters)
 
         created_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in created_events]
         settling_channels = [
             ChannelInfo.from_event(event, ChannelInfo.State.settling) for event in close_requested_events
         ]
         closed_channels = [ChannelInfo.from_event(event, ChannelInfo.State.closed) for event in settled_events]
+        toppedup_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in topup_events]
 
-        self.channels = ChannelInfo.merge_infos(self.channels, created_channels, settling_channels, closed_channels)
+        self.channels = ChannelInfo.merge_infos(
+            self.channels, created_channels, settling_channels, closed_channels, toppedup_channels
+        )
         self.store_channels()
 
         log.info('Synced a total of {} channels.'.format(len(self.channels)))
@@ -162,14 +166,45 @@ class RMPClient:
 
         return channel
 
-    def topup_channel(self):
-        pass
+    def topup_channel(self, channel, value):
+        """
+        Attempts to increase the deposit in an existing channel. Block until confirmation.
+        """
+        if channel.state != ChannelInfo.State.open:
+            log.error('Channel must be open to be topped up.')
+            return
+
+        log.info('Topping up channel to {} created at block #{} by {} tokens.'.format(
+            channel.receiver, channel.block, value
+        ))
+        current_block = self.web3.eth.blockNumber
+
+        tx1 = self.token_proxy.create_transaction('approve', [self.channel_manager_address, value])
+        tx2 = self.channel_manager_proxy.create_transaction(
+            'topUp', [channel.receiver, channel.block, value], nonce_offset=1
+        )
+        self.web3.eth.sendRawTransaction(tx1)
+        self.web3.eth.sendRawTransaction(tx2)
+
+        log.info('Waiting for topup confirmation event...')
+        event = self.channel_manager_proxy.get_channel_topped_up_event_blocking(
+            channel.sender, channel.receiver, channel.block, channel.deposit + value, value, current_block + 1
+        )
+
+        if event:
+            log.info('Successfully topped up channel in block {}.'.format(event['blockNumber']))
+            self.store_channels()
+        else:
+            log.error('No event received.')
 
     def close_channel(self, channel, balance=None):
         """
         Attempts to request close on a channel. An explicit balance can be given to override the locally stored balance
         signature. Blocks until a confirmation event is received or timeout.
         """
+        if channel.state != ChannelInfo.State.open:
+            log.error('Channel must be open to request a close.')
+            return
         log.info('Requesting close of channel to {} created at block #{}.'.format(channel.receiver, channel.block))
         current_block = self.web3.eth.blockNumber
 
@@ -201,6 +236,9 @@ class RMPClient:
         Attempts to close the channel immediately by providing a hash of the channel's balance proof signed by the
         receiver. This signature must correspond to the balance proof stored in the passed channel state.
         """
+        if channel.state != ChannelInfo.State.open:
+            log.error('Channel must be open to be closed cooperatively.')
+            return
         log.info('Attempting to cooperatively close channel to {} created at block #{}.'.format(
             channel.receiver, channel.block
         ))
@@ -234,7 +272,9 @@ class RMPClient:
         Attempts to settle a channel that has passed its settlement period. If a channel cannot be settled yet, the call
         is ignored with a warning. Blocks until a confirmation event is received or timeout.
         """
-        assert channel.state == ChannelInfo.State.settling
+        if channel.state != ChannelInfo.State.settling:
+            log.error('Channel must be in the settlement period to settle.')
+            return
         log.info('Attempting to settle channel to {} created at block #{}.'.format(channel.receiver, channel.block))
 
         settle_block = self.channel_manager_proxy.contract.call().getChannelInfo(

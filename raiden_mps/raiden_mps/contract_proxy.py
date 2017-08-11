@@ -62,13 +62,19 @@ class ChannelContractProxy(ContractProxy):
         super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit)
 
     def get_channel_created_logs(self, from_block=0, to_block='latest', filters={}):
-        return super().get_logs('ChannelCreated', from_block, to_block, filters)
+        return self.get_logs('ChannelCreated', from_block, to_block, filters)
+
+    def get_channel_topped_up_logs(self, from_block=0, to_block='latest', filters={}):
+        return self.get_logs('ChannelToppedUp', from_block, to_block, filters)
 
     def get_channel_close_requested_logs(self, from_block=0, to_block='latest', filters={}):
-        return super().get_logs('ChannelCloseRequested', from_block, to_block, filters)
+        return self.get_logs('ChannelCloseRequested', from_block, to_block, filters)
 
     def get_channel_settled_logs(self, from_block=0, to_block='latest', filters={}):
-        return super().get_logs('ChannelSettled', from_block, to_block, filters)
+        return self.get_logs('ChannelSettled', from_block, to_block, filters)
+
+    def get_channel_topup_logs(self, from_block=0, to_block='latest', filters={}):
+        return super().get_logs('ChannelToppedUp', from_block, to_block, filters)
 
     def get_channel_created_event_blocking(
             self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60
@@ -77,6 +83,16 @@ class ChannelContractProxy(ContractProxy):
             return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender
 
         return self.get_event_blocking('ChannelCreated', condition, from_block, to_block, wait, timeout)
+
+    def get_channel_topped_up_event_blocking(
+            self, sender, receiver, opening_block, deposit, topup, from_block=0, to_block='pending', wait=3, timeout=60
+    ):
+        def condition(event):
+            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender and \
+                event['args']['_open_block_number'] == opening_block and event['args']['_deposit'] == deposit and \
+                event['args']['_added_deposit'] == topup
+
+        return self.get_event_blocking('ChannelToppedUp', condition, from_block, to_block, wait, timeout)
 
     def get_channel_close_requested_event_blocking(
             self, sender, receiver, opening_block, from_block=0, to_block='pending', wait=3, timeout=60

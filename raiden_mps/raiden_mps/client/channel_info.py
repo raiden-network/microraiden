@@ -69,10 +69,10 @@ class ChannelInfo:
             )
 
     @staticmethod
-    def merge_infos(stored, created, settling, closed):
+    def merge_infos(stored, created, settling, closed, toppedup):
         channel_id_to_channel = {
             (c.sender, c.receiver, c.block): ChannelInfo(c.sender, c.receiver, 0, c.block)
-            for group in (stored, created, settling, closed) for c in group
+            for group in (stored, created, settling, closed, toppedup) for c in group
         }
         for c in stored:
             c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
@@ -85,6 +85,10 @@ class ChannelInfo:
             c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
             c_merged.deposit = c.deposit
             c_merged.state = c.state
+
+        for c in toppedup:
+            c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
+            c_merged.deposit = max(c_merged.deposit, c.deposit)
 
         for c in settling:
             c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
