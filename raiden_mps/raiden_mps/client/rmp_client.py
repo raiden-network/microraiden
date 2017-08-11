@@ -230,12 +230,6 @@ class RMPClient:
             self.privkey, channel.receiver, channel.block, channel.balance
         )
 
-        # This part is optional but can't hurt.
-        sender = self.channel_manager_proxy.contract.call().verifyBalanceProof(
-            channel.receiver, channel.block, channel.balance, channel.balance_sig
-        )
-        assert sender == channel.sender
-
         self.store_channels()
 
         return channel.balance_sig
