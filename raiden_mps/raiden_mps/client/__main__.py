@@ -5,7 +5,6 @@ import logging
 
 from raiden_mps.client.rmp_client import RMPClient
 from raiden_mps.client.m2m_client import M2MClient
-from ethereum.utils import encode_hex
 
 
 @click.command()
