@@ -4,9 +4,10 @@ import click
 import os
 import logging
 
+from client.rmp_client import RMPClient
 from raiden_mps.client.m2mclient import M2MClient
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS
-
+from ethereum.utils import encode_hex
 
 
 @click.command()
@@ -43,9 +44,7 @@ def run(
         contract_abi_path,
         token_address
 ):
-    client = M2MClient(
-        api_endpoint,
-        api_port,
+    rmp_client = RMPClient(
         datadir,
         rpc_endpoint,
         rpc_port,
@@ -53,17 +52,27 @@ def run(
         dry_run,
         channel_manager_address,
         contract_abi_path,
-        token_address
+        token_address)
+    client = M2MClient(
+        rmp_client,
+        api_endpoint,
+        api_port
     )
 
     resource = 'doggo.jpg'
-    client.request_resource(resource)
+    # client.request_resource(resource)
 
+    channel = rmp_client.open_channel('0x003573995FAd11dF98746D286cFE6d87be3d508b', 5)
+    rmp_client.close_channel(channel)
+    rmp_client.create_transfer(channel, 1)
+    print('Balance signature: {}'.format(encode_hex(channel.balance_sig)))
 
-
-    open_channels = [channel for channel in client.channels if channel.state.name == 'open']
+    settling_channels = [channel for channel in rmp_client.channels if channel.state.name == 'settling']
+    for channel in settling_channels:
+        rmp_client.settle_channel(channel)
+    open_channels = [channel for channel in rmp_client.channels if channel.state.name == 'open']
     for channel in open_channels:
-        client.close_channel(channel, 0)
+        rmp_client.close_channel(channel, 0)
 
 
 if __name__ == '__main__':
