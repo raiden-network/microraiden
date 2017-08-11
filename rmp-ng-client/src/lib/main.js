@@ -21,18 +21,33 @@ function pageReady(json) {
 
   let $select = $("#accounts");
 
+  function pageSwitch(id) {
+    $(".page_switch"+id).show();
+    $(".page_switch:not("+id+")").hide();
+  }
+  pageSwitch("#payment_window");
+
+  function mainSwitch(id) {
+    $(".main_switch"+id).show();
+    $(".main_switch:not("+id+")").hide();
+  }
+
+  function retrySigned() {
+    Cookies.set("RDN-Sender-Balance", rmpc.channel.balance);
+    Cookies.set("RDN-Balance-Signature", rmpc.channel.sign);
+    location.reload();
+  }
+
   $select.change(($event) => {
     rmpc.loadStoredChannel($event.target.value, RMPparams.receiver);
 
     if (rmpc.isChannelValid() &&
         rmpc.channel.account === $event.target.value &&
         rmpc.channel.receiver === RMPparams.receiver) {
-      $(".main_switch#channel_present").show();
-      $(".main_switch:not(#channel_present)").hide();
       $("#channel_present_desc").text(JSON.stringify(rmpc.channel, null, 2));
+      mainSwitch("#channel_present");
     } else {
-      $(".main_switch#channel_missing").show();
-      $(".main_switch:not(#channel_missing)").hide();
+      mainSwitch("#channel_missing");
     }
   });
 
@@ -61,15 +76,20 @@ function pageReady(json) {
   $("#channel_missing_start").click(() => {
     const deposit = +$("#channel_missing_deposit").val();
     const account = $("#accounts").val();
+    mainSwitch("#channel_opening");
     rmpc.openChannel(account, RMPparams.receiver, deposit, (err, res) => {
       if (err) {
+        refreshAccounts();
         return window.alert("An error ocurred trying to open a channel: "+err);
       }
       return rmpc.incrementBalanceAndSign(RMPparams.amount, (err, res) => {
+        refreshAccounts();
         if (err) {
+          console.error(err);
           return window.alert("An error ocurred trying to sign the transfer: "+err);
         }
-        return window.alert("SIGNED: "+res);
+        console.log("SIGNED!", res);
+        return retrySigned();
       });
     });
   });
@@ -77,9 +97,11 @@ function pageReady(json) {
   $("#channel_present_sign").click(() => {
     rmpc.incrementBalanceAndSign(RMPparams.amount, (err, res) => {
       if (err) {
+        console.error(err);
         return window.alert("An error occurred trying to sign the transfer: "+err);
       }
-      return window.alert("SIGNED: "+res);
+      console.log("SIGNED!", res);
+      return retrySigned();
     });
   });
 
