@@ -54,20 +54,26 @@ class Blockchain(gevent.Greenlet):
         assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
 
         # filter for events after block_number
-        block_range_unconfirmed = {
+        filters_unconfirmed = {
             'from_block': self.cm.state.head_number + 1,
-            'to_block': 'latest'
+            'to_block': 'latest',
+            'filters': {
+                '_receiver': self.cm.state.receiver
+            }
         }
-        block_range_confirmed = {
+        filters_confirmed = {
             'from_block': max(0, self.cm.state.head_number + 1 - self.n_confirmations),
-            'to_block': max(self.web3.eth.blockNumber - self.n_confirmations, 0)
+            'to_block': max(self.web3.eth.blockNumber - self.n_confirmations, 0),
+            'filters': {
+                '_receiver': self.cm.state.receiver
+            }
         }
 #        self.log.debug('filtering for events u:%s-%s c:%s-%s',
 #                       block_range_unconfirmed['from_block'], block_range_unconfirmed['to_block'],
 #                       block_range_confirmed['from_block'], block_range_confirmed['to_block'])
 
         # unconfirmed channel created
-        logs = self.contract_proxy.get_channel_created_logs(**block_range_unconfirmed)
+        logs = self.contract_proxy.get_channel_created_logs(**filters_unconfirmed)
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
@@ -78,7 +84,7 @@ class Blockchain(gevent.Greenlet):
             self.cm.unconfirmed_event_channel_opened(sender, open_block_number, deposit)
 
         # channel created
-        logs = self.contract_proxy.get_channel_created_logs(**block_range_confirmed)
+        logs = self.contract_proxy.get_channel_created_logs(**filters_confirmed)
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
@@ -89,7 +95,7 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_opened(sender, open_block_number, deposit)
 
         # channel close requested
-        logs = self.contract_proxy.get_channel_close_requested_logs(**block_range_confirmed)
+        logs = self.contract_proxy.get_channel_close_requested_logs(**filters_confirmed)
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
@@ -102,7 +108,7 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
 
         # channel settled event
-        logs = self.contract_proxy.get_channel_settled_logs(**block_range_confirmed)
+        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
