@@ -4,7 +4,7 @@
 import os
 import pickle
 import time
-from ethereum.utils import privtoaddr, encode_hex
+from ethereum.utils import privtoaddr, encode_hex, decode_hex
 import gevent
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import logging
@@ -62,9 +62,9 @@ class Blockchain(gevent.Greenlet):
             'from_block': max(0, self.cm.state.head_number + 1 - self.n_confirmations),
             'to_block': max(self.web3.eth.blockNumber - self.n_confirmations, 0)
         }
-        self.log.debug('filtering for events u:%s-%s c:%s-%s',
-                       block_range_unconfirmed['from_block'], block_range_unconfirmed['to_block'],
-                       block_range_confirmed['from_block'], block_range_confirmed['to_block'])
+#        self.log.debug('filtering for events u:%s-%s c:%s-%s',
+#                       block_range_unconfirmed['from_block'], block_range_unconfirmed['to_block'],
+#                       block_range_confirmed['from_block'], block_range_confirmed['to_block'])
 
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**block_range_unconfirmed)
@@ -240,7 +240,7 @@ class ChannelManager(gevent.Greenlet):
     def sign_close(self, sender, open_block_number, signature):
         """Sign an agreement for a channel closing."""
         if (sender, open_block_number) not in self.state.channels:
-            raise NoOpenChannel('Channel does not exist or has been closed.')
+            raise NoOpenChannel('Channel does not exist or has been closed (sender=%s, open_block_number=%d)', sender, open_block_number)
         c = self.state.channels[(sender, open_block_number)]
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
@@ -274,11 +274,11 @@ class ChannelManager(gevent.Greenlet):
         if receiver.lower() != self.receiver.lower():
             raise InvalidBalanceProof('Channel has wrong receiver.')
         signer = self.contract_proxy.contract.call().verifyBalanceProof(
-            self.receiver, open_block_number, balance, signature)
+            self.receiver, open_block_number, balance, decode_hex(signature))
         try:
             c = self.state.channels[(signer, open_block_number)]
         except KeyError:
-            raise NoOpenChannel('Channel does not exist or has been closed.')
+            raise NoOpenChannel('Channel does not exist or has been closed (sender=%s, open_block_number=%d)', signer, open_block_number)
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
         return c

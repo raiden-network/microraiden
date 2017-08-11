@@ -13,6 +13,9 @@ from raiden_mps.config import CM_API_ROOT
 
 from flask import Response, make_response
 
+import bs4
+import raiden_mps.config as config
+
 
 class RequestData:
     def __init__(self, headers):
@@ -68,8 +71,17 @@ class LightClientProxy:
     def __init__(self, index_html):
         self.data = open(index_html).read()
 
-    def get(self):
-        return self.data
+    def get(self, receiver, amount, token):
+        js_params = '''window.RMPparams = {
+            receiver: "%s"
+            amount: %d,
+            token: "%s",
+        };''' % (receiver, amount, token)
+        soup = bs4.BeautifulSoup(self.data, "html.parser")
+        js_tag = soup.new_tag('script', type="text/javascript")
+        js_tag.string = js_params
+        soup.body.insert(0, js_tag)
+        return str(soup)
 
 
 def is_valid_address(address):
@@ -141,6 +153,9 @@ class Expensive(Resource):
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.PRICE: price
         }
+
         if self.light_client_proxy:
-            data = self.light_client_proxy.get()
+            data = self.light_client_proxy.get(self.receiver_address, price, config.TOKEN_ADDRESS)
+        else:
+            data = ""
         return make_response(data, 402, headers)

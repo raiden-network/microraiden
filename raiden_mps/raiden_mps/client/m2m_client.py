@@ -3,7 +3,7 @@ import time
 import logging
 from ethereum.utils import encode_hex
 
-from client.channel_info import ChannelInfo
+from raiden_mps.client.channel_info import ChannelInfo
 from raiden_mps.header import HTTPHeaders
 
 STATUS_OK = 200
