@@ -80,6 +80,7 @@ class RMPClient:
         created_events = self.channel_manager_proxy.get_channel_created_logs(filters=filters)
         close_requested_events = self.channel_manager_proxy.get_channel_close_requested_logs(filters=filters)
         settled_events = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
+        topup_events = self.channel_manager_proxy.get_channel_topped_up_logs(filters=filters)
 
         # TODO: incorporate topup events to deposits
 
@@ -88,8 +89,11 @@ class RMPClient:
             ChannelInfo.from_event(event, ChannelInfo.State.settling) for event in close_requested_events
         ]
         closed_channels = [ChannelInfo.from_event(event, ChannelInfo.State.closed) for event in settled_events]
+        toppedup_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in topup_events]
 
-        self.channels = ChannelInfo.merge_infos(self.channels, created_channels, settling_channels, closed_channels)
+        self.channels = ChannelInfo.merge_infos(
+            self.channels, created_channels, settling_channels, closed_channels, toppedup_channels
+        )
         self.store_channels()
 
         log.info('Synced a total of {} channels.'.format(len(self.channels)))
