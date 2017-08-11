@@ -32,8 +32,21 @@
     <div class="row main_switch" id="channel_present">
       <h3>A channel was found for this address</h3>
       <pre id="channel_present_desc"></pre>
-      <span>Press the button to pay the requested amount</span>
-      <button type="button" class="btn btn-primary" id="channel_present_sign">Sign</button>
+      <h3 class="col-sm-12">Press the Sign button to authorize the payment, or make another action</h3>
+      <div class="col-sm-12">
+        <button type="button" class="btn btn-success" id="channel_present_sign">
+          <span class="glyphicon glyphicon-pencil"></span> Sign
+        </button>
+        <button type="button" class="btn btn-primary" id="channel_present_close">
+          <span class="glyphicon glyphicon-remove"></span> Close
+        </button>
+        <button type="button" class="btn btn-warning" id="channel_present_settle">
+          <span class="glyphicon glyphicon-ok"></span> Settle
+        </button>
+        <button type="button" class="btn btn-danger" id="channel_present_forget">
+          <span class="glyphicon glyphicon-trash"></span> Forget
+        </button>
+      </div>
     </div>
 
     <div class="row main_switch" id="channel_missing">

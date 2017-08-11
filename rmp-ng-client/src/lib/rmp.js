@@ -47,6 +47,22 @@ class RaidenMicropaymentsClient {
     }
   }
 
+  forgetStoredChannel() {
+    if (localStorage) {
+      const key = this.channel.account + "|" + this.channel.receiver;
+      localStorage.removeItem(key);
+    }
+    this.channel = undefined;
+  }
+
+  setChannelInfo(channel) {
+    this.channel = channel;
+    if (localStorage) {
+      const key = channel.account + "|" + channel.receiver;
+      localStorage.setItem(key, JSON.stringify(this.channel));
+    }
+  }
+
   getAccounts(callback) {
     return this.web3.eth.getAccounts(callback);
   }
@@ -58,14 +74,6 @@ class RaidenMicropaymentsClient {
         .sign(account, msg, callback);
     } catch (e) {
       return callback(e);
-    }
-  }
-
-  setChannelInfo(channel) {
-    this.channel = channel;
-    if (localStorage) {
-      const key = channel.account + "|" + channel.receiver;
-      localStorage.setItem(key, JSON.stringify(this.channel));
     }
   }
 
