@@ -67,9 +67,9 @@ class Blockchain(gevent.Greenlet):
                 '_receiver': self.cm.state.receiver
             }
         }
-#        self.log.debug('filtering for events u:%s-%s c:%s-%s',
-#                       block_range_unconfirmed['from_block'], block_range_unconfirmed['to_block'],
-#                       block_range_confirmed['from_block'], block_range_confirmed['to_block'])
+    #    self.log.debug('filtering for events u:%s-%s c:%s-%s',
+    #                   block_range_unconfirmed['from_block'], block_range_unconfirmed['to_block'],
+    #                   block_range_confirmed['from_block'], block_range_confirmed['to_block'])
 
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**filters_unconfirmed)
@@ -115,6 +115,33 @@ class Blockchain(gevent.Greenlet):
             self.log.debug('received ChannelSettled event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_settled(sender, open_block_number)
+
+        # unconfirmed channel top ups
+        logs = self.contract_proxy.get_channel_topup_logs(**filters_unconfirmed)
+        for log in logs:
+            assert log['args']['_receiver'] == self.cm.state.receiver
+            txhash = log['transactionHash']
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
+            deposit = log['args']['_deposit']
+            added_deposit = log['args']['_added_deposit']
+            self.log.debug('received top up event (sender %s, block number %s, deposit %s)',
+                           sender, open_block_number, deposit)
+            self.cm.unconfirmed_event_channel_topup(sender, open_block_number, txhash,
+                                                    added_deposit, deposit)
+
+        # confirmed channel top ups
+        logs = self.contract_proxy.get_channel_topup_logs(**filters_confirmed)
+        for log in logs:
+            assert log['args']['_receiver'] == self.cm.state.receiver
+            txhash = log['transactionHash']
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
+            deposit = log['args']['_deposit']
+            added_deposit = log['args']['_added_deposit']
+            self.log.debug('received top up event (sender %s, block number %s, deposit %s)',
+                           sender, open_block_number, deposit)
+            self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit, deposit)
 
         # update head hash and number
         block = self.web3.eth.getBlock('latest')
@@ -215,10 +242,32 @@ class ChannelManager(gevent.Greenlet):
         self.state.store()
 
     def event_channel_settled(self, sender, open_block_number):
-        """Notify the sender that a channel settlement."""
+        """Notify the channel manager that a channel has been settled."""
         self.log.info('Forgetting settled channel (sender %s, block number %s)',
                       sender, open_block_number)
         del self.state.channels[(sender, open_block_number)]
+        self.state.store()
+
+    def unconfirmed_event_channel_topup(self, sender, open_block_number, txhash, added_deposit,
+                                        deposit):
+        """Notify the channel manager of a topup with not enough confirmations yet."""
+        self.log('Registering unconfirmed deposit top up (sender %s, block number %s, new deposit '
+                 '%s)', sender, open_block_number, deposit)
+        assert (sender, open_block_number) in self.state.channels
+        c = self.state.channels[(sender, open_block_number)]
+        assert c.balance + added_deposit == deposit
+        c.unconfirmed_event_channel_topups[txhash] = added_deposit
+        self.state.store()
+
+    def event_channel_topup(self, sender, open_block_number, txhash, added_deposit, deposit):
+        """Notify the channel manager that the deposit of a channel has been topped up."""
+        self.log('Registering deposit top up (sender %s, block number %s, new deposit %s)',
+                 sender, open_block_number, deposit)
+        assert (sender, open_block_number) in self.state.channels
+        c = self.state.channels[(sender, open_block_number)]
+        assert c.balance + added_deposit == deposit
+        c.deposit = deposit
+        c.unconfirmed_event_channel_topups.pop(txhash, None)
         self.state.store()
 
     # end events ####
@@ -351,6 +400,8 @@ class Channel(object):
         self.settle_timeout = -1
         self.mtime = time.time()
         self.ctime = time.time()  # channel creation time
+
+        self.unconfirmed_topups = {}  # txhash to added deposit
 
 
 class PublicAPI(object):
