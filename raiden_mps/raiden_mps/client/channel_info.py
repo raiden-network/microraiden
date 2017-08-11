@@ -1,6 +1,4 @@
-import json
 from enum import Enum
-
 from ethereum.utils import encode_hex, decode_hex
 
 
