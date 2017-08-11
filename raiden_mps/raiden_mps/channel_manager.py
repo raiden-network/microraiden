@@ -31,9 +31,7 @@ class NoBalanceProofReceived(Exception):
 
 
 class Blockchain(gevent.Greenlet):
-    """
-    Middleware which syncs the ChannelManager with the blockchain state
-    """
+    """Class that watches the blockchain and relays events to the channel manager."""
     poll_freqency = 5
 
     def __init__(self, web3, contract_proxy, channel_manager, n_confirmations=5):
@@ -45,11 +43,6 @@ class Blockchain(gevent.Greenlet):
         self.log = logging.getLogger('blockchain')
 
     def _run(self):
-        """
-        coroutine
-        which watches all events from contract_address, that involve self.address
-        and updates ChannelManager
-        """
         self.log.info('starting blockchain polling (frequency %ss)', self.poll_freqency)
         while True:
             self._update()
@@ -105,7 +98,8 @@ class Blockchain(gevent.Greenlet):
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             balance = log['args']['_balance']
-            timeout = self.contract_proxy.get_settle_timeout(self.cm.state.receiver, sender, open_block_number)
+            timeout = self.contract_proxy.get_settle_timeout(self.cm.state.receiver, sender,
+                                                             open_block_number)
             self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
@@ -127,7 +121,7 @@ class Blockchain(gevent.Greenlet):
 
 
 class ChannelManagerState(object):
-    "Serializable Datastructure"
+    """The part of the channel manager state that needs to persist."""
 
     def __init__(self, contract_address, receiver, filename=None):
         self.contract_address = contract_address
@@ -140,16 +134,19 @@ class ChannelManagerState(object):
         self.unconfirmed_channels = dict()
 
     def store(self):
+        """Store the state in a file."""
         if self.filename:
             self.log.debug('saving state in file')
             pickle.dump(self, self.filename)
 
     @classmethod
     def load(cls, filename):
+        """Load a previously stored state."""
         return pickle.load(open(filename))
 
 
 class ChannelManager(gevent.Greenlet):
+    """Manages channels from the receiver's point of view."""
 
     def __init__(self, web3, contract_proxy, receiver, private_key, state_filename=None):
         gevent.Greenlet.__init__(self)
@@ -172,7 +169,7 @@ class ChannelManager(gevent.Greenlet):
         gevent.joinall([self.blockchain])
 
     def set_head(self, number, _hash):
-        "should be called by blockchain after all events have been delivered, to trigger store"
+        """Set the block number up to which all events have been registered."""
         self.state.head_number = number
         self.state.head_hash = _hash
         self.state.store()
@@ -180,6 +177,7 @@ class ChannelManager(gevent.Greenlet):
     # relevant events from the blockchain for receiver from contract
 
     def event_channel_opened(self, sender, open_block_number, deposit):
+        """Notify the channel manager of a new confirmed channel opening."""
         assert (sender, open_block_number) not in self.state.channels
         self.state.unconfirmed_channels.pop((sender, open_block_number), None)
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
@@ -188,6 +186,7 @@ class ChannelManager(gevent.Greenlet):
         self.state.store()
 
     def unconfirmed_event_channel_opened(self, sender, open_block_number, deposit):
+        """Notify the channel manager of a new channel opening that has not been confirmed yet."""
         assert (sender, open_block_number) not in self.state.channels
         assert (sender, open_block_number) not in self.state.unconfirmed_channels
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
@@ -196,7 +195,7 @@ class ChannelManager(gevent.Greenlet):
         self.state.store()
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
-        "channel was closed by sender without consent"
+        """Notify the channel manager that a the closing of a channel has been requested."""
         if not (sender, open_block_number) in self.state.channels:
             self.log.warn('attempt to close a non existing channel (sender %ss, block_number %ss)',
                           sender, open_block_number)
@@ -214,6 +213,7 @@ class ChannelManager(gevent.Greenlet):
         self.state.store()
 
     def event_channel_settled(self, sender, open_block_number):
+        """Notify the sender that a channel settlement."""
         self.log.info('Forgetting settled channel (sender %s, block number %s)',
                       sender, open_block_number)
         del self.state.channels[(sender, open_block_number)]
@@ -222,7 +222,7 @@ class ChannelManager(gevent.Greenlet):
     # end events ####
 
     def close_channel(self, sender, open_block_number):
-        "receiver can always close the channel directly"
+        """Close and settle a channel."""
         c = self.state.channels[(sender, open_block_number)]
         if c.last_signature is None:
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
@@ -237,6 +237,7 @@ class ChannelManager(gevent.Greenlet):
         self.state.store()
 
     def sign_close(self, sender, open_block_number, signature):
+        """Sign an agreement for a channel closing."""
         if (sender, open_block_number) not in self.channels:
             raise NoOpenChannel('Channel does not exist or has been closed.')
         c = self.channels[(sender, open_block_number)]
@@ -256,6 +257,7 @@ class ChannelManager(gevent.Greenlet):
         return receiver_sig
 
     def get_token_balance(self):
+        """Get the balance in all channels combined."""
         balance = 0
         for channel in self.state.channels.values():
             balance += channel.balance
@@ -281,10 +283,7 @@ class ChannelManager(gevent.Greenlet):
         return c
 
     def register_payment(self, receiver, open_block_number, balance, signature):
-        """
-        registers a payment message
-        returns its sender and value
-        """
+        """Register a payment."""
         c = self.verifyBalanceProof(receiver, open_block_number, balance, signature)
         if balance <= c.balance:
             raise InvalidBalanceProof('The balance must not increase.')
@@ -298,6 +297,7 @@ class ChannelManager(gevent.Greenlet):
         return (c.sender, received)
 
     def channels_to_dict(self):
+        """Export all channels as a dictionary."""
         d = {}
         for sender, block_number in self.state.channels:
             channel = self.state.channels[(sender, block_number)]
@@ -316,6 +316,7 @@ class ChannelManager(gevent.Greenlet):
         return d
 
     def unconfirmed_channels_to_dict(self):
+        """Export all unconfirmed channels as a dictionary."""
         d = {}
         for sender, block_number in self.state.unconfirmed_channels:
             channel = self.state.unconfirmed_channels[(sender, block_number)]
@@ -330,6 +331,7 @@ class ChannelManager(gevent.Greenlet):
 
 
 class Channel(object):
+    """A channel between two parties."""
 
     def __init__(self, receiver, sender, deposit, open_block_number):
         self.receiver = receiver
