@@ -27,7 +27,7 @@ class ContractProxy:
         tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, 0, data)
         return self.web3.toHex(rlp.encode(tx.sign(self.privkey)))
 
-    def get_logs(self, event_name, from_block=0, to_block='latest'):
+    def get_logs(self, event_name, from_block=0, to_block='latest', argument_filter={}):
         filter_kwargs = {
             'fromBlock': from_block,
             'toBlock': to_block,
@@ -35,7 +35,8 @@ class ContractProxy:
         }
         event_abi = [i for i in self.abi if i['type'] == 'event' and i['name'] == event_name][0]
         assert event_abi
-        filter_ = construct_event_filter_params(event_abi, **filter_kwargs)[1]
+        filter_ = construct_event_filter_params(event_abi, argument_filters=argument_filter,
+                                                **filter_kwargs)[1]
         filter_params = [input_filter_params_formatter(filter_)]
         response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
         logs = log_array_formatter(response)
@@ -61,13 +62,16 @@ class ChannelContractProxy(ContractProxy):
         super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit)
 
     def get_channel_created_logs(self, from_block=0, to_block='latest'):
-        return super().get_logs('ChannelCreated', from_block, to_block)
+        return super().get_logs('ChannelCreated', from_block, to_block,
+                                {'_receiver': self.caller_address})
 
     def get_channel_close_requested_logs(self, from_block=0, to_block='latest'):
-        return super().get_logs('ChannelCloseRequested', from_block, to_block)
+        return super().get_logs('ChannelCloseRequested', from_block, to_block,
+                                {'_receiver': self.caller_address})
 
     def get_channel_settled_logs(self, from_block=0, to_block='latest'):
-        return super().get_logs('ChannelSettled', from_block, to_block)
+        return super().get_logs('ChannelSettled', from_block, to_block,
+                                {'_receiver': self.caller_address})
 
     def get_channel_created_event_blocking(
             self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60

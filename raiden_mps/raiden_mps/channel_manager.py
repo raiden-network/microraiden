@@ -69,8 +69,7 @@ class Blockchain(gevent.Greenlet):
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**block_range_unconfirmed)
         for log in logs:
-            if log['args']['_receiver'] != self.cm.state.receiver:
-                continue
+            assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
@@ -81,8 +80,7 @@ class Blockchain(gevent.Greenlet):
         # channel created
         logs = self.contract_proxy.get_channel_created_logs(**block_range_confirmed)
         for log in logs:
-            if log['args']['_receiver'] != self.cm.state.receiver:
-                continue
+            assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
@@ -93,8 +91,7 @@ class Blockchain(gevent.Greenlet):
         # channel close requested
         logs = self.contract_proxy.get_channel_close_requested_logs(**block_range_confirmed)
         for log in logs:
-            if log['args']['_receiver'] != self.cm.state.receiver:
-                continue
+            assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             balance = log['args']['_balance']
@@ -107,8 +104,7 @@ class Blockchain(gevent.Greenlet):
         # channel settled event
         logs = self.contract_proxy.get_channel_settled_logs(**block_range_confirmed)
         for log in logs:
-            if log['args']['_receiver'] != self.cm.state.receiver:
-                continue
+            assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             self.log.debug('received ChannelSettled event (sender %s, block number %s)',
