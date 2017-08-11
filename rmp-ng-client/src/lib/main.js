@@ -144,7 +144,7 @@ function pageReady(json) {
 
 };
 
-$.getJSON("parameters.json", (json) => {
+$.getJSON("/js/parameters.json", (json) => {
   let cnt = 20;
   // wait up to 20*200ms for web3 and call ready()
   const pollingId = setInterval(() => {
