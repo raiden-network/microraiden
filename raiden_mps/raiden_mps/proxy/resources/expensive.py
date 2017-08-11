@@ -31,11 +31,9 @@ class RequestData:
 
     def check_cookies(self, cookies):
         if header.BALANCE_SIGNATURE in cookies:
-            balance_signature = cookies.get(header.BALANCE_SIGNATURE)
+            self.balance_signature = cookies.get(header.BALANCE_SIGNATURE)
         if header.OPEN_BLOCK in cookies:
-            open_block = int(cookies.get(header.OPEN_BLOCK))
-        self.balance_signature = balance_signature
-        self.open_block = open_block
+            self.open_block = int(cookies.get(header.OPEN_BLOCK))
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
@@ -83,16 +81,16 @@ class LightClientProxy:
         self.data = open(index_html).read()
 
     def get(self, receiver, amount, token):
-        js_params = '''window.RMPparams = {
-            receiver: "%s"
-            amount: %d,
-            token: "%s",
-        };''' % (receiver, amount, token)
-        soup = bs4.BeautifulSoup(self.data, "html.parser")
-        js_tag = soup.new_tag('script', type="text/javascript")
-        js_tag.string = js_params
-        soup.body.insert(0, js_tag)
-        return str(soup)
+#        js_params = '''window.RMPparams = {
+#            receiver: "%s"
+#            amount: %d,
+#            token: "%s",
+#        };''' % (receiver, amount, token)
+#        soup = bs4.BeautifulSoup(self.data, "html.parser")
+#        js_tag = soup.new_tag('script', type="text/javascript")
+#        js_tag.string = js_params
+#        soup.body.insert(0, js_tag)
+        return self.data
 
 
 def is_valid_address(address):
