@@ -8,14 +8,16 @@ function pageReady(json) {
   );
 
   // you can set this variable in a new 'script' tag, for example
-  window.RMPparams = {
-    receiver: json["receiver"],
-    amount: json["amount"],
-    token: json["tokenAddr"],
-  };
+  if (!window.RMPparams) {
+    window.RMPparams = {
+      receiver: json["receiver"],
+      amount: json["amount"],
+      token: json["tokenAddr"],
+    };
+  }
 
   $("#amount").text(RMPparams["amount"]);
-  $("#token").text(RMPparams["token"]);
+  $("#token").text(RMPparams.token);
 
   let $select = $("#accounts");
   $select.empty();
@@ -44,7 +46,12 @@ function pageReady(json) {
   }));
 
   $("#channel_present_sign").click(() =>
-    rmpc.incrementBalanceAndSign(RMPparams["amount"], console.log)
+    rmpc.incrementBalanceAndSign(RMPparams.amount, (err, res) => {
+      if (err) {
+        return window.alert("An error occurred trying to sign the transfer: "+err);
+      }
+      return window.alert("SIGNED: "+res);
+    })
   );
 
   $("#channel_missing_deposit").bind("input", ($event) => {
@@ -63,7 +70,7 @@ function pageReady(json) {
       if (err) {
         return window.alert("An error ocurred trying to open a channel: "+err);
       }
-      return rmpc.incrementBalanceAndSign(RMPparams["amount"], (err, res) => {
+      return rmpc.incrementBalanceAndSign(RMPparams.amount, (err, res) => {
         if (err) {
           return window.alert("An error ocurred trying to sign the transfer: "+err);
         }
