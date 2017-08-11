@@ -208,10 +208,12 @@ class RaidenMicropaymentsClient {
           this.channel.balance,
           sign
         ];
+        let paramsTypes = "address,uint32,uint192,bytes";
         if (receiverSig) {
           params.push(receiverSig);
+          paramsTypes += ",bytes";
         }
-        return this.contract.close.sendTransaction(
+        return this.contract.close[paramsTypes].sendTransaction(
           ...params,
           {from: this.channel.account},
           (err, res) => {
