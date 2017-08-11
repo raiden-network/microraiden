@@ -267,6 +267,7 @@ class RaidenMicropaymentsClient {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
+    console.log("signBalance", newBalance, this.channel);
     if (newBalance === null) {
       newBalance = this.channel.balance;
     }
@@ -320,11 +321,10 @@ class RaidenMicropaymentsClient {
             ", required = +"+newBalance-deposit));
         }
         // get hash for new balance proof
-        return this.signBalance(newBalance, (err, res) => {
+        return this.signBalance(newBalance, (err, sign) => {
           if (err) {
             return callback(err);
           }
-          const sign = res;
           this.setChannelInfo(Object.assign(
             {},
             this.channel,
