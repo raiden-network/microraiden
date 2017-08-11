@@ -331,7 +331,7 @@ class ChannelManager(gevent.Greenlet):
         if receiver.lower() != self.receiver.lower():
             raise InvalidBalanceProof('Channel has wrong receiver.')
         signer = self.contract_proxy.contract.call().verifyBalanceProof(
-            self.receiver, open_block_number, balance, decode_hex(signature))
+            self.receiver, open_block_number, balance, decode_hex(signature.replace('0x','')))
         try:
             c = self.state.channels[(signer, open_block_number)]
         except KeyError:

@@ -18,7 +18,7 @@ class ChannelManagementChannels(Resource):
 
     def get(self, sender_address):
         x = self.channel_manager.state.channels
-        block_opens = [k[1] for k, v in x.items() if k[0] == sender_address]
+        block_opens = [k[1] for k, v in x.items() if k[0] == sender_address.lower()]
 
         return json.dumps(block_opens), 200
 
@@ -46,4 +46,4 @@ class ChannelManagementAdmin(Resource):
         parser.add_argument('open_block', type=int, help='block the channel was opened')
         parser.add_argument('sender')
         args = parser.parse_args()
-        self.channel_manager.close_channel(args.sender, args.open_block)
+        self.channel_manager.close_channel(args.sender.lower(), args.open_block)
