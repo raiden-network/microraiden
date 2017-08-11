@@ -59,8 +59,8 @@ contract RaidenMicroTransferChannels {
      */
 
     /// @dev Returns the unique channel identifier used in the contract.
-    /// @param _sender The address that sends token payments.
-    /// @param _receiver The address that receives token payments.
+    /// @param _sender The address that sends tokens.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @return Unique channel identifier.
     function getKey(
@@ -75,7 +75,7 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Returns a hash of the balance message needed to be signed by the sender.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @return Hash of the balance message.
@@ -102,11 +102,11 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Returns the sender address extracted from the balance proof.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @param _balance_msg_sig The balance message signed by the sender.
-    /// @return Address of the token payments sender.
+    /// @return Address of the token sender.
     function verifyBalanceProof(
         address _receiver,
         uint32 _open_block_number,
@@ -126,7 +126,7 @@ contract RaidenMicroTransferChannels {
     /// @dev Returns the receiver address extracted from the closing signature and the signed balance message.
     /// @param _balance_msg_sig The balance message signed by the sender.
     /// @param _closing_sig The hash of the signed balance message, signed by the receiver.
-    /// @return Address of the token payments receiver.
+    /// @return Address of the tokens receiver.
     function verifyClosingSignature(
         bytes _balance_msg_sig,
         bytes _closing_sig)
@@ -144,7 +144,7 @@ contract RaidenMicroTransferChannels {
      */
 
     /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     function createChannel(
         address _receiver,
@@ -171,7 +171,7 @@ contract RaidenMicroTransferChannels {
 
     // TODO (WIP) Funds channel with an additional depozit of tokens
     /// @dev Increase the sender's current depozit.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _added_deposit The added token deposit with which the current deposit is increased.
     function topUp(
@@ -197,7 +197,7 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Function called when any of the parties wants to close the channel and settle; receiver needs a balance proof to immediately settle, sender triggers a challenge period.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @param _balance_msg_sig The balance message signed by the sender.
@@ -220,7 +220,7 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Function called by the sender, when he has a closing signature from the receiver; channel is closed immediately.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @param _balance_msg_sig The balance message signed by the sender.
@@ -243,8 +243,8 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Function for getting information about a channel.
-    /// @param _sender The address that sends token payments.
-    /// @param _receiver The address that receives token payments.
+    /// @param _sender The address that sends tokens.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @return Channel information (unique_identifier, deposit, settle_block_number, closing_balance).
     function getChannelInfo(
@@ -260,7 +260,7 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Function called by the sender after the challenge period has ended, in case the receiver has not closed the channel.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     function settle(
         address _receiver,
@@ -280,7 +280,7 @@ contract RaidenMicroTransferChannels {
      */
 
     /// @dev Sender starts the challenge period; this can only happend once.
-    /// @param _receiver The address that receives token payments.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     function initChallengePeriod(
@@ -300,8 +300,8 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Closes the channel and settles by transfering the balance to the receiver and the rest of the depozit back to the sender.
-    /// @param _sender The address that sends token payments.
-    /// @param _receiver The address that receives token payments.
+    /// @param _sender The address that sends tokens.
+    /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     function settleChannel(
