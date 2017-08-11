@@ -8,7 +8,13 @@ function pageReady(json) {
   );
 
   // you can set this variable in a new 'script' tag, for example
-  if (!window.RMPparams) {
+  if (!window.RMPparams && Cookies.get("RDN-Price")) {
+    window.RMPparams = {
+      receiver: Cookies.get("RDN-Receiver-Address"),
+      amount: Cookies.get("RDN-Price"),
+      token: json["tokenAddr"],
+    };
+  } else if (!window.RMPparams) {
     window.RMPparams = {
       receiver: json["receiver"],
       amount: json["amount"],
@@ -20,12 +26,6 @@ function pageReady(json) {
   $("#token").text(RMPparams.token);
 
   let $select = $("#accounts");
-
-  function pageSwitch(id) {
-    $(".page_switch"+id).show();
-    $(".page_switch:not("+id+")").hide();
-  }
-  pageSwitch("#payment_window");
 
   function mainSwitch(id) {
     $(".main_switch"+id).show();
