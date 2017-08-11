@@ -163,6 +163,7 @@ class ChannelManager(gevent.Greenlet):
             self.state = ChannelManagerState(CHANNEL_MANAGER_ADDRESS, receiver, state_filename)
 
         self.log = logging.getLogger('channel_manager')
+        self.log.info('setting up channel manager for %s', self.receiver)
 
     def _run(self):
         self.blockchain.start()
@@ -238,9 +239,9 @@ class ChannelManager(gevent.Greenlet):
 
     def sign_close(self, sender, open_block_number, signature):
         """Sign an agreement for a channel closing."""
-        if (sender, open_block_number) not in self.channels:
+        if (sender, open_block_number) not in self.state.channels:
             raise NoOpenChannel('Channel does not exist or has been closed.')
-        c = self.channels[(sender, open_block_number)]
+        c = self.state.channels[(sender, open_block_number)]
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
         if signature != c.last_signature:
@@ -252,7 +253,7 @@ class ChannelManager(gevent.Greenlet):
             signature, receiver_sig)
         assert recovered_receiver == self.receiver.lower()
         self.state.store()
-        self.log.info('signed consenual closing message (sender %s, block number %s)',
+        self.log.info('signed cooperative closing message (sender %s, block number %s)',
                       sender, open_block_number)
         return receiver_sig
 

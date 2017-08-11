@@ -59,21 +59,23 @@ def run(
         api_port
     )
 
-    resource = 'doggo.jpg'
-    # client.request_resource(resource)
+    rmp_client.sync_channels()
+    #
+    #
+    # open_channels = [channel for channel in rmp_client.channels if channel.state.name == 'open']
+    # channel = open_channels[0]
+    # # channel = rmp_client.open_channel('0x003573995FAd11dF98746D286cFE6d87be3d508b', 5)
+    # # rmp_client.close_channel(channel)
+    # rmp_client.create_transfer(channel, 1)
+    # print('Balance signature: {}'.format(encode_hex(channel.balance_sig)))
+    #
+    # # settling_channels = [channel for channel in rmp_client.channels if channel.state.name == 'settling']
+    # # for channel in settling_channels:
+    # #     rmp_client.settle_channel(channel)
+    # # for channel in open_channels:
+    # #     rmp_client.close_channel(channel, 0)
 
-    open_channels = [channel for channel in rmp_client.channels if channel.state.name == 'open']
-    channel = open_channels[0]
-    # channel = rmp_client.open_channel('0x003573995FAd11dF98746D286cFE6d87be3d508b', 5)
-    # rmp_client.close_channel(channel)
-    rmp_client.create_transfer(channel, 1)
-    print('Balance signature: {}'.format(encode_hex(channel.balance_sig)))
-
-    # settling_channels = [channel for channel in rmp_client.channels if channel.state.name == 'settling']
-    # for channel in settling_channels:
-    #     rmp_client.settle_channel(channel)
-    # for channel in open_channels:
-    #     rmp_client.close_channel(channel, 0)
+    import ipdb; ipdb.set_trace()
 
 
 if __name__ == '__main__':
