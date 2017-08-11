@@ -36,7 +36,7 @@ python3 -m raiden_mps.client --key-path <path_to_hex_encoded_private_key>
 The Raiden client backend used by the M2M sample client can be used as a standalone library. After installation import the following class:
 ```python
 from raiden_mps.client.rmp_client import RMPClient
+client = RMPClient('<path_to_hex_encoded_private_key>')
 ```
 
 This class allows interaction with the blockchain and offline-signing of transactions and Raiden balance proofs.
-

@@ -30,7 +30,6 @@ class M2MClient(object):
         for try_n in range(tries_max):
             log.info("getting %s %d/%d", resource, try_n, tries_max)
             status, headers, body = self.perform_request(resource, channel)
-            #            import pudb;pudb.set_trace()
             if status == STATUS_OK:
                 return body
             elif status == STATUS_PAYMENT_REQUIRED:
