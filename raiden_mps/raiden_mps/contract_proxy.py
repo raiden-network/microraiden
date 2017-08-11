@@ -77,11 +77,12 @@ class ChannelContractProxy(ContractProxy):
 
         return self.get_event_blocking('ChannelCreated', condition, from_block, to_block, wait, timeout)
 
-    def get_channel_requested_close_event_blocking(
-            self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60
+    def get_channel_close_requested_event_blocking(
+            self, sender, receiver, opening_block, from_block=0, to_block='pending', wait=3, timeout=60
     ):
         def condition(event):
-            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender
+            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender and \
+                event['args']['_open_block_number'] == opening_block
 
         return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block, wait, timeout)
 

@@ -26,7 +26,6 @@ class RMPClient:
             rpc_endpoint='localhost',
             rpc_port=8545,
             datadir=os.path.join(os.path.expanduser('~'), '.raiden'),
-            dry_run=False,
             channel_manager_address=CHANNEL_MANAGER_ADDRESS,
             contract_abi_path=None,
             token_address=TOKEN_ADDRESS
@@ -35,7 +34,6 @@ class RMPClient:
         self.rpc_endpoint = rpc_endpoint
         self.rpc_port = rpc_port
         self.channel_manager_address = channel_manager_address
-        self.dry_run = dry_run
         if not contract_abi_path:
             contract_abi_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json')
         with open(contract_abi_path) as abi_file:
@@ -126,9 +124,8 @@ class RMPClient:
         current_block = self.web3.eth.blockNumber
         tx1 = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
         tx2 = self.channel_manager_proxy.create_transaction('createChannel', [receiver, deposit], nonce_offset=1)
-        if not self.dry_run:
-            self.web3.eth.sendRawTransaction(tx1)
-            self.web3.eth.sendRawTransaction(tx2)
+        self.web3.eth.sendRawTransaction(tx1)
+        self.web3.eth.sendRawTransaction(tx2)
 
         log.info('Waiting for channel creation event on the blockchain...')
         event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver, current_block + 1)
@@ -157,8 +154,7 @@ class RMPClient:
         Attempts to request close on a channel. An explicit balance can be given to override the locally stored balance
         signature. Blocks until a confirmation event is received or timeout.
         """
-        assert channel in self.channels
-        log.info('Closing channel to {} created at block #{}.'.format(channel.receiver, channel.block))
+        log.info('Requesting close of channel to {} created at block #{}.'.format(channel.receiver, channel.block))
         current_block = self.web3.eth.blockNumber
 
         if balance:
@@ -170,17 +166,49 @@ class RMPClient:
         tx = self.channel_manager_proxy.create_transaction(
             'close', [channel.receiver, channel.block, channel.balance, channel.balance_sig]
         )
-        if not self.dry_run:
-            self.web3.eth.sendRawTransaction(tx)
+        self.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for close confirmation event.')
-        event = self.channel_manager_proxy.get_channel_requested_close_event_blocking(
-            channel.sender, channel.receiver, current_block + 1
+        log.info('Waiting for close confirmation event...')
+        event = self.channel_manager_proxy.get_channel_close_requested_event_blocking(
+            channel.sender, channel.receiver, channel.block, current_block + 1
         )
 
         if event:
             log.info('Successfully sent channel close request in block {}.'.format(event['blockNumber']))
             channel.state = ChannelInfo.State.settling
+            self.store_channels()
+        else:
+            log.error('No event received.')
+
+    def close_channel_cooperatively(self, channel, closing_sig):
+        """
+        Attempts to close the channel immediately by providing a hash of the channel's balance proof signed by the
+        receiver. This signature must correspond to the balance proof stored in the passed channel state.
+        """
+        log.info('Attempting to cooperatively close channel to {} created at block #{}.'.format(
+            channel.receiver, channel.block
+        ))
+        current_block = self.web3.eth.blockNumber
+        receiver_recovered = self.channel_manager_proxy.contract.call().verifyClosingSignature(
+            channel.balance_sig, closing_sig
+        )
+        if receiver_recovered != channel.receiver:
+            log.error('Invalid closing signature or balance signature.')
+            return
+
+        tx = self.channel_manager_proxy.create_transaction(
+            'close', [channel.receiver, channel.block, channel.balance, channel.balance_sig, closing_sig]
+        )
+        self.web3.eth.sendRawTransaction(tx)
+
+        log.info('Waiting for settle confirmation event...')
+        event = self.channel_manager_proxy.get_channel_settle_event_blocking(
+            channel.sender, channel.receiver, channel.block, current_block + 1
+        )
+
+        if event:
+            log.info('Successfully closed channel in block {}.'.format(event['blockNumber']))
+            channel.state = ChannelInfo.State.closed
             self.store_channels()
         else:
             log.error('No event received.')
@@ -206,8 +234,7 @@ class RMPClient:
         tx = self.channel_manager_proxy.create_transaction(
             'settle', [channel.receiver, channel.block]
         )
-        if not self.dry_run:
-            self.web3.eth.sendRawTransaction(tx)
+        self.web3.eth.sendRawTransaction(tx)
 
         log.info('Waiting for settle confirmation event...')
         event = self.channel_manager_proxy.get_channel_settle_event_blocking(
@@ -226,8 +253,6 @@ class RMPClient:
         Updates the given channel's balance and balance signature with the new value. The signature is returned and
         stored in the channel state.
         """
-        assert channel in self.channels
-
         channel.balance += value
 
         channel.balance_sig = self.channel_manager_proxy.sign_balance_proof(
