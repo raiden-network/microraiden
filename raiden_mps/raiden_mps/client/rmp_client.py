@@ -14,6 +14,7 @@ GAS_LIMIT = 314159
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'Token'
 
+
 class RMPClient:
     def __init__(
             self,
