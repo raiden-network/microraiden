@@ -95,6 +95,7 @@ class ChannelInfo:
             c_merged.state = c.state
 
         for c in closed:
-            del channel_id_to_channel[(c.sender, c.receiver, c.block)]
+            c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
+            c_merged.state = c.state
 
         return list(channel_id_to_channel.values())

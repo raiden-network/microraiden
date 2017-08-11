@@ -103,9 +103,21 @@ class ChannelContractProxy(ContractProxy):
             receiver, open_block_number, balance
         )
         msg = force_bytes(msg)
-        return sign(privkey, msg)
+        sig = sign(privkey, msg)
 
-    def sign_close(self, privkey, signature):
-        msg = self.contract_proxy.contract.call().closingAgreementMessageHash(signature)
+        sender_recovered = self.contract.call().verifyBalanceProof(
+            receiver, open_block_number, balance, sig
+        )
+        assert sender_recovered.lower() == '0x' + encode_hex(privtoaddr(privkey)).lower()
+
+        return sig
+
+    def sign_close(self, privkey, balance_sig):
+        msg = self.contract.call().closingAgreementMessageHash(balance_sig)
         msg = force_bytes(msg)
-        return sign(privkey, msg)
+        closing_sig = sign(privkey, msg)
+
+        receiver_recovered = self.contract.call().verifyClosingSignature(balance_sig, closing_sig)
+        assert receiver_recovered.lower() == '0x' + encode_hex(privtoaddr(privkey)).lower()
+
+        return closing_sig

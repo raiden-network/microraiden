@@ -40,19 +40,19 @@ def main():
         print("Web3 provider is", web3.currentProvider)
 
         token = chain.provider.get_contract_factory("RDNToken")
-        txhash = token.deploy(args=[10000, "RDNToken", 6, "RDN"])
+        txhash = token.deploy(args=[100000, "RDNToken", 6, "RDN"])
         receipt = check_succesful_tx(chain.web3, txhash, 250)
         token_addr = receipt["contractAddress"]
         print("RDNToken address is", token_addr)
 
         channel_factory = chain.provider.get_contract_factory("RaidenMicroTransferChannels")
-        txhash = channel_factory.deploy(args=[token_addr, 100])
+        txhash = channel_factory.deploy(args=[token_addr, 30])
         receipt = check_succesful_tx(chain.web3, txhash, 250)
         cf_address = receipt["contractAddress"]
         print("RaidenMicroTransferChannels address is", cf_address)
 
         for sender in senders:
-            token(token_addr).transact({"from": web3.eth.accounts[1]}).transfer(sender, 400);
+            token(token_addr).transact({"from": web3.eth.accounts[1]}).transfer(sender, 20000);
 
 
 if __name__ == "__main__":
