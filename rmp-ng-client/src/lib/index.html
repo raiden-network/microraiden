@@ -10,11 +10,13 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
   <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
+
   <script type="text/javascript" src="web3.js"></script>
   <script type="text/javascript" src="rmp.js"></script>
 </head>
 <body>
-  <div class="container">
+  <div class="container page_switch" id="payment_window">
     <div class="well">
       <h1>Payment Requested</h1>
     </div>
@@ -34,7 +36,7 @@
       <pre id="channel_present_desc"></pre>
       <h3 class="col-sm-12">Press the Sign button to authorize the payment, or make another action</h3>
       <div class="col-sm-12">
-        <button type="button" class="btn btn-success" id="channel_present_sign">
+        <button type="button" class="btn btn-lg btn-success" id="channel_present_sign">
           <span class="glyphicon glyphicon-pencil"></span> Sign
         </button>
         <button type="button" class="btn btn-primary" id="channel_present_close">
@@ -82,6 +84,9 @@
         The transactions are being processed. Please, authorize with your Ethereum client.
       </div>
     </div>
+  </div>
+
+  <div class="page_switch" id="content_window">
   </div>
 
   <script type="text/javascript" src="main.js"></script>
