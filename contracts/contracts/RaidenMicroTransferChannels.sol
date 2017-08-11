@@ -34,7 +34,7 @@ contract RaidenMicroTransferChannels {
      */
 
     event ChannelCreated(address indexed _sender, address indexed _receiver, uint192 _deposit);
-    event ChannelTopedUp (address _sender, address _receiver, uint32 _open_block_number, uint192 _added_depozit, uint192 _depozit);
+    event ChannelToppedUp (address _sender, address _receiver, uint32 _open_block_number, uint192 _added_deposit, uint192 _deposit);
     event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 _open_block_number, uint192 _balance);
     event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 _open_block_number);
 
@@ -169,8 +169,8 @@ contract RaidenMicroTransferChannels {
         ChannelCreated(msg.sender, _receiver, _deposit);
     }
 
-    // TODO (WIP) Funds channel with an additional depozit of tokens
-    /// @dev Increase the sender's current depozit.
+    // TODO (WIP) Funds channel with an additional deposit of tokens
+    /// @dev Increase the sender's current deposit.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _added_deposit The added token deposit with which the current deposit is increased.
@@ -193,7 +193,7 @@ contract RaidenMicroTransferChannels {
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
 
         channels[key].deposit += _added_deposit;
-        ChannelTopedUp(msg.sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
+        ChannelToppedUp(msg.sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
     }
 
     /// @dev Function called when any of the parties wants to close the channel and settle; receiver needs a balance proof to immediately settle, sender triggers a challenge period.
@@ -299,7 +299,7 @@ contract RaidenMicroTransferChannels {
         ChannelCloseRequested(msg.sender, _receiver, _open_block_number, _balance);
     }
 
-    /// @dev Closes the channel and settles by transfering the balance to the receiver and the rest of the depozit back to the sender.
+    /// @dev Closes the channel and settles by transfering the balance to the receiver and the rest of the deposit back to the sender.
     /// @param _sender The address that sends tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
