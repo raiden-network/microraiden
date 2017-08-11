@@ -35,6 +35,7 @@ function pageReady(json) {
   function retrySigned() {
     Cookies.set("RDN-Sender-Balance", rmpc.channel.balance);
     Cookies.set("RDN-Balance-Signature", rmpc.channel.sign);
+    Cookies.set("RDN-Open-Block", rmpc.channel.block);
     location.reload();
   }
 
