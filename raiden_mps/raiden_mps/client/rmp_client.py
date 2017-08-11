@@ -82,8 +82,6 @@ class RMPClient:
         settled_events = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
         topup_events = self.channel_manager_proxy.get_channel_topped_up_logs(filters=filters)
 
-        # TODO: incorporate topup events to deposits
-
         created_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in created_events]
         settling_channels = [
             ChannelInfo.from_event(event, ChannelInfo.State.settling) for event in close_requested_events
