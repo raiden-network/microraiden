@@ -8,6 +8,7 @@ from web3.providers.rpc import RPCProvider
 
 from raiden_mps.client.channel_info import ChannelInfo
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
+from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS
 
 CHANNELS_DB = 'channels.json'
 GAS_PRICE = 20 * 1000 * 1000 * 1000
@@ -21,14 +22,14 @@ log = logging.getLogger(__name__)
 class RMPClient:
     def __init__(
             self,
-            datadir,
-            rpc_endpoint,
-            rpc_port,
             key_path,
-            dry_run,
-            channel_manager_address,
-            contract_abi_path,
-            token_address
+            rpc_endpoint='localhost',
+            rpc_port=8545,
+            datadir=os.path.join(os.path.expanduser('~'), '.raiden'),
+            dry_run=False,
+            channel_manager_address=CHANNEL_MANAGER_ADDRESS,
+            contract_abi_path=None,
+            token_address=TOKEN_ADDRESS
     ):
         self.datadir = datadir
         self.rpc_endpoint = rpc_endpoint
