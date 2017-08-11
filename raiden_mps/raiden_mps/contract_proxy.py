@@ -85,6 +85,15 @@ class ChannelContractProxy(ContractProxy):
 
         return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block, wait, timeout)
 
+    def get_channel_settle_event_blocking(
+            self, sender, receiver, opening_block, from_block=0, to_block='pending', wait=3, timeout=60
+    ):
+        def condition(event):
+            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender and \
+                event['args']['_open_block_number'] == opening_block
+
+        return self.get_event_blocking('ChannelSettled', condition, from_block, to_block, wait, timeout)
+
     def get_settle_timeout(self, sender, receiver, open_block_number):
         return self.contract.call().getChannelInfo(sender, receiver, open_block_number)[3]
 
@@ -93,5 +102,10 @@ class ChannelContractProxy(ContractProxy):
         msg = self.contract.call().balanceMessageHash(
             receiver, open_block_number, balance
         )
+        msg = force_bytes(msg)
+        return sign(privkey, msg)
+
+    def sign_close(self, privkey, signature):
+        msg = self.contract_proxy.contract.call().closingAgreementMessageHash(signature)
         msg = force_bytes(msg)
         return sign(privkey, msg)
