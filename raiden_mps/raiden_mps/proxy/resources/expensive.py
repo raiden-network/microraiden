@@ -4,7 +4,8 @@ from flask_restful import (
 )
 from raiden_mps.channel_manager import (
     ChannelManager,
-    NoOpenChannel
+    NoOpenChannel,
+    InvalidBalanceProof
 )
 # from raiden_mps.utils import parse_balance_proof_msg
 
@@ -114,12 +115,15 @@ class Expensive(Resource):
         if data.balance_signature:
             # check the balance proof
             try:
-                self.channel_manager.verifyBalanceProof(self.receiver_address,
-                                                        data.open_block_number,
-                                                        data.balance,
-                                                        data.balance_signature)
+                self.channel_manager.register_payment(
+                    self.receiver_address,
+                    data.open_block_number,
+                    data.balance,
+                    data.balance_signature)
             except NoOpenChannel as e:
                 return str(e), 402, {header.INSUF_CONFS: "1"}
+            except InvalidBalanceProof as e:
+                return str(e), 402, {header.INSUF_FUNDS: "1"}
             return self.reply_premium(content, data.sender_address, proxy_handle)
         else:
             return self.reply_payment_required(content, proxy_handle)

@@ -15,7 +15,6 @@ import logging
 # - implement top ups
 # - settle closed channels
 
-logging.basicConfig(level=logging.DEBUG)
 
 
 class InvalidBalanceProof(Exception):
