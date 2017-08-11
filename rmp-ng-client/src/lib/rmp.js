@@ -236,6 +236,7 @@ class RaidenMicropaymentsClient {
         if (err) {
           return callback(err);
         }
+        console.log("Channel info:", res);
         const deposit = res[1];
         if (newBalance > deposit) {
           return callback(new Error("Insuficient funds: current = "+deposit+

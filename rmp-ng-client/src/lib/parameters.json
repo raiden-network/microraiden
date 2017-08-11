@@ -1,7 +1,28 @@
 {
   "web3url": "/web3",
-  "contractAddr": "0x847b3a0a4b710d5678369a2cbb6cd1c3a6fc34e7",
+  "contractAddr": "0xee78ca069eacca75b5026f93e3f663c4866fc425",
   "contractABI": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "name": "_open_block_number",
+          "type": "uint32"
+        },
+        {
+          "name": "_added_deposit",
+          "type": "uint192"
+        }
+      ],
+      "name": "topUp",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
     {
       "constant": true,
       "inputs": [],
@@ -47,30 +68,9 @@
         },
         {
           "name": "",
-          "type": "uint32"
+          "type": "uint192"
         }
       ],
-      "payable": false,
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "name": "_open_block_number",
-          "type": "uint32"
-        },
-        {
-          "name": "_added_deposit",
-          "type": "uint32"
-        }
-      ],
-      "name": "topUp",
-      "outputs": [],
       "payable": false,
       "type": "function"
     },
@@ -89,6 +89,35 @@
           "type": "bytes32"
         }
       ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "name": "_open_block_number",
+          "type": "uint32"
+        },
+        {
+          "name": "_balance",
+          "type": "uint192"
+        },
+        {
+          "name": "_balance_msg_sig",
+          "type": "bytes"
+        },
+        {
+          "name": "_closing_sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "close",
+      "outputs": [],
       "payable": false,
       "type": "function"
     },
@@ -122,7 +151,7 @@
         },
         {
           "name": "_balance",
-          "type": "uint32"
+          "type": "uint192"
         }
       ],
       "name": "balanceMessageHash",
@@ -130,6 +159,36 @@
         {
           "name": "data",
           "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "name": "_open_block_number",
+          "type": "uint32"
+        },
+        {
+          "name": "_balance",
+          "type": "uint192"
+        },
+        {
+          "name": "_balance_msg_sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "verifyBalanceProof",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
         }
       ],
       "payable": false,
@@ -162,31 +221,6 @@
       "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "name": "_open_block_number",
-          "type": "uint32"
-        },
-        {
-          "name": "_balance",
-          "type": "uint32"
-        },
-        {
-          "name": "_balance_msg_sig",
-          "type": "bytes"
-        }
-      ],
-      "name": "close",
-      "outputs": [],
-      "payable": false,
-      "type": "function"
-    },
-    {
       "constant": true,
       "inputs": [],
       "name": "token_address",
@@ -196,35 +230,6 @@
           "type": "address"
         }
       ],
-      "payable": false,
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "name": "_open_block_number",
-          "type": "uint32"
-        },
-        {
-          "name": "_balance",
-          "type": "uint32"
-        },
-        {
-          "name": "_balance_msg_sig",
-          "type": "bytes"
-        },
-        {
-          "name": "_closing_sig",
-          "type": "bytes"
-        }
-      ],
-      "name": "close",
-      "outputs": [],
       "payable": false,
       "type": "function"
     },
@@ -259,7 +264,7 @@
         },
         {
           "name": "_deposit",
-          "type": "uint32"
+          "type": "uint192"
         }
       ],
       "name": "createChannel",
@@ -268,7 +273,7 @@
       "type": "function"
     },
     {
-      "constant": true,
+      "constant": false,
       "inputs": [
         {
           "name": "_receiver",
@@ -280,20 +285,15 @@
         },
         {
           "name": "_balance",
-          "type": "uint32"
+          "type": "uint192"
         },
         {
           "name": "_balance_msg_sig",
           "type": "bytes"
         }
       ],
-      "name": "verifyBalanceProof",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
+      "name": "close",
+      "outputs": [],
       "payable": false,
       "type": "function"
     },
@@ -327,7 +327,7 @@
         {
           "indexed": false,
           "name": "_deposit",
-          "type": "uint32"
+          "type": "uint192"
         }
       ],
       "name": "ChannelCreated",
@@ -386,7 +386,7 @@
         {
           "indexed": false,
           "name": "_balance",
-          "type": "uint32"
+          "type": "uint192"
         }
       ],
       "name": "ChannelCloseRequested",
@@ -415,7 +415,7 @@
       "type": "event"
     }
   ],
-  "tokenAddr": "0x9a1ec1fde17312528aba2316c5d700e63e78e250",
+  "tokenAddr": "0x00e67fa4957d18a95e18efc7353a8fb9c6f484c9",
   "tokenABI": [
     {
       "constant": true,
