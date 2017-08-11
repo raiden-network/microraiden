@@ -47,13 +47,12 @@ class RaidenMicropaymentsClient {
     }
   }
 
-  getAccounts(callback) {
-    return this.web3.eth.getAccounts(callback);
-  }
-
-  signHash(msg, account, callback) {
-    return this.web3.eth
-      .sign(account, msg, callback);
+  forgetStoredChannel() {
+    if (localStorage) {
+      const key = this.channel.account + "|" + this.channel.receiver;
+      localStorage.removeItem(key);
+    }
+    this.channel = undefined;
   }
 
   setChannelInfo(channel) {
@@ -61,6 +60,20 @@ class RaidenMicropaymentsClient {
     if (localStorage) {
       const key = channel.account + "|" + channel.receiver;
       localStorage.setItem(key, JSON.stringify(this.channel));
+    }
+  }
+
+  getAccounts(callback) {
+    return this.web3.eth.getAccounts(callback);
+  }
+
+  signHash(msg, account, callback) {
+    try {
+      console.log("Signing", msg, account);
+      return this.web3.eth
+        .sign(account, msg, callback);
+    } catch (e) {
+      return callback(e);
     }
   }
 
@@ -77,7 +90,7 @@ class RaidenMicropaymentsClient {
       return callback(new Error("No valid channelInfo"));
     }
     this.contract.ChannelCloseRequested({
-      _sender: this.account,
+      _sender: this.channel.account,
       _receiver: this.channel.receiver,
       _open_block_number: this.channel.openBlockNumber,
     }, {
@@ -103,32 +116,36 @@ class RaidenMicropaymentsClient {
       this.contract.address,
       deposit,
       {from: account},
-      (err, res) => {
+      (err, txHash) => {
         if (err) {
           return callback(err);
         }
-        // send 'createChannel' transaction
-        this.contract.createChannel.sendTransaction(
-          receiver,
-          deposit,
-          {from: account},
-          (err, res) => {
-            if (err) {
-              return callback(err);
-            }
-            const createChannelTxHash = res;
-            // wait for 'createChannel' transaction to be mined
-            this.waitTx(createChannelTxHash, (err, res) => {
+        this.waitTx(txHash, (err, receipt) => {
+          if (err) {
+            return callback(err);
+          }
+          // send 'createChannel' transaction
+          this.contract.createChannel.sendTransaction(
+            receiver,
+            deposit,
+            {from: account},
+            (err, res) => {
               if (err) {
                 return callback(err);
               }
-              const block = res;
-              this.setChannelInfo({account, receiver, openBlockNumber: block.number, balance: 0});
-              // return block
-              return callback(null, this.channel);
-            });
-          }
-        )
+              const createChannelTxHash = res;
+              // wait for 'createChannel' transaction to be mined
+              this.waitTx(createChannelTxHash, (err, receipt) => {
+                if (err) {
+                  return callback(err);
+                }
+                this.setChannelInfo({account, receiver, openBlockNumber: receipt.blockNumber, balance: 0});
+                // return block
+                return callback(null, this.channel);
+              });
+            }
+          )
+        });
       });
   }
 
@@ -157,13 +174,12 @@ class RaidenMicropaymentsClient {
             }
             const topUpTxHash = res;
             // wait for 'topUp' transaction to be mined
-            this.waitTx(topUpTxHash, (err, res) => {
+            this.waitTx(topUpTxHash, (err, receipt) => {
               if (err) {
                 return callback(err);
               }
-              const block = res;
               // return block number
-              return callback(null, block.number);
+              return callback(null, receipt.blockNumber);
             });
           }
         )
@@ -191,7 +207,7 @@ class RaidenMicropaymentsClient {
         }
         const msgHash = res;
         // ask for signing of this message
-        this.signHash(msgHash, this.account, (err, res) => {
+        this.signHash(msgHash, this.channel.account, (err, res) => {
           if (err) {
             return callback(err);
           }
@@ -282,12 +298,11 @@ class RaidenMicropaymentsClient {
               return callback(err);
             }
             const txHash = res;
-            return this.waitTx(txHash, (err, res) => {
+            return this.waitTx(txHash, (err, receipt) => {
               if (err) {
                 return callback(err);
               }
-              const block = res;
-              return callback(null, block.number);
+              return callback(null, receipt.blockNumber);
             });
           }
         );
@@ -314,12 +329,11 @@ class RaidenMicropaymentsClient {
             return callback(err);
           }
           const txHash = res;
-          return this.waitTx(txHash, (err, res) => {
+          return this.waitTx(txHash, (err, receipt) => {
             if (err) {
               return callback(err);
             }
-            const block = res;
-            return callback(null, block.number);
+            return callback(null, receipt.blockNumber);
           });
         }
       );
@@ -338,29 +352,21 @@ class RaidenMicropaymentsClient {
         filter.stopWatching();
         filter = null;
         console.warn('!! Tx expired !!');
-        if (callback) {
-          return callback(new Error("Tx expired"));
-        }
-        else {
-          return false;
-        }
+        return callback(new Error("Tx expired"));
       }
       // Get info about latest Ethereum block
-      let block = this.web3.eth.getBlock(blockHash);
-      --blockCounter;
-      // Found tx hash?
-      if (block.transactions.indexOf(txHash) > -1) {
+      return this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
+        --blockCounter;
+        if (err) {
+          return callback(err);
+        } else if (!receipt || !receipt.blockNumber) {
+          return console.log('Waiting tx..', blockCounter);
+        }
         // Tx is finished
         filter.stopWatching();
         filter = null;
-        if (callback)
-        return callback(null, block);
-        else
-        return block;
-        // Tx hash not found yet?
-        } else {
-          console.log('Waiting tx..', blockCounter);
-        }
+        return callback(null, receipt);
+      });
     });
   }
 

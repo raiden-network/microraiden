@@ -244,6 +244,9 @@ class ChannelManager(gevent.Greenlet):
         c = self.state.channels[(sender, open_block_number)]
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
+        assert signature is not None
+        if c.last_signature is None:
+            raise NoBalanceProofReceived('Payment has not been registered.')
         if signature != c.last_signature:
             raise InvalidBalanceProof('Balance proof does not match latest one.')
         c.is_closed = True  # FIXME block number
@@ -264,7 +267,7 @@ class ChannelManager(gevent.Greenlet):
             balance += channel.balance
         return balance
 
-    def verifyBalanceProof(self, receiver, open_block_number, balance, signature):
+    def verify_balance_proof(self, receiver, open_block_number, balance, signature):
         """Verify that a balance proof is valid and return the sender.
 
         Does not check the balance itself.
@@ -285,7 +288,7 @@ class ChannelManager(gevent.Greenlet):
 
     def register_payment(self, receiver, open_block_number, balance, signature):
         """Register a payment."""
-        c = self.verifyBalanceProof(receiver, open_block_number, balance, signature)
+        c = self.verify_balance_proof(receiver, open_block_number, balance, signature)
         if balance <= c.balance:
             raise InvalidBalanceProof('The balance must not increase.')
         received = balance - c.balance
