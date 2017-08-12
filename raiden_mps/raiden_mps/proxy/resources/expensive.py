@@ -33,7 +33,9 @@ class RequestData:
         if header.BALANCE_SIGNATURE in cookies:
             self.balance_signature = cookies.get(header.BALANCE_SIGNATURE)
         if header.OPEN_BLOCK in cookies:
-            self.open_block = int(cookies.get(header.OPEN_BLOCK))
+            self.open_block_number = int(cookies.get(header.OPEN_BLOCK))
+        if header.SENDER_BALANCE in cookies:
+            self.balance = int(cookies.get(header.SENDER_BALANCE))
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
@@ -44,7 +46,7 @@ class RequestData:
         payment = headers.get(header.PAYMENT, None)
         balance_signature = headers.get(header.BALANCE_SIGNATURE, None)
         open_block = headers.get(header.OPEN_BLOCK, None)
-        balance = headers.get(header.BALANCE, None)
+        balance = headers.get(header.SENDER_BALANCE, None)
         if price:
             price = int(price)
         if open_block:
