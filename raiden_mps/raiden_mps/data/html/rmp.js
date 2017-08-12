@@ -303,7 +303,7 @@ class RaidenMicropaymentsClient {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
-    const newBalance = this.channel.balance + amount;
+    const newBalance = this.channel.balance + parseInt(amount);
     // get current deposit
     this.contract.getChannelInfo.call(
       this.channel.account,
@@ -379,4 +379,3 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
 } else {
   window.RaidenMicropaymentsClient = RaidenMicropaymentsClient;
 }
-
