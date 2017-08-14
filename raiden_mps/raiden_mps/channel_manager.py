@@ -16,7 +16,6 @@ import logging
 # - settle closed channels
 
 
-
 class InvalidBalanceProof(Exception):
     pass
 
@@ -182,7 +181,7 @@ class ChannelManager(gevent.Greenlet):
 
     def __init__(self, web3, contract_proxy, receiver, private_key, state_filename=None):
         gevent.Greenlet.__init__(self)
-        self.blockchain = Blockchain(web3, contract_proxy, self)
+        self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=1)
         self.receiver = receiver
         self.private_key = private_key
         self.contract_proxy = contract_proxy
@@ -282,7 +281,8 @@ class ChannelManager(gevent.Greenlet):
         if c.last_signature is None:
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
         # send closing tx
-        tx_params = [self.state.receiver, open_block_number, c.balance, decode_hex(c.last_signature)]
+        tx_params = [self.state.receiver, open_block_number,
+                     c.balance, decode_hex(c.last_signature)]
         raw_tx = self.contract_proxy.create_transaction('close', tx_params)
         self.log.info('sending channel close transaction (sender %s, block number %s)',
                       sender, open_block_number)
@@ -294,7 +294,8 @@ class ChannelManager(gevent.Greenlet):
     def sign_close(self, sender, open_block_number, signature):
         """Sign an agreement for a channel closing."""
         if (sender, open_block_number) not in self.state.channels:
-            raise NoOpenChannel('Channel does not exist or has been closed (sender=%s, open_block_number=%d)', sender, open_block_number)
+            raise NoOpenChannel('Channel does not exist or has been closed'
+                                '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
         c = self.state.channels[(sender, open_block_number)]
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
@@ -331,11 +332,12 @@ class ChannelManager(gevent.Greenlet):
         if receiver.lower() != self.receiver.lower():
             raise InvalidBalanceProof('Channel has wrong receiver.')
         signer = self.contract_proxy.contract.call().verifyBalanceProof(
-            self.receiver, open_block_number, balance, decode_hex(signature.replace('0x','')))
+            self.receiver, open_block_number, balance, decode_hex(signature.replace('0x', '')))
         try:
             c = self.state.channels[(signer, open_block_number)]
         except KeyError:
-            raise NoOpenChannel('Channel does not exist or has been closed (sender=%s, open_block_number=%d)', signer, open_block_number)
+            raise NoOpenChannel('Channel does not exist or has been closed'
+                                '(sender=%s, open_block_number=%d)' % (signer, open_block_number))
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
         return c
