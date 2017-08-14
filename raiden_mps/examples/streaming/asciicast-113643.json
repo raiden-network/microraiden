@@ -1,0 +1,498 @@
+{
+  "version": 1,
+  "width": 67,
+  "height": 16,
+  "duration": 10.840714,
+  "command": null,
+  "title": null,
+  "env": {
+    "TERM": "xterm-color",
+    "SHELL": "/bin/bash"
+  },
+  "stdout": [
+    [
+      0.996299,
+      "\u001b]1337;RemoteHost=lucy@koharu.local\u0007\u001b]1337;CurrentDir=/Users/lucy\u0007"
+    ],
+    [
+      0.000106,
+      "\u001b]1337;ShellIntegrationVersion=2;shell=bash\u0007"
+    ],
+    [
+      0.223866,
+      "\u001b]133;C;\u0007"
+    ],
+    [
+      0.017705,
+      "\u001b]133;D;0\u0007\u001b]1337;RemoteHost=lucy@koharu.local\u0007\u001b]1337;CurrentDir=/Users/lucy\u0007\u001b]133;A\u0007\u001b[0;32m✔ \u001b[01;32mlucy@koharu\u001b[00m \u001b[01;34m~\u001b[00m \r\r\n\u001b[1;34m01:01\u001b[0;0m $ \u001b]133;B\u0007"
+    ],
+    [
+      1.356542,
+      "pa"
+    ],
+    [
+      4.3e-05,
+      "rrot -l"
+    ],
+    [
+      2.3e-05,
+      "oop"
+    ],
+    [
+      2e-05,
+      "s "
+    ],
+    [
+      1.8e-05,
+      "10"
+    ],
+    [
+      0.31958,
+      " "
+    ],
+    [
+      0.144123,
+      "&"
+    ],
+    [
+      0.136043,
+      "&"
+    ],
+    [
+      0.104046,
+      " "
+    ],
+    [
+      0.135992,
+      "e"
+    ],
+    [
+      0.088106,
+      "x"
+    ],
+    [
+      0.079822,
+      "i"
+    ],
+    [
+      0.104144,
+      "t"
+    ],
+    [
+      0.399832,
+      "\r\n"
+    ],
+    [
+      0.007978,
+      "\u001b]133;C;\u0007"
+    ],
+    [
+      0.004431,
+      "\u001b7\u001b[?47h\u001b[?1h\u001b=\u0002\u0007\u001b[H\u001b[2J"
+    ],
+    [
+      0.000118,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.000118,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000141,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075129,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.076177,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.076208,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.075712,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.075457,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.076155,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.07612,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.07625,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075934,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000167,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.076049,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.07532,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075294,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.0758,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.076104,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.075221,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.07572,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.075397,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075518,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000142,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.076037,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.075224,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075292,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.075874,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.075163,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.075153,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.07613,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.076141,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075205,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000149,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075046,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.075402,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075267,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.075534,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.076526,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.074749,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.07517,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.0754,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075346,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000158,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075086,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.075985,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075793,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.07601,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.075193,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.0752,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.075933,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.075257,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075227,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000181,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075032,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.075429,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075212,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.075976,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.076138,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.075157,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.07518,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.075263,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.07526,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000146,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075198,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.076105,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075298,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.075268,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.075336,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.075205,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.075143,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.07595,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075221,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000144,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075737,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.075194,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075172,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.075526,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.075188,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.075177,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.075327,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.075764,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075169,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000143,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075773,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.076152,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075149,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.075237,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.075245,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.075141,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.075565,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.075259,
+      "\u001b[m\u001b[38;5;424m\u001b[1;1H                         .cccc;;cc;';c.\u001b[2;1H                      .,:dkdc:;;:c:,:d:.\u001b[3;1H                     .loc'.,cc::::::,..,:.\u001b[4;1H                   .cl;....;dkdccc::,...c;\u001b[5;1H                  .c:,';:'..ckc',;::;....;c.\u001b[6;1H                .c:'.,dkkoc:ok:;llllc,,c,';:.\u001b[7;1H               .;c,';okkkkkkkk:,lllll,:kd;.;:,.\u001b[8;1H               co..:kkkkkkkkkk:;llllc':kkc..oNc\u001b[9;1H             .cl;.,okkkkkkkkkkc,:cll;,okkc'.cO;\u001b[10;1H             ;k:..ckkkkkkkkkkkl..,;,.;xkko:',l'\u001b[11;1H            .,...';dkkkkkkkkkkd;.....ckkkl'.cO;\u001b[12;1H         .,,:,.;oo:ckkkkkkkkkkkdoc;;cdkkkc..cd,\u001b[13;1H      .cclo;,ccdkkl;llccdkkkkkkkkkkkkkkkd,.c;\u001b[14;1H     .lol:;;okkkkkxooc::loodkkkkkkkkkkkko'.oc\u001b[15;1H   .c:'..lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.oc\u001b[16;1H  .lo;,ccdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkd,.c;"
+    ],
+    [
+      0.075202,
+      "\u001b[m\u001b[38;5;226m\u001b[1;1H                .ckx;'........':c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[2;1H             .,:c:c:::oxxocoo::::,',.\u001b[m   \u001b[m\u001b[38;5;226m\u001b[3;1H            .odc'..:lkkoolllllo;..;d,\u001b[m     \u001b[m\u001b[38;5;226m\u001b[4;1H            ;c..:o:..;:..',;'.......;.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[5;1H           ,c..:0Xx::o:.,cllc:,'::,.,c.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[6;1H           ;c;lkXXXXXXl.;lllll;lXXOo;':c.\u001b[m    \u001b[m\u001b[38;5;226m\u001b[7;1H         ,dc.oXXXXXXXXl.,lllll;lXXXXx,c0:\u001b[m      \u001b[m\u001b[38;5;226m\u001b[8;1H         ;Oc.oXXXXXXXXo.':ll:;'oXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[9;1H         'l;;OXXXXXXXXd'.'::'..dXXXXO;,l'\u001b[m      \u001b[m\u001b[38;5;226m\u001b[10;1H         'l;:0XXXXXXXX0x:...,:o0XXXXk,:x,\u001b[m      \u001b[m\u001b[38;5;226m\u001b[11;1H         'l;;kXXXXXXKXXXkol;oXXXXXXXO;oNc\u001b[m      \u001b[m\u001b[38;5;226m\u001b[12;1H        ,c'..ckk0XXXXXXXXXX00XXXXXXX0:;o:.\u001b[m     \u001b[m\u001b[38;5;226m\u001b[13;1H      .':;..:dd::ooooOXXXXXXXXXXXXXXXo..c;\u001b[m   \u001b[m\u001b[38;5;226m\u001b[14;1H    .',',:co0XX0kkkxx0XXXXXXXXXXXXXXX0c..;l.\u001b[m \u001b[m\u001b[38;5;226m\u001b[15;1H  .:;'..oXXXXXXXXXXXXXXXXXXXXXXXXXXXXXko;';:.\u001b[16;1H"
+    ],
+    [
+      0.000132,
+      ".cdc..:oOXXXXXXXXKXXXXXXXXXXXXXXXXXXXXXXo..oc"
+    ],
+    [
+      0.075192,
+      "\u001b[m\u001b[38;5;46m\u001b[1;1H            .cc;.  ...  .;c.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[2;1H         .,,cc:cc:lxxxl:ccc:;,.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[3;1H        .lo;...lKKklllookl..cO;\u001b[m      \u001b[m\u001b[38;5;46m\u001b[4;1H      .cl;.,;'.okl;...'.;,..';:.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[5;1H     .:o;;dkx,.ll..,cc::,..,'.;:,.\u001b[m     \u001b[m\u001b[38;5;46m\u001b[6;1H     co..lKKKkokl.':lllo;''ol..;dl.\u001b[m      \u001b[m\u001b[38;5;46m\u001b[7;1H   .,c;.,xKKKKKKo.':llll;.'oOxo,.cl,.\u001b[m    \u001b[m\u001b[38;5;46m\u001b[8;1H   cNo..lKKKKKKKo'';llll;;okKKKl..oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[9;1H   cNo..lKKKKKKKko;':c:,'lKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[10;1H   cNo..lKKKKKKKKKl.....'dKKKKKxc,l0:\u001b[m    \u001b[m\u001b[38;5;46m\u001b[11;1H   .c:'.lKKKKKKKKKk;....oKKKKKKo'.oNc\u001b[m    \u001b[m\u001b[38;5;46m\u001b[12;1H     ,:.,oxOKKKKKKKOxxxxOKKKKKKxc,;ol:.\u001b[m   \u001b[m\u001b[38;5;46m\u001b[13;1H     ;c..'':oookKKKKKKKKKKKKKKKKKk:.'clc.\u001b[m \u001b[m\u001b[38;5;46m\u001b[14;1H   ,dl'.,oxo;'';oxOKKKKKKKKKKKKKKKOxxl::;,,.\u001b[15;1H  .dOc..lKKKkoooookKKKKKKKKKKKKKKKKKKKxl,;ol.\u001b[16;1H  cx,';okKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKl..;lc."
+    ],
+    [
+      0.07529,
+      "\u001b[m\u001b[38;5;262m\u001b[1;1H           .ccccccc.\u001b[m        \u001b[m\u001b[38;5;262m\u001b[2;1H      .,,,;cooolccol;;,,.\u001b[m      \u001b[m\u001b[38;5;262m\u001b[3;1H     .dOx;..;lllll;..;xOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[4;1H   .cdo,',loOXXXXXkll;';odc.\u001b[m    \u001b[m\u001b[38;5;262m\u001b[5;1H  ,oo:;c,':oko:cccccc,...ckl.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[6;1H  ;c.;kXo..::..;c::'.......oc\u001b[m      \u001b[m\u001b[38;5;262m\u001b[7;1H,dc..oXX0kk0o.':lll;..cxxc.,ld,\u001b[m      \u001b[m\u001b[38;5;262m\u001b[8;1HkNo.'oXXXXXXo'':lll;..oXXOd;cOd.\u001b[m     \u001b[m\u001b[38;5;262m\u001b[9;1HKOc;oOXXXXXXo.':lol,..dXXXXl';xc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[10;1HOl,:k0XXXXXX0c.,clc'.:0XXXXx,.oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[11;1HKOc;dOXXXXXXXl..';'..lXXXXXd..oc\u001b[m     \u001b[m\u001b[38;5;262m\u001b[12;1HdNo..oXXXXXXXOx:..'lxOXXXXXk,.:; ..\u001b[m    \u001b[m\u001b[38;5;262m\u001b[13;1HcNo..lXXXXXXXXXOolkXXXXXXXXXkl;..;:.;.\u001b[m   \u001b[m\u001b[38;5;262m\u001b[14;1H.,;'.,dkkkkk0XXXXXXXXXXXXXXXXXOxxl;,;,;l:.\u001b[m  \u001b[m\u001b[38;5;262m\u001b[15;1H  ;c.;:''''':doOXXXXXXXXXXXXXXXXXXOdo;';clc.\u001b[m \u001b[m\u001b[38;5;262m\u001b[16;1H  ;c.lOdood:'''oXXXXXXXXXXXXXXXXXXXXXk,..;ol.\u001b[m  "
+    ],
+    [
+      0.075166,
+      "\u001b[1;1H                    \u001b[m\u001b[38;5;4m\u001b[2;1H        .;:;;,.,;;::,.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[3;1H     .;':;........'co:.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[4;1H   .clc;'':cllllc::,.':c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[5;1H  .lo;;o:coxdlooollc;',::,,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[6;1H.c:'.,cl,.'lc',,;;'......cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[7;1Hdo;';oxoc::l;;llllc'.';;'.';.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[8;1Hc..ckkkkkkkd,;llllc'.:kkd;.':c.\u001b[m \u001b[m\u001b[38;5;4m\u001b[9;1H'.,okkkkkkkkc;llllc,.:kkkdl,cO;\u001b[m \u001b[m\u001b[38;5;4m\u001b[10;1H..;xkkkkkkkkc,ccll:,;okkkkk:,cl,\u001b[11;1H..,dkkkkkkkkc..,;,'ckkkkkkkc;ll.\u001b[12;1H..'okkkkkkkko,....'okkkkkkkc,:c.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[13;1Hc..ckkkkkkkkkdl;,:okkkkkkkkd,.',';.\u001b[m   \u001b[m\u001b[38;5;4m\u001b[14;1Hd..':lxkkkkkkkkxxkkkkkkkkkkkdoc;,;'..'.,.\u001b[m \u001b[m\u001b[38;5;4m\u001b[15;1Ho...'';llllldkkkkkkkkkkkkkkkkkkdll;..'cdo.\u001b[m  \u001b[m\u001b[38;5;4m\u001b[16;1Ho..,l;'''''';dkkkkkkkkkkkkkkkkkkkkdlc,..;lc.\u001b[m "
+    ],
+    [
+      0.076178,
+      "\u001b[m\u001b[38;5;274m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[m   \u001b[m\u001b[38;5;274m\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc.\u001b[m   "
+    ],
+    [
+      0.075194,
+      "\u001b[m\u001b[38;5;382m\u001b[2;1H           .,,,,,,,,,.\u001b[3;1H         .ckKxodooxOOdcc.\u001b[4;1H      .cclooc'....';;cool.\u001b[5;1H     .loc;;;;clllllc;;;;;:;,.\u001b[6;1H   .c:'.,okd;;cdo:::::cl,..oc\u001b[7;1H  .:o;';okkx;';;,';::;'....,;,.\u001b[8;1H  co..ckkkkkddk:,cclll;.,c:,:o:.\u001b[9;1H  co..ckkkkkkkk:,cllll;.:kkd,.':c.\u001b[10;1H.,:;.,okkkkkkkk:,cclll;.:kkkdl;;o:.\u001b[11;1HcNo..ckkkkkkkkko,.;llc,.ckkkkkc..oc\u001b[12;1H,dd;.:kkkkkkkkkx;..;:,.'lkkkkko,.:,\u001b[13;1H  ;c.ckkkkkkkkkkc.....;ldkkkkkk:.,'\u001b[14;1H,dc..'okkkkkkkkkxoc;;cxkkkkkkkkc..,;,.\u001b[15;1HkNo..':lllllldkkkkkkkkkkkkkkkkkdcc,.;l.\u001b[16;1HKOc,l;''''''';lldkkkkkkkkkkkkkkkkkc..;lc."
+    ],
+    [
+      0.075206,
+      "\u001b[m\u001b[2;1H                      \u001b[m\u001b[38;5;418m\u001b[3;1H                   .ccccccc.\u001b[4;1H               .ccckNKOOOOkdcc.\u001b[5;1H            .;;cc:ccccccc:,::::,,.\u001b[6;1H         .c;:;.,cccllxOOOxlllc,;ol.\u001b[7;1H        .lkc,coxo:;oOOxooooooo;..:,\u001b[8;1H      .cdc.,dOOOc..cOd,.',,;'....':c.\u001b[9;1H      cNx'.lOOOOxlldOl..;lll;.....cO;\u001b[10;1H     ,do;,:dOOOOOOOOOl'':lll;..:d:.'c,\u001b[11;1H     co..lOOOOOOOOOOOl'':lll;.'lOd,.cd.\u001b[12;1H     co.,dOOOOOOOOOOOo,.;llc,.,dOOc..dc\u001b[13;1H     co..lOOOOOOOOOOOOc.';:,..cOOOl..oc\u001b[14;1H   .,:;.'::lxOOOOOOOOOo:'...,:oOOOc..dc\u001b[15;1H   ;Oc..cl'':llxOOOOOOOOdcclxOOOOx,.cd.\u001b[16;1H  .:;';lxl''''':lldOOOOOOOOOOOOOOc..oc\u001b[m   "
+    ],
+    [
+      0.075259,
+      "\u001b[3;1H                            \u001b[m\u001b[38;5;201m\u001b[4;1H                        .cccccccc.\u001b[5;1H                  .,,,;;cc:cccccc:;;,.\u001b[6;1H                .cdxo;..,::cccc::,..;l.\u001b[7;1H               ,oo:,,:c:cdxxdllll:;,';:,.\u001b[8;1H             .cl;.,oxxc'.,cc,.',;;'...oNc\u001b[9;1H             ;Oc..cxxxc'.,c;..;lll;...cO;\u001b[10;1H           .;;',:ldxxxdoldxc..;lll:'...'c,\u001b[11;1H           ;c..cxxxxkxxkxxxc'.;lll:'','.cdc.\u001b[12;1H         .c;.;odxxxxxxxxxxxd;.,cll;.,l:.'dNc\u001b[13;1H        .:,''ccoxkxxkxxxxxxx:..,:;'.:xc..oNc\u001b[14;1H      .lc,.'lc':dxxxkxxxxxxxdl,...',lx:..dNc\u001b[15;1H     .:,',coxoc;;ccccoxxxxxxxxo:::oxxo,.cdc.\u001b[16;1H  .;':;.'oxxxxxc''''';cccoxxxxxxxxxkxc..oc"
+    ],
+    [
+      0.075014,
+      "\u0002\u0007\u001b[m\u001b[H\u001b[2J\u001b[2J\u001b[?47l\u001b8\u001b[?1l\u001b>\u001b[?1006l\u001b[?1015l\u001b[?1002l\u001b[?1000l"
+    ]
+  ]
+}
