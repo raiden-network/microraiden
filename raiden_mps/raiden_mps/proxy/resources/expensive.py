@@ -14,7 +14,6 @@ from raiden_mps.config import CM_API_ROOT
 
 from flask import Response, make_response
 
-import bs4
 import raiden_mps.config as config
 
 
