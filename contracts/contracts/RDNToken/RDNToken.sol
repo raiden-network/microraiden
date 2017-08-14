@@ -53,5 +53,6 @@ contract RDNToken is StandardToken {
         require(_addr != 0x0);
         ContractReceiver receiver = ContractReceiver(_addr);
         require(receiver.owner() == owner);
+        return true;
     }
 }

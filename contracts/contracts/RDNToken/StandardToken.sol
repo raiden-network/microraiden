@@ -56,13 +56,11 @@ contract StandardToken is Token {
         balances[_to] += _value;
 
         if(isContract(_to)) {
+            require(isContractTrusted(_to));
             ContractReceiver receiver = ContractReceiver(_to);
             receiver.tokenFallback(msg.sender, _value, _data);
         }
         Transfer(msg.sender, _to, _value, _data);
-
-        assert(balances[_to] > _value);
-        assert(balances[msg.sender] < _value);
         return true;
     }
 
@@ -78,7 +76,7 @@ contract StandardToken is Token {
             length := extcodesize(_addr)
         }
         if(length > 0) {
-            return isContractTrusted(_addr);
+            return true;
         }
         else {
             return false;
