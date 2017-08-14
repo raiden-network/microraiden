@@ -32,7 +32,8 @@ def main(
     config = {
         "contract_address": channel_manager_address,
         "receiver_address": '0x004B52c58863C903Ab012537247b963C557929E8',
-        "private_key": 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
+        "private_key": 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946',
+        "state_filename": '/tmp/cm.pkl'
     }
     app = PaywalledProxy(config)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
@@ -48,4 +49,5 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("blockchain").setLevel(logging.DEBUG)
+    logging.getLogger("channel_manager").setLevel(logging.DEBUG)
     main()

@@ -43,6 +43,9 @@ def run(
     resource = 'doggo.jpg'
     client.request_resource(resource)
 
+    for channel in rmp_client.channels:
+        rmp_client.close_channel(channel)
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger("urllib3").setLevel(logging.WARNING)

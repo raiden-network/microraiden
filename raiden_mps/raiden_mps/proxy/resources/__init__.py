@@ -2,14 +2,16 @@ from .expensive import Expensive
 from .management import (
     ChannelManagementRoot,
     ChannelManagementAdmin,
-    ChannelManagementChannels,
+    ChannelManagementListChannels,
+    ChannelManagementChannelInfo,
 )
 from .staticfiles import StaticFilesServer
 
 __all__ = (
     'Expensive',
     'ChannelManagementRoot',
-    'ChannelManagementChannels',
+    'ChannelManagementListChannels',
+    'ChannelManagementChannelInfo',
     'ChannelManagementAdmin',
     'StaticFilesServer'
 )

@@ -45,7 +45,7 @@ class RequestData:
         payment = headers.get(header.PAYMENT, None)
         balance_signature = headers.get(header.BALANCE_SIGNATURE, None)
         open_block = headers.get(header.OPEN_BLOCK, None)
-        balance = headers.get(header.SENDER_BALANCE, None)
+        balance = headers.get(header.BALANCE, None)
         if price:
             price = int(price)
         if open_block:

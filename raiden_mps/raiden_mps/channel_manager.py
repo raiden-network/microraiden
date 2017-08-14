@@ -9,6 +9,8 @@ import gevent
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import logging
 
+log = logging.getLogger(__name__)
+
 
 # TODO:
 # - test
@@ -38,7 +40,7 @@ class Blockchain(gevent.Greenlet):
         self.contract_proxy = contract_proxy
         self.cm = channel_manager
         self.n_confirmations = n_confirmations
-        self.log = logging.getLogger('blockchain')
+        self.log = log
 
     def _run(self):
         self.log.info('starting blockchain polling (frequency %ss)', self.poll_freqency)
@@ -66,9 +68,9 @@ class Blockchain(gevent.Greenlet):
                 '_receiver': self.cm.state.receiver
             }
         }
-    #    self.log.debug('filtering for events u:%s-%s c:%s-%s',
-    #                   block_range_unconfirmed['from_block'], block_range_unconfirmed['to_block'],
-    #                   block_range_confirmed['from_block'], block_range_confirmed['to_block'])
+#        self.log.debug('filtering for events u:%s-%s c:%s-%s',
+#                       filters_unconfirmed['from_block'], filters_unconfirmed['to_block'],
+#                       filters_confirmed['from_block'], filters_confirmed['to_block'])
 
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**filters_unconfirmed)
@@ -161,19 +163,19 @@ class ChannelManagerState(object):
         self.head_number = 0
         self.channels = dict()
         self.filename = filename
-        self.log = logging.getLogger('channel_manager_state')
         self.unconfirmed_channels = dict()
 
     def store(self):
         """Store the state in a file."""
         if self.filename:
-            self.log.debug('saving state in file')
-            pickle.dump(self, self.filename)
+            pickle.dump(self, open(self.filename, 'wb'))
 
     @classmethod
     def load(cls, filename):
         """Load a previously stored state."""
-        return pickle.load(open(filename))
+        assert filename is not None
+        assert isinstance(filename, str)
+        return pickle.load(open(filename, 'rb'))
 
 
 class ChannelManager(gevent.Greenlet):
@@ -189,7 +191,7 @@ class ChannelManager(gevent.Greenlet):
 
         if state_filename is not None and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
-            assert receiver == self.state.receiver
+            assert receiver.lower() == self.state.receiver
         else:
             self.state = ChannelManagerState(CHANNEL_MANAGER_ADDRESS, receiver, state_filename)
 
@@ -282,11 +284,12 @@ class ChannelManager(gevent.Greenlet):
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
         # send closing tx
         tx_params = [self.state.receiver, open_block_number,
-                     c.balance, decode_hex(c.last_signature)]
+                     c.balance, decode_hex(c.last_signature.replace('0x', ''))]
         raw_tx = self.contract_proxy.create_transaction('close', tx_params)
-        self.log.info('sending channel close transaction (sender %s, block number %s)',
-                      sender, open_block_number)
-        self.blockchain.web3.eth.sendRawTransaction(raw_tx)
+
+        txid = self.blockchain.web3.eth.sendRawTransaction(raw_tx)
+        self.log.info('sent channel close(sender %s, block number %s, tx %s)',
+                      sender, open_block_number, txid)
         # update local state
         c.is_closed = True
         self.state.store()
@@ -408,6 +411,10 @@ class Channel(object):
         self.ctime = time.time()  # channel creation time
 
         self.unconfirmed_topups = {}  # txhash to added deposit
+
+    def toJSON(self):
+        import json
+        return json.dumps(self, default=lambda o: o.__dict__)
 
 
 class PublicAPI(object):

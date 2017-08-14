@@ -4,23 +4,32 @@ import json
 from flask_restful import reqparse
 
 
-
-
 class ChannelManagementRoot(Resource):
     def get(self):
         return "OK"
 
 
-class ChannelManagementChannels(Resource):
+class ChannelManagementListChannels(Resource):
     def __init__(self, channel_manager):
-        super(ChannelManagementChannels, self).__init__()
+        super(ChannelManagementListChannels, self).__init__()
         self.channel_manager = channel_manager
 
-    def get(self, sender_address):
+    def get(self, sender_address=None):
         x = self.channel_manager.state.channels
-        block_opens = [k[1] for k, v in x.items() if k[0] == sender_address.lower()]
+        # if sender exists, return all open blocks
+        if sender_address is not None:
+            ret = [k[1] for k, v in x.items() if
+                   k[0] == sender_address.lower()]
+        # if sender is not specified, return all open channels
+        else:
+            ret = {}
+            for k, v in x.items():
+                if k[0] in ret:
+                    ret[k[0]].append(k[1])
+                else:
+                    ret[k[0]] = [k[1]]
 
-        return json.dumps(block_opens), 200
+        return json.dumps(ret), 200
 
     def delete(self, sender_address):
         parser = reqparse.RequestParser()
@@ -31,6 +40,21 @@ class ChannelManagementChannels(Resource):
             return "Bad signature format", 400
         ret = self.channel_manager.sign_close(args.sender, args.open_block, args.signature)
         return ret, 200
+
+
+class ChannelManagementChannelInfo(Resource):
+    def __init__(self, channel_manager):
+        super(ChannelManagementChannelInfo, self).__init__()
+        self.channel_manager = channel_manager
+
+    def get(self, sender_address, opening_block):
+        try:
+            key = (sender_address.lower(), opening_block)
+            sender_channel = self.channel_manager.state.channels[key]
+        except KeyError:
+            return "Sender address not found", 404
+
+        return sender_channel.toJSON(), 200
 
 
 class ChannelManagementAdmin(Resource):
