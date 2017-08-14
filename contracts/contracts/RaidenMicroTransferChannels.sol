@@ -256,6 +256,8 @@ contract RaidenMicroTransferChannels {
         returns (bytes32, uint192, uint32, uint192)
     {
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
+        require(channels[key].open_block_number != 0);
+
         return (key, channels[key].deposit, closing_requests[key].settle_block_number, closing_requests[key].closing_balance);
     }
 

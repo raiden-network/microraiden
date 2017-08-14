@@ -132,11 +132,24 @@ def channel_pre_close_tests(contract, channel):
     contract.transact({'from': sender}).topUp(receiver, open_block_number, 14)
 
 
-def test_key_hash(contract, channel):
+def test_get_channel_info(web3, contract, channel):
     (sender, receiver, open_block_number) = channel
+    A = web3.eth.accounts[3]
+    print(sender, receiver, open_block_number, A)
+    with pytest.raises(tester.TransactionFailed):
+        contract.call().getChannelInfo(sender, receiver, open_block_number-2)
+    web3.testing.mine(2)
+    with pytest.raises(tester.TransactionFailed):
+        contract.call().getChannelInfo(A, receiver, open_block_number)
+    web3.testing.mine(2)
+    with pytest.raises(tester.TransactionFailed):
+        contract.call().getChannelInfo(sender, A, open_block_number)
+    web3.testing.mine(2)
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
-
     assert channel_data[0] == contract.call().getKey(sender, receiver, open_block_number)
+    assert channel_data[1] != 0
+    assert channel_data[2] == 0
+    assert channel_data[3] == 0
 
 
 def test_channel_create(web3, contract):
