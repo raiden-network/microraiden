@@ -38,7 +38,7 @@ contract RaidenMicroTransferChannels is ERC223ReceivingContract {
     event ChannelToppedUp (address _sender, address _receiver, uint32 _open_block_number, uint192 _added_deposit, uint192 _deposit);
     event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 _open_block_number, uint192 _balance);
     event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 _open_block_number);
-    event TokenFallback(address indexed _receiver, uint256 _value, bytes indexed _data);
+    event TokenFallback(address indexed _from, address indexed _receiver, uint256 _value, bytes indexed _data);
 
     /*
      *  Constructor
@@ -169,8 +169,8 @@ contract RaidenMicroTransferChannels is ERC223ReceivingContract {
         public
     {
         address receiver = bytesToAddress(_data);
-        TokenFallback(_from, _value, _data);
-        require(this.call(bytes4(sha3("createChannel(address,uint192)", receiver, _value))));
+        TokenFallback(_from, receiver, _value, _data);
+        createChannel(_from, receiver, uint192(_value));
     }
 
     /*
@@ -178,9 +178,11 @@ contract RaidenMicroTransferChannels is ERC223ReceivingContract {
      */
 
     /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract.
+    /// @param _sender The address that receives tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     function createChannel(
+        address _sender,
         address _receiver,
         uint192 _deposit)
         public
@@ -188,7 +190,7 @@ contract RaidenMicroTransferChannels is ERC223ReceivingContract {
         uint32 open_block_number = uint32(block.number);
 
         // Create unique identifier from sender, receiver and current block number
-        bytes32 key = getKey(msg.sender, _receiver, open_block_number);
+        bytes32 key = getKey(_sender, _receiver, open_block_number);
 
         require(channels[key].deposit == 0);
         require(channels[key].open_block_number == 0);
@@ -197,7 +199,7 @@ contract RaidenMicroTransferChannels is ERC223ReceivingContract {
         // Store channel information
         channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
 
-        ChannelCreated(msg.sender, _receiver, _deposit);
+        ChannelCreated(_sender, _receiver, _deposit);
     }
 
     // TODO (WIP) Funds channel with an additional deposit of tokens
