@@ -189,7 +189,7 @@
         }
       }
     },
-    "contracts_source_dir": "./contracts223",
+    "contracts_source_dir": "./contracts",
     "import_remappings": []
   },
   "contracts": {

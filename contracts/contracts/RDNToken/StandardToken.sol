@@ -9,6 +9,7 @@ Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
 pragma solidity ^0.4.8;
 
 import "./Token.sol";
+import "./ContractReceiver.sol";
 
 /// @title Standard token contract - Standard token implementation.
 contract StandardToken is Token {
@@ -23,7 +24,7 @@ contract StandardToken is Token {
      *  Public functions
      */
 
-    /// @dev Transfers sender's tokens to a given address. Returns success.
+    /// @dev Transfers sender's tokens to a given address, added due to backwards compatibility reasons with ERC20
     /// @param _to Address of token receiver.
     /// @param _value Number of tokens to transfer.
     /// @return Returns success of function call.
@@ -31,16 +32,63 @@ contract StandardToken is Token {
         public
         returns (bool)
     {
+        bytes memory empty;
+        transfer(_to, _value, empty);
+    }
+
+    /// @dev Function that is called when a user or another contract wants to transfer funds.
+    /// @param _to Address of token receiver.
+    /// @param _value Number of tokens to transfer.
+    /// @param _data Data to be sent to tokenFallback
+    /// @return Returns success of function call.
+    function transfer(
+        address _to,
+        uint256 _value,
+        bytes _data)
+        public
+        returns (bool)
+    {
         require(_to != 0x0);
         require(_value > 0);
         require(balances[msg.sender] >= _value);
-        require(balances[_to] + _value > balances[_to]);
 
         balances[msg.sender] -= _value;
         balances[_to] += _value;
-        Transfer(msg.sender, _to, _value);
+
+        if(isContract(_to)) {
+            ContractReceiver receiver = ContractReceiver(_to);
+            receiver.tokenFallback(msg.sender, _value, _data);
+        }
+        Transfer(msg.sender, _to, _value, _data);
+
+        assert(balances[_to] > _value);
+        assert(balances[msg.sender] < _value);
         return true;
     }
+
+    //assemble the given address bytecode. If bytecode exists then the _addr is a contract.
+    function isContract(
+        address _addr)
+        private
+        returns (bool)
+    {
+        uint length;
+        assembly {
+            //retrieve the size of the code on target address, this needs assembly
+            length := extcodesize(_addr)
+        }
+        if(length > 0) {
+            return isContractTrusted(_addr);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /// @dev Allows token to check if it trusts the contract
+    /// @param _addr Contract address.
+    /// @return Returns if contract is trusted or not.
+    function isContractTrusted(address _addr) public returns (bool) {}
 
     /// @dev Allows allowed third party to transfer tokens from one address to another. Returns success.
     /// @param _from Address from where tokens are withdrawn.
@@ -61,7 +109,8 @@ contract StandardToken is Token {
         balances[_to] += _value;
         balances[_from] -= _value;
         allowed[_from][_to] -= _value;
-        Transfer(_from, _to, _value);
+        bytes memory empty;
+        Transfer(_from, _to, _value, empty);
         return true;
     }
 

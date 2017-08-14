@@ -10,6 +10,7 @@ contract RaidenMicroTransferChannels {
      *  Data structures
      */
 
+    address public owner;
     address public token_address;
     uint8 public challenge_period;
 
@@ -37,6 +38,7 @@ contract RaidenMicroTransferChannels {
     event ChannelToppedUp (address _sender, address _receiver, uint32 _open_block_number, uint192 _added_deposit, uint192 _deposit);
     event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 _open_block_number, uint192 _balance);
     event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 _open_block_number);
+    event TokenFallback(address indexed _sender, address indexed _receiver, uint192 _deposit, bytes indexed _data);
 
     /*
      *  Constructor
@@ -48,6 +50,8 @@ contract RaidenMicroTransferChannels {
     function RaidenMicroTransferChannels(address _token, uint8 _challenge_period) {
         require(_token != 0x0);
         require(_challenge_period > 0);
+
+        owner = msg.sender;
         token_address = _token;
         token = Token(_token);
 
@@ -140,10 +144,30 @@ contract RaidenMicroTransferChannels {
     }
 
     /*
+     *  Public functions
+     */
+
+    ///
+    /// @dev Calls createChannel, compatibility with ERC 223.
+    /// @param _sender The address that sends the tokens.
+    /// @param _deposit The amount of tokens that the sender escrows.
+    /// @param _data Receiver address in bytes.
+    function tokenFallback(
+        address _sender,
+        uint256 _deposit,
+        bytes _data)
+        public
+    {
+        address _receiver = bytesToAddress(_data);
+        TokenFallback(_sender, _receiver, uint192(_deposit), _data);
+        createChannelPrivate(_sender, _receiver, uint192(_deposit));
+    }
+
+    /*
      *  External functions
      */
 
-    /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract.
+    /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract, compatibility with ERC20 tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     function createChannel(
@@ -151,22 +175,11 @@ contract RaidenMicroTransferChannels {
         uint192 _deposit)
         external
     {
-        uint32 open_block_number = uint32(block.number);
+        createChannelPrivate(msg.sender, _receiver, _deposit);
 
-        // Create unique identifier from sender, receiver and current block number
-        bytes32 key = getKey(msg.sender, _receiver, open_block_number);
-
-        require(channels[key].deposit == 0);
-        require(channels[key].open_block_number == 0);
-        require(closing_requests[key].settle_block_number == 0);
-
-        // Store channel information
-        channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
-
-        // transferFrom deposit from msg.sender to contract
+        // transferFrom deposit from _sender to contract
         // ! needs prior approval from user
         require(token.transferFrom(msg.sender, address(this), _deposit));
-        ChannelCreated(msg.sender, _receiver, _deposit);
     }
 
     // TODO (WIP) Funds channel with an additional deposit of tokens
@@ -281,6 +294,31 @@ contract RaidenMicroTransferChannels {
      *  Private functions
      */
 
+    /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract.
+    /// @param _sender The address that receives tokens.
+    /// @param _receiver The address that receives tokens.
+    /// @param _deposit The amount of tokens that the sender escrows.
+    function createChannelPrivate(
+        address _sender,
+        address _receiver,
+        uint192 _deposit)
+        private
+    {
+        uint32 open_block_number = uint32(block.number);
+
+        // Create unique identifier from sender, receiver and current block number
+        bytes32 key = getKey(_sender, _receiver, open_block_number);
+
+        require(channels[key].deposit == 0);
+        require(channels[key].open_block_number == 0);
+        require(closing_requests[key].settle_block_number == 0);
+
+        // Store channel information
+        channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
+
+        ChannelCreated(_sender, _receiver, _deposit);
+    }
+
     /// @dev Sender starts the challenge period; this can only happend once.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
@@ -368,5 +406,29 @@ contract RaidenMicroTransferChannels {
     {
         if (a < b) return a;
         else return b;
+    }
+
+    /// @dev Internal function for getting an address from bytes.
+    /// @param b Bytes received.
+    /// @return Address.
+    function bytesToAddress (bytes b)
+        internal
+        constant
+        returns (address)
+    {
+        uint result = 0;
+        for (uint i = 0; i < b.length; i++) {
+            uint c = uint(b[i]);
+            if (c >= 48 && c <= 57) {
+                result = result * 16 + (c - 48);
+            }
+            if(c >= 65 && c<= 90) {
+                result = result * 16 + (c - 55);
+            }
+            if(c >= 97 && c<= 122) {
+                result = result * 16 + (c - 87);
+            }
+        }
+        return address(result);
     }
 }
