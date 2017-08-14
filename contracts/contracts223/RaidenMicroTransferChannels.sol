@@ -170,7 +170,7 @@ contract RaidenMicroTransferChannels is ERC223ReceivingContract {
     {
         address receiver = bytesToAddress(_data);
         TokenFallback(_from, _value, _data);
-        require(this.call(bytes4(sha3("createChannel(address,uint192)", receiver, _value))));
+        createChannel(receiver, uint192(_value));
     }
 
     /*

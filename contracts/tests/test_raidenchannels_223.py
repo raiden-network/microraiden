@@ -6,8 +6,6 @@ from web3.utils.compat import (
 from ethereum import tester
 import sign
 
-from eth_utils import force_bytes
-
 
 def save_logs(contract, event_name):
     logs[event_name] = []
@@ -74,24 +72,24 @@ def test_channel_create(web3, contract):
     global channel_deposit
     channel_deposit = 50
 
-    addr_bytes = web3.toAscii(C)
-    # addr_bytes = force_bytes(C)
-    print('transfer', token.address, channel_deposit, addr_bytes)
+    # addr_bytes = web3.toAscii(C)
+    addr_bytes = bytes(C, "raw_unicode_escape")
+    print('transfer', contract.address, channel_deposit, addr_bytes)
 
     token.transact({"from": Owner}).transfer(B, 250)
     assert token.call().balanceOf(B) == 250
-    token.transact({"from": B}).transfer(token.address, channel_deposit, addr_bytes)
+    token.transact({"from": B}).transfer(contract.address, channel_deposit, addr_bytes)
 
     save_logs(contract, 'ChannelCreated')
     with Timeout(20) as timeout:
         timeout.sleep(2)
-    '''
+
     open_block_number = logs['ChannelCreated'][0]['blockNumber']
 
     channel_data = contract.call().getChannelInfo(B, C, open_block_number)
 
     print('channel_data', channel_data)
-    assert channel_data[0] == contract.call().getKey(sender, receiver, open_block_number)
+    assert channel_data[0] == contract.call().getKey(B, C, open_block_number)
     assert channel_data[1] == channel_deposit
     assert channel_data[2] == 0
-    assert channel_data[3] == 0'''
+    assert channel_data[3] == 0
