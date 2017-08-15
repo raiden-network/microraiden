@@ -269,21 +269,26 @@ class ChannelManager(gevent.Greenlet):
     def unconfirmed_event_channel_topup(self, sender, open_block_number, txhash, added_deposit,
                                         deposit):
         """Notify the channel manager of a topup with not enough confirmations yet."""
-        self.log('Registering unconfirmed deposit top up (sender %s, block number %s, new deposit '
-                 '%s)', sender, open_block_number, deposit)
+        self.log.info('Registering unconfirmed deposit top up '
+                      '(sender %s, block number %s, new deposit %s)',
+                      sender, open_block_number, deposit)
         assert (sender, open_block_number) in self.state.channels
         c = self.state.channels[(sender, open_block_number)]
-        assert c.balance + added_deposit == deposit
+        assert c.deposit + added_deposit == deposit
         c.unconfirmed_event_channel_topups[txhash] = added_deposit
         self.state.store()
 
     def event_channel_topup(self, sender, open_block_number, txhash, added_deposit, deposit):
         """Notify the channel manager that the deposit of a channel has been topped up."""
-        self.log('Registering deposit top up (sender %s, block number %s, new deposit %s)',
-                 sender, open_block_number, deposit)
+        self.log.info('Registering deposit top up (sender %s, block number %s, new deposit %s)',
+                      sender, open_block_number, deposit)
         assert (sender, open_block_number) in self.state.channels
         c = self.state.channels[(sender, open_block_number)]
-        assert c.balance + added_deposit == deposit
+        if c.is_closed is True:
+            self.log.warn("Topup of an already closed channel (sender=%s open_block=%d)" %
+                          (sender, open_block_number))
+            return None
+        assert c.deposit + added_deposit == deposit
         c.deposit = deposit
         c.unconfirmed_event_channel_topups.pop(txhash, None)
         self.state.store()
@@ -422,10 +427,10 @@ class Channel(object):
     def __init__(self, receiver, sender, deposit, open_block_number):
         self.receiver = receiver
         self.sender = sender  # sender address
-        self.deposit = deposit
+        self.deposit = deposit  # deposit is maximum funds that can be used
         self.open_block_number = open_block_number
 
-        self.balance = 0
+        self.balance = 0  # how much of the deposit has been spent
         self.is_closed = False
         self.last_signature = None
         # if set, this is the absolut block_number where it can be settled
@@ -433,7 +438,7 @@ class Channel(object):
         self.mtime = time.time()
         self.ctime = time.time()  # channel creation time
 
-        self.unconfirmed_topups = {}  # txhash to added deposit
+        self.unconfirmed_event_channel_topups = {}  # txhash to added deposit
 
     def toJSON(self):
         import json

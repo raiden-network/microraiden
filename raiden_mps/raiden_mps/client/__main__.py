@@ -36,8 +36,10 @@ def run(
         **kwargs
 ):
     logging.basicConfig(level=logging.INFO)
+    with open(kwargs['key_path']) as keyfile:
+        client_privkey = keyfile.readline()[:-1]
     rmp_client = RMPClient(
-        kwargs['key_path'],
+        client_privkey,
         kwargs['rpc_endpoint'],
         kwargs['rpc_port'],
         kwargs['datadir']

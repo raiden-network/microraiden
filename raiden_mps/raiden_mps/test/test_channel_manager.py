@@ -5,14 +5,7 @@ from populus.project import Project
 from populus.utils.wait import wait_for_transaction_receipt
 from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.channel_manager import ChannelManager
-from ethereum.tester import accounts, keys
-from ethereum.utils import encode_hex
 
-
-test_dir = os.path.dirname(os.path.dirname(__file__))
-contracts_relative_path = 'data/contracts.json'
-compiled_contracts_path = os.path.join(test_dir, contracts_relative_path)
-compiled_contracts = json.load(open(compiled_contracts_path))
 
 
 def check_succesful_tx(web3, txid, timeout=180):
@@ -23,26 +16,6 @@ def check_succesful_tx(web3, txid, timeout=180):
     txinfo = web3.eth.getTransaction(txid)
     assert txinfo["gas"] != receipt["gasUsed"]
     return receipt
-
-
-@pytest.fixture
-def sender_address():
-    return encode_hex(accounts[0]).decode()
-
-
-@pytest.fixture
-def receiver_address():
-    return encode_hex(accounts[1]).decode()
-
-
-@pytest.fixture
-def sender_privkey():
-    return encode_hex(keys[0]).decode()
-
-
-@pytest.fixture
-def receiver_privkey():
-    return encode_hex(keys[1]).decode()
 
 
 @pytest.fixture

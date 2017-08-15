@@ -2,7 +2,7 @@ import json
 import os
 import logging
 
-from ethereum.utils import privtoaddr, encode_hex
+from ethereum.utils import privtoaddr, encode_hex, decode_hex
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 class RMPClient:
     def __init__(
             self,
-            key_path,
+            private_key,
             rpc_endpoint='localhost',
             rpc_port=8545,
             datadir=os.path.join(os.path.expanduser('~'), '.raiden'),
@@ -43,8 +43,7 @@ class RMPClient:
         self.token_address = token_address
         self.channels = []
 
-        with open(key_path) as keyfile:
-            self.privkey = keyfile.readline()[:-1]
+        self.privkey = private_key
         self.account = '0x' + encode_hex(privtoaddr(self.privkey))
         self.rpc = RPCProvider(self.rpc_endpoint, self.rpc_port)
         self.web3 = Web3(self.rpc)
@@ -135,20 +134,24 @@ class RMPClient:
             store[self.channel_manager_address] = ChannelInfo.serialize(self.channels)
             json.dump(store, channels_file, indent=4)
 
-    def open_channel(self, receiver, deposit):
+    def open_channel(self, receiver_address, deposit):
         """
         Attempts to open a new channel to the receiver with the given deposit. Blocks until the creation transaction is
         found in a pending block or timeout is reached. The new channel state is returned.
         """
-        log.info('Creating channel to {} with an initial deposit of {}.'.format(receiver, deposit))
+        assert isinstance(receiver_address, str)
+        assert isinstance(deposit, int)
+        assert deposit > 0
+        receiver_bytes = decode_hex(receiver_address.replace('0x', ''))
+        log.info('Creating channel to {} with an initial deposit of {}.'.format(receiver_address, deposit))
         current_block = self.web3.eth.blockNumber
         tx1 = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
-        tx2 = self.channel_manager_proxy.create_transaction('createChannel', [receiver, deposit], nonce_offset=1)
+        tx2 = self.channel_manager_proxy.create_transaction('createChannel', [receiver_bytes, deposit], nonce_offset=1)
         self.web3.eth.sendRawTransaction(tx1)
         self.web3.eth.sendRawTransaction(tx2)
 
         log.info('Waiting for channel creation event on the blockchain...')
-        event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver, current_block + 1)
+        event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver_address, current_block + 1)
 
         if event:
             log.info('Event received. Channel created in block {}.'.format(event['blockNumber']))
@@ -193,9 +196,12 @@ class RMPClient:
 
         if event:
             log.info('Successfully topped up channel in block {}.'.format(event['blockNumber']))
+            channel.deposit += value
             self.store_channels()
+            return event
         else:
             log.error('No event received.')
+            return None
 
     def close_channel(self, channel, balance=None):
         """
@@ -228,8 +234,10 @@ class RMPClient:
             log.info('Successfully sent channel close request in block {}.'.format(event['blockNumber']))
             channel.state = ChannelInfo.State.settling
             self.store_channels()
+            return event
         else:
             log.error('No event received.')
+            return None
 
     def close_channel_cooperatively(self, channel, closing_sig):
         """
@@ -309,6 +317,8 @@ class RMPClient:
         Updates the given channel's balance and balance signature with the new value. The signature is returned and
         stored in the channel state.
         """
+        assert isinstance(channel, ChannelInfo)
+        assert value >= 0
         channel.balance += value
 
         channel.balance_sig = self.channel_manager_proxy.sign_balance_proof(

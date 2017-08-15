@@ -3,6 +3,7 @@ flask
 flask_restful
 pytest
 ethereum
+ethereum-tester
 web3
 gevent
 click
