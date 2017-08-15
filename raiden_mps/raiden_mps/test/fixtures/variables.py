@@ -1,13 +1,19 @@
 import pytest
-from ethereum.tools.tester import accounts, keys
-from ethereum.utils import encode_hex
+from ethereum.utils import encode_hex, privtoaddr
 
 import os
 import json
+from raiden_mps.client.rmp_client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
+from raiden_mps.config import RECEIVER_PRIVKEY
 
 
 @pytest.fixture
-def compiled_contracts_path():
+def contracts_relative_path():
+    return 'data/contracts.json'
+
+
+@pytest.fixture
+def compiled_contracts_path(test_dir, contracts_relative_path):
     return os.path.join(test_dir, contracts_relative_path)
 
 
@@ -18,12 +24,17 @@ def compiled_contracts(compiled_contracts_path):
 
 @pytest.fixture
 def test_dir():
-    return os.path.dirname(os.path.dirname(__file__))
+    return os.path.dirname(os.path.dirname(__file__)) + "/../"
 
 
 @pytest.fixture
-def contracts_relative_path():
-    return 'data/contracts.json'
+def rpc_endpoint():
+    return 'localhost'
+
+
+@pytest.fixture
+def rpc_port():
+    return 8545
 
 
 @pytest.fixture
@@ -37,20 +48,41 @@ def manager_state_path():
 
 
 @pytest.fixture
-def sender_address():
-    return encode_hex(accounts[0]).decode()
+def sender_address(sender_privkey):
+    return '0x' + encode_hex(privtoaddr(sender_privkey)).decode()
 
 
 @pytest.fixture
-def receiver_address():
-    return encode_hex(accounts[1]).decode()
+def receiver_address(receiver_privkey):
+    return '0x' + encode_hex(privtoaddr(receiver_privkey)).decode()
 
 
 @pytest.fixture
 def sender_privkey():
-    return encode_hex(keys[0]).decode()
+    return '558ce5d09417f127c89097f8c41def07883cbec094da79f5dddfd4590607f7c2'
 
 
 @pytest.fixture
 def receiver_privkey():
-    return encode_hex(keys[1]).decode()
+    return RECEIVER_PRIVKEY
+
+
+@pytest.fixture
+def contract_abi_path():
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), '../data/contracts.json')
+
+
+@pytest.fixture
+def contract_abis(contract_abi_path):
+    abi_file = open(contract_abi_path, 'r')
+    return json.load(abi_file)
+
+
+@pytest.fixture
+def channel_manager_abi(contract_abis):
+    return contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']
+
+
+@pytest.fixture
+def token_abi(contract_abis):
+    return contract_abis[TOKEN_ABI_NAME]['abi']

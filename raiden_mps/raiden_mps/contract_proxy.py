@@ -9,6 +9,9 @@ from web3.exceptions import BadFunctionCallOutput
 import gevent
 from raiden_mps.sign import sign
 
+if isinstance(encode_hex(b''), bytes):
+    _encode_hex = encode_hex
+    encode_hex = lambda b: _encode_hex(b).decode()
 
 class ContractProxy:
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):

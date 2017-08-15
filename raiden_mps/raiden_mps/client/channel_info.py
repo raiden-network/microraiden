@@ -1,6 +1,10 @@
 from enum import Enum
 from ethereum.utils import encode_hex, decode_hex
 
+if isinstance(encode_hex(b''), bytes):
+    _encode_hex = encode_hex
+    encode_hex = lambda b: _encode_hex(b).decode()
+
 
 class ChannelInfo:
     class State(Enum):

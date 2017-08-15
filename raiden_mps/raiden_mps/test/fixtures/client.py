@@ -5,7 +5,7 @@ import shutil
 from raiden_mps.client.rmp_client import RMPClient
 
 from ethereum.utils import privtoaddr, encode_hex
-
+from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 
 @pytest.fixture
 def client_privkey():
@@ -35,10 +35,30 @@ def datadir():
 
 
 @pytest.fixture
-def rmp_client(client_privkey, rpc_endpoint, rpc_port, datadir):
+def client_contract_proxy(web3, sender_privkey, channel_manager_contract_address,
+                          channel_manager_abi):
+    return ChannelContractProxy(web3, sender_privkey,
+                                channel_manager_contract_address,
+                                channel_manager_abi,
+                                int(20e9), 50000)
+
+
+@pytest.fixture
+def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi):
+    return ContractProxy(web3, sender_privkey,
+                         token_contract_address,
+                         token_abi,
+                         int(20e9), 50000)
+
+
+@pytest.fixture
+def rmp_client(sender_privkey,
+               client_contract_proxy,
+               client_token_proxy,
+               datadir):
     return RMPClient(
-        client_privkey,
-        rpc_endpoint,
-        rpc_port,
-        datadir
+        sender_privkey,
+        client_contract_proxy,
+        client_token_proxy,
+        datadir=datadir
     )

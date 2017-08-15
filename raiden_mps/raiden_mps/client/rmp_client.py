@@ -18,53 +18,37 @@ TOKEN_ABI_NAME = 'Token'
 
 log = logging.getLogger(__name__)
 
+if isinstance(encode_hex(b''), bytes):
+    _encode_hex = encode_hex
+    encode_hex = lambda b: _encode_hex(b).decode()
+
 
 class RMPClient:
     def __init__(
             self,
             private_key,
-            rpc_endpoint='localhost',
-            rpc_port=8545,
+            channel_manager_proxy,
+            token_proxy,
             datadir=os.path.join(os.path.expanduser('~'), '.raiden'),
             channel_manager_address=CHANNEL_MANAGER_ADDRESS,
-            contract_abi_path=None,
             token_address=TOKEN_ADDRESS
     ):
+        assert isinstance(private_key, str)
+        assert isinstance(channel_manager_proxy, ChannelContractProxy)
+        assert isinstance(token_proxy, ContractProxy)
+        assert os.path.isdir(datadir)
+
         self.datadir = datadir
-        self.rpc_endpoint = rpc_endpoint
-        self.rpc_port = rpc_port
         self.channel_manager_address = channel_manager_address
-        if not contract_abi_path:
-            contract_abi_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json')
-        with open(contract_abi_path) as abi_file:
-            contract_abis = json.load(abi_file)
-            self.channel_manager_abi = contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']
-            self.token_abi = contract_abis[TOKEN_ABI_NAME]['abi']
         self.token_address = token_address
         self.channels = []
 
         self.privkey = private_key
         self.account = '0x' + encode_hex(privtoaddr(self.privkey))
-        self.rpc = RPCProvider(self.rpc_endpoint, self.rpc_port)
-        self.web3 = Web3(self.rpc)
 
-        self.channel_manager_proxy = ChannelContractProxy(
-            self.web3,
-            self.privkey,
-            self.channel_manager_address,
-            self.channel_manager_abi,
-            GAS_PRICE,
-            GAS_LIMIT
-        )
-
-        self.token_proxy = ContractProxy(
-            self.web3,
-            self.privkey,
-            self.token_address,
-            self.token_abi,
-            GAS_PRICE,
-            GAS_LIMIT
-        )
+        self.web3 = channel_manager_proxy.web3
+        self.channel_manager_proxy = channel_manager_proxy
+        self.token_proxy = token_proxy
 
         self.load_channels()
         self.sync_channels()
@@ -142,6 +126,7 @@ class RMPClient:
         assert isinstance(receiver_address, str)
         assert isinstance(deposit, int)
         assert deposit > 0
+        import pudb;pudb.set_trace()
         receiver_bytes = decode_hex(receiver_address.replace('0x', ''))
         log.info('Creating channel to {} with an initial deposit of {}.'.format(receiver_address, deposit))
         current_block = self.web3.eth.blockNumber
@@ -328,3 +313,40 @@ class RMPClient:
         self.store_channels()
 
         return channel.balance_sig
+
+
+def rmpc_factory(privkey,
+                 rpc_endpoint,
+                 rpc_port,
+                 datadir,
+                 contract_abi_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json'),
+                 channel_manager_address=CHANNEL_MANAGER_ADDRESS,
+                 token_address=TOKEN_ADDRESS):
+    rpc = RPCProvider(rpc_endpoint, rpc_port)
+    web3 = Web3(rpc)
+    with open(contract_abi_path) as abi_file:
+        contract_abis = json.load(abi_file)
+        channel_manager_abi = contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']
+        token_abi = contract_abis[TOKEN_ABI_NAME]['abi']
+
+    channel_manager_proxy = ChannelContractProxy(
+        web3,
+        privkey,
+        channel_manager_address,
+        channel_manager_abi,
+        GAS_PRICE,
+        GAS_LIMIT
+    )
+
+    token_proxy = ContractProxy(
+        web3,
+        privkey,
+        token_address,
+        token_abi,
+        GAS_PRICE,
+        GAS_LIMIT
+    )
+
+    return RMPClient(privkey,
+                     channel_manager_proxy,
+                     token_proxy)

@@ -23,6 +23,7 @@ from raiden_mps.proxy.resources.expensive import LightClientProxy
 
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
+from ethereum.utils import encode_hex, privtoaddr
 
 import raiden_mps.utils as utils
 
@@ -32,28 +33,30 @@ INDEX_HTML = JSLIB_DIR + 'index.html'
 
 
 class PaywalledProxy:
-    def __init__(self, config, flask_app=None):
+    def __init__(self, contract_address,
+                 private_key, state_filename,
+                 flask_app=None):
         if not flask_app:
             self.app = Flask(__name__)
         else:
             assert isinstance(flask_app, Flask)
             self.app = flask_app
         self.paywall_db = PaywallDatabase()
-        self.config = config
         self.api = Api(self.app)
         web3 = Web3(RPCProvider())
+        receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
         self.channel_manager = ChannelManager(
             web3,
-            utils.get_contract_proxy(web3, config['private_key']),
-            config['receiver_address'],
-            config['private_key'],
-            state_filename=config['state_filename']
+            utils.get_contract_proxy(web3, private_key),
+            receiver_address,
+            private_key,
+            state_filename=state_filename
         )
         self.channel_manager.start()
 
         cfg = {
-            'contract_address': self.config['contract_address'],
-            'receiver_address': self.config['receiver_address'],
+            'contract_address': contract_address,
+            'receiver_address': receiver_address,
             'channel_manager': self.channel_manager,
             'paywall_db': self.paywall_db,
             'light_client_proxy': LightClientProxy(INDEX_HTML)

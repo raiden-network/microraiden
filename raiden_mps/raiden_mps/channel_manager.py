@@ -11,6 +11,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+if isinstance(encode_hex(b''), bytes):
+    _encode_hex = encode_hex
+    encode_hex = lambda b: _encode_hex(b).decode()
 
 # TODO:
 # - test
@@ -68,9 +71,9 @@ class Blockchain(gevent.Greenlet):
                 '_receiver': self.cm.state.receiver
             }
         }
-#        self.log.debug('filtering for events u:%s-%s c:%s-%s',
-#                       filters_unconfirmed['from_block'], filters_unconfirmed['to_block'],
-#                       filters_confirmed['from_block'], filters_confirmed['to_block'])
+        self.log.debug('filtering for events u:%s-%s c:%s-%s',
+                       filters_unconfirmed['from_block'], filters_unconfirmed['to_block'],
+                       filters_confirmed['from_block'], filters_confirmed['to_block'])
 
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**filters_unconfirmed)
