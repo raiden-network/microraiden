@@ -39,6 +39,7 @@ contract RaidenMicroTransferChannels {
     event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 _open_block_number, uint192 _balance);
     event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 _open_block_number);
     event TokenFallback(address indexed _sender, address indexed _receiver, uint192 _deposit, bytes indexed _data);
+    event GasCost(string _function_name, uint _gaslimit, uint _gas);
 
     /*
      *  Constructor
@@ -158,9 +159,12 @@ contract RaidenMicroTransferChannels {
         bytes _data)
         public
     {
-        address _receiver = bytesToAddress(_data);
-        TokenFallback(_sender, _receiver, uint192(_deposit), _data);
-        createChannelPrivate(_sender, _receiver, uint192(_deposit));
+        if(_data.length > 0) {
+            // A call to create a new channel
+            GasCost('tokenFallback', block.gaslimit, msg.gas);
+            address _receiver = bytesToAddress(_data);
+            createChannelPrivate(_sender, _receiver, uint192(_deposit));
+        }
     }
 
     /*
@@ -304,6 +308,7 @@ contract RaidenMicroTransferChannels {
         uint192 _deposit)
         private
     {
+        GasCost('createChannelPrivate', block.gaslimit, msg.gas);
         uint32 open_block_number = uint32(block.number);
 
         // Create unique identifier from sender, receiver and current block number
@@ -315,7 +320,7 @@ contract RaidenMicroTransferChannels {
 
         // Store channel information
         channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
-
+        GasCost('createChannelPrivate', block.gaslimit, msg.gas);
         ChannelCreated(_sender, _receiver, _deposit);
     }
 
