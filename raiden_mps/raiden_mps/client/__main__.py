@@ -2,6 +2,7 @@
 
 import click
 import logging
+import os
 
 from raiden_mps.client.rmp_client import RMPClient
 from raiden_mps.client.m2m_client import M2MClient
@@ -10,10 +11,13 @@ from raiden_mps.client.m2m_client import M2MClient
 @click.command()
 @click.option('--api-endpoint', default='localhost', help='Address of the HTTP API server.')
 @click.option('--api-port', default=5000)
-@click.option('--datadir', help='Raiden data directory.')
-@click.option('--rpc-endpoint', help='Address of the Ethereum RPC server.')
-@click.option('--rpc-port', help='Ethereum RPC port.')
-@click.option('--key-path', help='Path to private key file.')
+@click.option('--datadir', default=os.path.join(os.path.expanduser('~'), '.raiden'),
+              help='Raiden data directory.')
+@click.option('--rpc-endpoint', default='localhost', help='Address of the Ethereum RPC server.')
+@click.option('--rpc-port', default=8545, help='Ethereum RPC port.')
+@click.option('--key-path', required=True, help='Path to private key file.')
+@click.option('--close-channels', default=False, is_flag=True, type=bool,
+              help='Close all open channels before exiting.')
 @click.option(
     '--channel-manager-address',
     help='Ethereum address of the channel manager contract.'
@@ -32,8 +36,12 @@ def run(
         **kwargs
 ):
     logging.basicConfig(level=logging.INFO)
-    kwargs = {key: value for key, value in kwargs.items() if value}
-    rmp_client = RMPClient(**kwargs)
+    rmp_client = RMPClient(
+        kwargs['key_path'],
+        kwargs['rpc_endpoint'],
+        kwargs['rpc_port'],
+        kwargs['datadir']
+    )
     client = M2MClient(
         rmp_client,
         api_endpoint,
@@ -43,8 +51,10 @@ def run(
     resource = 'doggo.jpg'
     client.request_resource(resource)
 
-    for channel in rmp_client.channels:
-        rmp_client.close_channel(channel)
+    if kwargs['close_channels'] is True:
+        for channel in rmp_client.channels:
+            rmp_client.close_channel(channel)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

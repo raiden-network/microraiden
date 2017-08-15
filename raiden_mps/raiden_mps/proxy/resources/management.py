@@ -19,11 +19,14 @@ class ChannelManagementListChannels(Resource):
         # if sender exists, return all open blocks
         if sender_address is not None:
             ret = [k[1] for k, v in x.items() if
-                   k[0] == sender_address.lower()]
+                   (k[0] == sender_address.lower() and
+                   v.is_closed is False)]
         # if sender is not specified, return all open channels
         else:
             ret = {}
             for k, v in x.items():
+                if v.is_closed is True:
+                    continue
                 if k[0] in ret:
                     ret[k[0]].append(k[1])
                 else:
