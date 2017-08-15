@@ -5,6 +5,7 @@ import rlp
 from web3.formatters import input_filter_params_formatter, log_array_formatter
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
+from web3.exceptions import BadFunctionCallOutput
 import gevent
 from raiden_mps.sign import sign
 
@@ -113,7 +114,12 @@ class ChannelContractProxy(ContractProxy):
         return self.get_event_blocking('ChannelSettled', condition, from_block, to_block, wait, timeout)
 
     def get_settle_timeout(self, sender, receiver, open_block_number):
-        return self.contract.call().getChannelInfo(sender, receiver, open_block_number)[3]
+        try:
+            channel_info = self.contract.call().getChannelInfo(sender, receiver, open_block_number)
+        except BadFunctionCallOutput:
+            # attempt to get info on a channel that doesn't exist
+            return None
+        return channel_info[3]
 
     def sign_balance_proof(self, privkey, receiver, open_block_number, balance):
         # privkey must be hex encoded

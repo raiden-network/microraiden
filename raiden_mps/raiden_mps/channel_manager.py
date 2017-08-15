@@ -101,8 +101,15 @@ class Blockchain(gevent.Greenlet):
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             balance = log['args']['_balance']
-            timeout = self.contract_proxy.get_settle_timeout(self.cm.state.receiver, sender,
-                                                             open_block_number)
+            timeout = self.contract_proxy.get_settle_timeout(
+                sender, self.cm.state.receiver, open_block_number)
+            if timeout is None:
+                self.log.warn(
+                    'received ChannelCloseRequested event for a channel that doesn\'t '
+                    'exist or has been closed already (sender=%s open_block_number=%d)'
+                    % (sender, open_block_number))
+                self.cm.force_close_channel(sender, open_block_number)
+                continue
             self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
@@ -175,7 +182,13 @@ class ChannelManagerState(object):
         """Load a previously stored state."""
         assert filename is not None
         assert isinstance(filename, str)
-        return pickle.load(open(filename, 'rb'))
+        ret = pickle.load(open(filename, 'rb'))
+        log.debug("loaded saved state. head_number=%d receiver=%s" %
+                  (ret.head_number, ret.receiver))
+        for sender, block in ret.channels.keys():
+            log.debug("loaded channel info from the saved state sender=%s open_block=%s" %
+                      (sender, block))
+        return ret
 
 
 class ChannelManager(gevent.Greenlet):
@@ -293,6 +306,16 @@ class ChannelManager(gevent.Greenlet):
         # update local state
         c.is_closed = True
         self.state.store()
+
+    def force_close_channel(self, sender, open_block_number):
+        """Forcibly remove a channel from our channel state"""
+        try:
+            self.close_channel(sender, open_block_number)
+            return
+        except NoBalanceProofReceived:
+            c = self.state.channels[(sender, open_block_number)]
+            c.is_closed = True
+            self.state.store()
 
     def sign_close(self, sender, open_block_number, signature):
         """Sign an agreement for a channel closing."""
