@@ -50,7 +50,7 @@ class PaywalledProxy:
         receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
         self.channel_manager = ChannelManager(
             web3,
-            utils.get_contract_proxy(web3, private_key),
+            utils.get_contract_proxy(web3, private_key, contract_address),
             receiver_address,
             private_key,
             state_filename=state_filename

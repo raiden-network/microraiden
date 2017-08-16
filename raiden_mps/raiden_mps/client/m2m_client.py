@@ -25,7 +25,7 @@ class M2MClient(object):
         self.api_endpoint = api_endpoint
         self.api_port = api_port
 
-    def request_resource(self, resource, tries_max=10):
+    def request_resource(self, resource, tries_max=10, initial_deposit=lambda x: x * CHANNEL_SIZE_FACTOR):
         channel = None
         for try_n in range(tries_max):
             log.info("getting %s %d/%d", resource, try_n, tries_max)
@@ -51,7 +51,7 @@ class M2MClient(object):
 
                     price = int(headers[HEADERS['price']])
                     log.debug('Preparing payment of price {}.'.format(price))
-                    channel = self.perform_payment(headers[HEADERS['receiver_address']], price)
+                    channel = self.perform_payment(headers[HEADERS['receiver_address']], price, initial_deposit)
                     if not channel:
                         raise
 
@@ -68,7 +68,7 @@ class M2MClient(object):
 
             price = int(headers[HEADERS['price']])
             log.error('Preparing payment of price {}.'.format(price))
-            channel = self.perform_payment(headers[HEADERS['receiver_address']], price)
+            channel = self.perform_payment(headers[HEADERS['receiver_address']], price, initial_deposit)
             if channel:
                 status, headers, body = self.perform_request(resource, channel)
 
@@ -90,7 +90,7 @@ class M2MClient(object):
         else:
             print('Error code {} while requesting resource: {}'.format(status, body))
 
-    def perform_payment(self, receiver, value):
+    def perform_payment(self, receiver, value, initial_deposit):
         """
         Attempts to perform a payment on an existing channel or a new one if none is available.
         """
@@ -108,7 +108,7 @@ class M2MClient(object):
             channel = channels[0]
             log.info('Found open channel, opened at block #{}.'.format(channel.block))
         else:
-            deposit = CHANNEL_SIZE_FACTOR * value
+            deposit = initial_deposit(value)
             log.info('Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver))
             channel = self.rmp_client.open_channel(receiver, deposit)
 

@@ -211,7 +211,8 @@ class ChannelManagerState(object):
 class ChannelManager(gevent.Greenlet):
     """Manages channels from the receiver's point of view."""
 
-    def __init__(self, web3, contract_proxy, receiver, private_key, state_filename=None):
+    def __init__(self, web3, contract_proxy, receiver, private_key, state_filename=None,
+                 channel_contract_address=CHANNEL_MANAGER_ADDRESS):
         gevent.Greenlet.__init__(self)
         self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=1)
         self.receiver = receiver
@@ -223,7 +224,7 @@ class ChannelManager(gevent.Greenlet):
             self.state = ChannelManagerState.load(state_filename)
             assert receiver.lower() == self.state.receiver
         else:
-            self.state = ChannelManagerState(CHANNEL_MANAGER_ADDRESS, receiver, state_filename)
+            self.state = ChannelManagerState(channel_contract_address, receiver, state_filename)
 
         self.log = logging.getLogger('channel_manager')
         self.log.info('setting up channel manager for %s', self.receiver)

@@ -41,8 +41,10 @@ def channel_manager_contract_proxy(web3, receiver_privkey, channel_manager_contr
 
 
 @pytest.fixture
-def channel_manager(web3, channel_manager_contract_proxy, receiver_address, receiver_privkey):
+def channel_manager(web3, channel_manager_contract_proxy, receiver_address, receiver_privkey,
+                    channel_manager_contract_address):
     return ChannelManager(web3,
                           channel_manager_contract_proxy,
                           receiver_address,
-                          receiver_privkey)
+                          receiver_privkey,
+                          channel_contract_address=channel_manager_contract_address)

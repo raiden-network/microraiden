@@ -11,11 +11,6 @@ from raiden_mps.config import GAS_LIMIT
 
 
 @pytest.fixture
-def client_privkey():
-    return '558ce5d09417f127c89097f8c41def07883cbec094da79f5dddfd4590607f7c2'
-
-
-@pytest.fixture
 def client_address(client_privkey):
     return '0x' + encode_hex(privtoaddr(client_privkey))
 
@@ -58,12 +53,16 @@ def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi):
 def rmp_client(sender_privkey,
                client_contract_proxy,
                client_token_proxy,
-               datadir):
+               datadir,
+               channel_manager_contract_address,
+               token_contract_address):
     return RMPClient(
         privkey=sender_privkey,
         channel_manager_proxy=client_contract_proxy,
         token_proxy=client_token_proxy,
-        datadir=datadir
+        datadir=datadir,
+        channel_manager_address=channel_manager_contract_address,
+        token_address=token_contract_address
     )
 
 

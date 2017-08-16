@@ -3,21 +3,26 @@ This is dummy code showing how the minimal app could look like.
 In his case we don't use a proxy, but directly a server
 """
 from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
-from raiden_mps.test.utils import BlockchainMock
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
+import os
 from raiden_mps.proxy.content import (
     PaywalledContent
 )
 
 if __name__ == '__main__':
-    config = {
-        "contract_address": CHANNEL_MANAGER_ADDRESS,
-        "receiver_address": '0x004B52c58863C903Ab012537247b963C557929E8',
-        "private_key": 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
-    }
-    blockchain = BlockchainMock(None, None)
-    app = PaywalledProxy(blockchain, config)
-    # resource with a fixed price 1
+    private_key = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
+    tempfile = os.path.join(os.path.expanduser('~'), '.raiden/echo_server.pkl')
+    # set up a paywalled proxy
+    # arguments are:
+    #  - channel manager contract
+    #  - private key to use for receiving funds
+    #  - temporary file for storing state information (balance proofs)
+    app = PaywalledProxy(CHANNEL_MANAGER_ADDRESS,
+                         private_key,
+                         tempfile)
+
+    # add resource defined by regex and with a fixed price of 1 token
+    #  third argument is an expression that will return actual content
     app.add_content(PaywalledContent(
                     "echofix\/[0-9]+", 1, lambda request:
                     (int(request.split("/")[1]), 200)))
@@ -26,4 +31,6 @@ if __name__ == '__main__':
                     "echodyn\/[0-9]+",
                     lambda request: int(request.split("/")[1]),
                     lambda request: (int(request.split("/")[1]), 200)))
+    # start the app. proxy is a WSGI greenlet, so you must join it properly
     app.run(debug=True)
+    app.join()

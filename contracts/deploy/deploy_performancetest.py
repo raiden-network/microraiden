@@ -11,6 +11,7 @@ from ecdsa import SigningKey, SECP256k1
 import sha3
 import sign
 import binascii
+from ethereum.utils import encode_hex
 
 
 def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
@@ -35,13 +36,13 @@ def createWallet():
     pub = priv.get_verifying_key().to_string()
     keccak.update(pub)
     address = keccak.hexdigest()[24:]
-    return (priv.to_string().hex(), address)
+    return (encode_hex(priv.to_string()), address)
 
 
 def getTokens(amount_total):
     project = Project()
-    chain_name = "testrpc"
-    # chain_name = "kovan"
+#    chain_name = "testrpc"
+    chain_name = "kovan"
     print("Make sure {} chain is running, you can connect to it, or you'll get timeout".format(chain_name))
 
     with project.get_chain(chain_name) as chain:
@@ -91,4 +92,4 @@ def getTokens(amount_total):
     return (priv_keys, addresses, token(token_addr))
 
 if __name__ == "__main__":
-    priv_keys, addresses, token = getTokens(10000000)
+    print(getTokens(10000000))
