@@ -413,6 +413,11 @@ class RMPClient:
         """
         assert isinstance(channel, ChannelInfo)
         assert value >= 0
+
+        if channel.state != ChannelInfo.State.open:
+            log.error('Channel must be open to create a transfer.')
+            return
+
         channel.balance += value
 
         channel.balance_sig = self.channel_manager_proxy.sign_balance_proof(
@@ -420,5 +425,3 @@ class RMPClient:
         )
 
         self.store_channels()
-
-        return channel.balance_sig
