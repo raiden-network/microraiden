@@ -131,7 +131,7 @@ class RMPClient:
                 e['args']['_deposit'],
                 e['blockNumber']
             )
-            assert c.receiver == self.account
+            assert c.sender == self.account
             channel_id_to_channel[(c.sender, c.receiver, c.block)] = c
 
         for c in self.channels:
@@ -158,7 +158,7 @@ class RMPClient:
             c = get_channel(e)
             c.state = ChannelInfo.State.closed
 
-        self.channels = channel_id_to_channel.values()
+        self.channels = list(channel_id_to_channel.values())
         self.store_channels()
 
         log.info('Synced a total of {} channels.'.format(len(self.channels)))

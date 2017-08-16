@@ -60,9 +60,9 @@ def rmp_client(sender_privkey,
                client_token_proxy,
                datadir):
     return RMPClient(
-        sender_privkey,
-        client_contract_proxy,
-        client_token_proxy,
+        privkey=sender_privkey,
+        channel_manager_proxy=client_contract_proxy,
+        token_proxy=client_token_proxy,
         datadir=datadir
     )
 
