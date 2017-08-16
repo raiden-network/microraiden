@@ -86,7 +86,7 @@ class PaywalledProxy:
         self.rest_server = WSGIServer(('localhost', 5000), self.app)
         self.server_greenlet = gevent.spawn(self.rest_server.serve_forever)
 
-    def join(self):
+    def stop(self):
         assert self.rest_server is not None
         assert self.server_greenlet is not None
         # we should stop the server only if it has been started. In case we do stop()
@@ -97,4 +97,7 @@ class PaywalledProxy:
                 break
             gevent.sleep(1)
         self.rest_server.stop()
+        self.server_greenlet.join()
+
+    def join(self):
         self.server_greenlet.join()

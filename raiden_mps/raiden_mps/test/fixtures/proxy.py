@@ -24,4 +24,4 @@ def doggo_proxy(channel_manager_contract_address, receiver_privkey, proxy_state_
     app.add_content(PaywalledProxyUrl("p\/.*", 1))
     app.run(debug=True)
     yield app
-    app.join()
+    app.stop()

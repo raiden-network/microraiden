@@ -4,6 +4,8 @@
 import os
 import pickle
 import time
+import tempfile
+import shutil
 from ethereum.utils import privtoaddr, encode_hex, decode_hex
 import gevent
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
@@ -187,7 +189,10 @@ class ChannelManagerState(object):
     def store(self):
         """Store the state in a file."""
         if self.filename:
-            pickle.dump(self, open(self.filename, 'wb'))
+            tmp = tempfile.NamedTemporaryFile()
+            pickle.dump(self, tmp)
+            tmp.flush()
+            shutil.copyfile(tmp.name, self.filename)
 
     @classmethod
     def load(cls, filename):
