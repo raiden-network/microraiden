@@ -59,25 +59,29 @@ class Blockchain(gevent.Greenlet):
         # check that history hasn't changed
         last_block = self.web3.eth.getBlock(self.cm.state.head_number)
         assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
+        current_block = self.web3.eth.blockNumber
+        if current_block == self.cm.state.head_number:
+            return
 
         # filter for events after block_number
-        filters_unconfirmed = {
-            'from_block': self.cm.state.head_number + 1,
-            'to_block': 'latest',
-            'filters': {
-                '_receiver': self.cm.state.receiver
-            }
-        }
         filters_confirmed = {
             'from_block': max(0, self.cm.state.head_number + 1 - self.n_confirmations),
-            'to_block': max(self.web3.eth.blockNumber - self.n_confirmations, 0),
+            'to_block': max(current_block - self.n_confirmations, 0),
             'filters': {
                 '_receiver': self.cm.state.receiver
             }
         }
-        self.log.debug('filtering for events u:%s-%s c:%s-%s',
+        filters_unconfirmed = {
+            'from_block': filters_confirmed['to_block'] + 1,
+            'to_block': current_block,
+            'filters': {
+                '_receiver': self.cm.state.receiver
+            }
+        }
+        self.log.debug('filtering for events u:%s-%s c:%s-%s @%d',
                        filters_unconfirmed['from_block'], filters_unconfirmed['to_block'],
-                       filters_confirmed['from_block'], filters_confirmed['to_block'])
+                       filters_confirmed['from_block'], filters_confirmed['to_block'],
+                       current_block)
 
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**filters_unconfirmed)
@@ -163,7 +167,7 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit, deposit)
 
         # update head hash and number
-        block = self.web3.eth.getBlock('latest')
+        block = self.web3.eth.getBlock(current_block)
         self.cm.set_head(block.number, block.hash)
         self.wait_sync_event.set()
 
