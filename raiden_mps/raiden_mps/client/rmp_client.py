@@ -126,7 +126,6 @@ class RMPClient:
         assert isinstance(receiver_address, str)
         assert isinstance(deposit, int)
         assert deposit > 0
-        import pudb;pudb.set_trace()
         receiver_bytes = decode_hex(receiver_address.replace('0x', ''))
         log.info('Creating channel to {} with an initial deposit of {}.'.format(receiver_address, deposit))
         current_block = self.web3.eth.blockNumber

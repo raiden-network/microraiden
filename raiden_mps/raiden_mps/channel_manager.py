@@ -300,6 +300,10 @@ class ChannelManager(gevent.Greenlet):
 
     def close_channel(self, sender, open_block_number):
         """Close and settle a channel."""
+        if not (sender, open_block_number) in self.state.channels:
+            self.log.warn("attempt to close a non-registered channel (sender=%s open_block=%s" %
+                          (sender, open_block_number))
+            return
         c = self.state.channels[(sender, open_block_number)]
         if c.last_signature is None:
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
