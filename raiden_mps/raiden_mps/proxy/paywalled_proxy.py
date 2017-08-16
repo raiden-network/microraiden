@@ -89,5 +89,12 @@ class PaywalledProxy:
     def join(self):
         assert self.rest_server is not None
         assert self.server_greenlet is not None
+        # we should stop the server only if it has been started. In case we do stop()
+        #  right after start(), the server may be in an undefined state and join() will
+        #  hang indefinetely (this often happens with tests)
+        for try_n in range(5):
+            if self.rest_server.started is True:
+                break
+            gevent.sleep(1)
         self.rest_server.stop()
         self.server_greenlet.join()
