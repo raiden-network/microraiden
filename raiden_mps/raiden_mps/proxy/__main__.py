@@ -35,13 +35,16 @@ def main(
         "private_key": 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946',
         "state_filename": '/tmp/cm.pkl'
     }
-    app = PaywalledProxy(config)
+    app = PaywalledProxy(config['contract_address'],
+                         config['private_key'],
+                         config['state_filename'])
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
     app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
     app.add_content(PaywalledProxyUrl("p\/.*", 1))
     app.run(debug=True)
+    app.join()
 
 
 if __name__ == '__main__':

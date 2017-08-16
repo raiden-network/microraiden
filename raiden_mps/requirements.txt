@@ -1,11 +1,13 @@
 coincurve
+rlp>=0.4.3,<0.6.0
 flask
 flask_restful
 pytest
-ethereum
+ethereum<2.0.0,>=1.6.1
 ethereum-tester
 web3
 gevent
 click
 requests
 werkzeug
+populus

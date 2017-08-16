@@ -11,6 +11,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+if isinstance(encode_hex(b''), bytes):
+    _encode_hex = encode_hex
+    encode_hex = lambda b: _encode_hex(b).decode()
 
 # TODO:
 # - test
@@ -41,12 +44,16 @@ class Blockchain(gevent.Greenlet):
         self.cm = channel_manager
         self.n_confirmations = n_confirmations
         self.log = log
+        self.wait_sync_event = gevent.event.Event()
 
     def _run(self):
         self.log.info('starting blockchain polling (frequency %ss)', self.poll_freqency)
         while True:
             self._update()
             gevent.sleep(self.poll_freqency)
+
+    def wait_sync(self):
+        self.wait_sync_event.wait()
 
     def _update(self):
         # check that history hasn't changed
@@ -68,9 +75,9 @@ class Blockchain(gevent.Greenlet):
                 '_receiver': self.cm.state.receiver
             }
         }
-#        self.log.debug('filtering for events u:%s-%s c:%s-%s',
-#                       filters_unconfirmed['from_block'], filters_unconfirmed['to_block'],
-#                       filters_confirmed['from_block'], filters_confirmed['to_block'])
+        self.log.debug('filtering for events u:%s-%s c:%s-%s',
+                       filters_unconfirmed['from_block'], filters_unconfirmed['to_block'],
+                       filters_confirmed['from_block'], filters_confirmed['to_block'])
 
         # unconfirmed channel created
         logs = self.contract_proxy.get_channel_created_logs(**filters_unconfirmed)
@@ -158,6 +165,7 @@ class Blockchain(gevent.Greenlet):
         # update head hash and number
         block = self.web3.eth.getBlock('latest')
         self.cm.set_head(block.number, block.hash)
+        self.wait_sync_event.set()
 
 
 class ChannelManagerState(object):
@@ -297,6 +305,10 @@ class ChannelManager(gevent.Greenlet):
 
     def close_channel(self, sender, open_block_number):
         """Close and settle a channel."""
+        if not (sender, open_block_number) in self.state.channels:
+            self.log.warn("attempt to close a non-registered channel (sender=%s open_block=%s" %
+                          (sender, open_block_number))
+            return
         c = self.state.channels[(sender, open_block_number)]
         if c.last_signature is None:
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
@@ -419,6 +431,9 @@ class ChannelManager(gevent.Greenlet):
                 d[sender] = {}
             d[sender][block_number] = channel_dict
         return d
+
+    def wait_sync(self):
+        self.blockchain.wait_sync()
 
 
 class Channel(object):

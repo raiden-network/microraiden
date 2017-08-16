@@ -1,3 +1,4 @@
+import gevent
 from gevent import monkey
 monkey.patch_all()
 from flask import Flask
@@ -23,6 +24,7 @@ from raiden_mps.proxy.resources.expensive import LightClientProxy
 
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
+from ethereum.utils import encode_hex, privtoaddr
 
 import raiden_mps.utils as utils
 
@@ -32,28 +34,32 @@ INDEX_HTML = JSLIB_DIR + 'index.html'
 
 
 class PaywalledProxy:
-    def __init__(self, config, flask_app=None):
+    def __init__(self, contract_address,
+                 private_key, state_filename,
+                 flask_app=None):
         if not flask_app:
             self.app = Flask(__name__)
         else:
             assert isinstance(flask_app, Flask)
             self.app = flask_app
         self.paywall_db = PaywallDatabase()
-        self.config = config
         self.api = Api(self.app)
+        self.rest_server = None
+        self.server_greenlet = None
         web3 = Web3(RPCProvider())
+        receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
         self.channel_manager = ChannelManager(
             web3,
-            utils.get_contract_proxy(web3, config['private_key']),
-            config['receiver_address'],
-            config['private_key'],
-            state_filename=config['state_filename']
+            utils.get_contract_proxy(web3, private_key),
+            receiver_address,
+            private_key,
+            state_filename=state_filename
         )
         self.channel_manager.start()
 
         cfg = {
-            'contract_address': self.config['contract_address'],
-            'receiver_address': self.config['receiver_address'],
+            'contract_address': contract_address,
+            'receiver_address': receiver_address,
             'channel_manager': self.channel_manager,
             'paywall_db': self.paywall_db,
             'light_client_proxy': LightClientProxy(INDEX_HTML)
@@ -75,6 +81,13 @@ class PaywalledProxy:
         self.paywall_db.add_content(content)
 
     def run(self, debug=False):
+        self.channel_manager.wait_sync()
         from gevent.wsgi import WSGIServer
-        server = WSGIServer(('localhost', 5000), self.app)
-        server.serve_forever()
+        self.rest_server = WSGIServer(('localhost', 5000), self.app)
+        self.server_greenlet = gevent.spawn(self.rest_server.serve_forever)
+
+    def join(self):
+        assert self.rest_server is not None
+        assert self.server_greenlet is not None
+        self.rest_server.stop()
+        self.server_greenlet.join()

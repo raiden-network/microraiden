@@ -4,8 +4,9 @@ import click
 import logging
 import os
 
-from raiden_mps.client.rmp_client import RMPClient
+from raiden_mps.client.rmp_client import rmpc_factory
 from raiden_mps.client.m2m_client import M2MClient
+from raiden_mps.client.channel_info import ChannelInfo
 
 
 @click.command()
@@ -38,12 +39,14 @@ def run(
     logging.basicConfig(level=logging.INFO)
     with open(kwargs['key_path']) as keyfile:
         client_privkey = keyfile.readline()[:-1]
-    rmp_client = RMPClient(
+
+    rmp_client = rmpc_factory(
         client_privkey,
         kwargs['rpc_endpoint'],
         kwargs['rpc_port'],
         kwargs['datadir']
     )
+
     client = M2MClient(
         rmp_client,
         api_endpoint,
@@ -55,7 +58,8 @@ def run(
 
     if kwargs['close_channels'] is True:
         for channel in rmp_client.channels:
-            rmp_client.close_channel(channel)
+            if channel.state == ChannelInfo.State.open:
+                rmp_client.close_channel(channel)
 
 
 if __name__ == '__main__':
