@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
 
-import click
 import logging
-import os
 
-from raiden_mps.client.rmp_client import rmpc_factory
-from raiden_mps.client.m2m_client import M2MClient
+import click
 from raiden_mps.client.channel_info import ChannelInfo
+from raiden_mps.client.rmp_client import RMPClient
+from raiden_mps.client.m2m_client import M2MClient
 
 
 @click.command()
 @click.option('--api-endpoint', default='localhost', help='Address of the HTTP API server.')
 @click.option('--api-port', default=5000)
-@click.option('--datadir', default=os.path.join(os.path.expanduser('~'), '.raiden'),
-              help='Raiden data directory.')
-@click.option('--rpc-endpoint', default='localhost', help='Address of the Ethereum RPC server.')
-@click.option('--rpc-port', default=8545, help='Ethereum RPC port.')
+@click.option('--datadir', help='Raiden data directory.')
+@click.option('--rpc-endpoint', help='Address of the Ethereum RPC server.')
+@click.option('--rpc-port', help='Ethereum RPC port.')
 @click.option('--key-path', required=True, help='Path to private key file.')
 @click.option('--close-channels', default=False, is_flag=True, type=bool,
               help='Close all open channels before exiting.')
@@ -31,21 +29,10 @@ from raiden_mps.client.channel_info import ChannelInfo
     '--token-address',
     help='Ethereum address of the token contract.'
 )
-def run(
-        api_endpoint,
-        api_port,
-        **kwargs
-):
+def run(api_endpoint, api_port, **kwargs):
     logging.basicConfig(level=logging.INFO)
-    with open(kwargs['key_path']) as keyfile:
-        client_privkey = keyfile.readline()[:-1]
-
-    rmp_client = rmpc_factory(
-        client_privkey,
-        kwargs['rpc_endpoint'],
-        kwargs['rpc_port'],
-        kwargs['datadir']
-    )
+    kwargs = {key: value for key, value in kwargs.items() if value}
+    rmp_client = RMPClient(**kwargs)
 
     client = M2MClient(
         rmp_client,

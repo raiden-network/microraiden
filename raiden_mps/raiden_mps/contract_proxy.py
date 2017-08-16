@@ -78,7 +78,7 @@ class ChannelContractProxy(ContractProxy):
         return self.get_logs('ChannelSettled', from_block, to_block, filters)
 
     def get_channel_topup_logs(self, from_block=0, to_block='latest', filters={}):
-        return super().get_logs('ChannelToppedUp', from_block, to_block, filters)
+        return self.get_logs('ChannelToppedUp', from_block, to_block, filters)
 
     def get_channel_created_event_blocking(
             self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60

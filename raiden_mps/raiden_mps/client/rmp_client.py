@@ -1,18 +1,16 @@
 import json
-import os
 import logging
+import os
 
 from ethereum.utils import privtoaddr, encode_hex, decode_hex
+from raiden_mps.client.channel_info import ChannelInfo
+from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT
+from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
-from raiden_mps.client.channel_info import ChannelInfo
-from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS
-
 CHANNELS_DB = 'channels.json'
 GAS_PRICE = 20 * 1000 * 1000 * 1000
-GAS_LIMIT = 314159
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'Token'
 
@@ -26,55 +24,141 @@ if isinstance(encode_hex(b''), bytes):
 class RMPClient:
     def __init__(
             self,
-            private_key,
-            channel_manager_proxy,
-            token_proxy,
+            privkey=None,
+            key_path=None,
             datadir=os.path.join(os.path.expanduser('~'), '.raiden'),
             channel_manager_address=CHANNEL_MANAGER_ADDRESS,
-            token_address=TOKEN_ADDRESS
+            token_address=TOKEN_ADDRESS,
+            rpc=None,
+            web3=None,
+            channel_manager_proxy=None,
+            token_proxy=None,
+            rpc_endpoint='localhost',
+            rpc_port=8545,
+            contract_abi_path=os.path.join(
+                os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json'
+            )
     ):
-        assert isinstance(private_key, str)
-        assert isinstance(channel_manager_proxy, ChannelContractProxy)
-        assert isinstance(token_proxy, ContractProxy)
+        assert privkey or key_path
+        assert not privkey or isinstance(privkey, str)
         assert os.path.isdir(datadir)
 
+        # Plain copy initializations.
+        self.privkey = privkey
         self.datadir = datadir
         self.channel_manager_address = channel_manager_address
         self.token_address = token_address
-        self.channels = []
-
-        self.privkey = private_key
-        self.account = '0x' + encode_hex(privtoaddr(self.privkey))
-
-        self.web3 = channel_manager_proxy.web3
+        self.web3 = web3
         self.channel_manager_proxy = channel_manager_proxy
         self.token_proxy = token_proxy
+
+        # Load private key from file if none is specified on command line.
+        if not privkey:
+            with open(key_path) as keyfile:
+                self.privkey = keyfile.readline()[:-1]
+
+        self.account = '0x' + encode_hex(privtoaddr(self.privkey))
+        self.channels = []
+
+        # Create web3 context if none is provided, either by using the proxies' context or creating
+        # a new one.
+        if not web3:
+            if channel_manager_proxy:
+                self.web3 = channel_manager_proxy.web3
+            elif token_proxy:
+                self.web3 = token_proxy.web3
+            else:
+                if not rpc:
+                    rpc = RPCProvider(rpc_endpoint, rpc_port)
+                self.web3 = Web3(rpc)
+
+        # Create missing contract proxies.
+        if not channel_manager_proxy or not token_proxy:
+            with open(contract_abi_path) as abi_file:
+                contract_abis = json.load(abi_file)
+
+            if not channel_manager_proxy:
+                channel_manager_abi = contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']
+                self.channel_manager_proxy = ChannelContractProxy(
+                    self.web3,
+                    self.privkey,
+                    channel_manager_address,
+                    channel_manager_abi,
+                    GAS_PRICE,
+                    GAS_LIMIT
+                )
+
+            if not token_proxy:
+                token_abi = contract_abis[TOKEN_ABI_NAME]['abi']
+                self.token_proxy = ContractProxy(
+                    self.web3, self.privkey, token_address, token_abi, GAS_PRICE, GAS_LIMIT
+                )
+
+        assert self.web3
+        assert self.channel_manager_proxy
+        assert self.token_proxy
+        assert self.channel_manager_proxy.web3 == self.web3 == self.token_proxy.web3
 
         self.load_channels()
         self.sync_channels()
 
     def sync_channels(self):
         """
-        Merges locally available channel information, including their current balance signatures, with channel
-        information available on the blockchain to make up for local data loss. Naturally, balance signatures cannot be
-        recovered from the blockchain. Closed channels are discarded from local storage.
+        Merges locally available channel information, including their current balance signatures,
+        with channel information available on the blockchain to make up for local data loss.
+        Naturally, balance signatures cannot be recovered from the blockchain.
         """
         filters = {'_sender': self.account}
-        created_events = self.channel_manager_proxy.get_channel_created_logs(filters=filters)
-        close_requested_events = self.channel_manager_proxy.get_channel_close_requested_logs(filters=filters)
-        settled_events = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
-        topup_events = self.channel_manager_proxy.get_channel_topped_up_logs(filters=filters)
+        create = self.channel_manager_proxy.get_channel_created_logs(filters=filters)
+        close = self.channel_manager_proxy.get_channel_close_requested_logs(filters=filters)
+        settle = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
+        topup = self.channel_manager_proxy.get_channel_topped_up_logs(filters=filters)
 
-        created_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in created_events]
-        settling_channels = [
-            ChannelInfo.from_event(event, ChannelInfo.State.settling) for event in close_requested_events
-        ]
-        closed_channels = [ChannelInfo.from_event(event, ChannelInfo.State.closed) for event in settled_events]
-        toppedup_channels = [ChannelInfo.from_event(event, ChannelInfo.State.open) for event in topup_events]
+        channel_id_to_channel = {}
 
-        self.channels = ChannelInfo.merge_infos(
-            self.channels, created_channels, settling_channels, closed_channels, toppedup_channels
-        )
+        def get_channel(event):
+            sender = event['args']['_sender']
+            receiver = event['args']['_receiver']
+            block = event['args']['_open_block_number']
+            assert sender == self.account
+            assert (sender, receiver, block) in channel_id_to_channel
+            return channel_id_to_channel[(sender, receiver, block)]
+
+        for e in create:
+            c = ChannelInfo(
+                e['args']['_sender'],
+                e['args']['_receiver'],
+                e['args']['_deposit'],
+                e['blockNumber']
+            )
+            assert c.receiver == self.account
+            channel_id_to_channel[(c.sender, c.receiver, c.block)] = c
+
+        for c in self.channels:
+            key = (c.sender, c.receiver, c.block)
+            if key in channel_id_to_channel:
+                c_synced = channel_id_to_channel[key]
+                c_synced.balance = c.balance
+                c_synced.balance_sig = c.balance_sig
+            else:
+                channel_id_to_channel[key] = c
+
+        for e in topup:
+            c = get_channel(e)
+            c.deposit = e['args']['_deposit']
+
+        for e in close:
+            # Requested closed, not actual closed.
+            c = get_channel(e)
+
+            c.balance = e['args']['_balance']
+            c.state = ChannelInfo.State.settling
+
+        for e in settle:
+            c = get_channel(e)
+            c.state = ChannelInfo.State.closed
+
+        self.channels = channel_id_to_channel.values()
         self.store_channels()
 
         log.info('Synced a total of {} channels.'.format(len(self.channels)))
@@ -120,22 +204,31 @@ class RMPClient:
 
     def open_channel(self, receiver_address, deposit):
         """
-        Attempts to open a new channel to the receiver with the given deposit. Blocks until the creation transaction is
-        found in a pending block or timeout is reached. The new channel state is returned.
+        Attempts to open a new channel to the receiver with the given deposit. Blocks until the
+        creation transaction is found in a pending block or timeout is reached. The new channel
+        state is returned.
         """
         assert isinstance(receiver_address, str)
         assert isinstance(deposit, int)
         assert deposit > 0
         receiver_bytes = decode_hex(receiver_address.replace('0x', ''))
-        log.info('Creating channel to {} with an initial deposit of {}.'.format(receiver_address, deposit))
+        log.info('Creating channel to {} with an initial deposit of {}.'.format(
+            receiver_address, deposit
+        ))
         current_block = self.web3.eth.blockNumber
-        tx1 = self.token_proxy.create_transaction('approve', [self.channel_manager_address, deposit])
-        tx2 = self.channel_manager_proxy.create_transaction('createChannel', [receiver_bytes, deposit], nonce_offset=1)
+        tx1 = self.token_proxy.create_transaction(
+            'approve', [self.channel_manager_address, deposit]
+        )
+        tx2 = self.channel_manager_proxy.create_transaction(
+            'createChannel', [receiver_bytes, deposit], nonce_offset=1
+        )
         self.web3.eth.sendRawTransaction(tx1)
         self.web3.eth.sendRawTransaction(tx2)
 
         log.info('Waiting for channel creation event on the blockchain...')
-        event = self.channel_manager_proxy.get_channel_created_event_blocking(self.account, receiver_address, current_block + 1)
+        event = self.channel_manager_proxy.get_channel_created_event_blocking(
+            self.account, receiver_address, current_block + 1
+        )
 
         if event:
             log.info('Event received. Channel created in block {}.'.format(event['blockNumber']))
@@ -175,7 +268,12 @@ class RMPClient:
 
         log.info('Waiting for topup confirmation event...')
         event = self.channel_manager_proxy.get_channel_topped_up_event_blocking(
-            channel.sender, channel.receiver, channel.block, channel.deposit + value, value, current_block + 1
+            channel.sender,
+            channel.receiver,
+            channel.block,
+            channel.deposit + value,
+            value,
+            current_block + 1
         )
 
         if event:
@@ -189,13 +287,15 @@ class RMPClient:
 
     def close_channel(self, channel, balance=None):
         """
-        Attempts to request close on a channel. An explicit balance can be given to override the locally stored balance
-        signature. Blocks until a confirmation event is received or timeout.
+        Attempts to request close on a channel. An explicit balance can be given to override the
+        locally stored balance signature. Blocks until a confirmation event is received or timeout.
         """
         if channel.state != ChannelInfo.State.open:
             log.error('Channel must be open to request a close.')
             return
-        log.info('Requesting close of channel to {} created at block #{}.'.format(channel.receiver, channel.block))
+        log.info('Requesting close of channel to {} created at block #{}.'.format(
+            channel.receiver, channel.block
+        ))
         current_block = self.web3.eth.blockNumber
 
         if balance:
@@ -215,7 +315,9 @@ class RMPClient:
         )
 
         if event:
-            log.info('Successfully sent channel close request in block {}.'.format(event['blockNumber']))
+            log.info('Successfully sent channel close request in block {}.'.format(
+                event['blockNumber']
+            ))
             channel.state = ChannelInfo.State.settling
             self.store_channels()
             return event
@@ -225,8 +327,9 @@ class RMPClient:
 
     def close_channel_cooperatively(self, channel, closing_sig):
         """
-        Attempts to close the channel immediately by providing a hash of the channel's balance proof signed by the
-        receiver. This signature must correspond to the balance proof stored in the passed channel state.
+        Attempts to close the channel immediately by providing a hash of the channel's balance
+        proof signed by the receiver. This signature must correspond to the balance proof stored in
+        the passed channel state.
         """
         if channel.state != ChannelInfo.State.open:
             log.error('Channel must be open to be closed cooperatively.')
@@ -243,7 +346,9 @@ class RMPClient:
             return
 
         tx = self.channel_manager_proxy.create_transaction(
-            'close', [channel.receiver, channel.block, channel.balance, channel.balance_sig, closing_sig]
+            'close', [
+                channel.receiver, channel.block, channel.balance, channel.balance_sig, closing_sig
+            ]
         )
         self.web3.eth.sendRawTransaction(tx)
 
@@ -261,13 +366,16 @@ class RMPClient:
 
     def settle_channel(self, channel):
         """
-        Attempts to settle a channel that has passed its settlement period. If a channel cannot be settled yet, the call
-        is ignored with a warning. Blocks until a confirmation event is received or timeout.
+        Attempts to settle a channel that has passed its settlement period. If a channel cannot be
+        settled yet, the call is ignored with a warning. Blocks until a confirmation event is
+        received or timeout.
         """
         if channel.state != ChannelInfo.State.settling:
             log.error('Channel must be in the settlement period to settle.')
             return
-        log.info('Attempting to settle channel to {} created at block #{}.'.format(channel.receiver, channel.block))
+        log.info('Attempting to settle channel to {} created at block #{}.'.format(
+            channel.receiver, channel.block
+        ))
 
         settle_block = self.channel_manager_proxy.contract.call().getChannelInfo(
             channel.sender, channel.receiver, channel.block
@@ -276,7 +384,9 @@ class RMPClient:
         current_block = self.web3.eth.blockNumber
         wait_remaining = settle_block - current_block
         if wait_remaining > 0:
-            log.warning('{} more blocks until this channel can be settled. Aborting.'.format(wait_remaining))
+            log.warning('{} more blocks until this channel can be settled. Aborting.'.format(
+                wait_remaining
+            ))
             return
 
         tx = self.channel_manager_proxy.create_transaction(
@@ -298,8 +408,8 @@ class RMPClient:
 
     def create_transfer(self, channel, value):
         """
-        Updates the given channel's balance and balance signature with the new value. The signature is returned and
-        stored in the channel state.
+        Updates the given channel's balance and balance signature with the new value. The signature
+        is returned and stored in the channel state.
         """
         assert isinstance(channel, ChannelInfo)
         assert value >= 0
@@ -312,40 +422,3 @@ class RMPClient:
         self.store_channels()
 
         return channel.balance_sig
-
-
-def rmpc_factory(privkey,
-                 rpc_endpoint,
-                 rpc_port,
-                 datadir,
-                 contract_abi_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json'),
-                 channel_manager_address=CHANNEL_MANAGER_ADDRESS,
-                 token_address=TOKEN_ADDRESS):
-    rpc = RPCProvider(rpc_endpoint, rpc_port)
-    web3 = Web3(rpc)
-    with open(contract_abi_path) as abi_file:
-        contract_abis = json.load(abi_file)
-        channel_manager_abi = contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']
-        token_abi = contract_abis[TOKEN_ABI_NAME]['abi']
-
-    channel_manager_proxy = ChannelContractProxy(
-        web3,
-        privkey,
-        channel_manager_address,
-        channel_manager_abi,
-        GAS_PRICE,
-        GAS_LIMIT
-    )
-
-    token_proxy = ContractProxy(
-        web3,
-        privkey,
-        token_address,
-        token_abi,
-        GAS_PRICE,
-        GAS_LIMIT
-    )
-
-    return RMPClient(privkey,
-                     channel_manager_proxy,
-                     token_proxy)
