@@ -3,6 +3,7 @@ import tempfile
 import shutil
 
 from raiden_mps.client.rmp_client import RMPClient
+from raiden_mps.client.m2m_client import M2MClient
 
 from ethereum.utils import privtoaddr, encode_hex
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
@@ -64,3 +65,10 @@ def rmp_client(sender_privkey,
         client_token_proxy,
         datadir=datadir
     )
+
+
+@pytest.fixture
+def m2m_client(rmp_client, api_endpoint, api_endpoint_port):
+    return M2MClient(rmp_client,
+                     api_endpoint,
+                     api_endpoint_port)

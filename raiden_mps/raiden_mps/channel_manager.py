@@ -44,12 +44,16 @@ class Blockchain(gevent.Greenlet):
         self.cm = channel_manager
         self.n_confirmations = n_confirmations
         self.log = log
+        self.wait_sync_event = gevent.event.Event()
 
     def _run(self):
         self.log.info('starting blockchain polling (frequency %ss)', self.poll_freqency)
         while True:
             self._update()
             gevent.sleep(self.poll_freqency)
+
+    def wait_sync(self):
+        self.wait_sync_event.wait()
 
     def _update(self):
         # check that history hasn't changed
@@ -161,6 +165,7 @@ class Blockchain(gevent.Greenlet):
         # update head hash and number
         block = self.web3.eth.getBlock('latest')
         self.cm.set_head(block.number, block.hash)
+        self.wait_sync_event.set()
 
 
 class ChannelManagerState(object):
@@ -426,6 +431,9 @@ class ChannelManager(gevent.Greenlet):
                 d[sender] = {}
             d[sender][block_number] = channel_dict
         return d
+
+    def wait_sync(self):
+        self.blockchain.wait_sync()
 
 
 class Channel(object):

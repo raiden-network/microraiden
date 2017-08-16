@@ -38,6 +38,18 @@ def rpc_port():
 
 
 @pytest.fixture
+def api_endpoint():
+    """address of a paywall proxy"""
+    return 'localhost'
+
+
+@pytest.fixture
+def api_endpoint_port():
+    """port the paywall proxy listens on"""
+    return 5000
+
+
+@pytest.fixture
 def init_contract_address():
     return "0x" + "a" * 40
 

@@ -1,3 +1,4 @@
+import gevent
 from gevent import monkey
 monkey.patch_all()
 from flask import Flask
@@ -43,6 +44,8 @@ class PaywalledProxy:
             self.app = flask_app
         self.paywall_db = PaywallDatabase()
         self.api = Api(self.app)
+        self.rest_server = None
+        self.server_greenlet = None
         web3 = Web3(RPCProvider())
         receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
         self.channel_manager = ChannelManager(
@@ -78,6 +81,13 @@ class PaywalledProxy:
         self.paywall_db.add_content(content)
 
     def run(self, debug=False):
+        self.channel_manager.wait_sync()
         from gevent.wsgi import WSGIServer
-        server = WSGIServer(('localhost', 5000), self.app)
-        server.serve_forever()
+        self.rest_server = WSGIServer(('localhost', 5000), self.app)
+        self.server_greenlet = gevent.spawn(self.rest_server.serve_forever)
+
+    def join(self):
+        assert self.rest_server is not None
+        assert self.server_greenlet is not None
+        self.rest_server.stop()
+        self.server_greenlet.join()

@@ -44,6 +44,7 @@ def main(
     app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
     app.add_content(PaywalledProxyUrl("p\/.*", 1))
     app.run(debug=True)
+    app.join()
 
 
 if __name__ == '__main__':
