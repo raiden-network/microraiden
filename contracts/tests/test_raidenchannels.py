@@ -117,9 +117,13 @@ def channel(contract, web3):
     global channel_deposit
     channel_deposit = 220
     B_bytes = bytes(B, "raw_unicode_escape")
-
+    print('Owner', Owner)
+    print('sender', A)
+    print('receiver', B)
+    print('ChannelsContract', contract.address)
+    print('Token', token.address)
+    
     token.transact({"from": Owner}).transfer(A, channel_deposit + 45)
-
     token.transact({"from": Owner}).transfer(B, 22)
 
     # Create channel
@@ -222,8 +226,8 @@ def test_channel_223_create(web3, contract, channels_contract):
 
     channel_post_create_tests(contract, B, A, depozit_B)
 
-'''
-def test_channel_topup(web3, contract, channel):
+
+def test_channel_topup_20(web3, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
     top_up_deposit = 14
@@ -247,7 +251,42 @@ def test_channel_topup(web3, contract, channel):
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
-'''
+
+
+def test_channel_topup_223(web3, contract, channel):
+    (sender, receiver, open_block_number) = channel
+    (A) = web3.eth.accounts[3]
+    top_up_deposit = 14
+
+    receiver_bytes = bytes(receiver, "raw_unicode_escape")
+    block_bytes = bytes(str(open_block_number), "raw_unicode_escape")
+
+    top_up_data = receiver_bytes + block_bytes
+    top_up_data_wrong_receiver = bytes(A, "raw_unicode_escape") + block_bytes
+    top_up_data_wrong_block = receiver_bytes + bytes(str(open_block_number+30), "raw_unicode_escape")
+    top_up_data_small = bytes("0x00000", "raw_unicode_escape")
+    top_up_data_big = receiver_bytes + bytes(str(open_block_number) + str(10**9), "raw_unicode_escape")
+    top_up_data_string = receiver_bytes + bytes("aaa", "raw_unicode_escape")
+
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, 0, top_up_data)
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_receiver)
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_block)
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_string)
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_small)
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_big)
+
+    # Call Token - this calls contract.tokenFallback
+    token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data)
+
+    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
+    assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
+
 
 def test_close_call(web3, contract, channel):
     (sender, receiver, open_block_number) = channel
