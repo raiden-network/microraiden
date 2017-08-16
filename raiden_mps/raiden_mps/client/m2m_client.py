@@ -3,7 +3,7 @@ import time
 import logging
 from ethereum.utils import encode_hex
 
-from raiden_mps.client.channel_info import ChannelInfo
+from raiden_mps.client.channel import Channel
 from raiden_mps.header import HTTPHeaders
 
 STATUS_OK = 200
@@ -99,7 +99,7 @@ class M2MClient(object):
             channel for channel in self.rmp_client.channels
             if channel.sender.lower() == self.rmp_client.account.lower() and
                channel.receiver.lower() == receiver.lower() and
-               channel.state == ChannelInfo.State.open and channel.deposit - channel.balance >= value
+               channel.state == Channel.State.open and channel.deposit - channel.balance >= value
         ]
         if len(channels) > 1:
             log.warning('Warning: {} open channels found. Choosing a random one.'.format(len(channels)))
@@ -113,7 +113,7 @@ class M2MClient(object):
             channel = self.rmp_client.open_channel(receiver, deposit)
 
         if channel:
-            self.rmp_client.create_transfer(channel, value)
+            channel.create_transfer(value)
             return channel
         else:
             return None

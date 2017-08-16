@@ -3,7 +3,7 @@ import logging
 import os
 
 from ethereum.utils import privtoaddr, encode_hex, decode_hex
-from raiden_mps.client.channel_info import ChannelInfo
+from raiden_mps.client.channel import Channel
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from web3 import Web3
@@ -125,7 +125,8 @@ class RMPClient:
             return channel_id_to_channel[(sender, receiver, block)]
 
         for e in create:
-            c = ChannelInfo(
+            c = Channel(
+                self,
                 e['args']['_sender'],
                 e['args']['_receiver'],
                 e['args']['_deposit'],
@@ -152,11 +153,11 @@ class RMPClient:
             c = get_channel(e)
 
             c.balance = e['args']['_balance']
-            c.state = ChannelInfo.State.settling
+            c.state = Channel.State.settling
 
         for e in settle:
             c = get_channel(e)
-            c.state = ChannelInfo.State.closed
+            c.state = Channel.State.closed
 
         self.channels = list(channel_id_to_channel.values())
         self.store_channels()
@@ -174,7 +175,7 @@ class RMPClient:
             try:
                 store = json.load(channels_file)
                 if isinstance(store, dict) and self.channel_manager_address in store:
-                    self.channels = ChannelInfo.deserialize(store[self.channel_manager_address])
+                    self.channels = Channel.deserialize(self, store[self.channel_manager_address])
             except json.decoder.JSONDecodeError:
                 log.warning('Failed to load local channel storage.')
 
@@ -199,7 +200,7 @@ class RMPClient:
             store = dict()
 
         with open(store_path, 'w') as channels_file:
-            store[self.channel_manager_address] = ChannelInfo.serialize(self.channels)
+            store[self.channel_manager_address] = Channel.serialize(self.channels)
             json.dump(store, channels_file, indent=4)
 
     def open_channel(self, receiver_address, deposit):
@@ -232,7 +233,8 @@ class RMPClient:
 
         if event:
             log.info('Event received. Channel created in block {}.'.format(event['blockNumber']))
-            channel = ChannelInfo(
+            channel = Channel(
+                self,
                 event['args']['_sender'],
                 event['args']['_receiver'],
                 event['args']['_deposit'],
@@ -245,183 +247,3 @@ class RMPClient:
             channel = None
 
         return channel
-
-    def topup_channel(self, channel, value):
-        """
-        Attempts to increase the deposit in an existing channel. Block until confirmation.
-        """
-        if channel.state != ChannelInfo.State.open:
-            log.error('Channel must be open to be topped up.')
-            return
-
-        log.info('Topping up channel to {} created at block #{} by {} tokens.'.format(
-            channel.receiver, channel.block, value
-        ))
-        current_block = self.web3.eth.blockNumber
-
-        tx1 = self.token_proxy.create_transaction('approve', [self.channel_manager_address, value])
-        tx2 = self.channel_manager_proxy.create_transaction(
-            'topUp', [channel.receiver, channel.block, value], nonce_offset=1
-        )
-        self.web3.eth.sendRawTransaction(tx1)
-        self.web3.eth.sendRawTransaction(tx2)
-
-        log.info('Waiting for topup confirmation event...')
-        event = self.channel_manager_proxy.get_channel_topped_up_event_blocking(
-            channel.sender,
-            channel.receiver,
-            channel.block,
-            channel.deposit + value,
-            value,
-            current_block + 1
-        )
-
-        if event:
-            log.info('Successfully topped up channel in block {}.'.format(event['blockNumber']))
-            channel.deposit += value
-            self.store_channels()
-            return event
-        else:
-            log.error('No event received.')
-            return None
-
-    def close_channel(self, channel, balance=None):
-        """
-        Attempts to request close on a channel. An explicit balance can be given to override the
-        locally stored balance signature. Blocks until a confirmation event is received or timeout.
-        """
-        if channel.state != ChannelInfo.State.open:
-            log.error('Channel must be open to request a close.')
-            return
-        log.info('Requesting close of channel to {} created at block #{}.'.format(
-            channel.receiver, channel.block
-        ))
-        current_block = self.web3.eth.blockNumber
-
-        if balance:
-            channel.balance = 0
-            self.create_transfer(channel, balance)
-        elif not channel.balance_sig:
-            self.create_transfer(channel, 0)
-
-        tx = self.channel_manager_proxy.create_transaction(
-            'close', [channel.receiver, channel.block, channel.balance, channel.balance_sig]
-        )
-        self.web3.eth.sendRawTransaction(tx)
-
-        log.info('Waiting for close confirmation event...')
-        event = self.channel_manager_proxy.get_channel_close_requested_event_blocking(
-            channel.sender, channel.receiver, channel.block, current_block + 1
-        )
-
-        if event:
-            log.info('Successfully sent channel close request in block {}.'.format(
-                event['blockNumber']
-            ))
-            channel.state = ChannelInfo.State.settling
-            self.store_channels()
-            return event
-        else:
-            log.error('No event received.')
-            return None
-
-    def close_channel_cooperatively(self, channel, closing_sig):
-        """
-        Attempts to close the channel immediately by providing a hash of the channel's balance
-        proof signed by the receiver. This signature must correspond to the balance proof stored in
-        the passed channel state.
-        """
-        if channel.state != ChannelInfo.State.open:
-            log.error('Channel must be open to be closed cooperatively.')
-            return
-        log.info('Attempting to cooperatively close channel to {} created at block #{}.'.format(
-            channel.receiver, channel.block
-        ))
-        current_block = self.web3.eth.blockNumber
-        receiver_recovered = self.channel_manager_proxy.contract.call().verifyClosingSignature(
-            channel.balance_sig, closing_sig
-        )
-        if receiver_recovered != channel.receiver:
-            log.error('Invalid closing signature or balance signature.')
-            return
-
-        tx = self.channel_manager_proxy.create_transaction(
-            'close', [
-                channel.receiver, channel.block, channel.balance, channel.balance_sig, closing_sig
-            ]
-        )
-        self.web3.eth.sendRawTransaction(tx)
-
-        log.info('Waiting for settle confirmation event...')
-        event = self.channel_manager_proxy.get_channel_settle_event_blocking(
-            channel.sender, channel.receiver, channel.block, current_block + 1
-        )
-
-        if event:
-            log.info('Successfully closed channel in block {}.'.format(event['blockNumber']))
-            channel.state = ChannelInfo.State.closed
-            self.store_channels()
-        else:
-            log.error('No event received.')
-
-    def settle_channel(self, channel):
-        """
-        Attempts to settle a channel that has passed its settlement period. If a channel cannot be
-        settled yet, the call is ignored with a warning. Blocks until a confirmation event is
-        received or timeout.
-        """
-        if channel.state != ChannelInfo.State.settling:
-            log.error('Channel must be in the settlement period to settle.')
-            return
-        log.info('Attempting to settle channel to {} created at block #{}.'.format(
-            channel.receiver, channel.block
-        ))
-
-        settle_block = self.channel_manager_proxy.contract.call().getChannelInfo(
-            channel.sender, channel.receiver, channel.block
-        )[2]
-
-        current_block = self.web3.eth.blockNumber
-        wait_remaining = settle_block - current_block
-        if wait_remaining > 0:
-            log.warning('{} more blocks until this channel can be settled. Aborting.'.format(
-                wait_remaining
-            ))
-            return
-
-        tx = self.channel_manager_proxy.create_transaction(
-            'settle', [channel.receiver, channel.block]
-        )
-        self.web3.eth.sendRawTransaction(tx)
-
-        log.info('Waiting for settle confirmation event...')
-        event = self.channel_manager_proxy.get_channel_settle_event_blocking(
-            channel.sender, channel.receiver, channel.block, current_block + 1
-        )
-
-        if event:
-            log.info('Successfully settled channel in block {}.'.format(event['blockNumber']))
-            channel.state = ChannelInfo.State.closed
-            self.store_channels()
-        else:
-            log.error('No event received.')
-
-    def create_transfer(self, channel, value):
-        """
-        Updates the given channel's balance and balance signature with the new value. The signature
-        is returned and stored in the channel state.
-        """
-        assert isinstance(channel, ChannelInfo)
-        assert value >= 0
-
-        if channel.state != ChannelInfo.State.open:
-            log.error('Channel must be open to create a transfer.')
-            return
-
-        channel.balance += value
-
-        channel.balance_sig = self.channel_manager_proxy.sign_balance_proof(
-            self.privkey, channel.receiver, channel.block, channel.balance
-        )
-
-        self.store_channels()
