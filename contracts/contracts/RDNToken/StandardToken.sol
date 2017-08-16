@@ -33,7 +33,7 @@ contract StandardToken is Token {
         returns (bool)
     {
         bytes memory empty;
-        transfer(_to, _value, empty);
+        return transfer(_to, _value, empty);
     }
 
     /// @dev Function that is called when a user or another contract wants to transfer funds.

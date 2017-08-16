@@ -149,7 +149,7 @@ contract RaidenMicroTransferChannels {
      */
 
     ///
-    /// @dev Calls createChannel, compatibility with ERC 223.
+    /// @dev Calls createChannel, compatibility with ERC 223; msg.sender is Token contract.
     /// @param _sender The address that sends the tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     /// @param _data Receiver address in bytes.
