@@ -45,14 +45,13 @@ contract RDNToken is StandardToken {
         symbol = _tokenSymbol;                               // Set the symbol for display purposes
     }
 
-    function isContractTrusted(
+    function contractIsTrusted(
         address _addr)
         public
-        returns (bool)
+        constant
     {
         require(_addr != 0x0);
         ContractReceiver receiver = ContractReceiver(_addr);
         require(receiver.owner() == owner);
-        return true;
     }
 }

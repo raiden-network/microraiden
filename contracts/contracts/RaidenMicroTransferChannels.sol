@@ -161,10 +161,15 @@ contract RaidenMicroTransferChannels {
     {
         uint length = _data.length;
 
-        // length == 0 should pass - probably a normal token.transfer
+        // length == 0 is a token.transfer(_to, _value)
+        // sent from this contract when closing the channel.
+        if(length == 0) {
+            return;
+        }
+
         // createChannelPrivate - receiver address (42)
         // topUpPrivate - receiver address (42 ; bytes20) + open_block_number (8 ; bytes4)
-        require(length == 0 || (length >= 42 && length <= 50));
+        require(length >= 42 && length <= 50);
 
         if(length >= 42) {
             GasCost('tokenFallback', block.gaslimit, msg.gas);
@@ -445,7 +450,7 @@ contract RaidenMicroTransferChannels {
 
     /// @dev Internal function for getting an address from bytes.
     /// @param b Bytes received.
-    /// @return Address.
+    /// @return Address resulted.
     function bytesToAddress(bytes b)
         internal
         constant
@@ -470,7 +475,7 @@ contract RaidenMicroTransferChannels {
     /// @dev Internal function for getting the block number from bytes.
     /// @param data Bytes received.
     /// @param pos Position from which to start reading the bytes.
-    /// @return Address.
+    /// @return Block number.
     function bytesToBlockNumber(
         bytes data,
         uint pos)

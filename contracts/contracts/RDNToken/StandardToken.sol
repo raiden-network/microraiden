@@ -56,7 +56,9 @@ contract StandardToken is Token {
         balances[_to] += _value;
 
         if(isContract(_to)) {
-            require(isContractTrusted(_to));
+            // Throws if contract is not trusted
+            contractIsTrusted(_to);
+
             ContractReceiver receiver = ContractReceiver(_to);
             receiver.tokenFallback(msg.sender, _value, _data);
         }
@@ -75,18 +77,13 @@ contract StandardToken is Token {
             //retrieve the size of the code on target address, this needs assembly
             length := extcodesize(_addr)
         }
-        if(length > 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return (length > 0);
     }
 
     /// @dev Allows token to check if it trusts the contract
     /// @param _addr Contract address.
     /// @return Returns if contract is trusted or not.
-    function isContractTrusted(address _addr) public returns (bool) {}
+    function contractIsTrusted(address _addr) public constant {}
 
     /// @dev Allows allowed third party to transfer tokens from one address to another. Returns success.
     /// @param _from Address from where tokens are withdrawn.
