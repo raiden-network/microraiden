@@ -161,27 +161,18 @@ contract RaidenMicroTransferChannels {
     {
         uint length = _data.length;
 
-        // length == 0 is a token.transfer(_to, _value)
-        // sent from this contract when closing the channel.
-        if(length == 0) {
-            return;
-        }
-
         // createChannelPrivate - receiver address (42)
         // topUpPrivate - receiver address (42 ; bytes20) + open_block_number (8 ; bytes4)
         require(length >= 42 && length <= 50);
 
-        if(length >= 42) {
-            GasCost('tokenFallback', block.gaslimit, msg.gas);
-            address receiver = bytesToAddress(_data);
+        address receiver = bytesToAddress(_data);
 
-            if(length == 42) {
-                createChannelPrivate(_sender, receiver, uint192(_deposit));
-            }
-            else {
-                uint open_block_number = bytesToBlockNumber(_data, 42);
-                topUpPrivate(_sender, receiver, uint32(open_block_number), uint192(_deposit));
-            }
+        if(length == 42) {
+            createChannelPrivate(_sender, receiver, uint192(_deposit));
+        }
+        else {
+            uint open_block_number = bytesToBlockNumber(_data, 42);
+            topUpPrivate(_sender, receiver, uint32(open_block_number), uint192(_deposit));
         }
     }
 
