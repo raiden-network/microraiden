@@ -35,9 +35,9 @@ contract RaidenMicroTransferChannels {
      */
 
     event ChannelCreated(address indexed _sender, address indexed _receiver, uint192 _deposit);
-    event ChannelToppedUp (address _sender, address _receiver, uint32 _open_block_number, uint192 _added_deposit, uint192 _deposit);
-    event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 _open_block_number, uint192 _balance);
-    event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 _open_block_number);
+    event ChannelToppedUp (address indexed _sender, address indexed _receiver, uint32 indexed _open_block_number, uint192 _added_deposit, uint192 _deposit);
+    event ChannelCloseRequested(address indexed _sender, address indexed _receiver, uint32 indexed _open_block_number, uint192 _balance);
+    event ChannelSettled(address indexed _sender, address indexed _receiver, uint32 indexed _open_block_number);
     event TokenFallback(address indexed _sender, address indexed _receiver, uint192 _deposit, bytes indexed _data);
     event GasCost(string _function_name, uint _gaslimit, uint _gas);
 
