@@ -45,7 +45,6 @@ class M2MClient(object):
                 else:
                     channel_manager_address = headers[HEADERS['contract_address']]
                     if channel_manager_address != self.rmp_client.channel_manager_address:
-                        import pudb;pudb.set_trace()
                         log.error('Invalid channel manager address requested ({}). Aborting.'.format(
                             channel_manager_address))
                         return None

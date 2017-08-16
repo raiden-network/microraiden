@@ -6,6 +6,7 @@ import os
 
 from raiden_mps.client.rmp_client import rmpc_factory
 from raiden_mps.client.m2m_client import M2MClient
+from raiden_mps.client.channel_info import ChannelInfo
 
 
 @click.command()
@@ -57,7 +58,8 @@ def run(
 
     if kwargs['close_channels'] is True:
         for channel in rmp_client.channels:
-            rmp_client.close_channel(channel)
+            if channel.state == ChannelInfo.State.open:
+                rmp_client.close_channel(channel)
 
 
 if __name__ == '__main__':

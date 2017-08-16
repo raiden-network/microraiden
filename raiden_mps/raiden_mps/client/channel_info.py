@@ -74,31 +74,27 @@ class ChannelInfo:
 
     @staticmethod
     def merge_infos(stored, created, settling, closed, toppedup):
-        channel_id_to_channel = {
-            (c.sender, c.receiver, c.block): ChannelInfo(c.sender, c.receiver, 0, c.block)
-            for group in (stored, created, settling, closed, toppedup) for c in group
-        }
-        for c in stored:
-            c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
-            c_merged.deposit = c.deposit
-            c_merged.balance = c.balance
-            c_merged.balance_sig = c.balance_sig
-            c_merged.state = c.state
-
+        channel_id_to_channel = {}
         for c in created:
-            c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
-            c_merged.deposit = c.deposit
-            c_merged.state = c.state
+            new_channel = ChannelInfo(c.sender, c.receiver, c.deposit, c.block)
+            new_channel.state = c.state
+            channel_id_to_channel[(c.sender, c.receiver, c.block)] = new_channel
 
         for c in toppedup:
+            if not (c.sender, c.receiver, c.block) in channel_id_to_channel:
+                continue
             c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
             c_merged.deposit = max(c_merged.deposit, c.deposit)
 
         for c in settling:
+            if not (c.sender, c.receiver, c.block) in channel_id_to_channel:
+                continue
             c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
             c_merged.state = c.state
 
         for c in closed:
+            if not (c.sender, c.receiver, c.block) in channel_id_to_channel:
+                continue
             c_merged = channel_id_to_channel[(c.sender, c.receiver, c.block)]
             c_merged.state = c.state
 
