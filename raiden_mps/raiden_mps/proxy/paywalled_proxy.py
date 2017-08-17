@@ -53,7 +53,8 @@ class PaywalledProxy:
             utils.get_contract_proxy(web3, private_key, contract_address),
             receiver_address,
             private_key,
-            state_filename=state_filename
+            state_filename=state_filename,
+            channel_contract_address=contract_address
         )
         self.channel_manager.start()
 

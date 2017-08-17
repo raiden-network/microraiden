@@ -1,6 +1,7 @@
 import click
 import os
 import sys
+from ethereum.utils import encode_hex, privtoaddr
 #
 # Flask restarts itself when a file changes, but this restart
 #  does not have PYTHONPATH set properly if you start the
@@ -26,18 +27,34 @@ from raiden_mps.proxy.content import (
     default=CHANNEL_MANAGER_ADDRESS,
     help='Ethereum address of the channel manager contract.'
 )
+@click.option(
+    '--state-file',
+    default=None,
+    help='State file of the proxy'
+)
+@click.option(
+    '--private-key',
+    default='b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946',
+    help='Private key of the proxy'
+)
 def main(
     channel_manager_address,
+    state_file,
+    private_key
 ):
-    config = {
-        "contract_address": channel_manager_address,
-        "receiver_address": '0x004B52c58863C903Ab012537247b963C557929E8',
-        "private_key": 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946',
-        "state_filename": '/tmp/cm.pkl'
-    }
-    app = PaywalledProxy(config['contract_address'],
-                         config['private_key'],
-                         config['state_filename'])
+    if os.path.isfile(private_key):
+        with open(private_key) as keyfile:
+            private_key = keyfile.readline()[:-1]
+
+    receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
+    private_key = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
+
+    if not state_file:
+        state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)
+        state_file_name = os.path.join(os.path.expanduser('~'), '.raiden') + "/" + state_file_name
+    app = PaywalledProxy(channel_manager_address,
+                         private_key,
+                         state_file_name)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))

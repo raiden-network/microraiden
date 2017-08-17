@@ -2,6 +2,7 @@
 
 """
 import os
+import sys
 import pickle
 import time
 import tempfile
@@ -218,6 +219,7 @@ class ChannelManager(gevent.Greenlet):
         self.receiver = receiver
         self.private_key = private_key
         self.contract_proxy = contract_proxy
+        self.log = logging.getLogger('channel_manager')
         assert '0x' + encode_hex(privtoaddr(self.private_key)) == self.receiver.lower()
 
         if state_filename is not None and os.path.isfile(state_filename):
@@ -226,8 +228,15 @@ class ChannelManager(gevent.Greenlet):
         else:
             self.state = ChannelManagerState(channel_contract_address, receiver, state_filename)
 
-        self.log = logging.getLogger('channel_manager')
-        self.log.info('setting up channel manager for %s', self.receiver)
+        if channel_contract_address.lower() != self.state.contract_address.lower():
+            self.log.error('channel contract address mismatch: saved state contract address is %s,'
+                           ' but proxy was run with contract address %s. '
+                           'Saved state file is %s. Backup it, remove, then start proxy again' %
+                           (channel_contract_address, self.state.contract_address, state_filename))
+            sys.exit(1)
+
+        self.log.debug('setting up channel manager, receiver=%s channel_contract=%s' %
+                       (self.receiver, channel_contract_address))
 
     def _run(self):
         self.blockchain.start()
