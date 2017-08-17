@@ -47,14 +47,13 @@ def main(
             private_key = keyfile.readline()[:-1]
 
     receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
-    private_key = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
 
     if not state_file:
         state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)
-        state_file_name = os.path.join(os.path.expanduser('~'), '.raiden') + "/" + state_file_name
+        state_file = os.path.join(os.path.expanduser('~'), '.raiden') + "/" + state_file_name
     app = PaywalledProxy(channel_manager_address,
                          private_key,
-                         state_file_name)
+                         state_file)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))

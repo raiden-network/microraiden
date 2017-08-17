@@ -1,4 +1,5 @@
 import gevent
+import sys
 from gevent import monkey
 monkey.patch_all()
 from flask import Flask
@@ -8,6 +9,8 @@ from flask_restful import (
 
 from raiden_mps.channel_manager import (
     ChannelManager,
+    StateReceiverAddrMismatch,
+    StateContractAddrMismatch
 )
 
 from raiden_mps.proxy.resources import (
@@ -27,6 +30,9 @@ from web3.providers.rpc import RPCProvider
 from ethereum.utils import encode_hex, privtoaddr
 
 import raiden_mps.utils as utils
+import logging
+
+log = logging.getLogger(__name__)
 
 
 JSLIB_DIR = 'raiden_mps/data/html/'
@@ -48,14 +54,28 @@ class PaywalledProxy:
         self.server_greenlet = None
         web3 = Web3(RPCProvider())
         receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
-        self.channel_manager = ChannelManager(
-            web3,
-            utils.get_contract_proxy(web3, private_key, contract_address),
-            receiver_address,
-            private_key,
-            state_filename=state_filename,
-            channel_contract_address=contract_address
-        )
+
+        try:
+            self.channel_manager = ChannelManager(
+                web3,
+                utils.get_contract_proxy(web3, private_key, contract_address),
+                receiver_address,
+                private_key,
+                state_filename=state_filename,
+                channel_contract_address=contract_address
+            )
+        except StateReceiverAddrMismatch as e:
+            log.error('Receiver address does not match address stored in a saved state. '
+                      'Use a different file, or backup and remove %s. (%s)' %
+                      (state_filename, e))
+            sys.exit(1)
+
+        except StateContractAddrMismatch as e:
+            self.log.error('channel contract address mismatch. '
+                           'Saved state file is %s. Backup it, remove, then'
+                           'start proxy again (%s)' %
+                           (state_filename, e))
+            sys.exit(1)
         self.channel_manager.start()
 
         cfg = {

@@ -2,7 +2,6 @@
 
 """
 import os
-import sys
 import pickle
 import time
 import tempfile
@@ -33,6 +32,14 @@ class NoOpenChannel(Exception):
 
 
 class NoBalanceProofReceived(Exception):
+    pass
+
+
+class StateContractAddrMismatch(Exception):
+    pass
+
+
+class StateReceiverAddrMismatch(Exception):
     pass
 
 
@@ -224,16 +231,14 @@ class ChannelManager(gevent.Greenlet):
 
         if state_filename is not None and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
-            assert receiver.lower() == self.state.receiver
         else:
             self.state = ChannelManagerState(channel_contract_address, receiver, state_filename)
 
+        if receiver.lower() != self.state.receiver:
+            raise StateReceiverAddrMismatch('%s != %s' % (receiver.lower(), self.state.receiver))
         if channel_contract_address.lower() != self.state.contract_address.lower():
-            self.log.error('channel contract address mismatch: saved state contract address is %s,'
-                           ' but proxy was run with contract address %s. '
-                           'Saved state file is %s. Backup it, remove, then start proxy again' %
-                           (channel_contract_address, self.state.contract_address, state_filename))
-            sys.exit(1)
+            raise StateContractAddrMismatch('%s != %s' % (
+                channel_contract_address.lower(), self.state.contract_address.lower()))
 
         self.log.debug('setting up channel manager, receiver=%s channel_contract=%s' %
                        (self.receiver, channel_contract_address))
