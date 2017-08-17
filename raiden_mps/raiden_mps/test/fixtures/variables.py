@@ -4,7 +4,7 @@ from ethereum.utils import encode_hex, privtoaddr
 import os
 import json
 from raiden_mps.client.rmp_client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
-from raiden_mps.config import RECEIVER_PRIVKEY
+from raiden_mps.config import TEST_SENDER_PRIVKEY, TEST_RECEIVER_PRIVKEY
 
 
 @pytest.fixture
@@ -71,12 +71,12 @@ def receiver_address(receiver_privkey):
 
 @pytest.fixture
 def sender_privkey():
-    return '558ce5d09417f127c89097f8c41def07883cbec094da79f5dddfd4590607f7c2'
+    return TEST_SENDER_PRIVKEY
 
 
 @pytest.fixture
 def receiver_privkey():
-    return RECEIVER_PRIVKEY
+    return TEST_RECEIVER_PRIVKEY
 
 
 @pytest.fixture

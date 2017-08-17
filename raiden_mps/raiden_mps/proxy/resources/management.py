@@ -3,6 +3,8 @@ import json
 
 from flask_restful import reqparse
 
+from raiden_mps.crypto import sign_close
+
 
 class ChannelManagementRoot(Resource):
     def get(self):
@@ -41,7 +43,7 @@ class ChannelManagementListChannels(Resource):
         args = parser.parse_args()
         if args.signature is None:
             return "Bad signature format", 400
-        ret = self.channel_manager.sign_close(args.sender, args.open_block, args.signature)
+        ret = sign_close(self.channel_manager.private_key, args.signature)
         return ret, 200
 
 

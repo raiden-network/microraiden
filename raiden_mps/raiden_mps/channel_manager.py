@@ -11,6 +11,8 @@ import gevent
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import logging
 
+from raiden_mps.crypto import sign_close
+
 log = logging.getLogger(__name__)
 
 if isinstance(encode_hex(b''), bytes):
@@ -373,7 +375,7 @@ class ChannelManager(gevent.Greenlet):
             raise InvalidBalanceProof('Balance proof does not match latest one.')
         c.is_closed = True  # FIXME block number
         c.mtime = time.time()
-        receiver_sig = self.contract_proxy.sign_close(self.private_key, signature)
+        receiver_sig = sign_close(self.private_key, signature)
         recovered_receiver = self.contract_proxy.contract.call().verifyClosingSignature(
             signature, receiver_sig)
         assert recovered_receiver == self.receiver.lower()
