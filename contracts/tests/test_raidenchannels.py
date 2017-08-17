@@ -11,7 +11,9 @@ from fixtures import (
     token_contract,
     channels_contract,
     save_logs,
-    print_logs
+    print_logs,
+    get_gas_used,
+    print_gas_used
 )
 
 global logs
@@ -50,7 +52,7 @@ def channel_post_create_tests(contract, sender, receiver, channel_deposit):
     assert channel_data[3] == 0
 
 
-def channel_settle_tests_20(contract, channel):
+def channel_settle_tests_20(contract, channel_20):
     (sender, receiver, open_block_number) = channel
 
     # Approve token allowance
@@ -60,7 +62,7 @@ def channel_settle_tests_20(contract, channel):
         contract.transact({'from': sender}).topUp(receiver, open_block_number, 33)
 
 
-def channel_pre_close_tests_20(contract, channel):
+def channel_pre_close_tests_20(contract, channel_20):
     (sender, receiver, open_block_number) = channel
 
     # Approve token allowance
@@ -122,7 +124,7 @@ def channel(contract, web3):
     print('receiver', B)
     print('ChannelsContract', contract.address)
     print('Token', token.address)
-    
+
     token.transact({"from": Owner}).transfer(A, channel_deposit + 45)
     token.transact({"from": Owner}).transfer(B, 22)
 
@@ -154,10 +156,12 @@ def test_get_channel_info(web3, contract, channel):
     assert channel_data[3] == 0
 
 
-def test_channel_20_create(web3, contract):
+def test_channel_20_create(web3, chain, contract):
     (Owner, A, B, C, D) = web3.eth.accounts[:5]
     depozit_B = 100
     depozit_D = 120
+
+    gas_used_create = 0
 
     # Fund accounts with tokens
     token.transact({"from": Owner}).transfer(B, depozit_B)
@@ -167,7 +171,8 @@ def test_channel_20_create(web3, contract):
         contract.transact({"from": B}).createChannel(A, depozit_B)
 
     # Approve token allowance
-    token.transact({"from": B}).approve(contract.address, depozit_B)
+    trxid = token.transact({"from": B}).approve(contract.address, depozit_B)
+    gas_used_create += get_gas_used(chain, trxid)
 
     with pytest.raises(TypeError):
         contract.transact({"from": B}).createChannel(A, -2)
@@ -180,7 +185,8 @@ def test_channel_20_create(web3, contract):
     pre_balance_B = token.call().balanceOf(B)
 
     # Create channel
-    contract.transact({"from": B}).createChannel(A, depozit_B)
+    trxid = contract.transact({"from": B}).createChannel(A, depozit_B)
+    gas_used_create += get_gas_used(chain, trxid)
 
     # Check balances
     assert token.call().balanceOf(contract.address) == depozit_B
@@ -195,8 +201,12 @@ def test_channel_20_create(web3, contract):
     assert channel_data[2] == 0  # settle_block_number
     assert channel_data[3] == 0  # closing_balance
 
+    print('----------------------------------')
+    print('GAS USED test_channel_20_create', gas_used_create)
+    print('----------------------------------')
 
-def test_channel_223_create(web3, contract, channels_contract):
+
+def test_channel_223_create(web3, chain, contract, channels_contract):
     (Owner, A, B, C, D) = web3.eth.accounts[:5]
     other_contract = channels_contract([token.address, 10], {'from': D})
     depozit_B = 100
@@ -222,13 +232,17 @@ def test_channel_223_create(web3, contract, channels_contract):
     # TODO should this fail?
     #token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes_fake)
 
-    token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes)
+    trxid = token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes)
 
     channel_post_create_tests(contract, B, A, depozit_B)
 
+    print('----------------------------------')
+    print('GAS USED test_channel_223_create', get_gas_used(chain, trxid))
+    print('----------------------------------')
 
-def test_channel_topup_20(web3, contract, channel):
-    (sender, receiver, open_block_number) = channel
+
+def test_channel_topup_20(web3, chain, contract, channel_20):
+    (sender, receiver, open_block_number) = channel_20
     (A) = web3.eth.accounts[3]
     top_up_deposit = 14
 
@@ -236,7 +250,8 @@ def test_channel_topup_20(web3, contract, channel):
         contract.transact({'from': sender}).topUp(receiver, open_block_number, top_up_deposit)
 
     # Approve token allowance
-    token.transact({"from": sender}).approve(contract.address, top_up_deposit)
+    trxid = token.transact({"from": sender}).approve(contract.address, top_up_deposit)
+    gas_used_approve = get_gas_used(chain, trxid)
 
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': A}).topUp(receiver, open_block_number, top_up_deposit)
@@ -247,13 +262,17 @@ def test_channel_topup_20(web3, contract, channel):
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': sender}).topUp(receiver, 0, top_up_deposit)
 
-    contract.transact({'from': sender}).topUp(receiver, open_block_number, top_up_deposit)
+    trxid = contract.transact({'from': sender}).topUp(receiver, open_block_number, top_up_deposit)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
 
+    print('----------------------------------')
+    print('GAS USED test_channel_topup_20', gas_used_approve + get_gas_used(chain, trxid))
+    print('----------------------------------')
 
-def test_channel_topup_223(web3, contract, channel):
+
+def test_channel_topup_223(web3, chain, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
     top_up_deposit = 14
@@ -282,13 +301,17 @@ def test_channel_topup_223(web3, contract, channel):
         token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_big)
 
     # Call Token - this calls contract.tokenFallback
-    token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data)
+    trxid = token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
 
+    print('----------------------------------')
+    print('GAS USED test_channel_topup_223', get_gas_used(chain, trxid))
+    print('----------------------------------')
 
-def test_close_call(web3, contract, channel):
+
+def test_close_call(web3, chain, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
     balance = channel_deposit - 10
@@ -308,7 +331,7 @@ def test_close_call(web3, contract, channel):
         contract.transact({'from': receiver}).close(receiver, open_block_number, balance)
 
 
-def test_close_by_receiver(web3, contract, channel):
+def test_close_by_receiver(web3, chain, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
 
@@ -338,7 +361,7 @@ def test_close_by_receiver(web3, contract, channel):
 
     print('--BALANCES', receiver_pre_balance, sender_pre_balance, contract_pre_balance)
 
-    contract.transact({'from': receiver}).close(receiver, open_block_number, balance, balance_msg_sig)
+    trxid = contract.transact({'from': receiver}).close(receiver, open_block_number, balance, balance_msg_sig)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = sender_pre_balance + (current_deposit - balance)
@@ -350,8 +373,12 @@ def test_close_by_receiver(web3, contract, channel):
 
     channel_settle_tests(contract, channel)
 
+    print('----------------------------------')
+    print('GAS USED test_close_by_receiver', get_gas_used(chain, trxid))
+    print('----------------------------------')
 
-def test_close_by_sender(web3, contract, channel):
+
+def test_close_by_sender(web3, chain, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
 
@@ -387,7 +414,7 @@ def test_close_by_sender(web3, contract, channel):
     contract_pre_balance = token.call().balanceOf(contract.address)
 
     channel_pre_close_tests(contract, channel)
-    contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    trxid = contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = sender_pre_balance + (current_deposit - balance)
@@ -399,8 +426,12 @@ def test_close_by_sender(web3, contract, channel):
 
     channel_settle_tests(contract, channel)
 
+    print('----------------------------------')
+    print('GAS USED test_close_by_sender', get_gas_used(chain, trxid))
+    print('----------------------------------')
 
-def test_close_by_sender_challenge_settle_by_receiver(web3, contract, channel):
+
+def test_close_by_sender_challenge_settle_by_receiver(web3, chain, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
 
@@ -415,7 +446,7 @@ def test_close_by_sender_challenge_settle_by_receiver(web3, contract, channel):
     contract_pre_balance = token.call().balanceOf(contract.address)
 
     channel_pre_close_tests(contract, channel)
-    contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
+    trxid1 = contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[2] != 0  # settle_block_number
@@ -423,7 +454,7 @@ def test_close_by_sender_challenge_settle_by_receiver(web3, contract, channel):
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': sender}).settle(receiver, open_block_number)
 
-    contract.transact({'from': receiver}).close(receiver, open_block_number, balance, balance_msg_sig)
+    trxid2 = contract.transact({'from': receiver}).close(receiver, open_block_number, balance, balance_msg_sig)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = sender_pre_balance + (current_deposit - balance)
@@ -435,8 +466,12 @@ def test_close_by_sender_challenge_settle_by_receiver(web3, contract, channel):
 
     channel_settle_tests(contract, channel)
 
+    print('----------------------------------')
+    print('GAS USED test_close_by_sender_challenge_settle_by_receiver', get_gas_used(chain, trxid1) + get_gas_used(chain, trxid2))
+    print('----------------------------------')
 
-def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
+
+def test_close_by_sender_challenge_settle_by_sender(web3, chain, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
 
@@ -451,7 +486,7 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
     contract_pre_balance = token.call().balanceOf(contract.address)
 
     channel_pre_close_tests(contract, channel)
-    contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
+    trxid1 = contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[2] != 0  # settle_block_number
@@ -467,7 +502,7 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': receiver}).settle(receiver, open_block_number)
 
-    contract.transact({'from': sender}).settle(receiver, open_block_number)
+    trxid2 = contract.transact({'from': sender}).settle(receiver, open_block_number)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = sender_pre_balance + (current_deposit - balance)
@@ -479,7 +514,11 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
 
     channel_settle_tests(contract, channel)
 
-def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
+    print('----------------------------------')
+    print('GAS USED test_close_by_sender_challenge_settle_by_sender', get_gas_used(chain, trxid1) + get_gas_used(chain, trxid2))
+    print('----------------------------------')
+
+def test_close_by_sender_challenge_settle_by_sender2(web3, chain, contract, channel):
     (sender, receiver, open_block_number) = channel
     (A) = web3.eth.accounts[3]
 
@@ -494,7 +533,7 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
     contract_pre_balance = token.call().balanceOf(contract.address)
 
     channel_pre_close_tests(contract, channel)
-    contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
+    trxid1 = contract.transact({'from': sender}).close(receiver, open_block_number, balance, balance_msg_sig)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[2] != 0  # settle_block_number
@@ -510,7 +549,7 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': receiver}).settle(receiver, open_block_number)
 
-    contract.transact({'from': sender}).settle(receiver, open_block_number)
+    trxid2 = contract.transact({'from': sender}).settle(receiver, open_block_number)
 
     receiver_post_balance = receiver_pre_balance + balance
     sender_post_balance = sender_pre_balance + (current_deposit - balance)
@@ -521,3 +560,7 @@ def test_close_by_sender_challenge_settle_by_sender(web3, contract, channel):
     assert token.call().balanceOf(contract.address) == contract_post_balance
 
     channel_settle_tests(contract, channel)
+
+    print('----------------------------------')
+    print('GAS USED test_close_by_sender_challenge_settle_by_sender2', get_gas_used(chain, trxid1) + get_gas_used(chain, trxid2))
+    print('----------------------------------')

@@ -71,9 +71,12 @@ def save_logs(contract, event_name, add):
     transfer_filter.watch(lambda x: add(x))
 
 
-def print_gas_used(web3, trxid, message):
-    receipt = wait_for_transaction_receipt(web3, trxid)
-    print(message, receipt["gasUsed"])
+def get_gas_used(chain, trxid):
+    return chain.wait.for_receipt(trxid)["gasUsed"]
+
+
+def print_gas_used(chain, trxid, message):
+    print(message, get_gas_used(chain, trxid))
 
 
 def wait(transfer_filter):
