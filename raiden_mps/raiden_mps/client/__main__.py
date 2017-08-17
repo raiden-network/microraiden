@@ -46,7 +46,7 @@ def run(api_endpoint, api_port, **kwargs):
     if kwargs['close_channels'] is True:
         for channel in rmp_client.channels:
             if channel.state == ChannelInfo.State.open:
-                rmp_client.close_channel(channel)
+                channel.close_channel()
 
 
 if __name__ == '__main__':

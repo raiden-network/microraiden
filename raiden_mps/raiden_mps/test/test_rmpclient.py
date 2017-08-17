@@ -23,3 +23,9 @@ def test_client(rmp_client, receiver_address):
 def test_m2m_client(doggo_proxy, m2m_client):
     x = m2m_client.request_resource('doggo.jpg')
     assert x.decode().strip() == '"HI I AM A DOGGO"'
+
+    # Require topup.
+    x = m2m_client.request_resource(
+        'doggo.jpg', initial_deposit=lambda x: x/2, topup_deposit=lambda x: x
+    )
+    assert x.decode().strip() == '"HI I AM A DOGGO"'
