@@ -24,18 +24,18 @@ if isinstance(encode_hex(b''), bytes):
 class RMPClient:
     def __init__(
             self,
-            privkey=None,
-            key_path=None,
-            datadir=os.path.join(os.path.expanduser('~'), '.raiden'),
-            channel_manager_address=CHANNEL_MANAGER_ADDRESS,
-            token_address=TOKEN_ADDRESS,
-            rpc=None,
-            web3=None,
-            channel_manager_proxy=None,
-            token_proxy=None,
-            rpc_endpoint='localhost',
-            rpc_port=8545,
-            contract_abi_path=os.path.join(
+            privkey:str=None,
+            key_path:str=None,
+            datadir:str=os.path.join(os.path.expanduser('~'), '.raiden'),
+            channel_manager_address:str=CHANNEL_MANAGER_ADDRESS,
+            token_address:str=TOKEN_ADDRESS,
+            rpc:RPCProvider=None,
+            web3:Web3=None,
+            channel_manager_proxy:ChannelContractProxy=None,
+            token_proxy:ContractProxy=None,
+            rpc_endpoint:str='localhost',
+            rpc_port:int=8545,
+            contract_abi_path:str=os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json'
             )
     ):
@@ -203,7 +203,7 @@ class RMPClient:
             store[self.channel_manager_address] = Channel.serialize(self.channels)
             json.dump(store, channels_file, indent=4)
 
-    def open_channel(self, receiver_address, deposit):
+    def open_channel(self, receiver_address:str, deposit:int):
         """
         Attempts to open a new channel to the receiver with the given deposit. Blocks until the
         creation transaction is found in a pending block or timeout is reached. The new channel

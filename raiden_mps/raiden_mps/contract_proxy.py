@@ -1,17 +1,20 @@
-from eth_utils import decode_hex, force_bytes
+import gevent
+import rlp
+from eth_utils import decode_hex
 from ethereum.transactions import Transaction
 from ethereum.utils import privtoaddr, encode_hex
-import rlp
+from web3.exceptions import BadFunctionCallOutput
 from web3.formatters import input_filter_params_formatter, log_array_formatter
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
-from web3.exceptions import BadFunctionCallOutput
-import gevent
-from raiden_mps.sign import sign
 
 if isinstance(encode_hex(b''), bytes):
     _encode_hex = encode_hex
     encode_hex = lambda b: _encode_hex(b).decode()
+
+DEFAULT_TIMEOUT = 20
+DEFAULT_RETRY_INTERVAL = 3
+
 
 class ContractProxy:
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
@@ -49,7 +52,8 @@ class ContractProxy:
             log['args'] = get_event_data(event_abi, log)['args']
         return logs
 
-    def get_event_blocking(self, event_name, condition=None, from_block=0, to_block='pending', wait=3, timeout=60):
+    def get_event_blocking(self, event_name, condition=None, from_block=0, to_block='pending',
+                           wait=DEFAULT_RETRY_INTERVAL, timeout=DEFAULT_TIMEOUT):
         for i in range(0, timeout + wait, wait):
             logs = self.get_logs(event_name, from_block, to_block)
             matching_logs = [event for event in logs if not condition or condition(event)]
@@ -80,41 +84,60 @@ class ChannelContractProxy(ContractProxy):
     def get_channel_topup_logs(self, from_block=0, to_block='latest', filters={}):
         return self.get_logs('ChannelToppedUp', from_block, to_block, filters)
 
+    # TODO: use filters instead of post conditions
     def get_channel_created_event_blocking(
-            self, sender, receiver, from_block=0, to_block='pending', wait=3, timeout=60
+            self, sender, receiver, from_block=0, to_block='pending',
+            wait=DEFAULT_RETRY_INTERVAL, timeout=DEFAULT_TIMEOUT
     ):
         def condition(event):
-            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender
+            return event['args']['_receiver'].lower() == receiver.lower() and \
+                   event['args']['_sender'] == sender
 
-        return self.get_event_blocking('ChannelCreated', condition, from_block, to_block, wait, timeout)
+        return self.get_event_blocking(
+            'ChannelCreated', condition, from_block, to_block, wait, timeout
+        )
 
+    # TODO: use filters instead of post conditions
     def get_channel_topped_up_event_blocking(
-            self, sender, receiver, opening_block, deposit, topup, from_block=0, to_block='pending', wait=3, timeout=60
+            self, sender, receiver, opening_block, deposit, topup,
+            from_block=0, to_block='pending', wait=DEFAULT_RETRY_INTERVAL, timeout=DEFAULT_TIMEOUT
     ):
         def condition(event):
-            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender and \
-                event['args']['_open_block_number'] == opening_block and event['args']['_deposit'] == deposit and \
-                event['args']['_added_deposit'] == topup
+            return event['args']['_receiver'].lower() == receiver.lower() and \
+                   event['args']['_sender'] == sender and \
+                   event['args']['_open_block_number'] == opening_block and \
+                   event['args']['_deposit'] == deposit and \
+                   event['args']['_added_deposit'] == topup
 
-        return self.get_event_blocking('ChannelToppedUp', condition, from_block, to_block, wait, timeout)
+        return self.get_event_blocking(
+            'ChannelToppedUp', condition, from_block, to_block, wait, timeout
+        )
 
+    # TODO: use filters instead of post conditions
     def get_channel_close_requested_event_blocking(
-            self, sender, receiver, opening_block, from_block=0, to_block='pending', wait=3, timeout=60
+            self, sender, receiver, opening_block,
+            from_block=0, to_block='pending', wait=DEFAULT_RETRY_INTERVAL, timeout=DEFAULT_TIMEOUT
     ):
         def condition(event):
-            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender and \
-                event['args']['_open_block_number'] == opening_block
+            return event['args']['_receiver'].lower() == receiver.lower() and \
+                   event['args']['_sender'] == sender and \
+                   event['args']['_open_block_number'] == opening_block
 
-        return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block, wait, timeout)
+        return self.get_event_blocking('ChannelCloseRequested', condition, from_block, to_block,
+                                       wait, timeout)
 
+    # TODO: use filters instead of post conditions
     def get_channel_settle_event_blocking(
-            self, sender, receiver, opening_block, from_block=0, to_block='pending', wait=3, timeout=60
+            self, sender, receiver, opening_block,
+            from_block=0, to_block='pending', wait=DEFAULT_RETRY_INTERVAL, timeout=DEFAULT_TIMEOUT
     ):
         def condition(event):
-            return event['args']['_receiver'].lower() == receiver.lower() and event['args']['_sender'] == sender and \
-                event['args']['_open_block_number'] == opening_block
+            return event['args']['_receiver'].lower() == receiver.lower() and \
+                   event['args']['_sender'] == sender and \
+                   event['args']['_open_block_number'] == opening_block
 
-        return self.get_event_blocking('ChannelSettled', condition, from_block, to_block, wait, timeout)
+        return self.get_event_blocking(
+            'ChannelSettled', condition, from_block, to_block, wait, timeout)
 
     def get_settle_timeout(self, sender, receiver, open_block_number):
         try:
@@ -123,28 +146,3 @@ class ChannelContractProxy(ContractProxy):
             # attempt to get info on a channel that doesn't exist
             return None
         return channel_info[3]
-
-    def sign_balance_proof(self, privkey, receiver, open_block_number, balance):
-        # privkey must be hex encoded
-        msg = self.contract.call().balanceMessageHash(
-            receiver, open_block_number, balance
-        )
-        msg = force_bytes(msg)
-        sig = sign(privkey, msg)
-
-        sender_recovered = self.contract.call().verifyBalanceProof(
-            receiver, open_block_number, balance, sig
-        )
-        assert sender_recovered.lower() == '0x' + encode_hex(privtoaddr(privkey)).lower()
-
-        return sig
-
-    def sign_close(self, privkey, balance_sig):
-        msg = self.contract.call().closingAgreementMessageHash(balance_sig)
-        msg = force_bytes(msg)
-        closing_sig = sign(privkey, msg)
-
-        receiver_recovered = self.contract.call().verifyClosingSignature(balance_sig, closing_sig)
-        assert receiver_recovered.lower() == '0x' + encode_hex(privtoaddr(privkey)).lower()
-
-        return closing_sig

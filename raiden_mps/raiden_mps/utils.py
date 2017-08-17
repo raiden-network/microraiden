@@ -1,7 +1,7 @@
 import os
 import json
+
 from raiden_mps.contract_proxy import ChannelContractProxy
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 
 
 def parse_balance_proof_msg(proxy, receiver, open_block_number, balance, signature):

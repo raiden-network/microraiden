@@ -1,7 +1,9 @@
-from enum import Enum
 import logging
+from enum import Enum
 
 from ethereum.utils import decode_hex, encode_hex
+
+from raiden_mps.crypto import sign_balance_proof, verify_closing_signature
 
 log = logging.getLogger(__name__)
 
@@ -154,8 +156,8 @@ class Channel:
             self.receiver, self.block
         ))
         current_block = self.client.web3.eth.blockNumber
-        receiver_rec = self.client.channel_manager_proxy.contract.call().verifyClosingSignature(
-            self.balance_sig, closing_sig
+        receiver_rec = verify_closing_signature(
+            self.balance_sig, closing_sig, self.client.channel_manager_address
         )
         if receiver_rec != self.receiver:
             log.error('Invalid closing signature or balance signature.')
@@ -238,8 +240,9 @@ class Channel:
 
         self.balance += value
 
-        self.balance_sig = self.client.channel_manager_proxy.sign_balance_proof(
-            self.client.privkey, self.receiver, self.block, self.balance
+        self.balance_sig = sign_balance_proof(
+            self.client.privkey, self.receiver, self.block, self.balance,
+            self.client.channel_manager_address
         )
 
         self.client.store_channels()
