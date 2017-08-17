@@ -96,13 +96,13 @@ class M2MClient(object):
             # Open channel(s) but insufficient funds. Requires topup.
             log.info('Insufficient funds. Topping up existing channel.')
             channel = max((c.deposit - c.balance, c) for c in open_channels)[1]
-            deposit = topup_deposit(value)
+            deposit = max(value, topup_deposit(value))
             event = channel.topup(deposit)
             channel = channel if event else None
 
         else:
             # No open channels to receiver. Create a new one.
-            deposit = initial_deposit(value)
+            deposit = max(value, initial_deposit(value))
             log.info(
                 'Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver)
             )

@@ -156,9 +156,7 @@ class Channel:
             self.receiver, self.block
         ))
         current_block = self.client.web3.eth.blockNumber
-        receiver_rec = verify_closing_signature(
-            self.balance_sig, closing_sig, self.client.channel_manager_address
-        )
+        receiver_rec = verify_closing_signature(self.balance_sig, closing_sig)
         if receiver_rec != self.receiver:
             log.error('Invalid closing signature or balance signature.')
             return
@@ -230,13 +228,20 @@ class Channel:
         is returned and stored in the channel state.
         """
         assert value >= 0
+        if value > self.deposit - self.balance:
+            log.error(
+                'Insufficient funds on channel. Needed: {}. Available: {}/{}'
+                .format(value, self.deposit - self.balance, self.deposit)
+            )
+            return None
+
         log.info('Signing new transfer of value {} on channel to {} created at block #{}.'.format(
             value, self.receiver, self.block
         ))
 
         if self.state != Channel.State.open:
             log.error('Channel must be open to create a transfer.')
-            return
+            return None
 
         self.balance += value
 
