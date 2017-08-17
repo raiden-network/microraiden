@@ -107,7 +107,7 @@ class RaidenMicropaymentsClient {
     });
   }
 
-  openChannel(account, receiver, deposit, callback) {
+  openChannel_ERC20(account, receiver, deposit, callback) {
     if (this.isChannelValid()) {
       console.warn("Already valid channel will be forgotten:", this.channel);
     }
@@ -140,6 +140,35 @@ class RaidenMicropaymentsClient {
             });
           }
         );
+      }
+    );
+  }
+
+  openChannel(account, receiver, deposit, callback) {
+    if (this.isChannelValid()) {
+      console.warn("Already valid channel will be forgotten:", this.channel);
+    }
+    //let byte_data = this.stringToBytes(receiver);
+    let byte_data = btoa(receiver);
+    // send 'approve' transaction
+    this.token.transfer.sendTransaction(
+      this.contract.address,
+      deposit,
+      {from: account},
+      (err, transferTxHash) => {
+        if (err) {
+          return callback(err);
+        }
+
+        // wait for 'createChannel' transaction to be mined
+        this.waitTx(transferTxHash, (err, receipt) => {
+          if (err) {
+            return callback(err);
+          }
+          this.setChannelInfo({account, receiver, block: receipt.blockNumber, balance: 0});
+          // return block
+          return callback(null, this.channel);
+        });
       }
     );
   }
