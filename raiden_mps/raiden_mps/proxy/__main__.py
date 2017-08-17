@@ -37,10 +37,18 @@ from raiden_mps.proxy.content import (
     default='b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946',
     help='Private key of the proxy'
 )
+@click.option(
+    '--paywall-info',
+    default='raiden_mps/data/html/',
+    help='Directory where the paywall info is stored. '
+         'The directory shoud contain a index.html file with the payment info/webapp. '
+         'Content of the directory (js files, images..) is available on the "js/" endpoint.'
+)
 def main(
     channel_manager_address,
     state_file,
-    private_key
+    private_key,
+    paywall_info
 ):
     if os.path.isfile(private_key):
         with open(private_key) as keyfile:
@@ -53,7 +61,8 @@ def main(
         state_file = os.path.join(os.path.expanduser('~'), '.raiden') + "/" + state_file_name
     app = PaywalledProxy(channel_manager_address,
                          private_key,
-                         state_file)
+                         state_file,
+                         paywall_html_dir=paywall_info)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))

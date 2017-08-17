@@ -24,6 +24,7 @@ from raiden_mps.proxy.resources import (
 
 from raiden_mps.proxy.content import PaywallDatabase
 from raiden_mps.proxy.resources.expensive import LightClientProxy
+from raiden_mps.config import API_PATH
 
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
@@ -36,13 +37,13 @@ log = logging.getLogger(__name__)
 
 
 JSLIB_DIR = 'raiden_mps/data/html/'
-INDEX_HTML = JSLIB_DIR + 'index.html'
 
 
 class PaywalledProxy:
     def __init__(self, contract_address,
                  private_key, state_filename,
-                 flask_app=None):
+                 flask_app=None,
+                 paywall_html_dir=JSLIB_DIR):
         if not flask_app:
             self.app = Flask(__name__)
         else:
@@ -83,18 +84,20 @@ class PaywalledProxy:
             'receiver_address': receiver_address,
             'channel_manager': self.channel_manager,
             'paywall_db': self.paywall_db,
-            'light_client_proxy': LightClientProxy(INDEX_HTML)
+            'light_client_proxy': LightClientProxy(paywall_html_dir + "/index.html")
         }
         self.api.add_resource(StaticFilesServer, "/js/<path:content>",
                               resource_class_kwargs={'directory': JSLIB_DIR})
         self.api.add_resource(Expensive, "/<path:content>", resource_class_kwargs=cfg)
         self.api.add_resource(ChannelManagementChannelInfo,
-                              "/cm/channels/<string:sender_address>/<int:opening_block>",
+                              API_PATH + "/channels/<string:sender_address>/<int:opening_block>"
+                              , resource_class_kwargs={'channel_manager': self.channel_manager})
+        self.api.add_resource(ChannelManagementAdmin,
+                              API_PATH + "/admin",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
-        self.api.add_resource(ChannelManagementAdmin, "/cm/admin",
-                              resource_class_kwargs={'channel_manager': self.channel_manager})
-        self.api.add_resource(ChannelManagementListChannels, "/cm/channels/",
-                              "/cm/channels/<string:sender_address>",
+        self.api.add_resource(ChannelManagementListChannels,
+                              API_PATH + "/channels/",
+                              API_PATH + "/channels/<string:sender_address>",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementRoot, "/cm")
 

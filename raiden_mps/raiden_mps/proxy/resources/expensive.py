@@ -10,7 +10,7 @@ from raiden_mps.channel_manager import (
 # from raiden_mps.utils import parse_balance_proof_msg
 
 from raiden_mps.header import HTTPHeaders as header
-from raiden_mps.config import CM_API_ROOT
+from raiden_mps.config import API_PATH
 
 from flask import Response, make_response
 
@@ -139,7 +139,7 @@ class Expensive(Resource):
 
     def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
         headers = {
-            header.GATEWAY_PATH: CM_API_ROOT,
+            header.GATEWAY_PATH: API_PATH,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.SENDER_ADDRESS: sender_address,
@@ -161,7 +161,7 @@ class Expensive(Resource):
             return "Invalid price attribute", 500
         headers = {
             "Content-Type": "text/html",
-            header.GATEWAY_PATH: CM_API_ROOT,
+            header.GATEWAY_PATH: API_PATH,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.PRICE: price

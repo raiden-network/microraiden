@@ -1,5 +1,6 @@
 from flask_restful import Resource
 import json
+from collections import defaultdict
 
 from flask_restful import reqparse
 
@@ -16,23 +17,48 @@ class ChannelManagementListChannels(Resource):
         super(ChannelManagementListChannels, self).__init__()
         self.channel_manager = channel_manager
 
+    def get_all_channels(self, channel_status='all', condition=lambda k, v: True):
+        return [
+            {'sender_address': k[0],
+             'open_block': k[1]} for k, v in
+            self.channel_manager.state.channels.items()
+            if (condition(k, v))]
+
+    def get_channel_filter(self, channel_status='all'):
+        if channel_status == 'open' or channel_status == 'opened':
+            return lambda c: c.is_closed is False
+        elif channel_status == 'closed':
+            return lambda c: c.is_closed is True
+        else:
+            return lambda c: True
+
     def get(self, sender_address=None):
-        x = self.channel_manager.state.channels
+        parser = reqparse.RequestParser()
+        parser.add_argument('status', help='block the channel was opened', default='open',
+                            choices=('closed', 'opened', 'open'))
+        args = parser.parse_args()
+        channel_filter = self.get_channel_filter(args['status'])
+
         # if sender exists, return all open blocks
         if sender_address is not None:
-            ret = [k[1] for k, v in x.items() if
-                   (k[0] == sender_address.lower() and
-                   v.is_closed is False)]
+            ret = self.get_all_channels(
+                condition=lambda k, v:
+                (k[0] == sender_address.lower() and
+                 channel_filter(v))
+            )
+
         # if sender is not specified, return all open channels
         else:
-            ret = {}
-            for k, v in x.items():
-                if v.is_closed is True:
-                    continue
-                if k[0] in ret:
-                    ret[k[0]].append(k[1])
-                else:
-                    ret[k[0]] = [k[1]]
+            channels = self.get_all_channels(condition=lambda k, v:
+                                             channel_filter(v))
+            joined_channels = defaultdict(list)
+            for c in channels:
+                joined_channels[c['sender_address']].append(c['open_block'])
+            ret = [
+                {'sender_address': k,
+                 'blocks': v,
+                 'status': args['status']} for k, v in joined_channels.items()
+            ]
 
         return json.dumps(ret), 200
 

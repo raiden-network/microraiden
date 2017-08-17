@@ -12,13 +12,14 @@ log = logging.getLogger(__name__)
 @pytest.mark.parametrize('sender_privkey',
                          ['c76b506ea02b7afb1776f283aaad49d2a69c980227d17d730dd436ca88cd4b85'])
 def test_m2m_client(doggo_proxy, m2m_client, sender_address):
-    requests = 100
+    requests = 1000
     t_start = time.time()
     for i in range(requests):
-        x = m2m_client.request_resource('doggo.jpg', initial_deposit=lambda x: x * random.randrange(10))
-        assert x.decode().strip() == '"HI I AM A DOGGO"'
+        status, headers, body = m2m_client.request_resource('doggo.jpg', initial_deposit=lambda x: x * random.randrange(10))
+        assert body.decode().strip() == '"HI I AM A DOGGO"'
+        assert status == 200
     t_diff = time.time() - t_start
 
     log.info("%d requests in %s (%f rps)" % (requests,
                                              datetime.timedelta(seconds=t_diff),
-                                             t_diff / requests))
+                                             requests/ t_diff))
