@@ -3,7 +3,7 @@
 import logging
 
 import click
-from raiden_mps.client.channel_info import ChannelInfo
+from raiden_mps.client.channel import Channel
 from raiden_mps.client.rmp_client import RMPClient
 from raiden_mps.client.m2m_client import M2MClient
 
@@ -31,8 +31,11 @@ from raiden_mps.client.m2m_client import M2MClient
 )
 def run(api_endpoint, api_port, **kwargs):
     logging.basicConfig(level=logging.INFO)
-    kwargs = {key: value for key, value in kwargs.items() if value}
-    rmp_client = RMPClient(**kwargs)
+    exclude_kwargs = {'close_channels'}
+    kwargs_client = {
+        key: value for key, value in kwargs.items() if value and key not in exclude_kwargs
+    }
+    rmp_client = RMPClient(**kwargs_client)
 
     client = M2MClient(
         rmp_client,
@@ -45,7 +48,7 @@ def run(api_endpoint, api_port, **kwargs):
 
     if kwargs['close_channels'] is True:
         for channel in rmp_client.channels:
-            if channel.state == ChannelInfo.State.open:
+            if channel.state == Channel.State.open:
                 channel.close_channel()
 
 
