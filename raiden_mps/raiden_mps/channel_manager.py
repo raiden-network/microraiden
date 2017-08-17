@@ -11,7 +11,7 @@ import gevent
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import logging
 
-from raiden_mps.crypto import sign_close
+from raiden_mps.crypto import sign_close, verify_closing_signature, verify_balance_proof
 
 log = logging.getLogger(__name__)
 
@@ -376,8 +376,7 @@ class ChannelManager(gevent.Greenlet):
         c.is_closed = True  # FIXME block number
         c.mtime = time.time()
         receiver_sig = sign_close(self.private_key, signature)
-        recovered_receiver = self.contract_proxy.contract.call().verifyClosingSignature(
-            signature, receiver_sig)
+        recovered_receiver = verify_closing_signature(signature, receiver_sig)
         assert recovered_receiver == self.receiver.lower()
         self.state.store()
         self.log.info('signed cooperative closing message (sender %s, block number %s)',
@@ -400,8 +399,11 @@ class ChannelManager(gevent.Greenlet):
         """
         if receiver.lower() != self.receiver.lower():
             raise InvalidBalanceProof('Channel has wrong receiver.')
-        signer = self.contract_proxy.contract.call().verifyBalanceProof(
-            self.receiver, open_block_number, balance, decode_hex(signature.replace('0x', '')))
+        signer = verify_balance_proof(
+            self.receiver, open_block_number, balance,
+            decode_hex(signature.replace('0x', '')),
+            self.contract_proxy.address
+        )
         try:
             c = self.state.channels[(signer, open_block_number)]
         except KeyError:
