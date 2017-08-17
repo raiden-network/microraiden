@@ -116,9 +116,9 @@ class Channel:
 
         if balance:
             self.balance = 0
-            self.create_transfer(self, balance)
+            self.create_transfer(balance)
         elif not self.balance_sig:
-            self.create_transfer(self, 0)
+            self.create_transfer(0)
 
         tx = self.client.channel_manager_proxy.create_transaction(
             'close', [self.receiver, self.block, self.balance, self.balance_sig]
