@@ -21,12 +21,13 @@ if __name__ == '__main__':
                          private_key,
                          tempfile)
 
-    # add resource defined by regex and with a fixed price of 1 token
-    #  third argument is an expression that will return actual content
+    # Add resource defined by regex and with a fixed price of 1 token
+    # We setup the resource to return whatever is supplied as a second argument
+    #  in the URL.
     app.add_content(PaywalledContent(
-                    "echofix\/[0-9]+", 1, lambda request:
-                    (int(request.split("/")[1]), 200)))
-    # resource with a price based on second param
+                    "echofix\/[a-zA-Z0-9]+", 1,
+                    lambda request: (request.split("/")[1], 200)))
+    # Resource with a price determined by the second parameter
     app.add_content(PaywalledContent(
                     "echodyn\/[0-9]+",
                     lambda request: int(request.split("/")[1]),
@@ -34,3 +35,4 @@ if __name__ == '__main__':
     # start the app. proxy is a WSGI greenlet, so you must join it properly
     app.run(debug=True)
     app.join()
+    # now use echo_client to get the resources

@@ -7,12 +7,14 @@ from ethereum.utils import encode_hex
 from raiden_mps.client.channel import Channel
 from raiden_mps.header import HTTPHeaders
 
-STATUS_OK = 200
 STATUS_PAYMENT_REQUIRED = 402
 CHANNEL_SIZE_FACTOR = 3
 HEADERS = HTTPHeaders.as_dict()
 
 log = logging.getLogger(__name__)
+
+class ChannelCreateError(Exception):
+    pass
 
 
 class M2MClient(object):
@@ -35,9 +37,9 @@ class M2MClient(object):
         for try_n in range(tries_max):
             log.info("getting %s %d/%d", resource, try_n, tries_max)
             status, headers, body = self.perform_request(resource, channel)
-            if status == STATUS_OK:
-                return body
-            elif status == STATUS_PAYMENT_REQUIRED:
+            if status == requests.codes.OK:
+                return status, headers, body
+            elif status == requests.codes.PAYMENT_REQUIRED:
                 if HEADERS['insuf_funds'] in headers:
                     log.error('Error: Insufficient funds in channel for presented balance proof.')
                     continue
@@ -63,7 +65,9 @@ class M2MClient(object):
                         initial_deposit, topup_deposit
                     )
                     if not channel:
-                        raise
+                        raise ChannelCreateError("channel couldn't be created")
+            else:
+                return status, headers, body
 
     def perform_payment(self, receiver, value, initial_deposit, topup_deposit):
         """
