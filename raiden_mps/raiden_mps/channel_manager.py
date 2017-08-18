@@ -417,7 +417,7 @@ class ChannelManager(gevent.Greenlet):
         """Register a payment."""
         c = self.verify_balance_proof(receiver, open_block_number, balance, signature)
         if balance <= c.balance:
-            raise InvalidBalanceProof('The balance must not increase.')
+            raise InvalidBalanceProof('The balance must increase.')
         received = balance - c.balance
         c.balance = balance
         c.last_signature = signature
