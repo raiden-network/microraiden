@@ -7,6 +7,10 @@ if isinstance(encode_hex(b''), bytes):
     encode_hex = lambda b: _encode_hex(b).decode()
 
 
+def generate_privkey():
+    return encode_hex(PrivateKey().secret)
+
+
 def pubkey_to_addr(pubkey: str) -> str:
     return '0x' + encode_hex(sha3(pubkey[1:])[-20:])
 
