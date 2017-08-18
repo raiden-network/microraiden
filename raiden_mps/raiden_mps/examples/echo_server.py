@@ -6,7 +6,8 @@ from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import os
 from raiden_mps.proxy.content import (
-    PaywalledContent
+    PaywalledContent,
+    PaywalledProxyUrl
 )
 
 if __name__ == '__main__':
@@ -32,6 +33,10 @@ if __name__ == '__main__':
                     "echodyn\/[0-9]+",
                     lambda request: int(request.split("/")[1]),
                     lambda request: (int(request.split("/")[1]), 200)))
+    app.add_content(PaywalledProxyUrl(
+                    "p\/[0-9]+",
+                    1,
+                    lambda request: 'google.com/search?q=' + request.split("/")[1]))
     # start the app. proxy is a WSGI greenlet, so you must join it properly
     app.run(debug=True)
     app.join()

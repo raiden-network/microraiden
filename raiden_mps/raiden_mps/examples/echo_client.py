@@ -29,7 +29,7 @@ def run(key_path, resource):
             logging.info("got the resource %s type=%s\n%s" % (
                 resource,
                 headers.get('Content-Type', '???'),
-                body.decode()))
+                body))
         else:
             logging.info("got the resource %s type=%s" % (
                 resource,

@@ -81,14 +81,16 @@ class PaywalledFile(PaywalledContent):
 
 
 class PaywalledProxyUrl:
-    def __init__(self, path, price):
+    def __init__(self, path, price, get_fn):
         assert isinstance(path, str)
-        assert isinstance(price, int)
+        assert isinstance(price, int) or callable(price)
+        assert callable(get_fn)
         self.path = path
         self.price = price
+        self.get_fn = get_fn
 
     def get(self, request):
-        url = request.split('/', 1)[1]
+        url = self.get_fn(request)
         r = get_source_rsp(url)
 
         def generate():
