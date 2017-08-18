@@ -77,6 +77,10 @@ class RaidenMicropaymentsClient {
     }
   }
 
+  encodeHex(str) {
+    return [...str].map((char, i) => str.charCodeAt(i).toString(16)).join('');
+  }
+
   isChannelValid() {
     if (!this.channel || !this.channel.receiver || !this.channel.block
       || isNaN(this.channel.balance) || !this.channel.account) {
@@ -140,6 +144,38 @@ class RaidenMicropaymentsClient {
             });
           }
         );
+      }
+    );
+  }
+
+  openChannel_ERC223(account, receiver, deposit, callback) {
+    if (this.isChannelValid()) {
+      console.warn("Already valid channel will be forgotten:", this.channel);
+    }
+
+    let paramsTypes = "address,uint256,bytes";
+    let byte_data = '0x' + this.encodeHex(receiver);
+
+    // send 'transfer' transaction
+    this.token.transfer[paramsTypes].sendTransaction(
+      this.contract.address,
+      deposit,
+      byte_data,
+      {from: account},
+      (err, transferTxHash) => {
+        if (err) {
+          return callback(err);
+        }
+        console.log('transferTxHash', transferTxHash);
+        // wait for 'transfer' transaction to be mined
+        this.waitTx(transferTxHash, (err, receipt) => {
+          if (err) {
+            return callback(err);
+          }
+          this.setChannelInfo({account, receiver, block: receipt.blockNumber, balance: 0});
+          // return block
+          return callback(null, this.channel);
+        });
       }
     );
   }
