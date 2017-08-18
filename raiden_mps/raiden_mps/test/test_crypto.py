@@ -58,6 +58,18 @@ def test_verify_balance_proof():
     assert sender_recovered == SENDER_ADDR
 
 
+def test_verify_balance_proof_27():
+    # Using real-world data.
+    sender = '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38'
+    receiver = '0x004b52c58863c903ab012537247b963c557929e8'
+    contract_address = '0x5f3d7e2c44e157c2f1680059dd818d160e7d9625'
+    sig = '3c18243343e3242222b05fddd9f629b7dbc04332ad551287623cbaf2592dabc46' \
+          '6956ecfb3b859bbb17c0ad5990bac36f5edd92524a5160e9163a003f6d253a21c'
+    sig = decode_hex(sig)
+    sender_recovered = verify_balance_proof(receiver, 3258574, 2, sig, contract_address)
+    assert sender_recovered == sender
+
+
 def test_closing_agreement_message_hash(client_contract_proxy: ChannelContractProxy):
     sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 13, 2, CHANNEL_MANAGER_ADDRESS)
     msg1 = closing_agreement_message_hash(sig)

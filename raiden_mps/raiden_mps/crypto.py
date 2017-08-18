@@ -19,6 +19,15 @@ def privkey_to_addr(privkey: str) -> str:
     return '0x' + encode_hex(privtoaddr(privkey))
 
 
+def addr_from_sig(sig, msg):
+    # Support legacy EC v value of 27.
+    if sig[-1] > 27:
+        sig = sig[:-1] + bytes([sig[-1] - 27])
+
+    receiver_pubkey = PublicKey.from_signature_and_message(sig, msg, hasher=None)
+    return pubkey_to_addr(receiver_pubkey.format(compressed=False))
+
+
 def sha3(*args) -> bytes:
     """
     Simulates Solidity's sha3 function. Integers can be passed as tuples where the second tuple
@@ -92,8 +101,7 @@ def verify_balance_proof(
         contract_address: str
 ):
     msg = balance_message_hash(receiver, open_block_number, balance, contract_address)
-    pubkey = PublicKey.from_signature_and_message(balance_sig, msg, hasher=None)
-    return pubkey_to_addr(pubkey.format(compressed=False))
+    return addr_from_sig(balance_sig, msg)
 
 
 def closing_agreement_message_hash(balance_sig: bytes):
@@ -109,5 +117,4 @@ def sign_close(privkey: str, balance_sig: bytes):
 
 def verify_closing_signature(balance_sig: bytes, closing_sig: bytes):
     msg = closing_agreement_message_hash(balance_sig)
-    receiver_pubkey = PublicKey.from_signature_and_message(closing_sig, msg, hasher=None)
-    return pubkey_to_addr(receiver_pubkey.format(compressed=False))
+    return addr_from_sig(closing_sig, msg)
