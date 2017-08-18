@@ -1,6 +1,7 @@
 from flask import make_response, request, Response
 import requests
 import re
+import mimetypes
 
 
 def split_url(url):
@@ -69,8 +70,10 @@ class PaywalledFile(PaywalledContent):
 
     def get(self, request):
         try:
-            data = open(self.filepath).read()
-            return 200, data
+            mimetype = mimetypes.guess_type(self.filepath)
+            data = open(self.filepath, 'rb').read()
+            headers = {'Content-Type': mimetype[0]}
+            return make_response(data, 200, headers)
         except FileNotFoundError:
             return 404, "NOT FOUND"
         except:

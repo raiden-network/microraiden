@@ -2,6 +2,7 @@
 This is dummy code showing how the minimal app could look like.
 """
 import click
+import re
 from raiden_mps.client.rmp_client import RMPClient
 from raiden_mps.client.m2m_client import M2MClient
 import logging
@@ -24,7 +25,15 @@ def run(key_path, resource):
     # a channel or will use existing one.
     status, headers, body = client.request_resource(resource)
     if status == requests.codes.OK:
-        logging.info("got the resource %s\n%s" % (resource, body.decode()))
+        if re.match('^text\/', headers['Content-Type']):
+            logging.info("got the resource %s type=%s\n%s" % (
+                resource,
+                headers.get('Content-Type', '???'),
+                body.decode()))
+        else:
+            logging.info("got the resource %s type=%s" % (
+                resource,
+                headers.get('Content-Type', '???')))
     else:
         logging.error("error getting the resource. code=%d body=%s" %
                       (status, body.decode().strip()))
