@@ -2,6 +2,7 @@ from flask_restful import (
     Resource
 )
 from flask import make_response
+import mimetypes
 
 
 class StaticFilesServer(Resource):
@@ -16,4 +17,5 @@ class StaticFilesServer(Resource):
         except ValueError:
             pass
         data = open(self.directory + "/" + content).read()
-        return make_response(data, 200, {'Content-Type' : 'application/javascript'})
+        mimetype = mimetypes.guess_type(self.directory + "/" + content)
+        return make_response(data, 200, {'Content-Type': mimetype[0]})
