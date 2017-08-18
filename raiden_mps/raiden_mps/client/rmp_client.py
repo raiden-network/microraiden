@@ -215,7 +215,13 @@ class RMPClient:
         assert isinstance(deposit, int)
         assert deposit > 0
 
-        # TODO: check token balance
+        token_balance = self.token_proxy.contract.call().balanceOf(self.account)
+        if token_balance < deposit:
+            log.error(
+                'Insufficient tokens available for the specified deposit ({}/{})'
+                .format(token_balance, deposit)
+            )
+
         receiver_bytes = decode_hex(receiver_address.replace('0x', ''))
         log.info('Creating channel to {} with an initial deposit of {}.'.format(
             receiver_address, deposit

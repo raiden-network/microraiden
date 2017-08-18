@@ -76,6 +76,10 @@ channel.topup(5)                      # total deposit: 15
 channel.create_transfer(5)            # total balance: 12
 
 channel.close()
+
+# Wait for settlement period to end.
+
+channel.settle()
 ```
 
 The values required for a valid balance proof required by the receiver end are printed above. Make sure to let them know.

@@ -70,6 +70,13 @@ class Channel:
             log.error('Channel must be open to be topped up.')
             return
 
+        token_balance = self.client.token_proxy.contract.call().balanceOf(self.client.account)
+        if token_balance < value:
+            log.error(
+                'Insufficient tokens available for the specified topup ({}/{})'
+                .format(token_balance, value)
+            )
+
         log.info('Topping up channel to {} created at block #{} by {} tokens.'.format(
             self.receiver, self.block, value
         ))
