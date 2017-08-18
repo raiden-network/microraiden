@@ -1,0 +1,135 @@
+Introduction
+===========
+In this tutorial we will create a simple paywalled server that will serve some
+static files together with dynamically generated responses, payable with custom
+ERC223 tokens.
+You can find example code for this tutorial in
+`raiden_mps/examples/echo_server.py`.
+
+Requirements
+===========
+Please refer to README.md to install all required dependencies.
+You will also need a Chrome browser with MetaMask plugin.
+
+You'll need to deploy channel manager and token contracts for your proxy. There's 
+a tool that will help you with that in `contracts/deploy` directory.
+Just run `python deploy --privkey <path_to_your_privkey>` and note the contract
+addresses.
+
+
+Setting up the proxy
+====================
+
+Initialization
+--------------
+For initialization you will need to supply following parameters:
+- channel manager contract address (please note that owner of the contract must
+  be the same as the receiver address)
+- receiver's private key - Owner of the contract and address that will receive
+  the payments
+- proxy state file - proxy needs to save off-chain balance proofs and state of
+  the open channels. Set this to a path writable by the user that starts the
+  server. 
+
+Initialize the proxy:
+```
+	from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
+    app = PaywalledProxy(channel_manager_address,
+                         private_key,
+                         state_file)
+```
+Channel manager will start syncing with the blockchain immediately.
+
+
+Resource types
+--------------
+
+Now you will need to add some resources.
+To serve a single static file from the filesystem, use:
+```
+from raiden_mps.proxy.content import PaywalledFile
+app.add_content(PaywalledFile("file.txt", 10, "/srv/paywall/content/test.txt"))
+```
+File will then be available on URL `/file.txt`. After the payment, proxy will
+send back the file to the user and will try to set Content-Type header to match
+the contents.
+
+For dynamic resources, you'll need to use `PaywalledContent` class
+```
+from raiden_mps.proxy.content import PaywalledContent
+app.add_content(PaywalledContent("teapot.txt", 1, lambda _: ("HI I AM A TEAPOT", 418)))
+app.add_content(PaywalledContent("temperature", 2, lambda _: (thermo.get_temp(), 200)))
+app.add_content(PaywalledContent("sqrt/^[0-9]+(\.[0-9]+)?$", 3, lambda uri: 
+	number = float(uri.split('/')[1])
+	return (str(number), 200))
+))
+```
+First argument of the constructor is resource URI, second argument is a price,
+and the third is a content generator function. This function can return both
+tuple (<content>, <http_status_code>), or a flask Response class created by i.e.
+make_response() call.
+
+Another possible content type is a remote url. You can use i.e. fetch the
+content from a remote CDN.
+```
+from raiden_mps.proxy.content import PaywalledProxyUrl
+app.add_content(PaywalledProxyUrl("cdn\/.*", 1, "lambda _: 'http://cdn.myhost.com:8000/resource42'"))
+```
+First argument is a regex defining the resource URI, second argument is a price,
+and third argument is a function that returns a remote url to fetch the content
+from.
+
+
+Setting a price for the resource dynamically
+--------------------------------------------
+Note that a price argument for the Content can be callable. You use that to set
+the price depending on the requested resource
+```
+app.add_content(PaywalledContent("reserve_tokens/[0-9]+", 
+	lambda request: int(request.split("/")[1]),
+	lambda _: ("Tokens reserved", 200)))
+```
+
+
+Starting/stopping the proxy
+==================
+You start proxy by calling run() method. This call is non-blocking - the  proxy
+is started as a WSGI greenlet. Use join() to sync with the task. This will block
+until proxy has stopped. To terminate the server, call stop() from another greenlet.
+```
+    app.run(debug=True)
+    app.join()
+```
+
+
+
+Accessing the content
+=====================
+
+Browser
+-------
+Navigate the browser to the URL resource you'd like to get. 
+You'll be presented a paywall - a site requesting you to pay for the resource.
+If you have MetaMask extension installed, you can set the amount to be deposited
+to the channel.
+After confirming the deposit, you can navigate and payments will be done
+automatically.
+
+
+Machine-to-machine client
+-------------------------
+If you would like to get the resource using your own application, you can use
+m2m_client class. Please refer to the M2M client documentation and to the client
+example (raide_mps/examples/echo_client.py)
+
+
+Side notes
+==========
+
+Proxy state file
+----------------
+Off-chain transactions are stored in a state file that is loaded on start.
+You should do regular backups of this file - it contains balance signatures of
+the client, and if you lose them, you will have no way of proving that the
+client is settling the channel using less funds than he has actually paid to the
+proxy.
