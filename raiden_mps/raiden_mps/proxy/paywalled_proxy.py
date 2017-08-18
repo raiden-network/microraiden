@@ -1,5 +1,7 @@
 import gevent
 import sys
+
+import os
 from gevent import monkey
 monkey.patch_all()
 from flask import Flask
@@ -35,8 +37,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
-
-JSLIB_DIR = 'raiden_mps/data/html/'
+RAIDEN_MPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+JSLIB_DIR = os.path.join(RAIDEN_MPS_DIR, 'raiden_mps/data/html/')
 
 
 class PaywalledProxy:

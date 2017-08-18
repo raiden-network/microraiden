@@ -159,7 +159,9 @@ class RMPClient:
             c = get_channel(e)
             c.state = Channel.State.closed
 
-        self.channels = list(channel_id_to_channel.values())
+        self.channels = [
+            c for c in channel_id_to_channel.values() if c.state != Channel.State.closed
+        ]
         self.store_channels()
 
         log.info('Synced a total of {} channels.'.format(len(self.channels)))
@@ -212,6 +214,8 @@ class RMPClient:
         assert isinstance(receiver_address, str)
         assert isinstance(deposit, int)
         assert deposit > 0
+
+        # TODO: check token balance
         receiver_bytes = decode_hex(receiver_address.replace('0x', ''))
         log.info('Creating channel to {} with an initial deposit of {}.'.format(
             receiver_address, deposit

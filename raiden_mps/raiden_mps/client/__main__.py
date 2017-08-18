@@ -7,6 +7,8 @@ from raiden_mps.client.channel import Channel
 from raiden_mps.client.rmp_client import RMPClient
 from raiden_mps.client.m2m_client import M2MClient
 
+log = logging.getLogger(__name__)
+
 
 @click.command()
 @click.option('--api-endpoint', default='localhost', help='Address of the HTTP API server.')
@@ -31,6 +33,7 @@ from raiden_mps.client.m2m_client import M2MClient
 )
 def run(api_endpoint, api_port, **kwargs):
     logging.basicConfig(level=logging.INFO)
+
     exclude_kwargs = {'close_channels'}
     kwargs_client = {
         key: value for key, value in kwargs.items() if value and key not in exclude_kwargs
@@ -44,7 +47,8 @@ def run(api_endpoint, api_port, **kwargs):
     )
 
     resource = 'doggo.jpg'
-    client.request_resource(resource)
+    status, headers, body = client.request_resource(resource)
+    log.info('Response: {}'.format(body))
 
     if kwargs['close_channels'] is True:
         for channel in rmp_client.channels:

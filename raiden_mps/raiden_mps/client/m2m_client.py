@@ -9,11 +9,18 @@ from raiden_mps.header import HTTPHeaders
 
 STATUS_PAYMENT_REQUIRED = 402
 CHANNEL_SIZE_FACTOR = 3
+RETRY_INTERVAL = 9
+TRIES_MAX = 10
 HEADERS = HTTPHeaders.as_dict()
 
 log = logging.getLogger(__name__)
 
+
 class ChannelCreateError(Exception):
+    pass
+
+
+class InvalidChannelManager(Exception):
     pass
 
 
@@ -22,54 +29,55 @@ class M2MClient(object):
             self,
             rmp_client,
             api_endpoint,
-            api_port
+            api_port,
+            initial_deposit=lambda x: x * CHANNEL_SIZE_FACTOR,
+            topup_deposit=lambda x: x * CHANNEL_SIZE_FACTOR
     ):
         self.rmp_client = rmp_client
         self.api_endpoint = api_endpoint
         self.api_port = api_port
+        self.channel = None
+        self.initial_deposit = initial_deposit
+        self.topup_deposit = topup_deposit
 
-    def request_resource(
-            self, resource, tries_max=10,
-            initial_deposit=lambda x: x * CHANNEL_SIZE_FACTOR,
-            topup_deposit=lambda x: x * CHANNEL_SIZE_FACTOR
-    ):
-        channel = None
+    def request_resource(self, resource, tries_max=TRIES_MAX):
+        self.channel = None
         for try_n in range(tries_max):
             log.info("getting %s %d/%d", resource, try_n, tries_max)
-            status, headers, body = self.perform_request(resource, channel)
+            status, headers, body = self.perform_request(resource, self.channel)
             if status == requests.codes.OK:
                 return status, headers, body
             elif status == requests.codes.PAYMENT_REQUIRED:
-                if HEADERS['insuf_funds'] in headers:
-                    log.error('Error: Insufficient funds in channel for presented balance proof.')
-                    continue
-                elif HEADERS['insuf_confs'] in headers:
-                    log.error(
-                        'Error: Newly created channel does not have enough confirmations yet. '
-                        'Waiting for {} more.'.format(headers[HEADERS['insuf_confs']])
-                    )
-                    time.sleep(9)
-                else:
-                    channel_manager_address = headers[HEADERS['contract_address']]
-                    if channel_manager_address != self.rmp_client.channel_manager_address:
-                        log.error(
-                            'Invalid channel manager address requested ({}). Aborting.'
-                            .format(channel_manager_address)
-                        )
-                        return None
-
-                    price = int(headers[HEADERS['price']])
-                    log.debug('Preparing payment of price {}.'.format(price))
-                    channel = self.perform_payment(
-                        headers[HEADERS['receiver_address']], price,
-                        initial_deposit, topup_deposit
-                    )
-                    if not channel:
-                        raise ChannelCreateError("channel couldn't be created")
+                self.handle_payment_request(headers)
             else:
+                log.info('OK received.')
                 return status, headers, body
 
-    def perform_payment(self, receiver, value, initial_deposit, topup_deposit):
+    def handle_payment_request(self, headers):
+        if HEADERS['insuf_confs'] in headers:
+            log.warning(
+                'Newly created channel does not have enough confirmations yet. '
+                'Waiting for {} more.'.format(headers[HEADERS['insuf_confs']])
+            )
+            time.sleep(RETRY_INTERVAL)
+            return
+        else:
+            if HEADERS['contract_address'] in headers:
+                # Only check if the server actually provides it.
+                channel_manager_address = headers[HEADERS['contract_address']]
+                if channel_manager_address != self.rmp_client.channel_manager_address:
+                    raise InvalidChannelManager('Requested: {}'.format(channel_manager_address))
+            else:
+                log.warning('Server did not specify a contract address. Sending anyway.')
+
+            price = int(headers[HEADERS['price']])
+            log.debug('Preparing payment of price {}.'.format(price))
+            self.perform_payment(headers[HEADERS['receiver_address']], price)
+
+            if not self.channel:
+                raise ChannelCreateError("Channel could not be created.")
+
+    def perform_payment(self, receiver, value):
         """
         Attempts to perform a payment on an existing channel or a new one if none is available.
         """
@@ -79,40 +87,38 @@ class M2MClient(object):
                c.receiver.lower() == receiver.lower() and
                c.state == Channel.State.open
         ]
-        channels = [
+        suitable_channels = [
             c for c in open_channels if c.deposit - c.balance >= value
         ]
-        if len(channels) > 1:
+        if len(suitable_channels) > 1:
             log.warning(
-                'Warning: {} suitable channels found. Choosing a random one.'.format(len(channels))
+                'Warning: {} suitable channels found. Choosing a random one.'
+                    .format(len(suitable_channels))
             )
 
-        if channels:
+        if suitable_channels:
             # At least one channel with sufficient funds.
-            channel = channels[0]
-            log.info('Found open channel, opened at block #{}.'.format(channel.block))
+            self.channel = suitable_channels[0]
+            log.info('Found open channel, opened at block #{}.'.format(self.channel.block))
 
         elif open_channels:
             # Open channel(s) but insufficient funds. Requires topup.
             log.info('Insufficient funds. Topping up existing channel.')
             channel = max((c.deposit - c.balance, c) for c in open_channels)[1]
-            deposit = max(value, topup_deposit(value))
+            deposit = max(value, self.topup_deposit(value))
             event = channel.topup(deposit)
-            channel = channel if event else None
+            self.channel = channel if event else None
 
         else:
             # No open channels to receiver. Create a new one.
-            deposit = max(value, initial_deposit(value))
+            deposit = max(value, self.initial_deposit(value))
             log.info(
                 'Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver)
             )
-            channel = self.rmp_client.open_channel(receiver, deposit)
+            self.channel = self.rmp_client.open_channel(receiver, deposit)
 
-        if channel:
-            channel.create_transfer(value)
-            return channel
-        else:
-            return None
+        if self.channel:
+            self.channel.create_transfer(value)
 
     def perform_request(self, resource, channel=None):
         """

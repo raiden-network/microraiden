@@ -116,7 +116,7 @@ class Channel:
         ))
         current_block = self.client.web3.eth.blockNumber
 
-        if balance:
+        if balance is not None:
             self.balance = 0
             self.create_transfer(balance)
         elif not self.balance_sig:
@@ -151,7 +151,7 @@ class Channel:
         """
         if self.state != Channel.State.open:
             log.error('Channel must be open to be closed cooperatively.')
-            return
+            return None
         log.info('Attempting to cooperatively close channel to {} created at block #{}.'.format(
             self.receiver, self.block
         ))
@@ -159,7 +159,7 @@ class Channel:
         receiver_rec = verify_closing_signature(self.balance_sig, closing_sig)
         if receiver_rec != self.receiver:
             log.error('Invalid closing signature or balance signature.')
-            return
+            return None
 
         tx = self.client.channel_manager_proxy.create_transaction(
             'close', [
@@ -177,8 +177,10 @@ class Channel:
             log.info('Successfully closed channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
             self.client.store_channels()
+            return event
         else:
             log.error('No event received.')
+            return None
 
     def settle(self):
         """
@@ -188,7 +190,7 @@ class Channel:
         """
         if self.state != Channel.State.settling:
             log.error('Channel must be in the settlement period to settle.')
-            return
+            return None
         log.info('Attempting to settle channel to {} created at block #{}.'.format(
             self.receiver, self.block
         ))
@@ -203,7 +205,7 @@ class Channel:
             log.warning('{} more blocks until this channel can be settled. Aborting.'.format(
                 wait_remaining
             ))
-            return
+            return None
 
         tx = self.client.channel_manager_proxy.create_transaction(
             'settle', [self.receiver, self.block]
@@ -218,9 +220,12 @@ class Channel:
         if event:
             log.info('Successfully settled channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
+            self.client.channels.remove(self)
             self.client.store_channels()
+            return event
         else:
             log.error('No event received.')
+            return None
 
     def create_transfer(self, value):
         """
@@ -230,7 +235,7 @@ class Channel:
         assert value >= 0
         if value > self.deposit - self.balance:
             log.error(
-                'Insufficient funds on channel. Needed: {}. Available: {}/{}'
+                'Insufficient funds on channel. Needed: {}. Available: {}/{}.'
                 .format(value, self.deposit - self.balance, self.deposit)
             )
             return None

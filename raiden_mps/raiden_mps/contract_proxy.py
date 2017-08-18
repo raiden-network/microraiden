@@ -3,6 +3,7 @@ import rlp
 from eth_utils import decode_hex
 from ethereum.transactions import Transaction
 from ethereum.utils import privtoaddr, encode_hex
+from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 from web3.formatters import input_filter_params_formatter, log_array_formatter
 from web3.utils.events import get_event_data
@@ -17,7 +18,7 @@ DEFAULT_RETRY_INTERVAL = 3
 
 
 class ContractProxy:
-    def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
+    def __init__(self, web3: Web3, privkey, contract_address, abi, gas_price, gas_limit):
         self.web3 = web3
         self.privkey = privkey
         self.caller_address = '0x' + encode_hex(privtoaddr(privkey))
@@ -28,7 +29,7 @@ class ContractProxy:
         self.gas_limit = gas_limit
 
     def create_transaction(self, func_name, args, nonce_offset=0):
-        nonce = self.web3.eth.getTransactionCount(self.caller_address) + nonce_offset
+        nonce = self.web3.eth.getTransactionCount(self.caller_address, 'pending') + nonce_offset
         data = self.contract._prepare_transaction(func_name, args)['data']
         data = decode_hex(data)
         tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, 0, data)
