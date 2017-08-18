@@ -111,7 +111,7 @@ class RaidenMicropaymentsClient {
     });
   }
 
-  openChannel(account, receiver, deposit, callback) {
+  openChannel_ERC20(account, receiver, deposit, callback) {
     if (this.isChannelValid()) {
       console.warn("Already valid channel will be forgotten:", this.channel);
     }
@@ -148,7 +148,7 @@ class RaidenMicropaymentsClient {
     );
   }
 
-  openChannel_ERC223(account, receiver, deposit, callback) {
+  openChannel(account, receiver, deposit, callback) {
     if (this.isChannelValid()) {
       console.warn("Already valid channel will be forgotten:", this.channel);
     }
