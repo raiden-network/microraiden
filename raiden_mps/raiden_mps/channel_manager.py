@@ -117,36 +117,6 @@ class Blockchain(gevent.Greenlet):
                            sender, open_block_number)
             self.cm.event_channel_opened(sender, open_block_number, deposit)
 
-        # channel close requested
-        logs = self.contract_proxy.get_channel_close_requested_logs(**filters_confirmed)
-        for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
-            sender = log['args']['_sender']
-            open_block_number = log['args']['_open_block_number']
-            balance = log['args']['_balance']
-            timeout = self.contract_proxy.get_settle_timeout(
-                sender, self.cm.state.receiver, open_block_number)
-            if timeout is None:
-                self.log.warn(
-                    'received ChannelCloseRequested event for a channel that doesn\'t '
-                    'exist or has been closed already (sender=%s open_block_number=%d)'
-                    % (sender, open_block_number))
-                self.cm.force_close_channel(sender, open_block_number)
-                continue
-            self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
-                           sender, open_block_number)
-            self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
-
-        # channel settled event
-        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
-        for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
-            sender = log['args']['_sender']
-            open_block_number = log['args']['_open_block_number']
-            self.log.debug('received ChannelSettled event (sender %s, block number %s)',
-                           sender, open_block_number)
-            self.cm.event_channel_settled(sender, open_block_number)
-
         # unconfirmed channel top ups
         logs = self.contract_proxy.get_channel_topup_logs(**filters_unconfirmed)
         for log in logs:
@@ -177,6 +147,36 @@ class Blockchain(gevent.Greenlet):
             self.log.debug('received top up event (sender %s, block number %s, deposit %s)',
                            sender, open_block_number, deposit)
             self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit, deposit)
+
+        # channel close requested
+        logs = self.contract_proxy.get_channel_close_requested_logs(**filters_confirmed)
+        for log in logs:
+            assert log['args']['_receiver'] == self.cm.state.receiver
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
+            balance = log['args']['_balance']
+            timeout = self.contract_proxy.get_settle_timeout(
+                sender, self.cm.state.receiver, open_block_number)
+            if timeout is None:
+                self.log.warn(
+                    'received ChannelCloseRequested event for a channel that doesn\'t '
+                    'exist or has been closed already (sender=%s open_block_number=%d)'
+                    % (sender, open_block_number))
+                self.cm.force_close_channel(sender, open_block_number)
+                continue
+            self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
+                           sender, open_block_number)
+            self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
+
+        # channel settled event
+        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
+        for log in logs:
+            assert log['args']['_receiver'] == self.cm.state.receiver
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
+            self.log.debug('received ChannelSettled event (sender %s, block number %s)',
+                           sender, open_block_number)
+            self.cm.event_channel_settled(sender, open_block_number)
 
         # update head hash and number
         block = self.web3.eth.getBlock(current_block)
