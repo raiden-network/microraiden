@@ -47,7 +47,7 @@ class StateReceiverAddrMismatch(Exception):
 
 class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
-    poll_freqency = 5
+    poll_frequency = 2
 
     def __init__(self, web3, contract_proxy, channel_manager, n_confirmations=5):
         gevent.Greenlet.__init__(self)
@@ -59,10 +59,10 @@ class Blockchain(gevent.Greenlet):
         self.wait_sync_event = gevent.event.Event()
 
     def _run(self):
-        self.log.info('starting blockchain polling (frequency %ss)', self.poll_freqency)
+        self.log.info('starting blockchain polling (frequency %ss)', self.poll_frequency)
         while True:
             self._update()
-            gevent.sleep(self.poll_freqency)
+            gevent.sleep(self.poll_frequency)
 
     def wait_sync(self):
         self.wait_sync_event.wait()
@@ -277,7 +277,7 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
         """Notify the channel manager that a the closing of a channel has been requested."""
-        if not (sender, open_block_number) in self.state.channels:
+        if (sender, open_block_number) not in self.state.channels:
             self.log.warn('attempt to close a non existing channel (sender %ss, block_number %ss)',
                           sender, open_block_number)
             return
@@ -375,7 +375,7 @@ class ChannelManager(gevent.Greenlet):
             raise InvalidBalanceProof('Balance proof does not match latest one.')
         c.is_closed = True  # FIXME block number
         c.mtime = time.time()
-        receiver_sig = sign_close(self.private_key, signature)
+        receiver_sig = sign_close(self.private_key, decode_hex(signature.replace('0x', '')))
         recovered_receiver = verify_closing_signature(signature, receiver_sig)
         assert recovered_receiver == self.receiver.lower()
         self.state.store()
@@ -417,7 +417,9 @@ class ChannelManager(gevent.Greenlet):
         """Register a payment."""
         c = self.verify_balance_proof(receiver, open_block_number, balance, signature)
         if balance <= c.balance:
-            raise InvalidBalanceProof('The balance must not increase.')
+            raise InvalidBalanceProof('The balance must not decrease.')
+        if balance > c.deposit:
+            raise InvalidBalanceProof('Balance must not be greater than deposit')
         received = balance - c.balance
         c.balance = balance
         c.last_signature = signature

@@ -4,7 +4,11 @@ from ethereum.utils import encode_hex, privtoaddr
 import os
 import json
 from raiden_mps.client.rmp_client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
-from raiden_mps.config import TEST_SENDER_PRIVKEY, TEST_RECEIVER_PRIVKEY
+from raiden_mps.config import (
+    TEST_SENDER_PRIVKEY,
+    TEST_RECEIVER_PRIVKEY,
+    TEST_SECONDARY_RECEIVER_PRIVKEY
+)
 
 
 @pytest.fixture
@@ -65,8 +69,18 @@ def sender_address(sender_privkey):
 
 
 @pytest.fixture
-def receiver_address(receiver_privkey):
-    return '0x' + encode_hex(privtoaddr(receiver_privkey)).decode()
+def receiver1_address(receiver1_privkey):
+    return '0x' + encode_hex(privtoaddr(receiver1_privkey)).decode()
+
+
+@pytest.fixture
+def receiver2_address(receiver2_privkey):
+    return '0x' + encode_hex(privtoaddr(receiver2_privkey)).decode()
+
+
+@pytest.fixture
+def receiver_address(receiver1_address):
+    return receiver1_address
 
 
 @pytest.fixture
@@ -75,8 +89,18 @@ def sender_privkey():
 
 
 @pytest.fixture
-def receiver_privkey():
+def receiver1_privkey():
     return TEST_RECEIVER_PRIVKEY
+
+
+@pytest.fixture
+def receiver2_privkey():
+    return TEST_SECONDARY_RECEIVER_PRIVKEY
+
+
+@pytest.fixture
+def receiver_privkey(receiver1_privkey):
+    return receiver1_privkey
 
 
 @pytest.fixture
@@ -98,3 +122,8 @@ def channel_manager_abi(contract_abis):
 @pytest.fixture
 def token_abi(contract_abis):
     return contract_abis[TOKEN_ABI_NAME]['abi']
+
+
+@pytest.fixture
+def kovan_block_time():
+    return 4

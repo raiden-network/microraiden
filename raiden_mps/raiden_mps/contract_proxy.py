@@ -152,4 +152,4 @@ class ChannelContractProxy(ContractProxy):
         except BadFunctionCallOutput:
             # attempt to get info on a channel that doesn't exist
             return None
-        return channel_info[3]
+        return channel_info[2]
