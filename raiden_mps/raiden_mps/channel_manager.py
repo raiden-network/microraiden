@@ -19,11 +19,6 @@ if isinstance(encode_hex(b''), bytes):
     _encode_hex = encode_hex
     encode_hex = lambda b: _encode_hex(b).decode()
 
-# TODO:
-# - test
-# - implement top ups
-# - settle closed channels
-
 
 class InvalidBalanceProof(Exception):
     pass
