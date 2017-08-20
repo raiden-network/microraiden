@@ -1,6 +1,6 @@
 function pageReady(json) {
   window.rmpc = new RaidenMicropaymentsClient(
-    getWeb3(),
+    window.web3,
     json["contractAddr"],
     json["contractABI"],
     json["tokenAddr"],
@@ -144,28 +144,11 @@ function pageReady(json) {
 
 };
 
-function getWeb3() {
-  // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-  if (typeof web3 !== 'undefined') {
-    // Use Mist/MetaMask's provider
-    window.web3 = new Web3(web3.currentProvider);
-  } else if(typeof Web3 !== 'undefined') {
-    console.log('No web3? You should consider trying MetaMask!')
-    // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-  }
-
-  if(typeof web3 !== 'undefined') {
-    console.log("Connected to Web3 Status: " + web3.isConnected());
-    return web3;
-  }
-}
-
 $.getJSON("/js/parameters.json", (json) => {
   let cnt = 20;
   // wait up to 20*200ms for web3 and call ready()
   const pollingId = setInterval(() => {
-    if (cnt < 0 || getWeb3()) {
+    if (cnt < 0 || window.web3) {
       clearInterval(pollingId);
       pageReady(json);
     } else {
