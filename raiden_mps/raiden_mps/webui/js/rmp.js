@@ -149,7 +149,7 @@ class RaidenMicropaymentsClient {
                     return callback(err || info);
                   }
                   this.setChannelInfo({account, receiver, block: receipt.blockNumber, balance: 0});
-                  // return block
+                  // return channel
                   return callback(null, this.channel);
                 });
               });
@@ -189,7 +189,7 @@ class RaidenMicropaymentsClient {
                 return callback(err || info);
               }
               this.setChannelInfo({account, receiver, block: receipt.blockNumber, balance: 0});
-              // return block
+              // return channel
               return callback(null, this.channel);
             });
           });
@@ -240,8 +240,9 @@ class RaidenMicropaymentsClient {
     this.token.transfer["address,uint256,bytes"].sendTransaction(
       this.contract.address,
       deposit,
-      this.encodeHex(receiver), // receiver goes as 3rd param, hex encoded
-      { from: account },
+      // TODO: where goes openBlockNumber for ERC223 topUp?
+      this.encodeHex(this.channel.receiver), // receiver goes as 3rd param, hex encoded
+      { from: this.channel.account },
       (err, transferTxHash) => {
         if (err) {
           return callback(err);
@@ -254,19 +255,18 @@ class RaidenMicropaymentsClient {
           }
           // call getChannelInfo to be sure channel was created
           return this.contract.getChannelInfo.call(
-            account,
-            receiver,
-            receipt.blockNumber,
-            { from: account },
+            this.channel.account,
+            this.channel.receiver,
+            this.channel.block,
+            { from: this.channel.account },
             (err, info) => {
               if (err || !(info[1] > 0)) {
                 return callback(err || info);
               }
-              this.setChannelInfo({account, receiver, block: receipt.blockNumber, balance: 0});
-              // return block
-              return callback(null, this.channel);
+              // return block number
+              return callback(null, receipt.blockNumber);
             });
-          });
+        });
       });
   }
 
