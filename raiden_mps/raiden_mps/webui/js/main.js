@@ -54,15 +54,21 @@ function pageReady(json) {
 
   function refreshAccounts() {
     $select.empty();
-    rmpc.getAccounts((err, accounts) =>
-      $.each(accounts, (k,v) => {
-        const o = $("<option></option>").attr("value", v).text(v);
-        $select.append(o);
-        if (k === 0) {
-          o.change()
-        };
-      })
-    );
+    rmpc.getAccounts((err, accounts) => {
+      if (err || !accounts || !accounts.length) {
+        mainSwitch("#no_accounts");
+        // retry after 1s
+        setTimeout(refreshAccounts, 1000);
+      } else {
+        $.each(accounts, (k,v) => {
+          const o = $("<option></option>").attr("value", v).text(v);
+          $select.append(o);
+          if (k === 0) {
+            o.change()
+          };
+        });
+      }
+    });
   }
 
   refreshAccounts();
