@@ -38,14 +38,15 @@ import logging
 log = logging.getLogger(__name__)
 
 RAIDEN_MPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-JSLIB_DIR = os.path.join(RAIDEN_MPS_DIR, 'raiden_mps/data/html/')
+HTML_DIR = os.path.join(RAIDEN_MPS_DIR, 'raiden_mps', 'webui')
+JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 
 class PaywalledProxy:
     def __init__(self, contract_address,
                  private_key, state_filename,
                  flask_app=None,
-                 paywall_html_dir=JSLIB_DIR):
+                 paywall_html_dir=HTML_DIR):
         if not flask_app:
             self.app = Flask(__name__)
         else:

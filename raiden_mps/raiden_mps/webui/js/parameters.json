@@ -1,6 +1,6 @@
 {
   "web3url": "/web3",
-  "contractAddr": "0xee78ca069eacca75b5026f93e3f663c4866fc425",
+  "contractAddr": "0x5f3d7e2c44e157c2f1680059dd818d160e7d9625",
   "contractABI": [
     {
       "constant": false,
@@ -235,6 +235,19 @@
     },
     {
       "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
       "inputs": [
         {
           "name": "_balance_msg_sig",
@@ -268,6 +281,27 @@
         }
       ],
       "name": "createChannel",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "name": "_deposit",
+          "type": "uint256"
+        },
+        {
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
+      "name": "tokenFallback",
       "outputs": [],
       "payable": false,
       "type": "function"
@@ -337,32 +371,32 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
+          "indexed": true,
           "name": "_sender",
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "name": "_receiver",
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "name": "_open_block_number",
           "type": "uint32"
         },
         {
           "indexed": false,
-          "name": "_added_depozit",
+          "name": "_added_deposit",
           "type": "uint192"
         },
         {
           "indexed": false,
-          "name": "_depozit",
+          "name": "_deposit",
           "type": "uint192"
         }
       ],
-      "name": "ChannelTopedUp",
+      "name": "ChannelToppedUp",
       "type": "event"
     },
     {
@@ -379,7 +413,7 @@
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "name": "_open_block_number",
           "type": "uint32"
         },
@@ -406,17 +440,79 @@
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "name": "_open_block_number",
           "type": "uint32"
         }
       ],
       "name": "ChannelSettled",
       "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_deposit",
+          "type": "uint192"
+        },
+        {
+          "indexed": true,
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
+      "name": "TokenFallback",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "_function_name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "_gaslimit",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "_gas",
+          "type": "uint256"
+        }
+      ],
+      "name": "GasCost",
+      "type": "event"
     }
   ],
-  "tokenAddr": "0x00e67fa4957d18a95e18efc7353a8fb9c6f484c9",
+  "tokenAddr": "0x42c0185cb7b263533a85c3850cdacc24d8e06426",
   "tokenABI": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_addr",
+          "type": "address"
+        }
+      ],
+      "name": "contractIsTrusted",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
     {
       "constant": true,
       "inputs": [],
@@ -538,6 +634,19 @@
     {
       "constant": true,
       "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
       "name": "symbol",
       "outputs": [
         {
@@ -574,7 +683,7 @@
       "constant": false,
       "inputs": [
         {
-          "name": "_spender",
+          "name": "_to",
           "type": "address"
         },
         {
@@ -582,14 +691,14 @@
           "type": "uint256"
         },
         {
-          "name": "_extraData",
+          "name": "_data",
           "type": "bytes"
         }
       ],
-      "name": "approveAndCall",
+      "name": "transfer",
       "outputs": [
         {
-          "name": "success",
+          "name": "",
           "type": "bool"
         }
       ],
@@ -657,6 +766,11 @@
           "indexed": false,
           "name": "_value",
           "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "name": "_data",
+          "type": "bytes"
         }
       ],
       "name": "Transfer",
