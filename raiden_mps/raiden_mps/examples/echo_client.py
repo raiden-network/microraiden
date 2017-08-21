@@ -3,8 +3,8 @@ This is dummy code showing how the minimal app could look like.
 """
 import click
 import re
-from raiden_mps.client.rmp_client import RMPClient
-from raiden_mps.client.m2m_client import M2MClient
+from raiden_mps import RMPClient
+from raiden_mps import M2MClient
 import logging
 import requests
 

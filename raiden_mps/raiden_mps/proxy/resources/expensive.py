@@ -9,7 +9,7 @@ from raiden_mps.channel_manager import (
 )
 # from raiden_mps.utils import parse_balance_proof_msg
 
-from raiden_mps.header import HTTPHeaders as header
+from raiden_mps import HTTPHeaders as header
 from raiden_mps.config import API_PATH
 
 from flask import Response, make_response

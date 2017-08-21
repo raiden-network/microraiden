@@ -1,13 +1,12 @@
-import pytest
-import tempfile
 import shutil
+import tempfile
 
-from raiden_mps.client.rmp_client import RMPClient
-from raiden_mps.client.m2m_client import M2MClient
-
+import pytest
 from ethereum.utils import privtoaddr, encode_hex
-from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
+
+from raiden_mps import RMPClient
 from raiden_mps.config import GAS_LIMIT
+from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 
 
 @pytest.fixture
@@ -35,18 +34,26 @@ def datadir():
 @pytest.fixture
 def client_contract_proxy(web3, sender_privkey, channel_manager_contract_address,
                           channel_manager_abi):
-    return ChannelContractProxy(web3, sender_privkey,
-                                channel_manager_contract_address,
-                                channel_manager_abi,
-                                int(20e9), GAS_LIMIT)
+    return ChannelContractProxy(
+        web3,
+        sender_privkey,
+        channel_manager_contract_address,
+        channel_manager_abi,
+        int(20e9),
+        GAS_LIMIT
+    )
 
 
 @pytest.fixture
 def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi):
-    return ContractProxy(web3, sender_privkey,
-                         token_contract_address,
-                         token_abi,
-                         int(20e9), GAS_LIMIT)
+    return ContractProxy(
+        web3,
+        sender_privkey,
+        token_contract_address,
+        token_abi,
+        int(20e9),
+        GAS_LIMIT
+    )
 
 
 @pytest.fixture
@@ -64,10 +71,3 @@ def rmp_client(sender_privkey,
         channel_manager_address=channel_manager_contract_address,
         token_address=token_contract_address
     )
-
-
-@pytest.fixture
-def m2m_client(rmp_client, api_endpoint, api_endpoint_port):
-    return M2MClient(rmp_client,
-                     api_endpoint,
-                     api_endpoint_port)

@@ -3,14 +3,13 @@ import logging
 import os
 
 from ethereum.utils import privtoaddr, encode_hex, decode_hex
-from raiden_mps.client.channel import Channel
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT
+from .channel import Channel
+from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
 CHANNELS_DB = 'channels.json'
-GAS_PRICE = 20 * 1000 * 1000 * 1000
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'Token'
 
@@ -205,7 +204,7 @@ class RMPClient:
             store[self.channel_manager_address] = Channel.serialize(self.channels)
             json.dump(store, channels_file, indent=4)
 
-    def open_channel(self, receiver_address:str, deposit:int):
+    def open_channel(self, receiver_address: str, deposit: int):
         """
         Attempts to open a new channel to the receiver with the given deposit. Blocks until the
         creation transaction is found in a pending block or timeout is reached. The new channel

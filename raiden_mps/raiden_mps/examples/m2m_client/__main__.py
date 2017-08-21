@@ -3,9 +3,10 @@
 import logging
 
 import click
+
+from raiden_mps.examples.m2m_client import M2MClient
 from raiden_mps.client.channel import Channel
-from raiden_mps.client.rmp_client import RMPClient
-from raiden_mps.client.m2m_client import M2MClient
+from raiden_mps import RMPClient
 
 log = logging.getLogger(__name__)
 

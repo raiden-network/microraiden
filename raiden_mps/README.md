@@ -27,7 +27,7 @@ python3 -m raiden_mps.proxy
 
 ### M2M Client
 ```bash
-python3 -m raiden_mps.client --key-path <path to private key file>
+python3 -m raiden_mps.examples.m2m_client --key-path <path to private key file>
 ```
 
 The private key file should contain a valid (and preferably sufficiently funded) private key in hex format, without a leading `0x` prefix.
@@ -37,7 +37,7 @@ The private key file should contain a valid (and preferably sufficiently funded)
 ### RMP Client
 The Raiden client backend used by the M2M sample client can be used as a standalone library. After installation, import the following class:
 ```python
-from raiden_mps.client.rmp_client import RMPClient
+from raiden_mps import RMPClient
 
 client = RMPClient('<hex-encoded private key (without leading 0x)>')
 ```
@@ -52,6 +52,8 @@ This client object allows interaction with the blockchain and offline-signing of
 An example lifecycle of an `RMPClient` object could look like this:
 
 ```python
+from raiden_mps import RMPClient
+
 receiver = '0xb6b79519c91edbb5a0fc95f190741ad0c4b1bb4d'
 client = RMPClient('55e58f57ec2177ea681ee461c6d2740060fd03109036e7e6b26dcf0d16a28169')
 

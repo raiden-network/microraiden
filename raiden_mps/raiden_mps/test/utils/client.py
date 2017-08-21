@@ -1,5 +1,6 @@
-from raiden_mps.client.channel import Channel
-from raiden_mps.client.rmp_client import RMPClient
+from raiden_mps.client import Channel
+from raiden_mps import RMPClient
+from raiden_mps.config import TEST_RECEIVER_PRIVKEY
 from raiden_mps.crypto import sign_close, privkey_to_addr
 
 
@@ -8,7 +9,9 @@ def close_all_channels(client: RMPClient):
     assert all(close_events)
 
 
-def close_all_channels_cooperatively(client: RMPClient, privkey_receiver: str, balance=None):
+def close_all_channels_cooperatively(
+        client: RMPClient, privkey_receiver: str=TEST_RECEIVER_PRIVKEY, balance: int=None
+):
     receiver_addr = privkey_to_addr(privkey_receiver)
     channels = [
         c for c in client.channels if c.state != Channel.State.closed and

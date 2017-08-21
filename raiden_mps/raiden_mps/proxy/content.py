@@ -81,7 +81,7 @@ class PaywalledFile(PaywalledContent):
 
 
 class PaywalledProxyUrl:
-    def __init__(self, path, price, get_fn):
+    def __init__(self, path, price, get_fn=lambda r: r.split('/', 1)[1]):
         assert isinstance(path, str)
         assert isinstance(price, int) or callable(price)
         assert callable(get_fn)
