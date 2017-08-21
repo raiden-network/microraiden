@@ -69,7 +69,7 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
 
 # Following two calls are quivalent
 python deploy/deploy_testnet.py
-python deploy/deploy_testnet.py --chain kovan --supply 100000 --token-name RDNToken --token-decimals 6 --token-symbol RDN --senders '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
+python deploy/deploy_testnet.py --chain kovan --challenge-period 30 --supply 10000000 --token-name RDNToken --token-decimals 6 --token-symbol RDN --senders '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
 
 # Provide a custom token
 python deploy/deploy_testnet.py --token-address address
