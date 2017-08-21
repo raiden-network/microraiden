@@ -169,7 +169,10 @@ $.getJSON("js/parameters.json", (json) => {
   let cnt = 20;
   // wait up to 20*200ms for web3 and call ready()
   const pollingId = setInterval(() => {
-    if (cnt < 0 || window.web3) {
+    if (Cookies.get("RDN-Insufficient-Confirmations")) {
+      clearInterval(pollingId);
+      setTimeout(() => location.reload(), 5000);
+    } else if (cnt < 0 || window.web3) {
       clearInterval(pollingId);
       pageReady(json);
     } else {
