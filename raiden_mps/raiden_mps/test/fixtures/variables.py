@@ -1,4 +1,6 @@
 import pytest
+from eth_utils import encode_hex, remove_0x_prefix
+from ethereum.tester import keys
 
 import os
 import json
@@ -29,16 +31,6 @@ def compiled_contracts(compiled_contracts_path):
 @pytest.fixture
 def test_dir():
     return os.path.dirname(os.path.dirname(__file__)) + "/../"
-
-
-@pytest.fixture
-def rpc_endpoint():
-    return 'localhost'
-
-
-@pytest.fixture
-def rpc_port():
-    return 8545
 
 
 @pytest.fixture
@@ -84,23 +76,42 @@ def receiver_address(receiver1_address):
 
 
 @pytest.fixture
-def sender_privkey():
-    return TEST_SENDER_PRIVKEY
-
-
-@pytest.fixture
-def receiver1_privkey():
-    return TEST_RECEIVER_PRIVKEY
-
-
-@pytest.fixture
-def receiver2_privkey():
-    return TEST_SECONDARY_RECEIVER_PRIVKEY
-
-
-@pytest.fixture
 def receiver_privkey(receiver1_privkey):
     return receiver1_privkey
+
+
+@pytest.fixture
+def sender_privkey(use_tester):
+    if use_tester:
+        return remove_0x_prefix(encode_hex(keys[0]))
+    else:
+        return TEST_SENDER_PRIVKEY
+
+
+@pytest.fixture
+def receiver1_privkey(use_tester):
+    if use_tester:
+        return remove_0x_prefix(encode_hex(keys[1]))
+    else:
+        return TEST_RECEIVER_PRIVKEY
+
+
+@pytest.fixture
+def receiver2_privkey(use_tester):
+    if use_tester:
+        return remove_0x_prefix(encode_hex(keys[2]))
+    else:
+        return TEST_SECONDARY_RECEIVER_PRIVKEY
+
+
+@pytest.fixture
+def deployer_privkey():
+    return remove_0x_prefix(encode_hex(keys[3]))
+
+
+@pytest.fixture
+def deployer_address(deployer_privkey):
+    return privkey_to_addr(deployer_privkey)
 
 
 @pytest.fixture
@@ -120,8 +131,18 @@ def channel_manager_abi(contract_abis):
 
 
 @pytest.fixture
+def channel_manager_bytecode(contract_abis):
+    return contract_abis[CHANNEL_MANAGER_ABI_NAME]['bytecode']
+
+
+@pytest.fixture
 def token_abi(contract_abis):
     return contract_abis[TOKEN_ABI_NAME]['abi']
+
+
+@pytest.fixture
+def token_bytecode(contract_abis):
+    return contract_abis[TOKEN_ABI_NAME]['bytecode']
 
 
 @pytest.fixture

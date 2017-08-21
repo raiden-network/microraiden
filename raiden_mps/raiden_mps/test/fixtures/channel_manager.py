@@ -1,11 +1,10 @@
 import logging
 import pytest
 import gevent
-from populus.utils.wait import wait_for_transaction_receipt
 from populus.wait import Wait
 from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.channel_manager import ChannelManager
-from web3 import Web3
+from web3 import Web3, EthereumTesterProvider
 from web3.providers.rpc import RPCProvider
 from raiden_mps.config import (
     CHANNEL_MANAGER_ADDRESS,
@@ -15,16 +14,6 @@ from raiden_mps.config import (
 )
 
 
-def check_succesful_tx(web3, txid, timeout=180):
-    """See if transaction went through (Solidity code did not throw).
-    :return: Transaction receipt
-    """
-    receipt = wait_for_transaction_receipt(web3, txid, timeout=timeout)
-    txinfo = web3.eth.getTransaction(txid)
-    assert txinfo["gas"] != receipt["gasUsed"]
-    return receipt
-
-
 @pytest.fixture(scope='session', autouse=True)
 def disable_requests_loggin():
     logging.getLogger('requests').setLevel(logging.WARNING)
@@ -32,19 +21,63 @@ def disable_requests_loggin():
 
 
 @pytest.fixture
-def channel_manager_contract_address():
-    return CHANNEL_MANAGER_ADDRESS
+def use_tester(request):
+    return request.config.getoption('use_tester')
+
+
+def deploy_token_contract(web3, deployer_address, token_abi, token_bytecode, sender_address):
+    Token = web3.eth.contract(abi=token_abi, bytecode=token_bytecode)
+    txhash = Token.deploy({'from': deployer_address}, args=[100000, "RDNToken", 6, "RDN"])
+    receipt = web3.eth.getTransactionReceipt(txhash)
+    contract_address = receipt.contractAddress
+    token = Token(contract_address)
+    for friend in [sender_address]:
+        token.transact({'from': deployer_address}).transfer(friend, 10000)
+    assert web3.eth.getCode(contract_address) != '0x'
+    return token
+
+
+def deploy_channel_manager_contract(web3, deployer_address, channel_manager_abi,
+                                    channel_manager_bytecode, token_contract_address):
+    ChannelManager = web3.eth.contract(abi=channel_manager_abi, bytecode=channel_manager_bytecode)
+    txhash = ChannelManager.deploy({'from': deployer_address}, args=[token_contract_address, 30])
+    contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
+    web3.testing.mine(1)
+    return ChannelManager(contract_address)
 
 
 @pytest.fixture
-def token_contract_address():
-    return TOKEN_ADDRESS
+def token_contract_address(use_tester, web3, deployer_address, token_abi, token_bytecode,
+                           sender_address):
+    if use_tester:
+        contract = deploy_token_contract(web3, deployer_address, token_abi, token_bytecode,
+                                         sender_address)
+        return contract.address
+    else:
+        return TOKEN_ADDRESS
 
 
 @pytest.fixture
-def web3(rpc_endpoint, rpc_port):
-    rpc = RPCProvider(rpc_endpoint, rpc_port)
-    return Web3(rpc)
+def channel_manager_contract_address(use_tester, web3, deployer_address, channel_manager_abi,
+                                     channel_manager_bytecode, token_contract_address):
+    if use_tester:
+        contract = deploy_channel_manager_contract(web3, deployer_address, channel_manager_abi,
+                                                   channel_manager_bytecode,
+                                                   token_contract_address)
+        return contract.address
+    else:
+        return CHANNEL_MANAGER_ADDRESS
+
+
+@pytest.fixture
+def web3(use_tester, deployer_address):
+    if use_tester:
+        provider = EthereumTesterProvider()
+        web3 = Web3(provider)
+    else:
+        rpc = RPCProvider('localhost', 8545)
+        return Web3(rpc)
+    return web3
 
 
 @pytest.fixture
@@ -54,26 +87,31 @@ def wait(web3, kovan_block_time):
 
 
 @pytest.fixture
-def wait_for_blocks(web3, kovan_block_time):
+def wait_for_blocks(web3, kovan_block_time, use_tester):
     def wait_for_blocks(n):
-        target_block = web3.eth.blockNumber + n
-        while web3.eth.blockNumber < target_block:
-            gevent.sleep(kovan_block_time / 2)
+        if use_tester:
+            web3.testing.mine(n)
+        else:
+            target_block = web3.eth.blockNumber + n
+            while web3.eth.blockNumber < target_block:
+                gevent.sleep(kovan_block_time / 2)
     return wait_for_blocks
 
 
 @pytest.fixture
 def channel_manager_contract_proxy1(web3, receiver1_privkey, channel_manager_contract_address,
-                                    channel_manager_abi):
+                                    channel_manager_abi, use_tester):
     return ChannelContractProxy(web3, receiver1_privkey, channel_manager_contract_address,
-                                channel_manager_abi, GAS_PRICE, GAS_LIMIT)
+                                channel_manager_abi, GAS_PRICE, GAS_LIMIT,
+                                use_get_logs=not use_tester)
 
 
 @pytest.fixture
 def channel_manager_contract_proxy2(web3, receiver2_privkey, channel_manager_contract_address,
-                                    channel_manager_abi):
+                                    channel_manager_abi, use_tester):
     return ChannelContractProxy(web3, receiver2_privkey, channel_manager_contract_address,
-                                channel_manager_abi, GAS_PRICE, GAS_LIMIT)
+                                channel_manager_abi, GAS_PRICE, GAS_LIMIT,
+                                use_get_logs=not use_tester)
 
 
 @pytest.fixture

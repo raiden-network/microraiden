@@ -1,9 +1,8 @@
 Introduction
 ===========
 In this tutorial we will create a simple paywalled server that will serve some
-static files together with dynamically generated responses, payable with custom
-ERC223 tokens.
-You can find example code for this tutorial in
+static files as well as dynamically generated responses, payable with the
+Raiden Network Token. You can find example code for this tutorial in
 `raiden_mps/examples/echo_server.py`.
 
 Requirements
@@ -11,81 +10,73 @@ Requirements
 Please refer to README.md to install all required dependencies.
 You will also need a Chrome browser with MetaMask plugin.
 
-You'll need to deploy channel manager and token contracts for your proxy. There's 
-a tool that will help you with that in `contracts/deploy` directory.
-Just run `python deploy --privkey <path_to_your_privkey>` and note the contract
-addresses.
-
 
 Setting up the proxy
 ====================
 
 Initialization
 --------------
-For initialization you will need to supply following parameters:
-- channel manager contract address (please note that owner of the contract must
-  be the same as the receiver address)
-- receiver's private key - Owner of the contract and address that will receive
-  the payments
-- proxy state file - proxy needs to save off-chain balance proofs and state of
-  the open channels. Set this to a path writable by the user that starts the
-  server. 
+For initialization you will have to supply the following parameters:
+- The address of the channel manager contract.
+- The private key of the account receiving the payments (to extract it from a
+  keystore file you can use MyEtherWallet's "View Wallet Info" functionality).
+- A file in which the proxy stores off-chain balance proofs. Set this to a
+  path writable by the user that starts the server.
 
-Initialize the proxy:
+```python
+from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
+app = PaywalledProxy(channel_manager_address, private_key, state_file)
 ```
-	from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
-    app = PaywalledProxy(channel_manager_address,
-                         private_key,
-                         state_file)
-```
-Channel manager will start syncing with the blockchain immediately.
+The channel manager will start syncing with the blockchain immediately.
 
 
 Resource types
 --------------
 
-Now you will need to add some resources.
-To serve a single static file from the filesystem, use:
-```
+Now you will have to add some resources. To serve a single static file from
+the filesystem, you can use:
+```python
 from raiden_mps.proxy.content import PaywalledFile
 app.add_content(PaywalledFile("file.txt", 10, "/srv/paywall/content/test.txt"))
 ```
-File will then be available on URL `/file.txt`. After the payment, proxy will
-send back the file to the user and will try to set Content-Type header to match
-the contents.
+The file will then be available at the URI `/file.txt`. Only after a payment
+of 10 tokens, the proxy will send it back to the user and will try to
+set Content-Type header to match the contents. Without payment, the server
+responds with `402 Payment Required`.
 
-For dynamic resources, you'll need to use `PaywalledContent` class
-```
+For dynamic resources, you can use the `PaywalledContent` class
+```python
 from raiden_mps.proxy.content import PaywalledContent
 app.add_content(PaywalledContent("teapot.txt", 1, lambda _: ("HI I AM A TEAPOT", 418)))
 app.add_content(PaywalledContent("temperature", 2, lambda _: (thermo.get_temp(), 200)))
-app.add_content(PaywalledContent("sqrt/^[0-9]+(\.[0-9]+)?$", 3, lambda uri: 
+app.add_content(PaywalledContent("sqrt/^[0-9]+(\.[0-9]+)?$", 3, lambda uri:
 	number = float(uri.split('/')[1])
 	return (str(number), 200))
 ))
 ```
-First argument of the constructor is resource URI, second argument is a price,
-and the third is a content generator function. This function can return both
-tuple (<content>, <http_status_code>), or a flask Response class created by i.e.
-make_response() call.
+The first argument of the constructor is a resource URI, the second is a
+price, and the third is a content generator function. This function can return
+both a tuple `(<content>, <http_status_code>)`, or a flask Response class
+created by, e.g., a `make_response()` call.
 
-Another possible content type is a remote url. You can use i.e. fetch the
-content from a remote CDN.
-```
+Another possible content type is a remote URL. This is useful to fetch content
+from a remote CDN:
+```python
 from raiden_mps.proxy.content import PaywalledProxyUrl
 app.add_content(PaywalledProxyUrl("cdn\/.*", 1, "lambda _: 'http://cdn.myhost.com:8000/resource42'"))
 ```
-First argument is a regex defining the resource URI, second argument is a price,
-and third argument is a function that returns a remote url to fetch the content
-from.
+The constructor arguments are, in order of appearance, a regex defining the
+resource URI, a price, and a function that returns a remote URL specifying
+where to fetch the content from.
 
 
 Setting a price for the resource dynamically
 --------------------------------------------
-Note that a price argument for the Content can be callable. You use that to set
-the price depending on the requested resource
-```
-app.add_content(PaywalledContent("reserve_tokens/[0-9]+", 
+A price argument for the content can not only be a constant integer, but also
+a callable. You can exploit that to set the price depending on the requested
+resource:
+```python
+app.add_content(PaywalledContent("reserve_tokens/[0-9]+",
 	lambda request: int(request.split("/")[1]),
 	lambda _: ("Tokens reserved", 200)))
 ```
@@ -93,12 +84,13 @@ app.add_content(PaywalledContent("reserve_tokens/[0-9]+",
 
 Starting/stopping the proxy
 ==================
-You start proxy by calling run() method. This call is non-blocking - the  proxy
-is started as a WSGI greenlet. Use join() to sync with the task. This will block
-until proxy has stopped. To terminate the server, call stop() from another greenlet.
-```
-    app.run(debug=True)
-    app.join()
+You start proxy by calling run() method. This call is non-blocking -- the
+proxy is started as a WSGI greenlet. Use join() to sync with the task. This
+will block until proxy has stopped. To terminate the server, call stop() from
+another greenlet.
+```python
+app.run(debug=True)
+app.join()
 ```
 
 
@@ -108,10 +100,11 @@ Accessing the content
 
 Browser
 -------
-Navigate the browser to the URL resource you'd like to get. 
-You'll be presented a paywall - a site requesting you to pay for the resource.
-If you have MetaMask extension installed, you can set the amount to be deposited
-to the channel.
+To access the content with your browser, navigate to the URL of the resource
+you'd like to get. You'll be faced with paywall -- a site requesting you to
+pay for the resource. To do so, you first have to open a new channel. If you
+have the MetaMask extension installed, you can
+set the amount to be deposited to the channel.
 After confirming the deposit, you can navigate and payments will be done
 automatically.
 

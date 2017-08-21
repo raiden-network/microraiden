@@ -15,7 +15,8 @@ DEFAULT_RETRY_INTERVAL = 3
 
 
 class ContractProxy:
-    def __init__(self, web3: Web3, privkey, contract_address, abi, gas_price, gas_limit):
+    def __init__(self, web3: Web3, privkey, contract_address, abi, gas_price, gas_limit,
+                 use_get_logs=True):
         self.web3 = web3
         self.privkey = privkey
         self.caller_address = privkey_to_addr(privkey)
@@ -24,6 +25,7 @@ class ContractProxy:
         self.contract = self.web3.eth.contract(abi=self.abi, address=contract_address)
         self.gas_price = gas_price
         self.gas_limit = gas_limit
+        self.use_get_logs = use_get_logs
 
     def create_transaction(self, func_name, args, nonce_offset=0):
         nonce = self.web3.eth.getTransactionCount(self.caller_address, 'pending') + nonce_offset
@@ -43,8 +45,14 @@ class ContractProxy:
         filters = filters if filters else {}
         filter_ = construct_event_filter_params(event_abi, argument_filters=filters,
                                                 **filter_kwargs)[1]
-        filter_params = [input_filter_params_formatter(filter_)]
-        response = self.web3._requestManager.request_blocking('eth_getLogs', filter_params)
+        filter_params = input_filter_params_formatter(filter_)
+        if self.use_get_logs:
+            response = self.web3._requestManager.request_blocking('eth_getLogs', [filter_params])
+        else:
+            filter_ = self.web3.eth.filter(filter_params)
+            response = self.web3.eth.getFilterLogs(filter_.filter_id)
+            self.web3.eth.uninstallFilter(filter_.filter_id)
+
         logs = log_array_formatter(response)
         logs = [dict(log) for log in logs]
         for log in logs:
@@ -67,8 +75,9 @@ class ContractProxy:
 
 
 class ChannelContractProxy(ContractProxy):
-    def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit):
-        super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit)
+    def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit,
+                 use_get_logs=True):
+        super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit, use_get_logs)
 
     def get_channel_created_logs(self, from_block=0, to_block='latest', filters=None):
         return self.get_logs('ChannelCreated', from_block, to_block, filters)

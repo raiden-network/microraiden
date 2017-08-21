@@ -2,6 +2,7 @@ import logging
 from eth_utils import is_same_address, encode_hex
 from raiden_mps.channel_manager import InvalidBalanceProof, NoOpenChannel
 from raiden_mps.crypto import sign_balance_proof
+from raiden_mps.test.utils.client import close_all_channels_cooperatively
 import gevent
 import pytest
 

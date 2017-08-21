@@ -33,28 +33,27 @@ def datadir():
 
 
 @pytest.fixture
-def client_contract_proxy(
-        web3, sender_privkey, channel_manager_contract_address, channel_manager_abi
-):
+def client_contract_proxy(web3, sender_privkey, channel_manager_contract_address,
+                          channel_manager_abi, use_tester):
     return ChannelContractProxy(
         web3,
         sender_privkey,
         channel_manager_contract_address,
         channel_manager_abi,
-        int(20e9),
-        GAS_LIMIT
+        int(20e9), GAS_LIMIT,
+        not use_tester
     )
 
 
 @pytest.fixture
-def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi):
+def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi, use_tester):
     return ContractProxy(
         web3,
         sender_privkey,
         token_contract_address,
         token_abi,
-        int(20e9),
-        GAS_LIMIT
+        int(20e9), GAS_LIMIT,
+        not use_tester
     )
 
 
