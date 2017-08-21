@@ -125,7 +125,7 @@ empty list
 |0|data|bytes32|||
 
 
-#### token_address
+#### owner
 
 Data structures
 
@@ -140,6 +140,23 @@ empty list
 |#  |Param|Type|TypeHint|Description|
 |---|-----|----|--------|-----------|
 |0|return0|address||Data structures|
+
+
+#### token_address
+
+
+
+
+##### Inputs
+
+empty list
+
+
+##### Returns
+
+|#  |Param|Type|TypeHint|Description|
+|---|-----|----|--------|-----------|
+|0|return0|address||token_address|
 
 
 #### verifyBalanceProof
@@ -215,6 +232,20 @@ empty list
 
 |#  |Param|Type|TypeHint|Description|
 |---|-----|----|--------|-----------|
+|0|_sender|address|||
+|1|_receiver|address|||
+|2|_deposit|uint192|||
+
+
+#### createChannelERC20
+
+
+
+
+##### Inputs
+
+|#  |Param|Type|TypeHint|Description|
+|---|-----|----|--------|-----------|
 |0|_receiver|address|||
 |1|_deposit|uint192|||
 
@@ -261,7 +292,36 @@ empty list
 |3|_balance|uint192|||
 
 
+#### tokenFallback
+
+
+
+
+##### Inputs
+
+|#  |Param|Type|TypeHint|Description|
+|---|-----|----|--------|-----------|
+|0|_sender|address|||
+|1|_deposit|uint256|||
+|2|_data|bytes|||
+
+
 #### topUp
+
+
+
+
+##### Inputs
+
+|#  |Param|Type|TypeHint|Description|
+|---|-----|----|--------|-----------|
+|0|_sender|address|||
+|1|_receiver|address|||
+|2|_open_block_number|uint32|||
+|3|_added_deposit|uint192|||
+
+
+#### topUpERC20
 
 
 
@@ -295,7 +355,7 @@ Events
 |2|_deposit|uint192|||
 
 
-#### ChannelTopedUp
+#### ChannelToppedUp
 
 
 
@@ -307,8 +367,8 @@ Events
 |0|_sender|address|||
 |1|_receiver|address|||
 |2|_open_block_number|uint32|||
-|3|_added_depozit|uint192|||
-|4|_depozit|uint192|||
+|3|_added_deposit|uint192|||
+|4|_deposit|uint192|||
 
 
 #### ChannelCloseRequested
@@ -338,6 +398,36 @@ Events
 |0|_sender|address|||
 |1|_receiver|address|||
 |2|_open_block_number|uint32|||
+|3|_balance|uint192|||
+
+
+#### TokenFallback
+
+
+
+
+##### Params
+
+|#  |Param|Type|TypeHint|Description|
+|---|-----|----|--------|-----------|
+|0|_sender|address|||
+|1|_receiver|address|||
+|2|_deposit|uint192|||
+|3|_data|bytes|||
+
+
+#### GasCost
+
+
+
+
+##### Params
+
+|#  |Param|Type|TypeHint|Description|
+|---|-----|----|--------|-----------|
+|0|_function_name|string|||
+|1|_gaslimit|uint|||
+|2|_gas|uint|||
 
 
 
@@ -374,7 +464,6 @@ Events
 |---|-----|----|--------|-----------|
 |0|settle_block_number|uint32|||
 |1|closing_balance|uint192|||
-
 
 
 

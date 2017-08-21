@@ -3,14 +3,41 @@
 
 - _Sender_ = token sender
 - _Receiver_ = token receiver
-- _Contract_ = Raiden MicroTransfer Channels Smart Contract
+- _Contract_ = Raiden MicroTransferChannels Smart Contract
+- _Token_ = RDNToken
+
 
 ## Opening a transfer channel
 
+### ERC223 compatible (recommended)
+
+```
+Token.transfer(_to, _value, _data)
+```
+Sender sends tokens to the Contract, with a payload for calling `createChannel`.
+
+ * `_to` = `Contract.address`
+ * `_value` = deposit value (number of tokens)
+ * `_data` is the equivalent of `msg.data` when calling `createChannel`
+   - in web3.js, `var _data = Contract.createChannel.getData(_sender, _receiver, _deposit);` https://github.com/ethereum/wiki/wiki/JavaScript-API#web3ethcontract
+   - in web3.py
+   ```
+    from ethereum.abi import (
+      ContractTranslator
+    )
+    ct = ContractTranslator(abi)
+    _data = ct.encode('createChannel', [sender, receiver, deposit])
+   ```
+
+![ChannelOpen_ERC223](/contracts/docs/diagrams/ChannelOpen_223.png)
+
+### ERC20 compatible
 
 
 - approve token transfers to the contract from the Sender's behalf:  `Token.approve(contract, deposit)`
-- `Contract.createChannel(receiver, deposit)`
+- `Contract.createChannelERC20(receiver, deposit)`
+
+![ChannelOpen_ERC20](/contracts/docs/diagrams/ChannelOpen_20.png)
 
 
 
@@ -53,3 +80,6 @@ Closing agreement signature verification:
 3. Client calls `Contract.close(receiver, open_block_number, balance, balance_msg_sig)` = settlement period starts
  - a. Receiver calls `Contract.close(receiver, open_block_number, balance, balance_msg_sig)` with the sender's signed balance message = instant close & settle
  - b. Client calls `Contract.settle(receiver, open_block_number)` after settlement period ends
+
+
+![ChannelCycle.png](/contracts/docs/diagrams/ChannelCycle.png)
