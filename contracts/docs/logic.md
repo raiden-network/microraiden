@@ -40,6 +40,41 @@ Sender sends tokens to the Contract, with a payload for calling `createChannel`.
 ![ChannelOpen_ERC20](/contracts/docs/diagrams/ChannelOpen_20.png)
 
 
+## Topping up a channel
+
+Adding tokens to an already opened channel, who's `deposit > 0`
+
+### ERC223 compatible (recommended)
+
+```
+Token.transfer(_to, _value, _data)
+```
+Sender sends tokens to the Contract, with a payload for calling `topUp`.
+
+ * `_to` = `Contract.address`
+ * `_value` = deposit value (number of tokens)
+ * `_data` is the equivalent of `msg.data` when calling `topUp`
+   - in web3.js, `var _data = Contract.topUp.getData(_sender, _receiver, _open_block_number, _added_deposit);`
+   - in web3.py
+   ```
+    from ethereum.abi import (
+      ContractTranslator
+    )
+    ct = ContractTranslator(abi)
+    _data = ct.encode('topUp', [_sender, _receiver, _open_block_number, _added_deposit])
+   ```
+
+ ![ChannelTopUp_223](/contracts/docs/diagrams/ChannelTopUp_223.png)
+
+
+### ERC20 compatible
+
+
+- approve token transfers to the contract from the Sender's behalf:  `Token.approve(contract, added_deposit)`
+- `Contract.createChannelERC20(receiver, deposit)`
+
+ ![ChannelTopUp_20](/contracts/docs/diagrams/ChannelTopUp_20.png)
+
 
 ## Generating and validating a transfer
 

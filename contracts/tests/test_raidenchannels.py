@@ -259,8 +259,6 @@ def test_channel_223_create(web3, chain, contract, channels_contract):
     print('----------------------------------')
 
 
-
-
 def test_channel_topup_20(web3, chain, contract, channel_20):
     (sender, receiver, open_block_number) = channel_20
     (A) = web3.eth.accounts[3]
