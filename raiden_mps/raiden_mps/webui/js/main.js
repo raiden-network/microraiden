@@ -32,13 +32,6 @@ function pageReady(json) {
     $(".main_switch:not("+id+")").hide();
   }
 
-  function retrySigned() {
-    Cookies.set("RDN-Sender-Balance", rmpc.channel.balance);
-    Cookies.set("RDN-Balance-Signature", rmpc.channel.sign);
-    Cookies.set("RDN-Open-Block", rmpc.channel.block);
-    location.reload();
-  }
-
   $select.change(($event) => {
     rmpc.loadStoredChannel($event.target.value, RMPparams.receiver);
 
@@ -73,6 +66,23 @@ function pageReady(json) {
 
   refreshAccounts();
 
+  function signRetry() {
+    rmpc.incrementBalanceAndSign(RMPparams.amount, (err, sign) => {
+      if (err && err.message && err.message.includes('Insuficient funds')) {
+        console.error(err);
+        return mainSwitch("#topup");
+      } else if (err) {
+        console.error(err);
+        return window.alert("An error occurred trying to sign the transfer: "+err);
+      }
+      console.log("SIGNED!", sign);
+      Cookies.set("RDN-Open-Block", rmpc.channel.block);
+      Cookies.set("RDN-Sender-Balance", rmpc.channel.balance);
+      Cookies.set("RDN-Balance-Signature", sign);
+      location.reload();
+    });
+  }
+
   $("#channel_missing_deposit").bind("input", ($event) => {
     if (+$event.target.value > 0) {
       $("#channel_missing_start").attr("disabled", false);
@@ -86,33 +96,16 @@ function pageReady(json) {
     const deposit = +$("#channel_missing_deposit").val();
     const account = $("#accounts").val();
     mainSwitch("#channel_opening");
-    rmpc.openChannel(account, RMPparams.receiver, deposit, (err, sign) => {
+    rmpc.openChannel(account, RMPparams.receiver, deposit, (err, channel) => {
       if (err) {
         refreshAccounts();
         return window.alert("An error ocurred trying to open a channel: "+err);
       }
-      return rmpc.incrementBalanceAndSign(RMPparams.amount, (err, res) => {
-        refreshAccounts();
-        if (err) {
-          console.error(err);
-          return window.alert("An error ocurred trying to sign the transfer: "+err);
-        }
-        console.log("SIGNED!", sign);
-        return retrySigned();
-      });
+      return signRetry();
     });
   });
 
-  $("#channel_present_sign").click(() => {
-    rmpc.incrementBalanceAndSign(RMPparams.amount, (err, res) => {
-      if (err) {
-        console.error(err);
-        return window.alert("An error occurred trying to sign the transfer: "+err);
-      }
-      console.log("SIGNED!", res);
-      return retrySigned();
-    });
-  });
+  $("#channel_present_sign").click(signRetry);
 
   $("#channel_present_close").click(() => {
     if (!window.confirm("Are you sure you want to close this channel?")) {
@@ -148,9 +141,31 @@ function pageReady(json) {
     refreshAccounts();
   });
 
+  $("#topup_deposit").bind("input", ($event) => {
+    if (+$event.target.value > 0) {
+      $("#topup_start").attr("disabled", false);
+    } else {
+      $("#topup_start").attr("disabled", true);
+    }
+  });
+  $("#topup_start").attr("disabled", true);
+
+  $("#topup_start").click(() => {
+    const deposit = +$("#topup_deposit").val();
+    mainSwitch("#channel_opening");
+    rmpc.topUpChannel(deposit, (err, block) => {
+      if (err) {
+        refreshAccounts();
+        console.error(err);
+        return window.alert("An error ocurred trying to deposit to channel: "+err);
+      }
+      return signRetry();
+    });
+  });
+
 };
 
-$.getJSON("/js/parameters.json", (json) => {
+$.getJSON("js/parameters.json", (json) => {
   let cnt = 20;
   // wait up to 20*200ms for web3 and call ready()
   const pollingId = setInterval(() => {
