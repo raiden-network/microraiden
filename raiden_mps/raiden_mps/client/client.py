@@ -2,12 +2,13 @@ import json
 import logging
 import os
 
-from ethereum.utils import privtoaddr, encode_hex, decode_hex
-from .channel import Channel
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE
-from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
+
+from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE
+from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
+from raiden_mps.crypto import privkey_to_addr
+from .channel import Channel
 
 CHANNELS_DB = 'channels.json'
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
@@ -15,26 +16,22 @@ TOKEN_ABI_NAME = 'Token'
 
 log = logging.getLogger(__name__)
 
-if isinstance(encode_hex(b''), bytes):
-    _encode_hex = encode_hex
-    encode_hex = lambda b: _encode_hex(b).decode()
-
 
 class Client:
     def __init__(
             self,
-            privkey:str=None,
-            key_path:str=None,
-            datadir:str=os.path.join(os.path.expanduser('~'), '.raiden'),
-            channel_manager_address:str=CHANNEL_MANAGER_ADDRESS,
-            token_address:str=TOKEN_ADDRESS,
-            rpc:RPCProvider=None,
-            web3:Web3=None,
-            channel_manager_proxy:ChannelContractProxy=None,
-            token_proxy:ContractProxy=None,
-            rpc_endpoint:str='localhost',
-            rpc_port:int=8545,
-            contract_abi_path:str=os.path.join(
+            privkey: str = None,
+            key_path: str = None,
+            datadir: str = os.path.join(os.path.expanduser('~'), '.raiden'),
+            channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
+            token_address: str = TOKEN_ADDRESS,
+            rpc: RPCProvider = None,
+            web3: Web3 = None,
+            channel_manager_proxy: ChannelContractProxy = None,
+            token_proxy: ContractProxy = None,
+            rpc_endpoint: str = 'localhost',
+            rpc_port: int = 8545,
+            contract_abi_path: str = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json'
             )
     ):
@@ -56,7 +53,7 @@ class Client:
             with open(key_path) as keyfile:
                 self.privkey = keyfile.readline()[:-1]
 
-        self.account = '0x' + encode_hex(privtoaddr(self.privkey))
+        self.account = privkey_to_addr(self.privkey)
         self.channels = []
 
         # Create web3 context if none is provided, either by using the proxies' context or creating
@@ -218,10 +215,9 @@ class Client:
         if token_balance < deposit:
             log.error(
                 'Insufficient tokens available for the specified deposit ({}/{})'
-                .format(token_balance, deposit)
+                    .format(token_balance, deposit)
             )
 
-        receiver_bytes = decode_hex(receiver_address.replace('0x', ''))
         log.info('Creating channel to {} with an initial deposit of {}.'.format(
             receiver_address, deposit
         ))
@@ -230,7 +226,7 @@ class Client:
             'approve', [self.channel_manager_address, deposit]
         )
         tx2 = self.channel_manager_proxy.create_transaction(
-            'createChannel', [receiver_bytes, deposit], nonce_offset=1
+            'createChannel', [receiver_address, deposit], nonce_offset=1
         )
         self.web3.eth.sendRawTransaction(tx1)
         self.web3.eth.sendRawTransaction(tx2)

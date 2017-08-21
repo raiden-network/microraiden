@@ -1,31 +1,34 @@
+"""
+Convention within this module is to only add the '0x' hex prefix to addresses while other
+hex-encoded values, such as hashes and private keys, come without a 0x prefix.
+"""
+
 from coincurve import PrivateKey, PublicKey
-from ethereum.utils import encode_hex, decode_hex, privtoaddr
+from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak
 
 
-if isinstance(encode_hex(b''), bytes):
-    _encode_hex = encode_hex
-    encode_hex = lambda b: _encode_hex(b).decode()
-
-
-def generate_privkey():
+def generate_privkey() -> bytes:
     return encode_hex(PrivateKey().secret)
 
 
-def pubkey_to_addr(pubkey: str) -> str:
-    return '0x' + encode_hex(sha3(pubkey[1:])[-20:])
+def pubkey_to_addr(pubkey) -> str:
+    if isinstance(pubkey, PublicKey):
+        pubkey = pubkey.format(compressed=False)
+    assert isinstance(pubkey, bytes)
+    return encode_hex(sha3(pubkey[1:])[-20:])
 
 
 def privkey_to_addr(privkey: str) -> str:
-    return '0x' + encode_hex(privtoaddr(privkey))
+    return pubkey_to_addr(PrivateKey.from_hex(remove_0x_prefix(privkey)).public_key)
 
 
 def addr_from_sig(sig, msg):
     # Support legacy EC v value of 27.
-    if sig[-1] > 27:
+    if sig[-1] >= 27:
         sig = sig[:-1] + bytes([sig[-1] - 27])
 
     receiver_pubkey = PublicKey.from_signature_and_message(sig, msg, hasher=None)
-    return pubkey_to_addr(receiver_pubkey.format(compressed=False))
+    return pubkey_to_addr(receiver_pubkey)
 
 
 def sha3(*args) -> bytes:
@@ -37,7 +40,6 @@ def sha3(*args) -> bytes:
     sha3(uint32(5))
     Default size is 256.
     """
-    from ethereum.utils import sha3
 
     def format_int(value, size):
         if value >= 0:
@@ -61,15 +63,15 @@ def sha3(*args) -> bytes:
         else:
             raise ValueError('Unsupported type: {}.'.format(type(arg)))
 
-    return sha3(msg)
+    return keccak(msg)
 
 
-def sha3_hex(*args) -> str:
+def sha3_hex(*args) -> bytes:
     return encode_hex(sha3(*args))
 
 
 def sign(privkey: str, msg: bytes) -> bytes:
-    pk = PrivateKey.from_hex(privkey)
+    pk = PrivateKey.from_hex(remove_0x_prefix(privkey))
     assert len(msg) == 32
 
     sig = pk.sign_recoverable(msg, hasher=None)
@@ -82,13 +84,13 @@ def sign(privkey: str, msg: bytes) -> bytes:
 
 def balance_message_hash(
         receiver: str, open_block_number: int, balance: int, contract_address: str
-):
+) -> bytes:
     return sha3(receiver, (open_block_number, 32), (balance, 192), contract_address)
 
 
 def sign_balance_proof(
         privkey: str, receiver: str, open_block_number: int, balance: int, contract_address: str
-):
+) -> bytes:
     msg = balance_message_hash(receiver, open_block_number, balance, contract_address)
     return sign(privkey, msg)
 
@@ -99,22 +101,22 @@ def verify_balance_proof(
         balance: int,
         balance_sig: bytes,
         contract_address: str
-):
+) -> str:
     msg = balance_message_hash(receiver, open_block_number, balance, contract_address)
     return addr_from_sig(balance_sig, msg)
 
 
-def closing_agreement_message_hash(balance_sig: bytes):
+def closing_agreement_message_hash(balance_sig: bytes) -> bytes:
     return sha3(balance_sig)
 
 
-def sign_close(privkey: str, balance_sig: bytes):
+def sign_close(privkey: str, balance_sig: bytes) -> bytes:
     msg = closing_agreement_message_hash(balance_sig)
     closing_sig = sign(privkey, msg)
 
     return closing_sig
 
 
-def verify_closing_signature(balance_sig: bytes, closing_sig: bytes):
+def verify_closing_signature(balance_sig: bytes, closing_sig: bytes) -> str:
     msg = closing_agreement_message_hash(balance_sig)
     return addr_from_sig(closing_sig, msg)

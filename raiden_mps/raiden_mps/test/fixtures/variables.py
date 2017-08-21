@@ -1,5 +1,4 @@
 import pytest
-from ethereum.utils import encode_hex, privtoaddr
 
 import os
 import json
@@ -9,6 +8,8 @@ from raiden_mps.config import (
     TEST_RECEIVER_PRIVKEY,
     TEST_SECONDARY_RECEIVER_PRIVKEY
 )
+from raiden_mps.crypto import privkey_to_addr
+
 
 @pytest.fixture
 def contracts_relative_path():
@@ -64,17 +65,17 @@ def manager_state_path():
 
 @pytest.fixture
 def sender_address(sender_privkey):
-    return '0x' + encode_hex(privtoaddr(sender_privkey)).decode()
+    return privkey_to_addr(sender_privkey)
 
 
 @pytest.fixture
 def receiver1_address(receiver1_privkey):
-    return '0x' + encode_hex(privtoaddr(receiver1_privkey)).decode()
+    return privkey_to_addr(receiver1_privkey)
 
 
 @pytest.fixture
 def receiver2_address(receiver2_privkey):
-    return '0x' + encode_hex(privtoaddr(receiver2_privkey)).decode()
+    return privkey_to_addr(receiver2_privkey)
 
 
 @pytest.fixture

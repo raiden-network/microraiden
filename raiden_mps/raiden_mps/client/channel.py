@@ -1,15 +1,10 @@
 import logging
 from enum import Enum
 
-from ethereum.utils import decode_hex, encode_hex
-
+from eth_utils import encode_hex, decode_hex
 from raiden_mps.crypto import sign_balance_proof, verify_closing_signature
 
 log = logging.getLogger(__name__)
-
-if isinstance(encode_hex(b''), bytes):
-    _encode_hex = encode_hex
-    encode_hex = lambda b: _encode_hex(b).decode()
 
 
 class Channel:
