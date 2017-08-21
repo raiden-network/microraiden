@@ -140,12 +140,24 @@ class Blockchain(gevent.Greenlet):
                            sender, open_block_number, deposit)
             self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit, deposit)
 
+        # channel settled event
+        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
+        for log in logs:
+            assert log['args']['_receiver'] == self.cm.state.receiver
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
+            self.log.debug('received ChannelSettled event (sender %s, block number %s)',
+                           sender, open_block_number)
+            self.cm.event_channel_settled(sender, open_block_number)
+
         # channel close requested
         logs = self.contract_proxy.get_channel_close_requested_logs(**filters_confirmed)
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
+            if (sender, open_block_number) not in self.cm.state.channels:
+                continue
             balance = log['args']['_balance']
             timeout = self.contract_proxy.get_settle_timeout(
                 sender, self.cm.state.receiver, open_block_number)
@@ -159,16 +171,6 @@ class Blockchain(gevent.Greenlet):
             self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
-
-        # channel settled event
-        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
-        for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
-            sender = log['args']['_sender']
-            open_block_number = log['args']['_open_block_number']
-            self.log.debug('received ChannelSettled event (sender %s, block number %s)',
-                           sender, open_block_number)
-            self.cm.event_channel_settled(sender, open_block_number)
 
         # update head hash and number
         block = self.web3.eth.getBlock(current_block)
