@@ -171,6 +171,7 @@ $.getJSON("js/parameters.json", (json) => {
   const pollingId = setInterval(() => {
     if (Cookies.get("RDN-Insufficient-Confirmations")) {
       clearInterval(pollingId);
+      $("body").html('<h1>Waiting confirmations...</h1>');
       setTimeout(() => location.reload(), 5000);
     } else if (cnt < 0 || window.web3) {
       clearInterval(pollingId);
