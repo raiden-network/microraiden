@@ -1,7 +1,5 @@
 import pytest # noqa
 
-from raiden_mps.header import HTTPHeaders as header
-
 
 def test_resources(doggo_proxy):
     app = doggo_proxy.app

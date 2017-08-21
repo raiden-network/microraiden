@@ -6,19 +6,16 @@ import pickle
 import time
 import tempfile
 import shutil
-from ethereum.utils import privtoaddr, encode_hex, decode_hex
 import gevent
+from eth_utils import decode_hex
+
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import logging
 
-from raiden_mps.crypto import sign_close, verify_closing_signature, verify_balance_proof
+from raiden_mps.crypto import sign_close, verify_closing_signature, verify_balance_proof, \
+    privkey_to_addr
 
 log = logging.getLogger(__name__)
-
-if isinstance(encode_hex(b''), bytes):
-    _encode_hex = encode_hex
-    encode_hex = lambda b: _encode_hex(b).decode()
-
 
 class InvalidBalanceProof(Exception):
     pass
@@ -143,12 +140,24 @@ class Blockchain(gevent.Greenlet):
                            sender, open_block_number, deposit)
             self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit, deposit)
 
+        # channel settled event
+        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
+        for log in logs:
+            assert log['args']['_receiver'] == self.cm.state.receiver
+            sender = log['args']['_sender']
+            open_block_number = log['args']['_open_block_number']
+            self.log.debug('received ChannelSettled event (sender %s, block number %s)',
+                           sender, open_block_number)
+            self.cm.event_channel_settled(sender, open_block_number)
+
         # channel close requested
         logs = self.contract_proxy.get_channel_close_requested_logs(**filters_confirmed)
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
+            if (sender, open_block_number) not in self.cm.state.channels:
+                continue
             balance = log['args']['_balance']
             timeout = self.contract_proxy.get_settle_timeout(
                 sender, self.cm.state.receiver, open_block_number)
@@ -162,16 +171,6 @@ class Blockchain(gevent.Greenlet):
             self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
                            sender, open_block_number)
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
-
-        # channel settled event
-        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
-        for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
-            sender = log['args']['_sender']
-            open_block_number = log['args']['_open_block_number']
-            self.log.debug('received ChannelSettled event (sender %s, block number %s)',
-                           sender, open_block_number)
-            self.cm.event_channel_settled(sender, open_block_number)
 
         # update head hash and number
         block = self.web3.eth.getBlock(current_block)
@@ -224,7 +223,7 @@ class ChannelManager(gevent.Greenlet):
         self.private_key = private_key
         self.contract_proxy = contract_proxy
         self.log = logging.getLogger('channel_manager')
-        assert '0x' + encode_hex(privtoaddr(self.private_key)) == self.receiver.lower()
+        assert privkey_to_addr(self.private_key) == self.receiver.lower()
 
         if state_filename is not None and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
@@ -335,7 +334,7 @@ class ChannelManager(gevent.Greenlet):
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
         # send closing tx
         tx_params = [self.state.receiver, open_block_number,
-                     c.balance, decode_hex(c.last_signature.replace('0x', ''))]
+                     c.balance, decode_hex(c.last_signature)]
         raw_tx = self.contract_proxy.create_transaction('close', tx_params)
 
         txid = self.blockchain.web3.eth.sendRawTransaction(raw_tx)

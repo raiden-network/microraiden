@@ -7,8 +7,12 @@ from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.channel_manager import ChannelManager
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS
-from raiden_mps.client.rmp_client import GAS_PRICE, GAS_LIMIT
+from raiden_mps.config import (
+    CHANNEL_MANAGER_ADDRESS,
+    TOKEN_ADDRESS,
+    GAS_PRICE,
+    GAS_LIMIT
+)
 
 
 def check_succesful_tx(web3, txid, timeout=180):

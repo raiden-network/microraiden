@@ -2,8 +2,9 @@ import logging
 import time
 
 import requests
-from ethereum.utils import encode_hex
+from eth_utils import encode_hex
 
+from raiden_mps import Client
 from raiden_mps.client.channel import Channel
 from raiden_mps.header import HTTPHeaders
 
@@ -27,13 +28,13 @@ class InvalidChannelManager(Exception):
 class M2MClient(object):
     def __init__(
             self,
-            rmp_client,
+            client: Client,
             api_endpoint,
             api_port,
             initial_deposit=lambda x: x * CHANNEL_SIZE_FACTOR,
             topup_deposit=lambda x: x * CHANNEL_SIZE_FACTOR
     ):
-        self.rmp_client = rmp_client
+        self.client = client
         self.api_endpoint = api_endpoint
         self.api_port = api_port
         self.channel = None
@@ -65,7 +66,7 @@ class M2MClient(object):
             if HEADERS['contract_address'] in headers:
                 # Only check if the server actually provides it.
                 channel_manager_address = headers[HEADERS['contract_address']]
-                if channel_manager_address != self.rmp_client.channel_manager_address:
+                if channel_manager_address != self.client.channel_manager_address:
                     raise InvalidChannelManager('Requested: {}'.format(channel_manager_address))
             else:
                 log.warning('Server did not specify a contract address. Sending anyway.')
@@ -82,8 +83,8 @@ class M2MClient(object):
         Attempts to perform a payment on an existing channel or a new one if none is available.
         """
         open_channels = [
-            c for c in self.rmp_client.channels
-            if c.sender.lower() == self.rmp_client.account.lower() and
+            c for c in self.client.channels
+            if c.sender.lower() == self.client.account.lower() and
                c.receiver.lower() == receiver.lower() and
                c.state == Channel.State.open
         ]
@@ -115,7 +116,7 @@ class M2MClient(object):
             log.info(
                 'Creating new channel with deposit {} for receiver {}.'.format(deposit, receiver)
             )
-            self.channel = self.rmp_client.open_channel(receiver, deposit)
+            self.channel = self.client.open_channel(receiver, deposit)
 
         if self.channel:
             self.channel.create_transfer(value)
@@ -127,7 +128,7 @@ class M2MClient(object):
         """
         if channel:
             headers = {
-                HEADERS['contract_address']: self.rmp_client.channel_manager_address,
+                HEADERS['contract_address']: self.client.channel_manager_address,
                 HEADERS['balance']: str(channel.balance),
                 HEADERS['balance_signature']: encode_hex(channel.balance_sig),
                 HEADERS['sender_address']: channel.sender,

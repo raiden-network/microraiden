@@ -1,15 +1,10 @@
 import logging
 from enum import Enum
 
-from ethereum.utils import decode_hex, encode_hex
-
+from eth_utils import encode_hex, decode_hex
 from raiden_mps.crypto import sign_balance_proof, verify_closing_signature
 
 log = logging.getLogger(__name__)
-
-if isinstance(encode_hex(b''), bytes):
-    _encode_hex = encode_hex
-    encode_hex = lambda b: _encode_hex(b).decode()
 
 
 class Channel:
@@ -156,8 +151,8 @@ class Channel:
         proof signed by the receiver. This signature must correspond to the balance proof stored in
         the passed channel state.
         """
-        if self.state != Channel.State.open:
-            log.error('Channel must be open to be closed cooperatively.')
+        if self.state == Channel.State.closed:
+            log.error('Channel must not be closed already to be closed cooperatively.')
             return None
         log.info('Attempting to cooperatively close channel to {} created at block #{}.'.format(
             self.receiver, self.block
@@ -251,7 +246,7 @@ class Channel:
             value, self.receiver, self.block
         ))
 
-        if self.state != Channel.State.open:
+        if self.state == Channel.State.closed:
             log.error('Channel must be open to create a transfer.')
             return None
 

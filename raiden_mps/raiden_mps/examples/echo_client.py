@@ -3,8 +3,8 @@ This is dummy code showing how the minimal app could look like.
 """
 import click
 import re
-from raiden_mps.client.rmp_client import RMPClient
-from raiden_mps.client.m2m_client import M2MClient
+from raiden_mps import Client
+from raiden_mps import M2MClient
 import logging
 import requests
 
@@ -14,16 +14,16 @@ import requests
 @click.option('--resource', required=True, help='Get this resource.')
 def run(key_path, resource):
     # create the client
-    rmp_client = RMPClient(key_path=key_path)
-    client = M2MClient(
-        rmp_client,
+    client = Client(key_path=key_path)
+    m2mclient = M2MClient(
+        client,
         'localhost',
         5000
     )
 
     # Get the resource. If payment is required, client will attempt to create
     # a channel or will use existing one.
-    status, headers, body = client.request_resource(resource)
+    status, headers, body = m2mclient.request_resource(resource)
     if status == requests.codes.OK:
         if re.match('^text\/', headers['Content-Type']):
             logging.info("got the resource %s type=%s\n%s" % (

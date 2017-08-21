@@ -1,17 +1,18 @@
 import pytest
 
+from raiden_mps import Client
 from raiden_mps.config import TOKEN_ADDRESS, TEST_SENDER_PRIVKEY
 
 
 @pytest.mark.parametrize('token_contract_address', [TOKEN_ADDRESS])
 @pytest.mark.parametrize('sender_privkey', [TEST_SENDER_PRIVKEY])
-def test_client(rmp_client, receiver_address):
+def test_client(client: Client, receiver_address, clean_channels):
     """test if contract calls go through"""
 
     import logging
     logging.basicConfig(level=logging.INFO)
 
-    c = rmp_client.open_channel(receiver_address, 10)
+    c = client.open_channel(receiver_address, 10)
     assert c is not None
 
     sig = c.create_transfer(5)

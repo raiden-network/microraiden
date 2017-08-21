@@ -16,8 +16,21 @@ from fixtures import (
     print_gas_used
 )
 
+from ethereum.abi import (
+    ContractTranslator
+)
+
+import json
+import os
+
 global logs
 logs = {}
+
+
+def get_contract_abi():
+    contracts_abi_path = os.path.join(os.path.dirname(__file__), '../build/contracts.json')
+    abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
+    return abi
 
 
 def add_logs(contract, event_name):
@@ -59,7 +72,7 @@ def channel_settle_tests_20(contract, channel_20):
     token.transact({"from": sender}).approve(contract.address, 33)
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUp(receiver, open_block_number, 33)
+        contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, 33)
 
 
 def channel_pre_close_tests_20(contract, channel_20):
@@ -71,7 +84,7 @@ def channel_pre_close_tests_20(contract, channel_20):
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': sender}).settle(receiver, open_block_number)
 
-    contract.transact({'from': sender}).topUp(receiver, open_block_number, 14)
+    contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, 14)
 
 
 def channel_settle_tests(contract, channel):
@@ -105,7 +118,7 @@ def channel_20(contract, web3):
 
     token.transact({"from": B}).approve(contract.address, channel_deposit)
     assert token.call().balanceOf(contract.address) == 0
-    contract.transact({"from": B}).createChannel(C, channel_deposit)
+    contract.transact({"from": B}).createChannelERC20(C, channel_deposit)
     assert token.call().balanceOf(contract.address) == channel_deposit
 
     open_block_number = get_last_open_block_number(contract)
@@ -118,7 +131,12 @@ def channel(contract, web3):
     (Owner, A, B) = web3.eth.accounts[:3]
     global channel_deposit
     channel_deposit = 220
-    B_bytes = bytes(B, "raw_unicode_escape")
+
+    abi = get_contract_abi()
+    ct = ContractTranslator(abi)
+    txdata = ct.encode('createChannel', [A, B, channel_deposit])
+    print('---txdata', txdata)
+
     print('Owner', Owner)
     print('sender', A)
     print('receiver', B)
@@ -129,7 +147,7 @@ def channel(contract, web3):
     token.transact({"from": Owner}).transfer(B, 22)
 
     # Create channel
-    token.transact({"from": A}).transfer(contract.address, channel_deposit, B_bytes)
+    token.transact({"from": A}).transfer(contract.address, channel_deposit, txdata)
     assert token.call().balanceOf(contract.address) == channel_deposit
     open_block_number = get_last_open_block_number(contract)
 
@@ -168,24 +186,24 @@ def test_channel_20_create(web3, chain, contract):
     token.transact({"from": Owner}).transfer(D, depozit_D)
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({"from": B}).createChannel(A, depozit_B)
+        contract.transact({"from": B}).createChannelERC20(A, depozit_B)
 
     # Approve token allowance
     trxid = token.transact({"from": B}).approve(contract.address, depozit_B)
     gas_used_create += get_gas_used(chain, trxid)
 
     with pytest.raises(TypeError):
-        contract.transact({"from": B}).createChannel(A, -2)
+        contract.transact({"from": B}).createChannelERC20(A, -2)
 
     # Cannot create a channel if tokens were not approved
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({"from": D}).createChannel(C, depozit_D)
+        contract.transact({"from": D}).createChannelERC20(C, depozit_D)
 
     assert token.call().balanceOf(contract.address) == 0
     pre_balance_B = token.call().balanceOf(B)
 
     # Create channel
-    trxid = contract.transact({"from": B}).createChannel(A, depozit_B)
+    trxid = contract.transact({"from": B}).createChannelERC20(A, depozit_B)
     gas_used_create += get_gas_used(chain, trxid)
 
     # Check balances
@@ -219,20 +237,22 @@ def test_channel_223_create(web3, chain, contract, channels_contract):
     assert token.call().balanceOf(D) == depozit_D
     assert token.call().balanceOf(contract.address) == 0
 
-    # Receiver address in bytes
-    A_bytes = bytes(A, "raw_unicode_escape")
-    D_bytes = bytes(D, "raw_unicode_escape")
-    A_bytes_fake = bytes("0xdceceaf3fc5c0a63d195d69b1a90011b7b19650", "raw_unicode_escape")
+    abi = get_contract_abi()
+    ct = ContractTranslator(abi)
+    txdata = ct.encode('createChannel', [B, A, depozit_B])
+    print('---txdata', txdata)
 
     with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": B}).transfer(other_contract.address, depozit_B, A_bytes)
+        token.transact({"from": B}).transfer(other_contract.address, depozit_B, txdata)
     with pytest.raises(TypeError):
-        token.transact({"from": B}).transfer(contract.address, -2, A_bytes)
+        token.transact({"from": B}).transfer(contract.address, -2, txdata)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({"from": D}).createChannel(B, A, depozit_B)
 
     # TODO should this fail?
     #token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes_fake)
-
-    trxid = token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes)
+    #A_bytes = '0x829bd824b016326a401d083b33d092293333a830'
+    trxid = token.transact({"from": B}).transfer(contract.address, depozit_B, txdata)
 
     channel_post_create_tests(contract, B, A, depozit_B)
 
@@ -247,22 +267,22 @@ def test_channel_topup_20(web3, chain, contract, channel_20):
     top_up_deposit = 14
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUp(receiver, open_block_number, top_up_deposit)
+        contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
 
     # Approve token allowance
     trxid = token.transact({"from": sender}).approve(contract.address, top_up_deposit)
     gas_used_approve = get_gas_used(chain, trxid)
 
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': A}).topUp(receiver, open_block_number, top_up_deposit)
+        contract.transact({'from': A}).topUpERC20(receiver, open_block_number, top_up_deposit)
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUp(A, open_block_number, top_up_deposit)
+        contract.transact({'from': sender}).topUpERC20(A, open_block_number, top_up_deposit)
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUp(receiver, open_block_number, 0)
+        contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, 0)
     with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUp(receiver, 0, top_up_deposit)
+        contract.transact({'from': sender}).topUpERC20(receiver, 0, top_up_deposit)
 
-    trxid = contract.transact({'from': sender}).topUp(receiver, open_block_number, top_up_deposit)
+    trxid = contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
 
     channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
@@ -277,15 +297,13 @@ def test_channel_topup_223(web3, chain, contract, channel):
     (A) = web3.eth.accounts[3]
     top_up_deposit = 14
 
-    receiver_bytes = bytes(receiver, "raw_unicode_escape")
-    block_bytes = bytes(str(open_block_number), "raw_unicode_escape")
+    abi = get_contract_abi()
+    ct = ContractTranslator(abi)
+    top_up_data = ct.encode('topUp', [sender, receiver, open_block_number, top_up_deposit])
+    print('---txdata', top_up_data)
 
-    top_up_data = receiver_bytes + block_bytes
-    top_up_data_wrong_receiver = bytes(A, "raw_unicode_escape") + block_bytes
-    top_up_data_wrong_block = receiver_bytes + bytes(str(open_block_number+30), "raw_unicode_escape")
-    top_up_data_small = bytes("0x00000", "raw_unicode_escape")
-    top_up_data_big = receiver_bytes + bytes(str(open_block_number) + str(10**9), "raw_unicode_escape")
-    top_up_data_string = receiver_bytes + bytes("aaa", "raw_unicode_escape")
+    top_up_data_wrong_receiver = ct.encode('topUp', [sender, A, open_block_number, top_up_deposit])
+    top_up_data_wrong_block = ct.encode('topUp', [sender, receiver, open_block_number + 30, top_up_deposit])
 
     with pytest.raises(tester.TransactionFailed):
         token.transact({"from": sender}).transfer(contract.address, 0, top_up_data)
@@ -294,11 +312,7 @@ def test_channel_topup_223(web3, chain, contract, channel):
     with pytest.raises(tester.TransactionFailed):
         token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_block)
     with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_string)
-    with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_small)
-    with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_big)
+        contract.transact({"from": A}).topUp(sender, receiver, open_block_number, top_up_deposit)
 
     # Call Token - this calls contract.tokenFallback
     trxid = token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data)

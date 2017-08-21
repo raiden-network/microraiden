@@ -1,29 +1,46 @@
-from eth_utils import force_bytes
+from coincurve import PublicKey
+from eth_utils import force_bytes, encode_hex, decode_hex
 
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 from raiden_mps.contract_proxy import ChannelContractProxy
-from raiden_mps.crypto import *
+from raiden_mps.crypto import (
+    privkey_to_addr,
+    sha3_hex,
+    sign,
+    pubkey_to_addr,
+    balance_message_hash,
+    sign_balance_proof,
+    verify_balance_proof,
+    closing_agreement_message_hash,
+    sign_close,
+    verify_closing_signature
+)
 
-SENDER_PRIVATE_KEY = 'a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0'
+SENDER_PRIVATE_KEY = '0xa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0'
 SENDER_ADDR = privkey_to_addr(SENDER_PRIVATE_KEY)
-RECEIVER_PRIVATE_KEY = 'b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1'
+RECEIVER_PRIVATE_KEY = '0xb1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1'
 RECEIVER_ADDR = privkey_to_addr(RECEIVER_PRIVATE_KEY)
+
+
+def test_encode_hex():
+    assert isinstance(encode_hex(b''), str)
+    assert isinstance(decode_hex(''), bytes)
 
 
 def test_sha3():
     addr1 = '0x1212121212121212121212121212121212121212'
     addr2 = '0x3434343434343434343434343434343434343434'
 
-    assert sha3_hex('a') == '3ac225168df54212a25c1c01fd35bebfea408fdac2e31ddd6f80a4bbf9a5f1cb'
-    assert sha3_hex('0x0a') == '0ef9d8f8804d174666011a394cab7901679a8944d24249fd148a6a36071151f8'
+    assert sha3_hex('a') == '0x3ac225168df54212a25c1c01fd35bebfea408fdac2e31ddd6f80a4bbf9a5f1cb'
+    assert sha3_hex('0x0a') == '0x0ef9d8f8804d174666011a394cab7901679a8944d24249fd148a6a36071151f8'
     assert sha3_hex(addr1, (15, 32)) == \
-        '1e17ec1733a759ef0d988fd0195d0e2792dc6181c8953130d14f9a261c6260bb'
+           '0x1e17ec1733a759ef0d988fd0195d0e2792dc6181c8953130d14f9a261c6260bb'
     assert sha3_hex(addr1, (17, 32), addr2) == \
-        '00424f9e17d5fecf44d798962d27cd1d44ef37d3968b05a5ff078ff696c14ea8'
+           '0x00424f9e17d5fecf44d798962d27cd1d44ef37d3968b05a5ff078ff696c14ea8'
     assert sha3_hex((23, 256)) == \
-        'c624b66cc0138b8fabc209247f72d758e1cf3343756d543badbf24212bed8c15'
-    assert sha3_hex(19) == '66de8ffda797e3de9c05e8fc57b3bf0ec28a930d40b0d285d93c06501cf6a090'
-    assert sha3_hex(-5) == '7234c58e51ab4abdf62492ac6faf025ebff2afd4f861cebfa33d3e76667716a9'
+           '0xc624b66cc0138b8fabc209247f72d758e1cf3343756d543badbf24212bed8c15'
+    assert sha3_hex(19) == '0x66de8ffda797e3de9c05e8fc57b3bf0ec28a930d40b0d285d93c06501cf6a090'
+    assert sha3_hex(-5) == '0x7234c58e51ab4abdf62492ac6faf025ebff2afd4f861cebfa33d3e76667716a9'
 
 
 def test_sign():
@@ -63,7 +80,7 @@ def test_verify_balance_proof_27():
     sender = '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38'
     receiver = '0x004b52c58863c903ab012537247b963c557929e8'
     contract_address = '0x5f3d7e2c44e157c2f1680059dd818d160e7d9625'
-    sig = '3c18243343e3242222b05fddd9f629b7dbc04332ad551287623cbaf2592dabc46' \
+    sig = '0x3c18243343e3242222b05fddd9f629b7dbc04332ad551287623cbaf2592dabc46' \
           '6956ecfb3b859bbb17c0ad5990bac36f5edd92524a5160e9163a003f6d253a21c'
     sig = decode_hex(sig)
     sender_recovered = verify_balance_proof(receiver, 3258574, 2, sig, contract_address)
