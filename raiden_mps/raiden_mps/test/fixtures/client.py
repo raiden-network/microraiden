@@ -2,16 +2,16 @@ import shutil
 import tempfile
 
 import pytest
-from ethereum.utils import privtoaddr, encode_hex
 
 from raiden_mps import Client
 from raiden_mps.config import GAS_LIMIT
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
+from raiden_mps.crypto import privkey_to_addr
 
 
 @pytest.fixture
 def client_address(client_privkey):
-    return '0x' + encode_hex(privtoaddr(client_privkey))
+    return privkey_to_addr(client_privkey)
 
 
 @pytest.fixture

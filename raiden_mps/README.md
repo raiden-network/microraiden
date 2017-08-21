@@ -30,7 +30,7 @@ python3 -m raiden_mps.proxy
 python3 -m raiden_mps.examples.m2m_client --key-path <path to private key file>
 ```
 
-The private key file should contain a valid (and preferably sufficiently funded) private key in hex format, without a leading `0x` prefix.
+The private key file should contain a valid (and preferably sufficiently funded) private key in hex format, with or without a leading `0x` prefix.
 
 ## Library use
 
@@ -39,10 +39,10 @@ The Raiden client backend used by the M2M sample client can be used as a standal
 ```python
 from raiden_mps import Client
 
-client = Client('<hex-encoded private key (without leading 0x)>')
+client = Client('<hex-encoded private key>')
 ```
 
-Alternatively you can specify a path to a file containing the private key, again in a hex-encoded format, without a leading `0x` prefix.
+Alternatively you can specify a path to a file containing the private key, again in a hex-encoded format, with or without a leading `0x` prefix.
 ```python
 client = Client(key_path='<path to private key file>'
 ```

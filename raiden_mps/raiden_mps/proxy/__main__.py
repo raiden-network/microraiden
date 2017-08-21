@@ -1,12 +1,13 @@
 import click
 import os
 import sys
-from ethereum.utils import encode_hex, privtoaddr
 #
 # Flask restarts itself when a file changes, but this restart
 #  does not have PYTHONPATH set properly if you start the
 #  app with python -m raiden_mps.
 #
+from raiden_mps.crypto import privkey_to_addr
+
 if __package__ is None:
     path = os.path.dirname(os.path.dirname(__file__))
     sys.path.insert(0, path)
@@ -39,7 +40,7 @@ from raiden_mps.proxy.content import (
 )
 @click.option(
     '--paywall-info',
-    default='raiden_mps/data/html/',
+    default=os.path.abspath(os.path.join(os.path.dirname(__file__), '../webui')),
     help='Directory where the paywall info is stored. '
          'The directory shoud contain a index.html file with the payment info/webapp. '
          'Content of the directory (js files, images..) is available on the "js/" endpoint.'
@@ -54,7 +55,7 @@ def main(
         with open(private_key) as keyfile:
             private_key = keyfile.readline()[:-1]
 
-    receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
+    receiver_address = privkey_to_addr(private_key)
 
     if not state_file:
         state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)

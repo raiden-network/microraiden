@@ -2,7 +2,7 @@ import logging
 import time
 
 import requests
-from ethereum.utils import encode_hex
+from eth_utils import encode_hex
 
 from raiden_mps import Client
 from raiden_mps.client.channel import Channel

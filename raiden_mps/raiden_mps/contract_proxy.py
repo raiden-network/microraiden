@@ -2,16 +2,13 @@ import gevent
 import rlp
 from eth_utils import decode_hex
 from ethereum.transactions import Transaction
-from ethereum.utils import privtoaddr, encode_hex
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 from web3.formatters import input_filter_params_formatter, log_array_formatter
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 
-if isinstance(encode_hex(b''), bytes):
-    _encode_hex = encode_hex
-    encode_hex = lambda b: _encode_hex(b).decode()
+from raiden_mps.crypto import privkey_to_addr
 
 DEFAULT_TIMEOUT = 20
 DEFAULT_RETRY_INTERVAL = 3
@@ -21,7 +18,7 @@ class ContractProxy:
     def __init__(self, web3: Web3, privkey, contract_address, abi, gas_price, gas_limit):
         self.web3 = web3
         self.privkey = privkey
-        self.caller_address = '0x' + encode_hex(privtoaddr(privkey))
+        self.caller_address = privkey_to_addr(privkey)
         self.address = contract_address
         self.abi = abi
         self.contract = self.web3.eth.contract(abi=self.abi, address=contract_address)
