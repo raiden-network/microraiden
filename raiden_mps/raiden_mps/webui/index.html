@@ -12,8 +12,8 @@
   <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
 
-  <script type="text/javascript" src="/js/web3.js"></script>
-  <script type="text/javascript" src="/js/rmp.js"></script>
+  <script type="text/javascript" src="js/web3.js"></script>
+  <script type="text/javascript" src="js/rmp.js"></script>
 </head>
 <body>
   <div class="container">
@@ -91,8 +91,26 @@
         The transactions are being processed. Please, authorize with your Ethereum client.
       </div>
     </div>
+
+    <div class="row main_switch" id="topup">
+      <div class="alert alert-warning">
+        <strong>Attention!</strong>
+        Insuficient deposited funds on channel.
+      </div>
+      <span>
+        In order to proceed, you must make a new deposit on the channel, and then sign the transaction.
+      </span>
+      <div class="input-group" style="max-width:15em;">
+        <input type="number" class="form-control" id="topup_deposit" placeholder="Deposit" style="text-align:right;" min="0"/>
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-primary" id="topup_start">Start</button>
+        </span>
+      </div>
+    </div>
+
   </div>
 
-  <script type="text/javascript" src="/js/main.js"></script>
+
+  <script type="text/javascript" src="js/main.js"></script>
 </body>
 </html>

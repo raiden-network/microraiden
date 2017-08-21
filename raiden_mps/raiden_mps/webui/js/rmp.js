@@ -318,8 +318,7 @@ class RaidenMicropaymentsClient {
               }
               return callback(null, receipt.blockNumber);
             });
-          }
-        );
+          });
       });
     });
   }
@@ -391,7 +390,7 @@ class RaidenMicropaymentsClient {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
-    const newBalance = this.channel.balance + parseInt(amount);
+    const newBalance = this.channel.balance + +amount;
     // get current deposit
     this.contract.getChannelInfo.call(
       this.channel.account,
@@ -408,20 +407,24 @@ class RaidenMicropaymentsClient {
           return callback(new Error("Insuficient funds: current = "+deposit+
             ", required = +"+newBalance-deposit));
         }
-        // get hash for new balance proof
-        return this.signBalance(newBalance, (err, sign) => {
+        return this.isChannelOpen((err, isOpen) => {
           if (err) {
             return callback(err);
+          } else if (!isOpen) {
+            return callback(new Error("Tried signing on closed channel"));
           }
-          this.setChannelInfo(Object.assign(
-            {},
-            this.channel,
-            {
-              balance: newBalance,
-              sign: sign
+          // get hash for new balance proof
+          return this.signBalance(newBalance, (err, sign) => {
+            if (err) {
+              return callback(err);
             }
-          ));
-          return callback(null, sign);
+            this.setChannelInfo(Object.assign(
+              {},
+              this.channel,
+              { balance: newBalance, sign }
+            ));
+            return callback(null, sign);
+          });
         });
       });
   }
