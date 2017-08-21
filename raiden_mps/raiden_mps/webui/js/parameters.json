@@ -1,28 +1,7 @@
 {
   "web3url": "/web3",
-  "contractAddr": "0x5f3d7e2c44e157c2f1680059dd818d160e7d9625",
+  "contractAddr": "0x794bf0bb5dcf528c4b631c699ff37e91257fac84",
   "contractABI": [
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "name": "_open_block_number",
-          "type": "uint32"
-        },
-        {
-          "name": "_added_deposit",
-          "type": "uint192"
-        }
-      ],
-      "name": "topUp",
-      "outputs": [],
-      "payable": false,
-      "type": "function"
-    },
     {
       "constant": true,
       "inputs": [],
@@ -129,6 +108,23 @@
           "type": "address"
         },
         {
+          "name": "_deposit",
+          "type": "uint192"
+        }
+      ],
+      "name": "createChannelERC20",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
           "name": "_open_block_number",
           "type": "uint32"
         }
@@ -191,6 +187,31 @@
           "type": "address"
         }
       ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "name": "_open_block_number",
+          "type": "uint32"
+        },
+        {
+          "name": "_added_deposit",
+          "type": "uint192"
+        }
+      ],
+      "name": "topUp",
+      "outputs": [],
       "payable": false,
       "type": "function"
     },
@@ -272,23 +293,6 @@
       "constant": false,
       "inputs": [
         {
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "name": "_deposit",
-          "type": "uint192"
-        }
-      ],
-      "name": "createChannel",
-      "outputs": [],
-      "payable": false,
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
           "name": "_sender",
           "type": "address"
         },
@@ -318,6 +322,27 @@
           "type": "uint32"
         },
         {
+          "name": "_added_deposit",
+          "type": "uint192"
+        }
+      ],
+      "name": "topUpERC20",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "name": "_open_block_number",
+          "type": "uint32"
+        },
+        {
           "name": "_balance",
           "type": "uint192"
         },
@@ -327,6 +352,27 @@
         }
       ],
       "name": "close",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "name": "_deposit",
+          "type": "uint192"
+        }
+      ],
+      "name": "createChannel",
       "outputs": [],
       "payable": false,
       "type": "function"
@@ -443,6 +489,11 @@
           "indexed": true,
           "name": "_open_block_number",
           "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "name": "_balance",
+          "type": "uint192"
         }
       ],
       "name": "ChannelSettled",
@@ -498,7 +549,7 @@
       "type": "event"
     }
   ],
-  "tokenAddr": "0x42c0185cb7b263533a85c3850cdacc24d8e06426",
+  "tokenAddr": "0xa9a7b9864de5217a0d1431a21823360ba1c6af12",
   "tokenABI": [
     {
       "constant": true,
