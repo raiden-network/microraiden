@@ -76,7 +76,7 @@ class M2MClient(object):
             self.perform_payment(headers[HEADERS['receiver_address']], price)
 
             if not self.channel:
-                raise ChannelCreateError("Channel could not be created.")
+                raise ChannelCreateError("No channel could be created or sufficiently topped up.")
 
     def perform_payment(self, receiver, value):
         """

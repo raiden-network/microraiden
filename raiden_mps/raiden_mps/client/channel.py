@@ -57,7 +57,7 @@ class Channel:
 
         return channels_raw
 
-    def topup(self, value):
+    def topup(self, deposit):
         """
         Attempts to increase the deposit in an existing channel. Block until confirmation.
         """
@@ -66,39 +66,38 @@ class Channel:
             return
 
         token_balance = self.client.token_proxy.contract.call().balanceOf(self.client.account)
-        if token_balance < value:
+        if token_balance < deposit:
             log.error(
                 'Insufficient tokens available for the specified topup ({}/{})'
-                .format(token_balance, value)
+                .format(token_balance, deposit)
             )
 
         log.info('Topping up channel to {} created at block #{} by {} tokens.'.format(
-            self.receiver, self.block, value
+            self.receiver, self.block, deposit
         ))
         current_block = self.client.web3.eth.blockNumber
 
-        tx1 = self.client.token_proxy.create_transaction(
-            'approve', [self.client.channel_manager_address, value]
+        calldata = self.client.channel_manager_proxy.create_transaction_data(
+            'topUp', [self.sender, self.receiver, self.block, deposit]
         )
-        tx2 = self.client.channel_manager_proxy.create_transaction(
-            'topUp', [self.receiver, self.block, value], nonce_offset=1
+        tx = self.client.token_proxy.create_signed_transaction(
+            'transfer', [self.client.channel_manager_address, deposit, calldata]
         )
-        self.client.web3.eth.sendRawTransaction(tx1)
-        self.client.web3.eth.sendRawTransaction(tx2)
+        self.client.web3.eth.sendRawTransaction(tx)
 
         log.info('Waiting for topup confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_topped_up_event_blocking(
             self.sender,
             self.receiver,
             self.block,
-            self.deposit + value,
-            value,
+            self.deposit + deposit,
+            deposit,
             current_block + 1
         )
 
         if event:
             log.info('Successfully topped up channel in block {}.'.format(event['blockNumber']))
-            self.deposit += value
+            self.deposit += deposit
             self.client.store_channels()
             return event
         else:
@@ -124,7 +123,7 @@ class Channel:
         elif not self.balance_sig:
             self.create_transfer(0)
 
-        tx = self.client.channel_manager_proxy.create_transaction(
+        tx = self.client.channel_manager_proxy.create_signed_transaction(
             'close', [self.receiver, self.block, self.balance, self.balance_sig]
         )
         self.client.web3.eth.sendRawTransaction(tx)
@@ -163,7 +162,7 @@ class Channel:
             log.error('Invalid closing signature or balance signature.')
             return None
 
-        tx = self.client.channel_manager_proxy.create_transaction(
+        tx = self.client.channel_manager_proxy.create_signed_transaction(
             'close', [
                 self.receiver, self.block, self.balance, self.balance_sig, closing_sig
             ]
@@ -197,9 +196,9 @@ class Channel:
             self.receiver, self.block
         ))
 
-        settle_block = self.client.channel_manager_proxy.contract.call().getChannelInfo(
+        _, _, settle_block, _ = self.client.channel_manager_proxy.contract.call().getChannelInfo(
             self.sender, self.receiver, self.block
-        )[2]
+        )
 
         current_block = self.client.web3.eth.blockNumber
         wait_remaining = settle_block - current_block
@@ -209,7 +208,7 @@ class Channel:
             ))
             return None
 
-        tx = self.client.channel_manager_proxy.create_transaction(
+        tx = self.client.channel_manager_proxy.create_signed_transaction(
             'settle', [self.receiver, self.block]
         )
         self.client.web3.eth.sendRawTransaction(tx)

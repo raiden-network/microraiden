@@ -27,12 +27,19 @@ class ContractProxy:
         self.gas_limit = gas_limit
         self.tester_mode = tester_mode
 
-    def create_transaction(self, func_name, args, nonce_offset=0):
-        nonce = self.web3.eth.getTransactionCount(self.caller_address, 'pending') + nonce_offset
-        data = self.contract._prepare_transaction(func_name, args)['data']
-        data = decode_hex(data)
-        tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, 0, data)
+    def create_signed_transaction(self, func_name, args, nonce_offset=0):
+        tx = self.create_transaction(func_name, args, nonce_offset)
         return self.web3.toHex(rlp.encode(tx.sign(self.privkey)))
+
+    def create_transaction(self, func_name, args, nonce_offset=0):
+        data = self.create_transaction_data(func_name, args)
+        nonce = self.web3.eth.getTransactionCount(self.caller_address, 'pending') + nonce_offset
+        tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, 0, data)
+        return tx
+
+    def create_transaction_data(self, func_name, args):
+        data = self.contract._prepare_transaction(func_name, args)['data']
+        return decode_hex(data)
 
     def get_logs(self, event_name, from_block=0, to_block='latest', filters=None):
         filter_kwargs = {

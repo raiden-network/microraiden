@@ -222,14 +222,14 @@ class Client:
             receiver_address, deposit
         ))
         current_block = self.web3.eth.blockNumber
-        tx1 = self.token_proxy.create_transaction(
-            'approve', [self.channel_manager_address, deposit]
+
+        calldata = self.channel_manager_proxy.create_transaction_data(
+            'createChannel', [self.account, receiver_address, deposit]
         )
-        tx2 = self.channel_manager_proxy.create_transaction(
-            'createChannel', [receiver_address, deposit], nonce_offset=1
+        tx = self.token_proxy.create_signed_transaction(
+            'transfer', [self.channel_manager_address, deposit, calldata]
         )
-        self.web3.eth.sendRawTransaction(tx1)
-        self.web3.eth.sendRawTransaction(tx2)
+        self.web3.eth.sendRawTransaction(tx)
 
         log.info('Waiting for channel creation event on the blockchain...')
         event = self.channel_manager_proxy.get_channel_created_event_blocking(
