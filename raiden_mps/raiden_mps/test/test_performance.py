@@ -4,16 +4,12 @@ import logging
 import datetime
 
 from raiden_mps.examples import M2MClient
-from .utils.client import close_all_channels_cooperatively
 
 log = logging.getLogger(__name__)
 
 
-def test_m2m_client(doggo_proxy, m2m_client: M2MClient):
+def test_m2m_client(doggo_proxy, m2m_client: M2MClient, clean_channels):
     logging.basicConfig(level=logging.DEBUG)
-
-    client = m2m_client.client
-    close_all_channels_cooperatively(client, balance=0)
 
     requests = 1000
     m2m_client.initial_deposit = lambda x: (requests + 1) * x
@@ -31,9 +27,6 @@ def test_m2m_client(doggo_proxy, m2m_client: M2MClient):
         assert status == 200
     t_diff = time.time() - t_start
 
-    # These are quite some tokens, so cooperatively close with a balance of 0.
-    close_all_channels_cooperatively(client, balance=0)
-
-    log.info("%d requests in %s (%f rps)" % (requests,
-                                             datetime.timedelta(seconds=t_diff),
-                                             requests/ t_diff))
+    log.info("{} requests in {} ({} rps)".format(
+        requests, datetime.timedelta(seconds=t_diff), requests/ t_diff)
+    )

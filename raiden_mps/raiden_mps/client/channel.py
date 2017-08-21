@@ -151,8 +151,8 @@ class Channel:
         proof signed by the receiver. This signature must correspond to the balance proof stored in
         the passed channel state.
         """
-        if self.state != Channel.State.open:
-            log.error('Channel must be open to be closed cooperatively.')
+        if self.state == Channel.State.closed:
+            log.error('Channel must not be closed already to be closed cooperatively.')
             return None
         log.info('Attempting to cooperatively close channel to {} created at block #{}.'.format(
             self.receiver, self.block
@@ -246,7 +246,7 @@ class Channel:
             value, self.receiver, self.block
         ))
 
-        if self.state != Channel.State.open:
+        if self.state == Channel.State.closed:
             log.error('Channel must be open to create a transfer.')
             return None
 

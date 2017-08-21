@@ -1,10 +1,9 @@
 import logging
-from eth_utils import is_same_address, encode_hex, decode_hex
+from eth_utils import is_same_address, encode_hex
 from raiden_mps.channel_manager import InvalidBalanceProof, NoOpenChannel
 from raiden_mps.crypto import sign_balance_proof
 import gevent
 import pytest
-
 
 log = logging.getLogger('tests.channel_manager')
 
@@ -16,63 +15,56 @@ def confirmed_open_channel(channel_manager, client, receiver_address, wait_for_b
     gevent.sleep(channel_manager.blockchain.poll_frequency)
     assert (channel.sender, channel.block) in channel_manager.state.channels
     yield channel
-    if channel.state is channel.State.open:
-        channel.close()
 
 
 def test_channel_opening(channel_manager, channel_manager2, client, receiver_address,
-                         wait_for_blocks):
+                         wait_for_blocks, clean_channels):
     blockchain = channel_manager.blockchain
     channel = client.open_channel(receiver_address, 10)
-    try:
-        # should be in unconfirmed channels
-        gevent.sleep(blockchain.poll_frequency)
-        assert (channel.sender, channel.block) not in channel_manager.state.channels
-        assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
-        channel_rec = channel_manager.state.unconfirmed_channels[channel.sender, channel.block]
-        assert is_same_address(channel_rec.receiver, receiver_address)
-        assert is_same_address(channel_rec.sender, channel.sender)
+    # should be in unconfirmed channels
+    gevent.sleep(blockchain.poll_frequency)
+    assert (channel.sender, channel.block) not in channel_manager.state.channels
+    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
+    channel_rec = channel_manager.state.unconfirmed_channels[channel.sender, channel.block]
+    assert is_same_address(channel_rec.receiver, receiver_address)
+    assert is_same_address(channel_rec.sender, channel.sender)
 
-        # should be confirmed after n blocks
-        wait_for_blocks(blockchain.n_confirmations)
-        gevent.sleep(blockchain.poll_frequency)
-        assert (channel.sender, channel.block) in channel_manager.state.channels
-        channel_rec = channel_manager.state.channels[channel.sender, channel.block]
-        assert is_same_address(channel_rec.receiver, receiver_address)
-        assert is_same_address(channel_rec.sender, channel.sender)
-        assert channel_rec.balance == 0
-        assert channel_rec.last_signature is None
-        assert channel_rec.is_closed is False
-        assert channel_rec.settle_timeout == -1
+    # should be confirmed after n blocks
+    wait_for_blocks(blockchain.n_confirmations)
+    gevent.sleep(blockchain.poll_frequency)
+    assert (channel.sender, channel.block) in channel_manager.state.channels
+    channel_rec = channel_manager.state.channels[channel.sender, channel.block]
+    assert is_same_address(channel_rec.receiver, receiver_address)
+    assert is_same_address(channel_rec.sender, channel.sender)
+    assert channel_rec.balance == 0
+    assert channel_rec.last_signature is None
+    assert channel_rec.is_closed is False
+    assert channel_rec.settle_timeout == -1
 
-        # should not appear in other channel manager
-        assert (channel.sender, channel.block) not in channel_manager2.state.channels
-        assert (channel.sender, channel.block) not in channel_manager2.state.unconfirmed_channels
-    finally:
-        channel.close()
+    # should not appear in other channel manager
+    assert (channel.sender, channel.block) not in channel_manager2.state.channels
+    assert (channel.sender, channel.block) not in channel_manager2.state.unconfirmed_channels
 
 
-def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait_for_blocks):
+def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait_for_blocks,
+                                 clean_channels):
     # if unconfirmed channel is closed it should simply be forgotten
     channel = client.open_channel(receiver_address, 10)
-    try:
-        gevent.sleep(channel_manager.blockchain.poll_frequency)
-        assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
-        assert (channel.sender, channel.block) not in channel_manager.state.channels
-        channel.close()
-        gevent.sleep(channel_manager.blockchain.poll_frequency)
-        assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
-        assert (channel.sender, channel.block) in channel_manager.state.channels
-        wait_for_blocks(channel_manager.blockchain.n_confirmations)
-        gevent.sleep(channel_manager.blockchain.poll_frequency)
-        assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
-        assert (channel.sender, channel.block) in channel_manager.state.channels
-    finally:
-        if channel.state is channel.State.open:
-            channel.close()
+    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
+    assert (channel.sender, channel.block) not in channel_manager.state.channels
+    channel.close()
+    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
+    assert (channel.sender, channel.block) in channel_manager.state.channels
+    wait_for_blocks(channel_manager.blockchain.n_confirmations)
+    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
+    assert (channel.sender, channel.block) in channel_manager.state.channels
 
 
-def test_close_confirmed_event(channel_manager, confirmed_open_channel, web3, wait_for_blocks):
+def test_close_confirmed_event(channel_manager, clean_channels, confirmed_open_channel, web3,
+                               wait_for_blocks):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
@@ -85,7 +77,8 @@ def test_close_confirmed_event(channel_manager, confirmed_open_channel, web3, wa
     assert channel_rec.settle_timeout == settle_block
 
 
-def test_channel_settled_event(channel_manager, confirmed_open_channel, wait_for_blocks, web3):
+def test_channel_settled_event(channel_manager, clean_channels, confirmed_open_channel,
+                               wait_for_blocks, web3):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
@@ -100,7 +93,7 @@ def test_channel_settled_event(channel_manager, confirmed_open_channel, wait_for
     assert channel_id not in channel_manager.state.channels
 
 
-def test_topup(channel_manager, confirmed_open_channel, wait_for_blocks):
+def test_topup(channel_manager, clean_channels, confirmed_open_channel, wait_for_blocks):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.topup(5)
     gevent.sleep(channel_manager.blockchain.poll_frequency)
@@ -113,23 +106,21 @@ def test_topup(channel_manager, confirmed_open_channel, wait_for_blocks):
     assert channel_rec.deposit == 15
 
 
-def test_unconfirmed_topup(channel_manager, client, receiver_address, wait_for_blocks):
+def test_unconfirmed_topup(channel_manager, client, receiver_address, wait_for_blocks,
+                           clean_channels):
     channel = client.open_channel(receiver_address, 10)
-    try:
-        gevent.sleep(channel_manager.blockchain.poll_frequency)
-        assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
-        channel.topup(5)
-        wait_for_blocks(channel_manager.blockchain.n_confirmations)
-        gevent.sleep(channel_manager.blockchain.poll_frequency)
-        assert (channel.sender, channel.block) in channel_manager.state.channels
-        channel_rec = channel_manager.state.channels[channel.sender, channel.block]
-        assert channel_rec.deposit == 15
-    finally:
-        channel.close()
+    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
+    channel.topup(5)
+    wait_for_blocks(channel_manager.blockchain.n_confirmations)
+    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    assert (channel.sender, channel.block) in channel_manager.state.channels
+    channel_rec = channel_manager.state.channels[channel.sender, channel.block]
+    assert channel_rec.deposit == 15
 
 
-def test_payment(channel_manager, confirmed_open_channel, receiver_address, receiver_privkey,
-                 sender_privkey, sender_address):
+def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiver_address,
+                 receiver_privkey, sender_privkey, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     channel_rec = channel_manager.state.channels[channel_id]
     assert channel_rec.last_signature is None
@@ -221,8 +212,8 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
     assert channel_rec.last_signature == sig3
 
 
-def test_challenge(channel_manager, confirmed_open_channel, receiver_address, sender_address,
-                   wait_for_blocks, web3, client_token_proxy):
+def test_challenge(channel_manager, clean_channels, confirmed_open_channel, receiver_address,
+                   sender_address, wait_for_blocks, web3, client_token_proxy):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     sig = encode_hex(confirmed_open_channel.create_transfer(5))
     channel_manager.register_payment(receiver_address, confirmed_open_channel.block, 5, sig)
@@ -247,7 +238,7 @@ def test_challenge(channel_manager, confirmed_open_channel, receiver_address, se
     assert channel_id not in channel_manager.state.channels
 
 
-def test_multiple_topups(channel_manager, confirmed_open_channel, wait_for_blocks):
+def test_multiple_topups(channel_manager, clean_channels, confirmed_open_channel, wait_for_blocks):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     channel_rec = channel_manager.state.channels[channel_id]
 
@@ -273,8 +264,8 @@ def test_multiple_topups(channel_manager, confirmed_open_channel, wait_for_block
     assert channel_rec.deposit == 25
 
 
-def test_settlement(channel_manager, confirmed_open_channel, receiver_address, wait_for_blocks,
-                    web3, client_token_proxy, sender_address):
+def test_settlement(channel_manager, clean_channels, confirmed_open_channel, receiver_address,
+                    wait_for_blocks, web3, client_token_proxy, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     channel_rec = channel_manager.state.channels[channel_id]
 
@@ -301,8 +292,8 @@ def test_settlement(channel_manager, confirmed_open_channel, receiver_address, w
     assert channel_id not in channel_manager.state.channels
 
 
-def test_cooperative(channel_manager, confirmed_open_channel, receiver_address, web3,
-                     wait_for_blocks, client_token_proxy, sender_address):
+def test_cooperative(channel_manager, clean_channels, confirmed_open_channel, receiver_address,
+                     web3, wait_for_blocks, client_token_proxy, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     channel_rec = channel_manager.state.channels[channel_id]
 
@@ -327,9 +318,9 @@ def test_cooperative(channel_manager, confirmed_open_channel, receiver_address, 
     assert channel_id not in channel_manager.state.channels
 
 
-def test_cooperative_wrong_balance_proof(channel_manager, confirmed_open_channel, receiver_address,
-                                         web3, wait_for_blocks, client_token_proxy,
-                                         sender_address):
+def test_cooperative_wrong_balance_proof(channel_manager, clean_channels, confirmed_open_channel,
+                                         receiver_address, web3, wait_for_blocks,
+                                         client_token_proxy, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     channel_rec = channel_manager.state.channels[channel_id]
 

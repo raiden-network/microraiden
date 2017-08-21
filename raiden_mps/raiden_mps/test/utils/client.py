@@ -12,9 +12,10 @@ def close_all_channels(client: Client):
 def close_channel_cooperatively(
         channel, privkey_receiver: str=TEST_RECEIVER_PRIVKEY, balance: int=None
 ):
+    if not channel.balance_sig:
+        balance = 0
     if balance is not None:
         channel.balance = 0
-        channel.state = Channel.State.open  # for settling channels
         channel.create_transfer(balance)
 
     closing_sig = sign_close(privkey_receiver, channel.balance_sig)
@@ -25,6 +26,7 @@ def close_all_channels_cooperatively(
         client: Client, privkey_receiver: str=TEST_RECEIVER_PRIVKEY, balance: int=None
 ):
     receiver_addr = privkey_to_addr(privkey_receiver)
+    client.sync_channels()
     channels = [
         c for c in client.channels if c.state != Channel.State.closed and
                                       c.receiver == receiver_addr

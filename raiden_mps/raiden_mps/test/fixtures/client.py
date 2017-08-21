@@ -7,6 +7,7 @@ from raiden_mps import Client
 from raiden_mps.config import GAS_LIMIT
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.crypto import privkey_to_addr
+from raiden_mps.test.utils.client import close_all_channels_cooperatively
 
 
 @pytest.fixture
@@ -74,3 +75,10 @@ def client(
         channel_manager_address=channel_manager_contract_address,
         token_address=token_contract_address
     )
+
+
+@pytest.fixture
+def clean_channels(client):
+    close_all_channels_cooperatively(client, balance=0)
+    yield
+    close_all_channels_cooperatively(client, balance=0)
