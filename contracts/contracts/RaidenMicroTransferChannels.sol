@@ -31,6 +31,15 @@ contract RaidenMicroTransferChannels {
     }
 
     /*
+     *  Modifiers
+     */
+
+    modifier isToken() {
+        require(msg.sender == token_address);
+        _;
+    }
+
+    /*
      *  Events
      */
 
@@ -190,7 +199,7 @@ contract RaidenMicroTransferChannels {
      *  Public functions
      */
 
-    /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract.
+    /// @dev Creates a new channel between a sender and a receiver, only callable by the Token contract.
     /// @param _sender The address that receives tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
@@ -199,25 +208,13 @@ contract RaidenMicroTransferChannels {
         address _receiver,
         uint192 _deposit)
         public
+        isToken
     {
-        GasCost('createChannel start', block.gaslimit, msg.gas);
-        uint32 open_block_number = uint32(block.number);
-
-        // Create unique identifier from sender, receiver and current block number
-        bytes32 key = getKey(_sender, _receiver, open_block_number);
-
-        require(channels[key].deposit == 0);
-        require(channels[key].open_block_number == 0);
-        require(closing_requests[key].settle_block_number == 0);
-
-        // Store channel information
-        channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
-        GasCost('createChannel end', block.gaslimit, msg.gas);
-        ChannelCreated(_sender, _receiver, _deposit);
+        createChannelPrivate(_sender, _receiver, _deposit);
     }
 
-    // TODO (WIP) Funds channel with an additional deposit of tokens
-    /// @dev Increase the sender's current deposit.
+    // TODO (WIP)
+    /// @dev Funds channel with an additional deposit of tokens, only callable by the Token contract.
     /// @param _sender The address that sends tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
@@ -228,19 +225,9 @@ contract RaidenMicroTransferChannels {
         uint32 _open_block_number,
         uint192 _added_deposit)
         public
+        isToken
     {
-        GasCost('topUp start', block.gaslimit, msg.gas);
-        require(_added_deposit != 0);
-        require(_open_block_number != 0);
-
-        bytes32 key = getKey(_sender, _receiver, _open_block_number);
-
-        require(channels[key].deposit != 0);
-        require(closing_requests[key].settle_block_number == 0);
-
-        channels[key].deposit += _added_deposit;
-        ChannelToppedUp(_sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
-        GasCost('topUp end', block.gaslimit, msg.gas);
+        topUpPrivate(_sender, _receiver, _open_block_number, _added_deposit);
     }
 
     /*
@@ -255,7 +242,7 @@ contract RaidenMicroTransferChannels {
         uint192 _deposit)
         public
     {
-        createChannel(msg.sender, _receiver, _deposit);
+        createChannelPrivate(msg.sender, _receiver, _deposit);
 
         // transferFrom deposit from _sender to contract
         // ! needs prior approval from user
@@ -276,7 +263,7 @@ contract RaidenMicroTransferChannels {
         // transferFrom deposit from msg.sender to contract
         // ! needs prior approval from user
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
-        topUp(msg.sender, _receiver, _open_block_number, _added_deposit);
+        topUpPrivate(msg.sender, _receiver, _open_block_number, _added_deposit);
     }
 
     /// @dev Function called when any of the parties wants to close the channel and settle; receiver needs a balance proof to immediately settle, sender triggers a challenge period.
@@ -363,6 +350,60 @@ contract RaidenMicroTransferChannels {
     /*
      *  Private functions
      */
+
+    /// @dev Creates a new channel between a sender and a receiver, only callable by the Token contract.
+    /// @param _sender The address that receives tokens.
+    /// @param _receiver The address that receives tokens.
+    /// @param _deposit The amount of tokens that the sender escrows.
+    function createChannelPrivate(
+        address _sender,
+        address _receiver,
+        uint192 _deposit)
+        private
+    {
+        GasCost('createChannel start', block.gaslimit, msg.gas);
+        uint32 open_block_number = uint32(block.number);
+
+        // Create unique identifier from sender, receiver and current block number
+        bytes32 key = getKey(_sender, _receiver, open_block_number);
+
+        require(channels[key].deposit == 0);
+        require(channels[key].open_block_number == 0);
+        require(closing_requests[key].settle_block_number == 0);
+
+        // Store channel information
+        channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
+        GasCost('createChannel end', block.gaslimit, msg.gas);
+        ChannelCreated(_sender, _receiver, _deposit);
+    }
+
+    // TODO (WIP)
+    /// @dev Funds channel with an additional deposit of tokens, only callable by the Token contract.
+    /// @param _sender The address that sends tokens.
+    /// @param _receiver The address that receives tokens.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _added_deposit The added token deposit with which the current deposit is increased.
+    function topUpPrivate(
+        address _sender,
+        address _receiver,
+        uint32 _open_block_number,
+        uint192 _added_deposit)
+        private
+    {
+        GasCost('topUp start', block.gaslimit, msg.gas);
+        require(_added_deposit != 0);
+        require(_open_block_number != 0);
+
+        bytes32 key = getKey(_sender, _receiver, _open_block_number);
+
+        require(channels[key].deposit != 0);
+        require(closing_requests[key].settle_block_number == 0);
+
+        channels[key].deposit += _added_deposit;
+        ChannelToppedUp(_sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
+        GasCost('topUp end', block.gaslimit, msg.gas);
+    }
+
 
     /// @dev Sender starts the challenge period; this can only happend once.
     /// @param _receiver The address that receives tokens.

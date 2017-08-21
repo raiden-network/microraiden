@@ -246,6 +246,8 @@ def test_channel_223_create(web3, chain, contract, channels_contract):
         token.transact({"from": B}).transfer(other_contract.address, depozit_B, txdata)
     with pytest.raises(TypeError):
         token.transact({"from": B}).transfer(contract.address, -2, txdata)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({"from": D}).createChannel(B, A, depozit_B)
 
     # TODO should this fail?
     #token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes_fake)
@@ -309,6 +311,8 @@ def test_channel_topup_223(web3, chain, contract, channel):
         token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_receiver)
     with pytest.raises(tester.TransactionFailed):
         token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_block)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({"from": A}).topUp(sender, receiver, open_block_number, top_up_deposit)
 
     # Call Token - this calls contract.tokenFallback
     trxid = token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data)
