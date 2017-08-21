@@ -4,20 +4,22 @@ hex-encoded values, such as hashes and private keys, come without a 0x prefix.
 """
 
 from coincurve import PrivateKey, PublicKey
-from eth_utils import encode_hex, decode_hex, remove_0x_prefix
-from ethereum.utils import privtoaddr
+from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak
 
 
 def generate_privkey() -> bytes:
     return encode_hex(PrivateKey().secret)
 
 
-def pubkey_to_addr(pubkey: str) -> str:
+def pubkey_to_addr(pubkey) -> str:
+    if isinstance(pubkey, PublicKey):
+        pubkey = pubkey.format(compressed=False)
+    assert isinstance(pubkey, bytes)
     return encode_hex(sha3(pubkey[1:])[-20:])
 
 
 def privkey_to_addr(privkey: str) -> str:
-    return encode_hex(privtoaddr(remove_0x_prefix(privkey)))
+    return pubkey_to_addr(PrivateKey.from_hex(remove_0x_prefix(privkey)).public_key)
 
 
 def addr_from_sig(sig, msg):
@@ -26,7 +28,7 @@ def addr_from_sig(sig, msg):
         sig = sig[:-1] + bytes([sig[-1] - 27])
 
     receiver_pubkey = PublicKey.from_signature_and_message(sig, msg, hasher=None)
-    return pubkey_to_addr(receiver_pubkey.format(compressed=False))
+    return pubkey_to_addr(receiver_pubkey)
 
 
 def sha3(*args) -> bytes:
@@ -38,7 +40,6 @@ def sha3(*args) -> bytes:
     sha3(uint32(5))
     Default size is 256.
     """
-    from ethereum.utils import sha3
 
     def format_int(value, size):
         if value >= 0:
@@ -62,7 +63,7 @@ def sha3(*args) -> bytes:
         else:
             raise ValueError('Unsupported type: {}.'.format(type(arg)))
 
-    return sha3(msg)
+    return keccak(msg)
 
 
 def sha3_hex(*args) -> bytes:

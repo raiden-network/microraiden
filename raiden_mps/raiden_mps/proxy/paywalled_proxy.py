@@ -3,6 +3,9 @@ import sys
 
 import os
 from gevent import monkey
+
+from raiden_mps.crypto import privkey_to_addr
+
 monkey.patch_all()
 from flask import Flask
 from flask_restful import (
@@ -30,7 +33,6 @@ from raiden_mps.config import API_PATH
 
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
-from ethereum.utils import encode_hex, privtoaddr
 
 import raiden_mps.utils as utils
 import logging
@@ -57,7 +59,7 @@ class PaywalledProxy:
         self.rest_server = None
         self.server_greenlet = None
         web3 = Web3(RPCProvider())
-        receiver_address = '0x' + encode_hex(privtoaddr(private_key)).decode()
+        receiver_address = privkey_to_addr(private_key)
 
         try:
             self.channel_manager = ChannelManager(

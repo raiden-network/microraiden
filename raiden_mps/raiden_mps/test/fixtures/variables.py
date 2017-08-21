@@ -1,5 +1,4 @@
 import pytest
-from ethereum.utils import encode_hex, privtoaddr
 
 import os
 import json
