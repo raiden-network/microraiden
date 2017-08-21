@@ -15,11 +15,11 @@ def check_response(response: tuple):
 
 def test_m2m_client(doggo_proxy, m2m_client: M2MClient):
     logging.basicConfig(level=logging.INFO)
-    close_all_channels_cooperatively(m2m_client.rmp_client, balance=0)
+    close_all_channels_cooperatively(m2m_client.client, balance=0)
 
     check_response(m2m_client.request_resource('doggo.jpg'))
 
-    open_channels = [c for c in m2m_client.rmp_client.channels if c.state == Channel.State.open]
+    open_channels = [c for c in m2m_client.client.channels if c.state == Channel.State.open]
     assert len(open_channels) == 1
     channel = open_channels[0]
     assert channel == m2m_client.channel
@@ -28,18 +28,18 @@ def test_m2m_client(doggo_proxy, m2m_client: M2MClient):
     assert channel.sender == TEST_SENDER_ADDR
     assert channel.receiver == TEST_RECEIVER_ADDR
 
-    close_all_channels_cooperatively(m2m_client.rmp_client, balance=0)
+    close_all_channels_cooperatively(m2m_client.client, balance=0)
 
 
 def test_m2m_client_topup(doggo_proxy, m2m_client: M2MClient):
     logging.basicConfig(level=logging.INFO)
-    close_all_channels_cooperatively(m2m_client.rmp_client, balance=0)
+    close_all_channels_cooperatively(m2m_client.client, balance=0)
 
     # Create a channel that has just enough capacity for one transfer.
     m2m_client.initial_deposit = lambda x: 0
     check_response(m2m_client.request_resource('doggo.jpg'))
 
-    open_channels = [c for c in m2m_client.rmp_client.channels if c.state == Channel.State.open]
+    open_channels = [c for c in m2m_client.client.channels if c.state == Channel.State.open]
     assert len(open_channels) == 1
     channel1 = open_channels[0]
     assert channel1 == m2m_client.channel
@@ -48,7 +48,7 @@ def test_m2m_client_topup(doggo_proxy, m2m_client: M2MClient):
 
     # Do another payment. Topup should occur.
     check_response(m2m_client.request_resource('doggo.jpg'))
-    open_channels = [c for c in m2m_client.rmp_client.channels if c.state == Channel.State.open]
+    open_channels = [c for c in m2m_client.client.channels if c.state == Channel.State.open]
     assert len(open_channels) == 1
     channel2 = open_channels[0]
     assert channel2 == m2m_client.channel
@@ -56,4 +56,4 @@ def test_m2m_client_topup(doggo_proxy, m2m_client: M2MClient):
     assert channel2.balance < channel2.deposit
     assert channel1 == channel2
 
-    close_all_channels_cooperatively(m2m_client.rmp_client, balance=0)
+    close_all_channels_cooperatively(m2m_client.client, balance=0)

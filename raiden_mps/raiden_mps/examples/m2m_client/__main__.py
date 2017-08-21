@@ -6,7 +6,7 @@ import click
 
 from raiden_mps.examples.m2m_client import M2MClient
 from raiden_mps.client.channel import Channel
-from raiden_mps import RMPClient
+from raiden_mps import Client
 
 log = logging.getLogger(__name__)
 
@@ -39,20 +39,16 @@ def run(api_endpoint, api_port, **kwargs):
     kwargs_client = {
         key: value for key, value in kwargs.items() if value and key not in exclude_kwargs
     }
-    rmp_client = RMPClient(**kwargs_client)
+    client = Client(**kwargs_client)
 
-    client = M2MClient(
-        rmp_client,
-        api_endpoint,
-        api_port
-    )
+    m2mclient = M2MClient(client, api_endpoint, api_port)
 
     resource = 'doggo.jpg'
-    status, headers, body = client.request_resource(resource)
+    status, headers, body = m2mclient.request_resource(resource)
     log.info('Response: {}'.format(body))
 
     if kwargs['close_channels'] is True:
-        for channel in rmp_client.channels:
+        for channel in client.channels:
             if channel.state == Channel.State.open:
                 channel.close_channel()
 

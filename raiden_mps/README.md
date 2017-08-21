@@ -34,28 +34,28 @@ The private key file should contain a valid (and preferably sufficiently funded)
 
 ## Library use
 
-### RMP Client
+### Client
 The Raiden client backend used by the M2M sample client can be used as a standalone library. After installation, import the following class:
 ```python
-from raiden_mps import RMPClient
+from raiden_mps import Client
 
-client = RMPClient('<hex-encoded private key (without leading 0x)>')
+client = Client('<hex-encoded private key (without leading 0x)>')
 ```
 
 Alternatively you can specify a path to a file containing the private key, again in a hex-encoded format, without a leading `0x` prefix.
 ```python
-client = RMPClient(key_path='<path to private key file>'
+client = Client(key_path='<path to private key file>'
 ```
 
 This client object allows interaction with the blockchain and offline-signing of transactions and Raiden balance proofs.
 
-An example lifecycle of an `RMPClient` object could look like this:
+An example lifecycle of a `Client` object could look like this:
 
 ```python
-from raiden_mps import RMPClient
+from raiden_mps import Client
 
 receiver = '0xb6b79519c91edbb5a0fc95f190741ad0c4b1bb4d'
-client = RMPClient('55e58f57ec2177ea681ee461c6d2740060fd03109036e7e6b26dcf0d16a28169')
+client = Client('55e58f57ec2177ea681ee461c6d2740060fd03109036e7e6b26dcf0d16a28169')
 
 channel = client.open_channel(receiver, 10)
 channel.create_transfer(3)
@@ -82,6 +82,12 @@ channel.close()
 # Wait for settlement period to end.
 
 channel.settle()
+
+# Instead of requesting a close and waiting for the settlement period to end, you can also perform
+# a cooperative close, provided that you have a receiver-signed balance proof that matches your
+# current channel balance.
+
+channel.close_cooperatively(closing_sig)
 ```
 
 The values required for a valid balance proof required by the receiver end are printed above. Make sure to let them know.

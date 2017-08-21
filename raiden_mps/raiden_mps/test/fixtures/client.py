@@ -4,7 +4,7 @@ import tempfile
 import pytest
 from ethereum.utils import privtoaddr, encode_hex
 
-from raiden_mps import RMPClient
+from raiden_mps import Client
 from raiden_mps.config import GAS_LIMIT
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 
@@ -32,8 +32,9 @@ def datadir():
 
 
 @pytest.fixture
-def client_contract_proxy(web3, sender_privkey, channel_manager_contract_address,
-                          channel_manager_abi):
+def client_contract_proxy(
+        web3, sender_privkey, channel_manager_contract_address, channel_manager_abi
+):
     return ChannelContractProxy(
         web3,
         sender_privkey,
@@ -57,13 +58,15 @@ def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi):
 
 
 @pytest.fixture
-def rmp_client(sender_privkey,
-               client_contract_proxy,
-               client_token_proxy,
-               datadir,
-               channel_manager_contract_address,
-               token_contract_address):
-    return RMPClient(
+def client(
+        sender_privkey,
+        client_contract_proxy,
+        client_token_proxy,
+        datadir,
+        channel_manager_contract_address,
+        token_contract_address
+):
+    return Client(
         privkey=sender_privkey,
         channel_manager_proxy=client_contract_proxy,
         token_proxy=client_token_proxy,

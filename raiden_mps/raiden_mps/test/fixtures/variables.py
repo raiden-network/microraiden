@@ -3,13 +3,12 @@ from ethereum.utils import encode_hex, privtoaddr
 
 import os
 import json
-from raiden_mps.client.rmp_client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
+from raiden_mps.client.client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
 from raiden_mps.config import (
     TEST_SENDER_PRIVKEY,
     TEST_RECEIVER_PRIVKEY,
     TEST_SECONDARY_RECEIVER_PRIVKEY
 )
-
 
 @pytest.fixture
 def contracts_relative_path():

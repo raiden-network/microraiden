@@ -1,5 +1,5 @@
 from .client import (
-    RMPClient
+    Client
 )
 
 from .header import (

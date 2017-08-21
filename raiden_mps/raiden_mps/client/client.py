@@ -20,7 +20,7 @@ if isinstance(encode_hex(b''), bytes):
     encode_hex = lambda b: _encode_hex(b).decode()
 
 
-class RMPClient:
+class Client:
     def __init__(
             self,
             privkey:str=None,

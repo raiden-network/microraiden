@@ -10,8 +10,8 @@ log = logging.getLogger('tests.channel_manager')
 
 
 @pytest.fixture
-def confirmed_open_channel(channel_manager, rmp_client, receiver_address, wait_for_blocks):
-    channel = rmp_client.open_channel(receiver_address, 10)
+def confirmed_open_channel(channel_manager, client, receiver_address, wait_for_blocks):
+    channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_frequency)
     assert (channel.sender, channel.block) in channel_manager.state.channels
@@ -20,10 +20,10 @@ def confirmed_open_channel(channel_manager, rmp_client, receiver_address, wait_f
         channel.close()
 
 
-def test_channel_opening(channel_manager, channel_manager2, rmp_client, receiver_address,
+def test_channel_opening(channel_manager, channel_manager2, client, receiver_address,
                          wait_for_blocks):
     blockchain = channel_manager.blockchain
-    channel = rmp_client.open_channel(receiver_address, 10)
+    channel = client.open_channel(receiver_address, 10)
     try:
         # should be in unconfirmed channels
         gevent.sleep(blockchain.poll_frequency)
@@ -52,9 +52,9 @@ def test_channel_opening(channel_manager, channel_manager2, rmp_client, receiver
         channel.close()
 
 
-def test_close_unconfirmed_event(channel_manager, rmp_client, receiver_address, wait_for_blocks):
+def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait_for_blocks):
     # if unconfirmed channel is closed it should simply be forgotten
-    channel = rmp_client.open_channel(receiver_address, 10)
+    channel = client.open_channel(receiver_address, 10)
     try:
         gevent.sleep(channel_manager.blockchain.poll_frequency)
         assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
@@ -113,8 +113,8 @@ def test_topup(channel_manager, confirmed_open_channel, wait_for_blocks):
     assert channel_rec.deposit == 15
 
 
-def test_unconfirmed_topup(channel_manager, rmp_client, receiver_address, wait_for_blocks):
-    channel = rmp_client.open_channel(receiver_address, 10)
+def test_unconfirmed_topup(channel_manager, client, receiver_address, wait_for_blocks):
+    channel = client.open_channel(receiver_address, 10)
     try:
         gevent.sleep(channel_manager.blockchain.poll_frequency)
         assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
