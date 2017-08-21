@@ -4,3 +4,4 @@ web3==3.10.0
 pytest==3.2.0
 ethereum==1.6.1
 json
+click
