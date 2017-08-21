@@ -31,6 +31,15 @@ contract RaidenMicroTransferChannels {
     }
 
     /*
+     *  Modifiers
+     */
+
+    modifier isToken() {
+        require(msg.sender == token_address);
+        _;
+    }
+
+    /*
      *  Events
      */
 
@@ -52,14 +61,15 @@ contract RaidenMicroTransferChannels {
     event ChannelSettled(
         address indexed _sender,
         address indexed _receiver,
-        uint32 indexed _open_block_number);
+        uint32 indexed _open_block_number,
+        uint192 _balance);
     event TokenFallback(
         address indexed _sender,
         address indexed _receiver,
         uint192 _deposit,
         bytes indexed _data);
     event GasCost(
-        string indexed _function_name,
+        string _function_name,
         uint _gaslimit,
         uint _gas);
 
@@ -170,7 +180,6 @@ contract RaidenMicroTransferChannels {
      *  Public functions
      */
 
-    ///
     /// @dev Calls createChannel, compatibility with ERC 223; msg.sender is Token contract.
     /// @param _sender The address that sends the tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
@@ -181,21 +190,44 @@ contract RaidenMicroTransferChannels {
         bytes _data)
         public
     {
-        uint length = _data.length;
-
-        // createChannelPrivate - receiver address (42)
-        // topUpPrivate - receiver address (42 ; bytes20) + open_block_number (8 ; bytes4)
-        require(length >= 42 && length <= 50);
-
-        address receiver = bytesToAddress(_data);
-
-        if(length == 42) {
-            createChannelPrivate(_sender, receiver, uint192(_deposit));
+        if(_data.length > 0){
+            require(this.delegatecall(_data));
         }
-        else {
-            uint open_block_number = bytesToBlockNumber(_data, 42);
-            topUpPrivate(_sender, receiver, uint32(open_block_number), uint192(_deposit));
-        }
+    }
+
+    /*
+     *  Public functions
+     */
+
+    /// @dev Creates a new channel between a sender and a receiver, only callable by the Token contract.
+    /// @param _sender The address that receives tokens.
+    /// @param _receiver The address that receives tokens.
+    /// @param _deposit The amount of tokens that the sender escrows.
+    function createChannel(
+        address _sender,
+        address _receiver,
+        uint192 _deposit)
+        public
+        isToken
+    {
+        createChannelPrivate(_sender, _receiver, _deposit);
+    }
+
+    // TODO (WIP)
+    /// @dev Funds channel with an additional deposit of tokens, only callable by the Token contract.
+    /// @param _sender The address that sends tokens.
+    /// @param _receiver The address that receives tokens.
+    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
+    /// @param _added_deposit The added token deposit with which the current deposit is increased.
+    function topUp(
+        address _sender,
+        address _receiver,
+        uint32 _open_block_number,
+        uint192 _added_deposit)
+        public
+        isToken
+    {
+        topUpPrivate(_sender, _receiver, _open_block_number, _added_deposit);
     }
 
     /*
@@ -205,10 +237,10 @@ contract RaidenMicroTransferChannels {
     /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract, compatibility with ERC20 tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
-    function createChannel(
+    function createChannelERC20(
         address _receiver,
         uint192 _deposit)
-        external
+        public
     {
         createChannelPrivate(msg.sender, _receiver, _deposit);
 
@@ -222,11 +254,11 @@ contract RaidenMicroTransferChannels {
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _added_deposit The added token deposit with which the current deposit is increased.
-    function topUp(
+    function topUpERC20(
         address _receiver,
         uint32 _open_block_number,
         uint192 _added_deposit)
-        external
+        public
     {
         // transferFrom deposit from msg.sender to contract
         // ! needs prior approval from user
@@ -319,7 +351,7 @@ contract RaidenMicroTransferChannels {
      *  Private functions
      */
 
-    /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract.
+    /// @dev Creates a new channel between a sender and a receiver, only callable by the Token contract.
     /// @param _sender The address that receives tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
@@ -329,7 +361,7 @@ contract RaidenMicroTransferChannels {
         uint192 _deposit)
         private
     {
-        GasCost('createChannelPrivate', block.gaslimit, msg.gas);
+        GasCost('createChannel start', block.gaslimit, msg.gas);
         uint32 open_block_number = uint32(block.number);
 
         // Create unique identifier from sender, receiver and current block number
@@ -341,12 +373,12 @@ contract RaidenMicroTransferChannels {
 
         // Store channel information
         channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
-        GasCost('createChannelPrivate', block.gaslimit, msg.gas);
+        GasCost('createChannel end', block.gaslimit, msg.gas);
         ChannelCreated(_sender, _receiver, _deposit);
     }
 
-    // TODO (WIP) Funds channel with an additional deposit of tokens
-    /// @dev Increase the sender's current deposit.
+    // TODO (WIP)
+    /// @dev Funds channel with an additional deposit of tokens, only callable by the Token contract.
     /// @param _sender The address that sends tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
@@ -358,6 +390,7 @@ contract RaidenMicroTransferChannels {
         uint192 _added_deposit)
         private
     {
+        GasCost('topUp start', block.gaslimit, msg.gas);
         require(_added_deposit != 0);
         require(_open_block_number != 0);
 
@@ -368,7 +401,9 @@ contract RaidenMicroTransferChannels {
 
         channels[key].deposit += _added_deposit;
         ChannelToppedUp(_sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
+        GasCost('topUp end', block.gaslimit, msg.gas);
     }
+
 
     /// @dev Sender starts the challenge period; this can only happend once.
     /// @param _receiver The address that receives tokens.
@@ -380,14 +415,17 @@ contract RaidenMicroTransferChannels {
         uint192 _balance)
         private
     {
+        GasCost('initChallengePeriod end', block.gaslimit, msg.gas);
         bytes32 key = getKey(msg.sender, _receiver, _open_block_number);
 
         require(closing_requests[key].settle_block_number == 0);
+        require(_balance <= channels[key].deposit);
 
         // Mark channel as closed
         closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
         closing_requests[key].closing_balance = _balance;
         ChannelCloseRequested(msg.sender, _receiver, _open_block_number, _balance);
+        GasCost('initChallengePeriod end', block.gaslimit, msg.gas);
     }
 
     /// @dev Closes the channel and settles by transfering the balance to the receiver and the rest of the deposit back to the sender.
@@ -402,11 +440,13 @@ contract RaidenMicroTransferChannels {
         uint192 _balance)
         private
     {
+        GasCost('settleChannel start', block.gaslimit, msg.gas);
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
         Channel channel = channels[key];
 
         // TODO delete this if we don't include open_block_number in the Channel struct
         require(channel.open_block_number != 0);
+        require(_balance <= channel.deposit);
 
         // send minimum of _balance and deposit to receiver
         uint send_to_receiver = min(_balance, channel.deposit);
@@ -428,7 +468,8 @@ contract RaidenMicroTransferChannels {
         delete channels[key];
         delete closing_requests[key];
 
-        ChannelSettled(_sender, _receiver, _open_block_number);
+        ChannelSettled(_sender, _receiver, _open_block_number, _balance);
+        GasCost('settleChannel end', block.gaslimit, msg.gas);
     }
 
     /*
@@ -459,57 +500,5 @@ contract RaidenMicroTransferChannels {
     {
         if (a < b) return a;
         else return b;
-    }
-
-    /// @dev Internal function for getting an address from bytes.
-    /// @param b Bytes received.
-    /// @return Address resulted.
-    function bytesToAddress(bytes b)
-        internal
-        constant
-        returns (address)
-    {
-        uint result = 0;
-        for (uint i = 0; i < 42; i++) {
-            uint c = uint(b[i]);
-            if (c >= 48 && c <= 57) {
-                result = result * 16 + (c - 48);
-            }
-            if(c >= 65 && c<= 90) {
-                result = result * 16 + (c - 55);
-            }
-            if(c >= 97 && c<= 122) {
-                result = result * 16 + (c - 87);
-            }
-        }
-        return address(result);
-    }
-
-    /// @dev Internal function for getting the block number from bytes.
-    /// @param data Bytes received.
-    /// @param pos Position from which to start reading the bytes.
-    /// @return Block number.
-    function bytesToBlockNumber(
-        bytes data,
-        uint pos)
-        internal
-        constant
-        returns (uint result)
-    {
-        require(data.length > 0);
-        uint length = data.length - pos;
-
-        for (uint i = 0; i < length; i++) {
-            bytes1 digit = data[pos + i];
-            if (digit == 0) {
-                break;
-            }
-
-            if ((data[i] >= 48) && (data[i] <= 57)) {
-                result *= 10;
-                result += (uint(digit) - 48);
-            }
-        }
-        return result;
     }
 }

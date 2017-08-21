@@ -2,6 +2,26 @@
 
 Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Contracts.
 
+## Current addresses
+
+### Kovan
+
+ * RaidenMicroTransferChannels:
+ * RDNToken:
+
+
+### Ropsten
+
+- not yet deployed
+
+
+## API
+
+[RaidenMicroTransferChannels Contract ABI](/contracts/docs/RaidenMicroTransferChannels.md)
+
+[API logic](/contracts/docs/logic.md)
+
+
 ## Installation
 
 The Smart Contracts can be installed separately from the other components of the RaidenMicroTransferChannels App.
