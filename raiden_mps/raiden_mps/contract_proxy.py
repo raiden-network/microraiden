@@ -16,7 +16,7 @@ DEFAULT_RETRY_INTERVAL = 3
 
 class ContractProxy:
     def __init__(self, web3: Web3, privkey, contract_address, abi, gas_price, gas_limit,
-                 use_get_logs=True):
+                 tester_mode=False):
         self.web3 = web3
         self.privkey = privkey
         self.caller_address = privkey_to_addr(privkey)
@@ -25,7 +25,7 @@ class ContractProxy:
         self.contract = self.web3.eth.contract(abi=self.abi, address=contract_address)
         self.gas_price = gas_price
         self.gas_limit = gas_limit
-        self.use_get_logs = use_get_logs
+        self.tester_mode = tester_mode
 
     def create_transaction(self, func_name, args, nonce_offset=0):
         nonce = self.web3.eth.getTransactionCount(self.caller_address, 'pending') + nonce_offset
@@ -46,7 +46,7 @@ class ContractProxy:
         filter_ = construct_event_filter_params(event_abi, argument_filters=filters,
                                                 **filter_kwargs)[1]
         filter_params = input_filter_params_formatter(filter_)
-        if self.use_get_logs:
+        if not self.tester_mode:
             response = self.web3._requestManager.request_blocking('eth_getLogs', [filter_params])
         else:
             filter_ = self.web3.eth.filter(filter_params)
@@ -69,15 +69,18 @@ class ContractProxy:
             if matching_logs:
                 return matching_logs[0]
             elif i < timeout:
-                gevent.sleep(wait)
+                if not self.tester_mode:
+                    gevent.sleep(wait)
+                else:
+                    self.web3.eth.mine(1)
 
         return None
 
 
 class ChannelContractProxy(ContractProxy):
     def __init__(self, web3, privkey, contract_address, abi, gas_price, gas_limit,
-                 use_get_logs=True):
-        super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit, use_get_logs)
+                 tester_mode=False):
+        super().__init__(web3, privkey, contract_address, abi, gas_price, gas_limit, tester_mode)
 
     def get_channel_created_logs(self, from_block=0, to_block='latest', filters=None):
         return self.get_logs('ChannelCreated', from_block, to_block, filters)

@@ -41,7 +41,7 @@ def client_contract_proxy(web3, sender_privkey, channel_manager_contract_address
         channel_manager_contract_address,
         channel_manager_abi,
         int(20e9), GAS_LIMIT,
-        not use_tester
+        use_tester
     )
 
 
@@ -53,7 +53,7 @@ def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi, 
         token_contract_address,
         token_abi,
         int(20e9), GAS_LIMIT,
-        not use_tester
+        use_tester
     )
 
 

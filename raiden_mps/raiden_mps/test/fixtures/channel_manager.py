@@ -103,7 +103,7 @@ def channel_manager_contract_proxy1(web3, receiver1_privkey, channel_manager_con
                                     channel_manager_abi, use_tester):
     return ChannelContractProxy(web3, receiver1_privkey, channel_manager_contract_address,
                                 channel_manager_abi, GAS_PRICE, GAS_LIMIT,
-                                use_get_logs=not use_tester)
+                                tester_mode=use_tester)
 
 
 @pytest.fixture
@@ -111,7 +111,7 @@ def channel_manager_contract_proxy2(web3, receiver2_privkey, channel_manager_con
                                     channel_manager_abi, use_tester):
     return ChannelContractProxy(web3, receiver2_privkey, channel_manager_contract_address,
                                 channel_manager_abi, GAS_PRICE, GAS_LIMIT,
-                                use_get_logs=not use_tester)
+                                tester_mode=use_tester)
 
 
 @pytest.fixture
