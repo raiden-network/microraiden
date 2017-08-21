@@ -1,5 +1,13 @@
 "use strict";
-//const Web3 = require("web3");
+if (typeof Web3 === 'undefined' && typeof require === 'function' ) {
+  var Web3 = require("web3");
+}
+
+if (typeof localStorage === 'undefined' && typeof require === 'function' ) {
+  const LocalStorage = require('node-localstorage').LocalStorage;
+  var localStorage = new LocalStorage('./local_storage');
+}
+
 
 class RaidenMicropaymentsClient {
 
@@ -30,10 +38,6 @@ class RaidenMicropaymentsClient {
   }
 
   loadStoredChannel(account, receiver) {
-    if (typeof localStorage === "undefined" || localStorage === null) {
-      var LocalStorage = require('node-localstorage').LocalStorage;
-      localStorage = new LocalStorage('./local_storage');
-    }
     if (!localStorage) {
       this.channel = undefined;
       return;
