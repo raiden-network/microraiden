@@ -59,7 +59,7 @@ class HTTPClient(object):
                 self.on_payment_requested(
                     headers.receiver_address,
                     int(headers.price),
-                    int(headers.sender_balance),
+                    int(headers.get('sender_balance', 0)),
                     headers.get('contract_address')
                 )
 

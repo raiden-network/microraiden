@@ -53,8 +53,8 @@ class DefaultHTTPClient(HTTPClient):
             price -= self.channel.balance - confirmed_balance
 
         if price == 0:
-            log.debug(
-                'Requested amount already paid. Retrying in {} seconds.'
+            log.info(
+                'Requested amount already paid. Retrying payment in {} seconds.'
                     .format(self.retry_interval)
             )
             time.sleep(self.retry_interval)
@@ -63,7 +63,7 @@ class DefaultHTTPClient(HTTPClient):
 
         assert price > 0
 
-        log.debug('Preparing payment of price {} to {}.'.format(price, receiver))
+        log.info('Preparing payment of price {} to {}.'.format(price, receiver))
 
         if not self.channel or not self.is_suitable_channel(self.channel, receiver, price):
             open_channels = [
