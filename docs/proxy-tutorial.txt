@@ -44,7 +44,7 @@ of 10 tokens, the proxy will send it back to the user and will try to
 set Content-Type header to match the contents. Without payment, the server
 responds with `402 Payment Required`.
 
-For dynamic resources, you can use the `PaywalledContent` class
+For dynamic resources, you can use the `PaywalledContent` class:
 ```python
 from raiden_mps.proxy.content import PaywalledContent
 app.add_content(PaywalledContent("teapot.txt", 1, lambda _: ("HI I AM A TEAPOT", 418)))
@@ -59,7 +59,7 @@ price, and the third is a content generator function. This function can return
 both a tuple `(<content>, <http_status_code>)`, or a flask Response class
 created by, e.g., a `make_response()` call.
 
-Another possible content type is a remote URL. This is useful to fetch content
+Another possible content type is a URL. This is useful to fetch content
 from a remote CDN:
 ```python
 from raiden_mps.proxy.content import PaywalledProxyUrl
@@ -84,8 +84,8 @@ app.add_content(PaywalledContent("reserve_tokens/[0-9]+",
 
 Starting/stopping the proxy
 ==================
-You start proxy by calling run() method. This call is non-blocking -- the
-proxy is started as a WSGI greenlet. Use join() to sync with the task. This
+You start proxy by calling `run()` method. This call is non-blocking -- the
+proxy is started as a WSGI greenlet. Use `join()` to sync with the task. This
 will block until proxy has stopped. To terminate the server, call stop() from
 another greenlet.
 ```python
@@ -113,7 +113,7 @@ Machine-to-machine client
 -------------------------
 If you would like to get the resource using your own application, you can use
 m2m_client class. Please refer to the M2M client documentation and to the client
-example (raide_mps/examples/echo_client.py)
+example (`raiden_mps/examples/echo_client.py`).
 
 
 Side notes
@@ -122,7 +122,7 @@ Side notes
 Proxy state file
 ----------------
 Off-chain transactions are stored in a state file that is loaded on start.
-You should do regular backups of this file - it contains balance signatures of
+You should do regular backups of this file -- it contains balance signatures of
 the client, and if you lose them, you will have no way of proving that the
 client is settling the channel using less funds than he has actually paid to the
 proxy.
