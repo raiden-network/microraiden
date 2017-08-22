@@ -41,7 +41,13 @@ class DefaultHTTPClient(HTTPClient):
             'Newly created channel does not have enough confirmations yet. Retrying in {} seconds.'
                 .format(self.retry_interval)
         )
-        time.sleep(self.retry_interval)
+
+        if not self.client.channel_manager_proxy.tester_mode:
+            # wait for confirmations
+            time.sleep(self.retry_interval)
+        else:
+            # force mining if tester chain is used
+            self.client.web3.testing.mine(1)
         self.retry = True
 
     def on_insufficient_funds(self):
@@ -135,4 +141,3 @@ class DefaultHTTPClient(HTTPClient):
     def is_suitable_channel(channel: Channel, receiver: str, value: int):
         return channel.deposit - channel.balance >= value and \
                is_same_address(channel.receiver, receiver)
-
