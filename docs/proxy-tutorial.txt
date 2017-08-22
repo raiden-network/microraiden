@@ -41,7 +41,7 @@ app.add_content(PaywalledFile("file.txt", 10, "/srv/paywall/content/test.txt"))
 ```
 The file will then be available at the URI `/file.txt`. Only after a payment
 of 10 tokens, the proxy will send it back to the user and will try to
-set Content-Type header to match the contents. Without payment, the server
+set the Content-Type header appropriately. Without payment, the server
 responds with `402 Payment Required`.
 
 For dynamic resources, you can use the `PaywalledContent` class:
