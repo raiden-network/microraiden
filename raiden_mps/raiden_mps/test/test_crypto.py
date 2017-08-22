@@ -53,25 +53,27 @@ def test_sign():
     assert pubkey_to_addr(pubkey) == SENDER_ADDR
 
 
-def test_balance_message_hash(client_contract_proxy: ChannelContractProxy):
-    msg1 = balance_message_hash(RECEIVER_ADDR, 37, 15, CHANNEL_MANAGER_ADDRESS)
+def test_balance_message_hash(client_contract_proxy: ChannelContractProxy,
+                              channel_manager_contract_address):
+    msg1 = balance_message_hash(RECEIVER_ADDR, 37, 15, channel_manager_contract_address)
     assert len(msg1) == 32
     msg2 = client_contract_proxy.contract.call().balanceMessageHash(RECEIVER_ADDR, 37, 15)
     msg2 = force_bytes(msg2)
     assert msg1 == msg2
 
 
-def test_sign_balance_proof(client_contract_proxy: ChannelContractProxy):
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, CHANNEL_MANAGER_ADDRESS)
+def test_sign_balance_proof(client_contract_proxy: ChannelContractProxy,
+                           channel_manager_contract_address):
+    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract_address)
     sender_recovered = client_contract_proxy.contract.call().verifyBalanceProof(
         RECEIVER_ADDR, 37, 15, sig
     )
     assert sender_recovered == SENDER_ADDR
 
 
-def test_verify_balance_proof():
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 31, 8, CHANNEL_MANAGER_ADDRESS)
-    sender_recovered = verify_balance_proof(RECEIVER_ADDR, 31, 8, sig, CHANNEL_MANAGER_ADDRESS)
+def test_verify_balance_proof(channel_manager_contract_address):
+    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 31, 8, channel_manager_contract_address)
+    sender_recovered = verify_balance_proof(RECEIVER_ADDR, 31, 8, sig, channel_manager_contract_address)
     assert sender_recovered == SENDER_ADDR
 
 
