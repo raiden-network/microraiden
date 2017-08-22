@@ -152,7 +152,7 @@ class Expensive(Resource):
             return self.reply_payment_required(content, proxy_handle, headers, gen_ui=accepts_html)
 
         # all ok, return premium content
-        return self.reply_premium(content, data.sender_address, proxy_handle, channel.balance)
+        return self.reply_premium(content, channel.sender, proxy_handle, channel.balance)
 
     def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
         headers = {
