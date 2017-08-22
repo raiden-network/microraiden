@@ -2,7 +2,7 @@ import logging
 
 from raiden_mps import DefaultHTTPClient
 from raiden_mps.client import Channel
-from raiden_mps.config import TEST_SENDER_ADDR, TEST_RECEIVER_ADDR
+
 
 log = logging.getLogger(__name__)
 
@@ -11,7 +11,8 @@ def check_response(response: bytes):
     assert response.decode().strip() == '"HI I AM A DOGGO"'
 
 
-def test_default_http_client(doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels):
+def test_default_http_client(doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels,
+                             sender_address, receiver_address):
     logging.basicConfig(level=logging.INFO)
 
     check_response(default_http_client.run('doggo.jpg'))
@@ -24,8 +25,8 @@ def test_default_http_client(doggo_proxy, default_http_client: DefaultHTTPClient
     assert channel == default_http_client.channel
     assert channel.balance_sig
     assert channel.balance < channel.deposit
-    assert channel.sender == TEST_SENDER_ADDR
-    assert channel.receiver == TEST_RECEIVER_ADDR
+    assert channel.sender == sender_address
+    assert channel.receiver == receiver_address
 
 
 def test_default_http_client_topup(

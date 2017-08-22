@@ -276,7 +276,8 @@ class ChannelManager(gevent.Greenlet):
         assert (sender, open_block_number) not in self.state.unconfirmed_channels
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
         self.state.unconfirmed_channels[(sender, open_block_number)] = c
-        self.log.info('unconfirmed channel event received ')
+        self.log.info('unconfirmed channel event received (sender %s, block_number %s)',
+                      sender, open_block_number)
         self.state.store()
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
