@@ -59,7 +59,7 @@ class RaidenMicropaymentsClient {
     this.channel = undefined;
   }
 
-  setChannelInfo(channel) {
+  setChannel(channel) {
     this.channel = channel;
     if (localStorage) {
       const key = channel.account + "|" + channel.receiver;
@@ -93,11 +93,11 @@ class RaidenMicropaymentsClient {
     return true;
   }
 
-  isChannelOpen(callback) {
+  getChannelInfo(callback) {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
-    this.contract.ChannelCloseRequested({
+    return this.contract.ChannelCloseRequested({
       _sender: this.channel.account,
       _receiver: this.channel.receiver,
       _open_block_number: this.channel.block,
@@ -105,13 +105,47 @@ class RaidenMicropaymentsClient {
       fromBlock: this.channel.block,
       toBlock: 'latest'
     }).get((err, closeEvents) => {
+      let closed;
       if (err) {
         return callback(err);
       } else if (!closeEvents || closeEvents.length === 0) {
-        return callback(null, true);
+        closed = false;
       } else {
-        return callback(null, false);
+        closed = closeEvents[0].blockNumber;
       }
+      return this.contract.ChannelSettled({
+        _sender: this.channel.account,
+        _receiver: this.channel.receiver,
+        _open_block_number: this.channel.block,
+      }, {
+        fromBlock: closed || this.channel.block,
+        toBlock: 'latest'
+      }).get((err, settleEvents) => {
+        let settled;
+        if (err) {
+          return callback(err);
+        } else if (!settleEvents || settleEvents.length === 0) {
+          settled = false;
+        } else {
+          settled = settleEvents[0].blockNumber;
+        }
+        return this.contract.getChannelInfo.call(
+          this.channel.account,
+          this.channel.receiver,
+          this.channel.block,
+          { from: this.channel.account },
+          (err, info) => {
+            if (err) {
+              return callback(err);
+            } else if (!(info[1] > 0)) {
+              return callback(new Error("Invalid channel deposit: "+JSON.stringify(info)));
+            }
+            return callback(null, {
+              "state": settled ? "settled" : closed ? "closed" : "opened",
+              "deposit": info[1].toNumber(),
+            });
+          });
+      });
     });
   }
 
@@ -152,7 +186,7 @@ class RaidenMicropaymentsClient {
                   if (err || !(info[1] > 0)) {
                     return callback(err || info);
                   }
-                  this.setChannelInfo({account, receiver, block: receipt.blockNumber, balance: 0});
+                  this.setChannel({account, receiver, block: receipt.blockNumber, balance: 0});
                   // return channel
                   return callback(null, this.channel);
                 });
@@ -192,7 +226,7 @@ class RaidenMicropaymentsClient {
               if (err || !(info[1] > 0)) {
                 return callback(err || info);
               }
-              this.setChannelInfo({account, receiver, block: receipt.blockNumber, balance: 0});
+              this.setChannel({account, receiver, block: receipt.blockNumber, balance: 0});
               // return channel
               return callback(null, this.channel);
             });
@@ -228,8 +262,13 @@ class RaidenMicropaymentsClient {
               if (err) {
                 return callback(err);
               }
-              // return block number
-              return callback(null, receipt.blockNumber);
+              // return current deposit
+              return this.getChannelInfo((err, info) => {
+                if (err) {
+                  return callback(err);
+                }
+                return callback(null, info.deposit);
+              });
             });
           });
       });
@@ -257,19 +296,13 @@ class RaidenMicropaymentsClient {
           if (err) {
             return callback(err);
           }
-          // call getChannelInfo to be sure channel was created
-          return this.contract.getChannelInfo.call(
-            this.channel.account,
-            this.channel.receiver,
-            this.channel.block,
-            { from: this.channel.account },
-            (err, info) => {
-              if (err || !(info[1] > 0)) {
-                return callback(err || info);
-              }
-              // return block number
-              return callback(null, receipt.blockNumber);
-            });
+          // return current deposit
+          return this.getChannelInfo((err, info) => {
+            if (err) {
+              return callback(err);
+            }
+            return callback(null, info.deposit);
+          });
         });
       });
   }
@@ -278,10 +311,10 @@ class RaidenMicropaymentsClient {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
-    return this.isChannelOpen((err, isOpen) => {
+    return this.getChannelInfo((err, info) => {
       if (err) {
         return callback(err);
-      } else if (!isOpen) {
+      } else if (info.state !== "opened") {
         return callback(new Error("Tried closing already closed channel"));
       }
       let func;
@@ -327,11 +360,11 @@ class RaidenMicropaymentsClient {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
-    return this.isChannelOpen((err, isOpen) => {
+    return this.getChannelInfo((err, info) => {
       if (err) {
         return callback(err);
-      } else if (isOpen) {
-        return callback(new Error("Tried settling open channel"));
+      } else if (info.state !== "closed") {
+        return callback(new Error("Tried settling opened or settled channel"));
       }
       return this.contract.settle.sendTransaction(
         this.channel.receiver,
@@ -392,41 +425,28 @@ class RaidenMicropaymentsClient {
     }
     const newBalance = this.channel.balance + +amount;
     // get current deposit
-    this.contract.getChannelInfo.call(
-      this.channel.account,
-      this.channel.receiver,
-      this.channel.block,
-      { from: this.channel.account },
-      (err, info) => {
+    return this.getChannelInfo((err, info) => {
+      if (err) {
+        return callback(err);
+      } else if (info.state !== "opened") {
+        return callback(new Error("Tried signing on closed channel"));
+      } else if (newBalance > info.deposit) {
+        return callback(new Error("Insuficient funds: current = "+deposit+
+          ", required = +"+newBalance-deposit));
+      }
+      // get hash for new balance proof
+      return this.signBalance(newBalance, (err, sign) => {
         if (err) {
           return callback(err);
         }
-        console.log("Channel info:", info);
-        const deposit = info[1];
-        if (newBalance > deposit) {
-          return callback(new Error("Insuficient funds: current = "+deposit+
-            ", required = +"+newBalance-deposit));
-        }
-        return this.isChannelOpen((err, isOpen) => {
-          if (err) {
-            return callback(err);
-          } else if (!isOpen) {
-            return callback(new Error("Tried signing on closed channel"));
-          }
-          // get hash for new balance proof
-          return this.signBalance(newBalance, (err, sign) => {
-            if (err) {
-              return callback(err);
-            }
-            this.setChannelInfo(Object.assign(
-              {},
-              this.channel,
-              { balance: newBalance, sign }
-            ));
-            return callback(null, sign);
-          });
-        });
+        this.setChannel(Object.assign(
+          {},
+          this.channel,
+          { balance: newBalance, sign }
+        ));
+        return callback(null, sign);
       });
+    });
   }
 
   waitTx(txHash, callback) {
