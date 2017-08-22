@@ -224,11 +224,11 @@ class ChannelManagerState(object):
 class ChannelManager(gevent.Greenlet):
     """Manages channels from the receiver's point of view."""
 
-    def __init__(self, web3, contract_proxy, receiver, private_key, state_filename=None,
+    def __init__(self, web3, contract_proxy, private_key: str, state_filename=None,
                  channel_contract_address=CHANNEL_MANAGER_ADDRESS):
         gevent.Greenlet.__init__(self)
         self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=1)
-        self.receiver = receiver
+        self.receiver = privkey_to_addr(private_key)
         self.private_key = private_key
         self.contract_proxy = contract_proxy
         self.log = logging.getLogger('channel_manager')
@@ -237,10 +237,12 @@ class ChannelManager(gevent.Greenlet):
         if state_filename is not None and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
         else:
-            self.state = ChannelManagerState(channel_contract_address, receiver, state_filename)
+            self.state = ChannelManagerState(channel_contract_address,
+                                             self.receiver, state_filename)
 
-        if receiver.lower() != self.state.receiver:
-            raise StateReceiverAddrMismatch('%s != %s' % (receiver.lower(), self.state.receiver))
+        if self.receiver.lower() != self.state.receiver:
+            raise StateReceiverAddrMismatch('%s != %s' %
+                                            (self.receiver.lower(), self.state.receiver))
         if channel_contract_address.lower() != self.state.contract_address.lower():
             raise StateContractAddrMismatch('%s != %s' % (
                 channel_contract_address.lower(), self.state.contract_address.lower()))

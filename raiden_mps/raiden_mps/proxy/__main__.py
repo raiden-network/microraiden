@@ -8,11 +8,13 @@ import sys
 #
 from raiden_mps.crypto import privkey_to_addr
 
+
 if __package__ is None:
     path = os.path.dirname(os.path.dirname(__file__))
     sys.path.insert(0, path)
     sys.path.insert(0, path + "/../")
 
+import raiden_mps.utils as utils
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
 from raiden_mps.proxy.content import (
@@ -60,10 +62,10 @@ def main(
     if not state_file:
         state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)
         state_file = os.path.join(os.path.expanduser('~'), '.raiden') + "/" + state_file_name
-    app = PaywalledProxy(channel_manager_address,
-                         private_key,
-                         state_file,
-                         paywall_html_dir=paywall_info)
+
+    channel_manager = utils.make_channel_manager(private_key, state_file, channel_manager_address)
+
+    app = PaywalledProxy(channel_manager, paywall_html_dir=paywall_info)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))

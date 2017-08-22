@@ -125,7 +125,6 @@ def channel_manager1(web3, channel_manager_contract_proxy1, receiver_address, re
     logging.getLogger('channel_manager').setLevel(logging.WARNING)
     channel_manager = ChannelManager(web3,
                                      channel_manager_contract_proxy1,
-                                     receiver_address,
                                      receiver_privkey)
     channel_manager.start()
     channel_manager.wait_sync()
@@ -139,7 +138,6 @@ def channel_manager2(web3, channel_manager_contract_proxy2, receiver2_address, r
     logging.getLogger('channel_manager').setLevel(logging.WARNING)
     channel_manager = ChannelManager(web3,
                                      channel_manager_contract_proxy2,
-                                     receiver2_address,
                                      receiver2_privkey)
     channel_manager.start()
     channel_manager.wait_sync()

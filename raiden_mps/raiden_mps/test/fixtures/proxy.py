@@ -13,10 +13,8 @@ def proxy_state_filename():
 
 
 @pytest.fixture
-def doggo_proxy(channel_manager_contract_address, receiver_privkey, proxy_state_filename):
-    app = PaywalledProxy(channel_manager_contract_address,
-                         receiver_privkey,
-                         proxy_state_filename)
+def doggo_proxy(channel_manager1, receiver_privkey, proxy_state_filename):
+    app = PaywalledProxy(channel_manager1)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))

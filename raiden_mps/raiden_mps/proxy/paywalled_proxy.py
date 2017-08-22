@@ -1,10 +1,8 @@
 import gevent
-import sys
 
 import os
 from gevent import monkey
 
-from raiden_mps.crypto import privkey_to_addr
 
 monkey.patch_all()
 from flask import Flask
@@ -13,9 +11,7 @@ from flask_restful import (
 )
 
 from raiden_mps.channel_manager import (
-    ChannelManager,
-    StateReceiverAddrMismatch,
-    StateContractAddrMismatch
+    ChannelManager
 )
 
 from raiden_mps.proxy.resources import (
@@ -31,10 +27,7 @@ from raiden_mps.proxy.content import PaywallDatabase
 from raiden_mps.proxy.resources.expensive import LightClientProxy
 from raiden_mps.config import API_PATH
 
-from web3 import Web3
-from web3.providers.rpc import RPCProvider
 
-import raiden_mps.utils as utils
 import logging
 
 log = logging.getLogger(__name__)
@@ -45,8 +38,8 @@ JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 
 class PaywalledProxy:
-    def __init__(self, contract_address,
-                 private_key, state_filename,
+    def __init__(self,
+                 channel_manager,
                  flask_app=None,
                  paywall_html_dir=HTML_DIR):
         if not flask_app:
@@ -54,39 +47,19 @@ class PaywalledProxy:
         else:
             assert isinstance(flask_app, Flask)
             self.app = flask_app
+        assert isinstance(channel_manager, ChannelManager)
+        assert isinstance(paywall_html_dir, str)
         self.paywall_db = PaywallDatabase()
         self.api = Api(self.app)
         self.rest_server = None
         self.server_greenlet = None
-        web3 = Web3(RPCProvider())
-        receiver_address = privkey_to_addr(private_key)
 
-        try:
-            self.channel_manager = ChannelManager(
-                web3,
-                utils.get_contract_proxy(web3, private_key, contract_address),
-                receiver_address,
-                private_key,
-                state_filename=state_filename,
-                channel_contract_address=contract_address
-            )
-        except StateReceiverAddrMismatch as e:
-            log.error('Receiver address does not match address stored in a saved state. '
-                      'Use a different file, or backup and remove %s. (%s)' %
-                      (state_filename, e))
-            sys.exit(1)
-
-        except StateContractAddrMismatch as e:
-            self.log.error('channel contract address mismatch. '
-                           'Saved state file is %s. Backup it, remove, then'
-                           'start proxy again (%s)' %
-                           (state_filename, e))
-            sys.exit(1)
+        self.channel_manager = channel_manager
         self.channel_manager.start()
 
         cfg = {
-            'contract_address': contract_address,
-            'receiver_address': receiver_address,
+            'contract_address': channel_manager.state.contract_address,
+            'receiver_address': channel_manager.receiver,
             'channel_manager': self.channel_manager,
             'paywall_db': self.paywall_db,
             'light_client_proxy': LightClientProxy(paywall_html_dir + "/index.html")
