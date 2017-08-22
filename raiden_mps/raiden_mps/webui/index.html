@@ -16,7 +16,7 @@
   <script type="text/javascript" src="js/rmp.js"></script>
 </head>
 <body>
-  <div class="container">
+  <div class="container" style="display: none;">
     <div class="well">
       <h1>Payment Requested</h1>
     </div>
@@ -60,16 +60,16 @@
       <h3 class="col-sm-12">Press the Sign button to authorize the payment, or make another action</h3>
 
       <div class="col-sm-12">
-        <button type="button" class="btn btn-lg btn-success on-state-opened" id="channel_present_sign">
+        <button type="button" class="btn btn-lg btn-success on-state-opened" id="channel_present_sign" disabled>
           <span class="glyphicon glyphicon-pencil"></span> Sign
         </button>
-        <button type="button" class="btn btn-primary on-state-opened" id="channel_present_close">
+        <button type="button" class="btn btn-primary on-state-opened" id="channel_present_close" disabled>
           <span class="glyphicon glyphicon-remove"></span> Close
         </button>
-        <button type="button" class="btn btn-warning on-state-closed" id="channel_present_settle">
+        <button type="button" class="btn btn-warning on-state-closed" id="channel_present_settle" disabled>
           <span class="glyphicon glyphicon-ok"></span> Settle
         </button>
-        <button type="button" class="btn btn-danger on-state-opened on-state-closed on-state-settled" id="channel_present_forget">
+        <button type="button" class="btn btn-danger on-state-opened on-state-closed on-state-settled" id="channel_present_forget" disabled>
           <span class="glyphicon glyphicon-trash"></span> Forget
         </button>
       </div>

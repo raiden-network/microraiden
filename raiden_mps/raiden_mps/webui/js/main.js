@@ -30,6 +30,7 @@ function pageReady(json) {
   function mainSwitch(id) {
     $(".main_switch"+id).show();
     $(".main_switch:not("+id+")").hide();
+    $(".container").show();
   }
 
   $select.change(($event) => {
