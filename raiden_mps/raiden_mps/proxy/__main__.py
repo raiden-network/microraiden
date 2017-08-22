@@ -61,7 +61,10 @@ def main(
 
     if not state_file:
         state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)
-        state_file = os.path.join(os.path.expanduser('~'), '.raiden') + "/" + state_file_name
+        app_dir = click.get_app_dir('micro-raiden')
+        if not os.path.exists(app_dir):
+            os.makedirs(app_dir)
+        state_file = os.path.join(app_dir, state_file_name)
 
     channel_manager = utils.make_channel_manager(private_key, state_file, channel_manager_address)
 
