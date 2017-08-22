@@ -15,19 +15,15 @@ Sender sends tokens to the Contract, with a payload for calling `createChannel`.
 ```
 Token.transfer(_to, _value, _data)
 ```
-Gas cost (testing): 82963
+Gas cost (testing): 86954
 
  * `_to` = `Contract.address`
  * `_value` = deposit value (number of tokens)
- * `_data` is the equivalent of `msg.data` when calling `createChannel`
-   - in web3.js, `var _data = Contract.createChannel.getData(_sender, _receiver, _deposit);` https://github.com/ethereum/wiki/wiki/JavaScript-API#web3ethcontract
-   - in web3.py
+ * `_data` contains the Receiver address encoded in 20 bytes
+   - in python
    ```
-    from ethereum.abi import (
-      ContractTranslator
-    )
-    ct = ContractTranslator(abi)
-    _data = ct.encode('createChannel', [sender, receiver, deposit])
+    _data = receiver_address[2:].zfill(40)
+    _data = bytes.fromhex(_data)
    ```
 
 ![ChannelOpen_ERC223](/contracts/docs/diagrams/ChannelOpen_223.png)
@@ -55,19 +51,15 @@ Sender sends tokens to the Contract, with a payload for calling `topUp`.
 ```
 Token.transfer(_to, _value, _data)
 ```
-Gas cost (testing): 63872
+Gas cost (testing): 68636
 
  * `_to` = `Contract.address`
  * `_value` = deposit value (number of tokens)
- * `_data` is the equivalent of `msg.data` when calling `topUp`
-   - in web3.js, `var _data = Contract.topUp.getData(_sender, _receiver, _open_block_number, _added_deposit);`
-   - in web3.py
+ * `_data` contains the Receiver address encoded in 20 bytes + the open_block_number in 8 bytes
+   - in python
    ```
-    from ethereum.abi import (
-      ContractTranslator
-    )
-    ct = ContractTranslator(abi)
-    _data = ct.encode('topUp', [_sender, _receiver, _open_block_number, _added_deposit])
+    _data = receiver_address[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
+    _data = bytes.fromhex(_data)
    ```
 
  ![ChannelTopUp_223](/contracts/docs/diagrams/ChannelTopUp_223.png)
