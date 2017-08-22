@@ -117,6 +117,8 @@ class Expensive(Resource):
         if not data.balance_signature:
             return self.reply_payment_required(content, proxy_handle)
 
+        accepts_html = r'text/html' in request.headers.get('Accept', '')
+
         # try to get an existing channel
         try:
             channel = self.channel_manager.verify_balance_proof(
@@ -125,9 +127,9 @@ class Expensive(Resource):
         except InsufficientConfirmations as e:
             headers = {header.INSUF_CONFS: "1"}
             return self.reply_payment_required(
-                content, proxy_handle, headers)
+                content, proxy_handle, headers=headers, gen_ui=accepts_html)
         except NoOpenChannel as e:
-            return self.reply_payment_required(content, proxy_handle)
+            return self.reply_payment_required(content, proxy_handle, gen_ui=accepts_html)
 
         # set the headers to reflect actual state of a channel
         headers = {
@@ -145,9 +147,9 @@ class Expensive(Resource):
                 data.balance_signature)
         except InvalidBalanceAmount as e:
             # balance sent to the proxy is less than in the previous proof
-            return self.reply_payment_required(content, proxy_handle, headers)
+            return self.reply_payment_required(content, proxy_handle, headers, gen_ui=accepts_html)
         except InvalidBalanceProof as e:
-            return self.reply_payment_required(content, proxy_handle, headers)
+            return self.reply_payment_required(content, proxy_handle, headers, gen_ui=accepts_html)
 
         # all ok, return premium content
         return self.reply_premium(content, data.sender_address, proxy_handle, channel.balance)
@@ -167,22 +169,29 @@ class Expensive(Resource):
             data, status_code = response
             return data, status_code, headers
 
-    def reply_payment_required(self, content, proxy_handle, headers={}):
+    def reply_payment_required(self, content, proxy_handle, headers={}, gen_ui=False):
+        assert isinstance(headers, dict)
+        assert isinstance(gen_ui, bool)
         if callable(proxy_handle.price):
             price = proxy_handle.price(content)
         elif isinstance(proxy_handle.price, int):
             price = proxy_handle.price
         else:
             return "Invalid price attribute", 500
-        return self.get_webUI_reply(price, headers)
-
-    def get_webUI_reply(self, price: int, headers: dict):
         headers.update({
-            "Content-Type": "text/html",
             header.GATEWAY_PATH: API_PATH,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.PRICE: price
+        })
+        if gen_ui is True:
+            return self.get_webUI_reply(price, headers)
+        else:
+            return make_response('', 402, headers)
+
+    def get_webUI_reply(self, price: int, headers: dict):
+        headers.update({
+            "Content-Type": "text/html",
         })
         if self.light_client_proxy:
             data = self.light_client_proxy.get(self.receiver_address, price, config.TOKEN_ADDRESS)
