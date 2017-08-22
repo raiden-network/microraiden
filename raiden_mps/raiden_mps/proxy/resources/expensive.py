@@ -5,7 +5,8 @@ from flask_restful import (
 from raiden_mps.channel_manager import (
     ChannelManager,
     NoOpenChannel,
-    InvalidBalanceProof
+    InvalidBalanceProof,
+    InsufficientConfirmations
 )
 # from raiden_mps.utils import parse_balance_proof_msg
 
@@ -129,13 +130,33 @@ class Expensive(Resource):
                     data.open_block_number,
                     data.balance,
                     data.balance_signature)
+            except InsufficientConfirmations as e:
+                headers = {header.INSUF_CONFS: "1"}
+                return self.reply_payment_required(
+                    content, proxy_handle, headers)
             except NoOpenChannel as e:
-                return str(e), 402, {header.INSUF_CONFS: "1"}
+                return self.reply_payment_required(content, proxy_handle)
             except InvalidBalanceProof as e:
-                return str(e), 402, {header.INSUF_FUNDS: "1"}
+                return self.reply_payment_required(content, proxy_handle)
+#                return self.invalid_balance_proof_reply(
+#                    data.open_block_number,
+#                    data.balance,
+#                    data.balance_signature)
             return self.reply_premium(content, data.sender_address, proxy_handle)
         else:
             return self.reply_payment_required(content, proxy_handle)
+
+    def invalid_balance_proof_reply(self, open_block_number, balance, balance_signature):
+        # if the channel exists, send the actual state of the channel so the client
+        #  can handle desync
+        c = self.channel_manager.verify_balance_proof(self.receiver_address, open_block_number, balance, balance_signature)
+        headers = {
+            header.INSUF_FUNDS: balance - c.balance,
+            header.SENDER_BALANCE: c.balance,
+            header.PRICE: c.balance
+        }
+        return self.get_webUI_reply( balance - c.balance)
+
 
     def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
         headers = {
@@ -152,21 +173,23 @@ class Expensive(Resource):
             data, status_code = response
             return data, status_code, headers
 
-    def reply_payment_required(self, content, proxy_handle):
+    def reply_payment_required(self, content, proxy_handle, headers={}):
         if callable(proxy_handle.price):
             price = proxy_handle.price(content)
         elif isinstance(proxy_handle.price, int):
             price = proxy_handle.price
         else:
             return "Invalid price attribute", 500
-        headers = {
+        return self.get_webUI_reply(price, headers)
+
+    def get_webUI_reply(self, price: int, headers: dict):
+        headers.update({
             "Content-Type": "text/html",
             header.GATEWAY_PATH: API_PATH,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.PRICE: price
-        }
-
+        })
         if self.light_client_proxy:
             data = self.light_client_proxy.get(self.receiver_address, price, config.TOKEN_ADDRESS)
         else:

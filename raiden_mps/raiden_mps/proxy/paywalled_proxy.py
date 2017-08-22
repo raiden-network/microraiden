@@ -95,8 +95,8 @@ class PaywalledProxy:
                               resource_class_kwargs={'directory': JSLIB_DIR})
         self.api.add_resource(Expensive, "/<path:content>", resource_class_kwargs=cfg)
         self.api.add_resource(ChannelManagementChannelInfo,
-                              API_PATH + "/channels/<string:sender_address>/<int:opening_block>"
-                              , resource_class_kwargs={'channel_manager': self.channel_manager})
+                              API_PATH + "/channels/<string:sender_address>/<int:opening_block>",
+                              resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementAdmin,
                               API_PATH + "/admin",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
@@ -110,6 +110,7 @@ class PaywalledProxy:
         self.paywall_db.add_content(content)
 
     def run(self, debug=False):
+        gevent.get_hub().SYSTEM_ERROR += (BaseException, )
         self.channel_manager.wait_sync()
         from gevent.wsgi import WSGIServer
         self.rest_server = WSGIServer(('localhost', 5000), self.app)
