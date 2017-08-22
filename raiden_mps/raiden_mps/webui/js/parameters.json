@@ -190,31 +190,6 @@
       "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_sender",
-          "type": "address"
-        },
-        {
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "name": "_open_block_number",
-          "type": "uint32"
-        },
-        {
-          "name": "_added_deposit",
-          "type": "uint192"
-        }
-      ],
-      "name": "topUp",
-      "outputs": [],
-      "payable": false,
-      "type": "function"
-    },
-    {
       "constant": true,
       "inputs": [
         {
@@ -356,27 +331,6 @@
       "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "_sender",
-          "type": "address"
-        },
-        {
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "name": "_deposit",
-          "type": "uint192"
-        }
-      ],
-      "name": "createChannel",
-      "outputs": [],
-      "payable": false,
-      "type": "function"
-    },
-    {
       "inputs": [
         {
           "name": "_token",
@@ -502,33 +456,6 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
-          "name": "_sender",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "name": "_receiver",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "name": "_deposit",
-          "type": "uint192"
-        },
-        {
-          "indexed": true,
-          "name": "_data",
-          "type": "bytes"
-        }
-      ],
-      "name": "TokenFallback",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
           "indexed": false,
           "name": "_function_name",
           "type": "string"
@@ -540,7 +467,7 @@
         },
         {
           "indexed": false,
-          "name": "_gas",
+          "name": "_gas_remaining",
           "type": "uint256"
         }
       ],

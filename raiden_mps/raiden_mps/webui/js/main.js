@@ -38,8 +38,18 @@ function pageReady(json) {
     if (rmpc.isChannelValid() &&
         rmpc.channel.account === $event.target.value &&
         rmpc.channel.receiver === RMPparams.receiver) {
-      $("#channel_present_desc").text(JSON.stringify(rmpc.channel, null, 2));
       mainSwitch("#channel_present");
+      rmpc.getChannelInfo((err, info) => {
+        if (err) {
+          console.error(err);
+          return window.alert("An error occurred getting channel info: "+err);
+        }
+        $("#channel_present_state").text(info.state);
+        $("#channel_present .btn.on-state-"+info.state).attr("disabled", false);
+        $("#channel_present .btn:not(.on-state-"+info.state+")").attr("disabled", true);
+        $("#channel_present #channel_present_balance").attr("value", rmpc.channel.balance);
+        $("#channel_present #channel_present_deposit").attr("value", info.deposit);
+      });
     } else {
       mainSwitch("#channel_missing");
     }

@@ -81,8 +81,15 @@ class RaidenMicropaymentsClient {
     }
   }
 
-  encodeHex(str) {
-    return '0x' + [...str].map((char) => char.charCodeAt(0).toString(16)).join('');
+  encodeHex(str, zPadLength) {
+    if (typeof str === "number") {
+      str = str.toString(16);
+    } else {
+      str = [...str].map((char) =>
+          char.charCodeAt(0).toString(16))
+        .join('');
+    }
+    return str.padStart(zPadLength, '0');
   }
 
   isChannelValid() {
@@ -204,7 +211,7 @@ class RaidenMicropaymentsClient {
     this.token.transfer["address,uint256,bytes"].sendTransaction(
       this.contract.address,
       deposit,
-      this.encodeHex(receiver), // receiver goes as 3rd param, hex encoded
+      receiver, // receiver goes as 3rd param, hex encoded
       { from: account },
       (err, transferTxHash) => {
         if (err) {
@@ -283,8 +290,8 @@ class RaidenMicropaymentsClient {
     this.token.transfer["address,uint256,bytes"].sendTransaction(
       this.contract.address,
       deposit,
-      // TODO: where goes openBlockNumber for ERC223 topUp?
-      this.encodeHex(this.channel.receiver), // receiver goes as 3rd param, hex encoded
+      // receiver goes as 3rd param, 20 bytes, plus blocknumber, 8bytes
+      this.channel.receiver + this.encodeHex(this.channel.block, 16),
       { from: this.channel.account },
       (err, transferTxHash) => {
         if (err) {
@@ -456,7 +463,8 @@ class RaidenMicropaymentsClient {
      */
     let blockCounter = 15;
     // Wait for tx to be finished
-    let filter = this.web3.eth.filter('latest').watch((err, blockHash) => {
+    let filter = this.web3.eth.filter('latest');
+    filter.watch((err, blockHash) => {
       if (blockCounter<=0) {
         filter.stopWatching();
         filter = null;
@@ -477,6 +485,7 @@ class RaidenMicropaymentsClient {
         return callback(null, receipt);
       });
     });
+    return filter;
   }
 
 }
