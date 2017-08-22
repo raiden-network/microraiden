@@ -11,20 +11,20 @@ from raiden_mps.config import (
 )
 from raiden_mps.proxy.content import PaywalledProxyUrl
 from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
-
+from raiden_mps.utils import make_channel_manager
 
 log = logging.getLogger(__name__)
 
+
 def start_proxy():
-    app = PaywalledProxy(
-        CHANNEL_MANAGER_ADDRESS,
-        TEST_RECEIVER_PRIVKEY,
-        'eth_ticker_proxy.pkl'
+    cm = make_channel_manager(
+        TEST_RECEIVER_PRIVKEY, 'eth_ticker_proxy.pkl', CHANNEL_MANAGER_ADDRESS
     )
+    app = PaywalledProxy(cm)
     app.add_content(PaywalledProxyUrl(
         "[A-Z]{6}",
         1,
-        lambda request: 'api.kraken.com/0/public/Ticker?pair=' + request
+        lambda request: 'api.bitfinex.com/v1/pubticker/' + request
     ))
     app.run(debug=True)
     return app
@@ -41,21 +41,27 @@ class Main(ttk.Frame):
 
         self.app = start_proxy()
         self.client = Client(TEST_SENDER_PRIVKEY)
-        self.httpclient = DefaultHTTPClient(self.client, 'localhost', 5000)
+        self.httpclient = DefaultHTTPClient(
+            self.client,
+            'localhost',
+            5000,
+            initial_deposit=lambda x: 100 * x,
+            topup_deposit=lambda x: 50 * x
+        )
 
     def run(self):
-        self.root.after(0, self.query_price)
+        self.root.after(1000, self.query_price)
         self.root.mainloop()
 
     def query_price(self):
         response = self.httpclient.run('ETHUSD')
         if response:
             ticker = json.loads(response.decode())
-            price = float(ticker['result']['XETHZUSD']['c'][0])
+            price = float(ticker['last_price'])
             self.pricevar.set('{:.2f} USD'.format(price))
         else:
             log.warning('No response.')
-        self.root.after(3000, self.query_price)
+        self.root.after(5000, self.query_price)
 
 
 if __name__ == '__main__':
