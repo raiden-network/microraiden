@@ -1,3 +1,4 @@
+import click
 import json
 import logging
 import os
@@ -23,7 +24,7 @@ class Client:
             self,
             privkey: str = None,
             key_path: str = None,
-            datadir: str = os.path.join(os.path.expanduser('~'), '.raiden'),
+            datadir: str = click.get_app_dir('micro-raiden'),
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
             token_address: str = TOKEN_ADDRESS,
             rpc: RPCProvider = None,
