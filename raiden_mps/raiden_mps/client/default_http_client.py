@@ -110,11 +110,10 @@ class DefaultHTTPClient(HTTPClient):
         self.channel.create_transfer(price)
         self.retry = True
 
-    def on_insufficient_confirmations(self, pending_confirmations: int):
+    def on_insufficient_confirmations(self):
         log.warning(
-            'Newly created channel does not have enough confirmations yet. '
-            'Waiting for {} more. Retrying in {} seconds.'
-                .format(pending_confirmations, self.retry_interval)
+            'Newly created channel does not have enough confirmations yet. Retrying in {} seconds.'
+                .format(self.retry_interval)
         )
         time.sleep(self.retry_interval)
         self.retry = True

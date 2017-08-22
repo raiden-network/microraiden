@@ -52,7 +52,7 @@ class HTTPClient(object):
             return response.content
         elif response.status_code == requests.codes.PAYMENT_REQUIRED:
             if 'insuf_confs' in headers:
-                self.on_insufficient_confirmations(headers.insuf_confs)
+                self.on_insufficient_confirmations()
             elif 'insuf_funds' in headers:
                 self.on_insufficient_funds()
             else:
@@ -84,5 +84,5 @@ class HTTPClient(object):
     def on_insufficient_funds(self):
         pass
 
-    def on_insufficient_confirmations(self, pending_confirmations: int):
+    def on_insufficient_confirmations(self):
         pass
