@@ -6,6 +6,7 @@ from raiden_mps.channel_manager import (
     ChannelManager,
     NoOpenChannel,
     InvalidBalanceProof,
+    InvalidBalanceAmount,
     InsufficientConfirmations
 )
 # from raiden_mps.utils import parse_balance_proof_msg
@@ -83,15 +84,6 @@ class LightClientProxy:
         self.data = open(index_html).read()
 
     def get(self, receiver, amount, token):
-#        js_params = '''window.RMPparams = {
-#            receiver: "%s"
-#            amount: %d,
-#            token: "%s",
-#        };''' % (receiver, amount, token)
-#        soup = bs4.BeautifulSoup(self.data, "html.parser")
-#        js_tag = soup.new_tag('script', type="text/javascript")
-#        js_tag.string = js_params
-#        soup.body.insert(0, js_tag)
         return self.data
 
 
@@ -122,41 +114,43 @@ class Expensive(Resource):
         proxy_handle = self.paywall_db.get_content(content)
         if proxy_handle is None:
             return "NOT FOUND", 404
-        if data.balance_signature:
-            # check the balance proof
-            try:
-                self.channel_manager.register_payment(
-                    self.receiver_address,
-                    data.open_block_number,
-                    data.balance,
-                    data.balance_signature)
-            except InsufficientConfirmations as e:
-                headers = {header.INSUF_CONFS: "1"}
-                return self.reply_payment_required(
-                    content, proxy_handle, headers)
-            except NoOpenChannel as e:
-                return self.reply_payment_required(content, proxy_handle)
-            except InvalidBalanceProof as e:
-                return self.reply_payment_required(content, proxy_handle)
-#                return self.invalid_balance_proof_reply(
-#                    data.open_block_number,
-#                    data.balance,
-#                    data.balance_signature)
-            return self.reply_premium(content, data.sender_address, proxy_handle)
-        else:
+        if not data.balance_signature:
             return self.reply_payment_required(content, proxy_handle)
 
-    def invalid_balance_proof_reply(self, open_block_number, balance, balance_signature):
-        # if the channel exists, send the actual state of the channel so the client
-        #  can handle desync
-        c = self.channel_manager.verify_balance_proof(self.receiver_address, open_block_number, balance, balance_signature)
-        headers = {
-            header.INSUF_FUNDS: balance - c.balance,
-            header.SENDER_BALANCE: c.balance,
-            header.PRICE: c.balance
-        }
-        return self.get_webUI_reply( balance - c.balance)
+        # try to get an existing channel
+        try:
+            channel = self.channel_manager.verify_balance_proof(
+                self.receiver_address, data.open_block_number,
+                data.balance, data.balance_signature)
+        except InsufficientConfirmations as e:
+            headers = {header.INSUF_CONFS: "1"}
+            return self.reply_payment_required(
+                content, proxy_handle, headers)
+        except NoOpenChannel as e:
+            return self.reply_payment_required(content, proxy_handle)
 
+        # set the headers to reflect actual state of a channel
+        headers = {
+            header.SENDER_ADDRESS: channel.sender,
+            header.SENDER_BALANCE: channel.balance,
+            header.RECEIVER_ADDRESS: self.receiver_address,
+            header.CONTRACT_ADDRESS: self.contract_address,
+            header.PRICE: proxy_handle.price
+        }
+        try:
+            self.channel_manager.register_payment(
+                self.receiver_address,
+                data.open_block_number,
+                data.balance,
+                data.balance_signature)
+        except InvalidBalanceAmount as e:
+            # balance sent to the proxy is less than in the previous proof
+            return self.reply_payment_required(content, proxy_handle, headers)
+        except InvalidBalanceProof as e:
+            return self.reply_payment_required(content, proxy_handle, headers)
+
+        # all ok, return premium content
+        return self.reply_premium(content, data.sender_address, proxy_handle, channel.balance)
 
     def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
         headers = {

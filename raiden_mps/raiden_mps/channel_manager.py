@@ -18,6 +18,10 @@ from raiden_mps.crypto import sign_close, verify_closing_signature, verify_balan
 log = logging.getLogger(__name__)
 
 
+class InvalidBalanceAmount(Exception):
+    pass
+
+
 class InvalidBalanceProof(Exception):
     pass
 
@@ -425,7 +429,7 @@ class ChannelManager(gevent.Greenlet):
         c = self.verify_balance_proof(receiver, open_block_number, balance, signature)
         log.info(c.unconfirmed_event_channel_topups)
         if balance <= c.balance:
-            raise InvalidBalanceProof('The balance must not decrease.')
+            raise InvalidBalanceAmount('The balance must not decrease.')
         if balance > c.deposit:
             raise InvalidBalanceProof('Balance must not be greater than deposit')
         received = balance - c.balance
