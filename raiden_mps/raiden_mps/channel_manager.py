@@ -17,11 +17,16 @@ from raiden_mps.crypto import sign_close, verify_closing_signature, verify_balan
 
 log = logging.getLogger(__name__)
 
+
 class InvalidBalanceProof(Exception):
     pass
 
 
 class NoOpenChannel(Exception):
+    pass
+
+
+class InsufficientConfirmations(Exception):
     pass
 
 
@@ -398,6 +403,10 @@ class ChannelManager(gevent.Greenlet):
             decode_hex(signature.replace('0x', '')),
             self.contract_proxy.address
         )
+        if (signer, open_block_number) in self.state.unconfirmed_channels:
+            raise InsufficientConfirmations(
+                'Insufficient confirmations for the channel '
+                '(sender=%s, open_block_number=%d)' % (signer, open_block_number))
         try:
             c = self.state.channels[(signer, open_block_number)]
         except KeyError:
@@ -410,6 +419,7 @@ class ChannelManager(gevent.Greenlet):
     def register_payment(self, receiver, open_block_number, balance, signature):
         """Register a payment."""
         c = self.verify_balance_proof(receiver, open_block_number, balance, signature)
+        log.info(c.unconfirmed_event_channel_topups)
         if balance <= c.balance:
             raise InvalidBalanceProof('The balance must not decrease.')
         if balance > c.deposit:

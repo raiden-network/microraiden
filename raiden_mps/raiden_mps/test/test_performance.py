@@ -6,7 +6,7 @@ import datetime
 import gevent
 from eth_utils import encode_hex
 
-from raiden_mps.client.m2m_client import M2MClient
+from raiden_mps.examples.m2m_client import M2MClient
 from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, TEST_SENDER_PRIVKEY, \
     TEST_RECEIVER_PRIVKEY
 from raiden_mps.test.utils.client import close_all_channels_cooperatively
