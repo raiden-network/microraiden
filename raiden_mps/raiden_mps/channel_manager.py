@@ -7,9 +7,8 @@ import time
 import tempfile
 import shutil
 import gevent
-from eth_utils import decode_hex
+from eth_utils import decode_hex, is_same_address
 
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
 import logging
 
 from raiden_mps.crypto import sign_close, verify_closing_signature, verify_balance_proof, \
@@ -224,8 +223,7 @@ class ChannelManagerState(object):
 class ChannelManager(gevent.Greenlet):
     """Manages channels from the receiver's point of view."""
 
-    def __init__(self, web3, contract_proxy, private_key: str, state_filename=None,
-                 channel_contract_address=CHANNEL_MANAGER_ADDRESS):
+    def __init__(self, web3, contract_proxy, private_key: str, state_filename=None):
         gevent.Greenlet.__init__(self)
         self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=1)
         self.receiver = privkey_to_addr(private_key)
@@ -234,16 +232,17 @@ class ChannelManager(gevent.Greenlet):
         self.log = logging.getLogger('channel_manager')
         assert privkey_to_addr(self.private_key) == self.receiver.lower()
 
+        channel_contract_address = contract_proxy.contract.address
         if state_filename is not None and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
         else:
             self.state = ChannelManagerState(channel_contract_address,
                                              self.receiver, state_filename)
 
-        if self.receiver.lower() != self.state.receiver:
+        if not is_same_address(self.receiver, self.state.receiver):
             raise StateReceiverAddrMismatch('%s != %s' %
                                             (self.receiver.lower(), self.state.receiver))
-        if channel_contract_address.lower() != self.state.contract_address.lower():
+        if not is_same_address(self.state.contract_address, channel_contract_address):
             raise StateContractAddrMismatch('%s != %s' % (
                 channel_contract_address.lower(), self.state.contract_address.lower()))
 

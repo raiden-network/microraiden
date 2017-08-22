@@ -1,6 +1,6 @@
 import logging
 from eth_utils import is_same_address, encode_hex
-from raiden_mps.channel_manager import InvalidBalanceProof, NoOpenChannel
+from raiden_mps.channel_manager import InvalidBalanceProof, NoOpenChannel, InvalidBalanceAmount
 from raiden_mps.crypto import sign_balance_proof
 from raiden_mps.test.utils.client import close_all_channels_cooperatively
 import gevent
@@ -169,7 +169,7 @@ def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiv
         1,  # should be greater than 2
         channel_manager.state.contract_address
     ))
-    with pytest.raises(InvalidBalanceProof):
+    with pytest.raises(InvalidBalanceAmount):
         channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 1,
                                          invalid_sig)
     assert channel_rec.balance == 2

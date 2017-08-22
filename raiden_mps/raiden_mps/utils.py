@@ -34,8 +34,7 @@ def make_channel_manager(private_key: str, state_filename: str, channel_contract
             web3,
             make_contract_proxy(web3, private_key, channel_contract_address),
             private_key,
-            state_filename=state_filename,
-            channel_contract_address=channel_contract_address
+            state_filename=state_filename
         )
     except StateReceiverAddrMismatch as e:
         log.error('Receiver address does not match address stored in a saved state. '
