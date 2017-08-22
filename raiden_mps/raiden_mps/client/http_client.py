@@ -56,7 +56,7 @@ class HTTPClient(object):
             elif 'insuf_funds' in headers:
                 self.on_insufficient_funds()
             else:
-                confirmed_balance = headers.get('sender_balance', 0)
+                confirmed_balance = int(headers.get('sender_balance', 0))
                 if self.approve_payment(
                     headers.receiver_address,
                     int(headers.price),

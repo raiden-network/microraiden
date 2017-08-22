@@ -31,9 +31,6 @@ class DefaultHTTPClient(HTTPClient):
         else:
             log.info('No resource specified.')
 
-    def on_exit(self):
-        log.info('Exiting.')
-
     def on_success(self, resource, cost: int):
         log.info('Successfully requested resource.')
         if cost:
@@ -61,14 +58,13 @@ class DefaultHTTPClient(HTTPClient):
             )
             return False
 
-        if confirmed_balance > self.channel.balance:
-            log.error(
-                'Server confirmed an invalid channel balance: {}/{}'
-                    .format(confirmed_balance, self.channel.balance)
-            )
-            return False
-
         if self.channel:
+            if confirmed_balance > self.channel.balance:
+                log.error(
+                    'Server confirmed an invalid channel balance: {}/{}'
+                        .format(confirmed_balance, self.channel.balance)
+                )
+                return False
             price -= self.channel.balance - confirmed_balance
 
         if price == 0:

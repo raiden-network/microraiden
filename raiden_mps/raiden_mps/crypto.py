@@ -42,6 +42,7 @@ def sha3(*args) -> bytes:
     """
 
     def format_int(value, size):
+        assert value
         if value >= 0:
             return decode_hex('{:x}'.format(value).zfill(size // 4))
         else:
@@ -49,6 +50,7 @@ def sha3(*args) -> bytes:
 
     msg = b''
     for arg in args:
+        assert arg
         if isinstance(arg, bytes):
             msg += arg
         elif isinstance(arg, str):
