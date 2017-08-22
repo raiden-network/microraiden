@@ -1,21 +1,20 @@
-Introduction
-===========
+# Introduction
+
 In this tutorial we will create a simple paywalled server that will serve some
 static files as well as dynamically generated responses, payable with the
 Raiden Network Token. You can find example code for this tutorial in
 `raiden_mps/examples/echo_server.py`.
 
-Requirements
-===========
+# Requirements
+
 Please refer to README.md to install all required dependencies.
 You will also need a Chrome browser with MetaMask plugin.
 
 
-Setting up the proxy
-====================
+# Setting up the proxy
 
-Initialization
---------------
+## Initialization
+
 For initialization you will have to supply the following parameters:
 - The address of the channel manager contract.
 - The private key of the account receiving the payments (to extract it from a
@@ -30,8 +29,8 @@ app = PaywalledProxy(channel_manager_address, private_key, state_file)
 The channel manager will start syncing with the blockchain immediately.
 
 
-Resource types
---------------
+## Resource types
+
 
 Now you will have to add some resources. To serve a single static file from
 the filesystem, you can use:
@@ -70,8 +69,8 @@ resource URI, a price, and a function that returns a remote URL specifying
 where to fetch the content from.
 
 
-Setting a price for the resource dynamically
---------------------------------------------
+## Setting a price for the resource dynamically
+
 A price argument for the content can not only be a constant integer, but also
 a callable. You can exploit that to set the price depending on the requested
 resource:
@@ -82,8 +81,8 @@ app.add_content(PaywalledContent("reserve_tokens/[0-9]+",
 ```
 
 
-Starting/stopping the proxy
-==================
+# Starting/stopping the proxy
+
 You start proxy by calling `run()` method. This call is non-blocking -- the
 proxy is started as a WSGI greenlet. Use `join()` to sync with the task. This
 will block until proxy has stopped. To terminate the server, call stop() from
@@ -95,11 +94,10 @@ app.join()
 
 
 
-Accessing the content
-=====================
+# Accessing the content
 
-Browser
--------
+## Browser
+
 To access the content with your browser, navigate to the URL of the resource
 you'd like to get. You'll be faced with paywall -- a site requesting you to
 pay for the resource. To do so, you first have to open a new channel. If you
@@ -109,18 +107,18 @@ After confirming the deposit, you can navigate and payments will be done
 automatically.
 
 
-Machine-to-machine client
--------------------------
+## Machine-to-machine client
+
 If you would like to get the resource using your own application, you can use
 m2m_client class. Please refer to the M2M client documentation and to the client
 example (`raiden_mps/examples/echo_client.py`).
 
 
-Side notes
-==========
+# Side notes
 
-Proxy state file
-----------------
+
+## Proxy state file
+
 Off-chain transactions are stored in a state file that is loaded on start.
 You should do regular backups of this file -- it contains balance signatures of
 the client, and if you lose them, you will have no way of proving that the
