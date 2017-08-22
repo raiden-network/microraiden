@@ -56,12 +56,16 @@ class HTTPClient(object):
             elif 'insuf_funds' in headers:
                 self.on_insufficient_funds()
             else:
-                self.on_payment_requested(
+                confirmed_balance = headers.get('sender_balance', 0)
+                if self.approve_payment(
                     headers.receiver_address,
                     int(headers.price),
-                    int(headers.get('sender_balance', 0)),
+                    confirmed_balance,
                     headers.get('contract_address')
-                )
+                ):
+                    self.on_payment_approved(
+                        headers.receiver_address, int(headers.price), confirmed_balance
+                    )
 
     def on_init(self):
         pass
@@ -72,17 +76,20 @@ class HTTPClient(object):
     def on_success(self, resource, cost: int):
         pass
 
-    def on_payment_requested(
+    def on_insufficient_funds(self):
+        pass
+
+    def on_insufficient_confirmations(self):
+        pass
+
+    def approve_payment(
             self,
             receiver: str,
             price: int,
             confirmed_balance: int,
             channel_manager_address: str
     ):
-        pass
+        return False
 
-    def on_insufficient_funds(self):
-        pass
-
-    def on_insufficient_confirmations(self):
+    def on_payment_approved(self, receiver: str, price: int, confirmed_balance: int):
         pass

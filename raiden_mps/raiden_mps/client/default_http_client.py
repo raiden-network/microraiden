@@ -38,16 +38,27 @@ class DefaultHTTPClient(HTTPClient):
         if cost:
             log.info('Final cost was {}.'.format(cost))
 
-    def on_payment_requested(
+    def on_insufficient_confirmations(self):
+        log.warning(
+            'Newly created channel does not have enough confirmations yet. Retrying in {} seconds.'
+                .format(self.retry_interval)
+        )
+        time.sleep(self.retry_interval)
+        self.retry = True
+
+    def on_insufficient_funds(self):
+        log.error('Server was unable to verify the transfer.')
+
+    def approve_payment(
             self, receiver: str, price: int, confirmed_balance: int, channel_manager_address: str
     ):
         if not channel_manager_address:
-            log.warning('Server did not specify a contract address. Paying anyway.')
+            log.warning('Server did not specify a contract address.')
         elif not equal_addrs(channel_manager_address, self.client.channel_manager_address):
             log.error(
                 'Server requested invalid channel manager: {}'.format(channel_manager_address)
             )
-            return
+            return False
 
         if self.channel:
             price -= self.channel.balance - confirmed_balance
@@ -59,7 +70,13 @@ class DefaultHTTPClient(HTTPClient):
             )
             time.sleep(self.retry_interval)
             self.retry = True
-            return
+            return False
+
+        return True
+
+    def on_payment_approved(self, receiver: str, price: int, confirmed_balance: int):
+        if self.channel:
+            price -= self.channel.balance - confirmed_balance
 
         assert price > 0
 
@@ -109,17 +126,6 @@ class DefaultHTTPClient(HTTPClient):
 
         self.channel.create_transfer(price)
         self.retry = True
-
-    def on_insufficient_confirmations(self):
-        log.warning(
-            'Newly created channel does not have enough confirmations yet. Retrying in {} seconds.'
-                .format(self.retry_interval)
-        )
-        time.sleep(self.retry_interval)
-        self.retry = True
-
-    def on_insufficient_funds(self):
-        log.error('Server was unable to verify the transfer.')
 
     @staticmethod
     def is_suitable_channel(channel: Channel, receiver: str, value: int):
