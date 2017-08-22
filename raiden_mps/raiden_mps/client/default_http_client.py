@@ -38,7 +38,9 @@ class DefaultHTTPClient(HTTPClient):
         if cost:
             log.info('Final cost was {}.'.format(cost))
 
-    def on_payment_requested(self, receiver: str, price: int, channel_manager_address: str):
+    def on_payment_requested(
+            self, receiver: str, price: int, confirmed_balance: int, channel_manager_address: str
+    ):
         if not channel_manager_address:
             log.warning('Server did not specify a contract address. Paying anyway.')
         elif not equal_addrs(channel_manager_address, self.client.channel_manager_address):
@@ -46,6 +48,20 @@ class DefaultHTTPClient(HTTPClient):
                 'Server requested invalid channel manager: {}'.format(channel_manager_address)
             )
             return
+
+        if self.channel:
+            price -= self.channel.balance - confirmed_balance
+
+        if price == 0:
+            log.debug(
+                'Requested amount already paid. Retrying in {} seconds.'
+                    .format(self.retry_interval)
+            )
+            time.sleep(self.retry_interval)
+            self.retry = True
+            return
+
+        assert price > 0
 
         log.debug('Preparing payment of price {} to {}.'.format(price, receiver))
 
@@ -59,6 +75,7 @@ class DefaultHTTPClient(HTTPClient):
             suitable_channels = [
                 c for c in open_channels if c.deposit - c.balance >= price
             ]
+
             if len(suitable_channels) > 1:
                 log.warning(
                     'Warning: {} suitable channels found. Choosing a random one.'
@@ -90,14 +107,14 @@ class DefaultHTTPClient(HTTPClient):
             log.error("No channel could be created or sufficiently topped up.")
             return
 
-        # TODO: keep track of balances to avoid paying twice+ for the same request
         self.channel.create_transfer(price)
         self.retry = True
 
     def on_insufficient_confirmations(self, pending_confirmations: int):
         log.warning(
             'Newly created channel does not have enough confirmations yet. '
-            'Waiting for {} more.'.format(pending_confirmations)
+            'Waiting for {} more. Retrying in {} seconds.'
+                .format(pending_confirmations, self.retry_interval)
         )
         time.sleep(self.retry_interval)
         self.retry = True
