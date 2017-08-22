@@ -1,5 +1,7 @@
 from .client import (
-    Client
+    Client,
+    HTTPClient,
+    DefaultHTTPClient
 )
 
 from .header import (

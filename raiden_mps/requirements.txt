@@ -11,3 +11,4 @@ click
 requests
 werkzeug
 populus
+munch

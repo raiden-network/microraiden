@@ -4,7 +4,11 @@ hex-encoded values, such as hashes and private keys, come without a 0x prefix.
 """
 
 from coincurve import PrivateKey, PublicKey
-from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak
+from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak, to_normalized_address
+
+
+def equal_addrs(addr1: str, addr2: str) -> bool:
+    return to_normalized_address(addr1) == to_normalized_address(addr2)
 
 
 def generate_privkey() -> bytes:

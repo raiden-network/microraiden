@@ -4,7 +4,7 @@ import logging
 
 import click
 
-from raiden_mps.examples.m2m_client import M2MClient
+from raiden_mps import DefaultHTTPClient
 from raiden_mps.client.channel import Channel
 from raiden_mps import Client
 
@@ -33,19 +33,15 @@ log = logging.getLogger(__name__)
     help='Ethereum address of the token contract.'
 )
 def run(api_endpoint, api_port, **kwargs):
-    logging.basicConfig(level=logging.INFO)
-
     exclude_kwargs = {'close_channels'}
     kwargs_client = {
         key: value for key, value in kwargs.items() if value and key not in exclude_kwargs
     }
     client = Client(**kwargs_client)
 
-    m2mclient = M2MClient(client, api_endpoint, api_port)
-
-    resource = 'doggo.jpg'
-    status, headers, body = m2mclient.request_resource(resource)
-    log.info('Response: {}'.format(body))
+    m2mclient = DefaultHTTPClient(client, api_endpoint, api_port)
+    resource = m2mclient.run('doggo.jpg')
+    log.info('Response: {}'.format(resource))
 
     if kwargs['close_channels'] is True:
         for channel in client.channels:
