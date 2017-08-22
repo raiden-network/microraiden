@@ -77,11 +77,9 @@ class Channel:
         ))
         current_block = self.client.web3.eth.blockNumber
 
-        calldata = self.client.channel_manager_proxy.create_transaction_data(
-            'topUp', [self.sender, self.receiver, self.block, deposit]
-        )
+        data = decode_hex(self.receiver) + self.block.to_bytes(4, byteorder='big')
         tx = self.client.token_proxy.create_signed_transaction(
-            'transfer', [self.client.channel_manager_address, deposit, calldata]
+            'transfer', [self.client.channel_manager_address, deposit, data]
         )
         self.client.web3.eth.sendRawTransaction(tx)
 

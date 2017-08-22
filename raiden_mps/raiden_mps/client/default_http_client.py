@@ -2,8 +2,9 @@ import logging
 import time
 from typing import Callable
 
+from eth_utils import is_same_address
+
 from raiden_mps.client import Channel
-from raiden_mps.crypto import equal_addrs
 from .http_client import HTTPClient
 
 log = logging.getLogger(__name__)
@@ -51,10 +52,10 @@ class DefaultHTTPClient(HTTPClient):
 
     def approve_payment(
             self, receiver: str, price: int, confirmed_balance: int, channel_manager_address: str
-    ):
+    ) -> bool:
         if not channel_manager_address:
             log.warning('Server did not specify a contract address.')
-        elif not equal_addrs(channel_manager_address, self.client.channel_manager_address):
+        elif not is_same_address(channel_manager_address, self.client.channel_manager_address):
             log.error(
                 'Server requested invalid channel manager: {}'.format(channel_manager_address)
             )
@@ -85,8 +86,8 @@ class DefaultHTTPClient(HTTPClient):
         if not self.channel or not self.is_suitable_channel(self.channel, receiver, price):
             open_channels = [
                 c for c in self.client.channels
-                if equal_addrs(c.sender, self.client.account.lower()) and
-                   equal_addrs(c.receiver, receiver) and
+                if is_same_address(c.sender, self.client.account.lower()) and
+                   is_same_address(c.receiver, receiver) and
                    c.state == Channel.State.open
             ]
             suitable_channels = [
@@ -130,5 +131,5 @@ class DefaultHTTPClient(HTTPClient):
     @staticmethod
     def is_suitable_channel(channel: Channel, receiver: str, value: int):
         return channel.deposit - channel.balance >= value and \
-               equal_addrs(channel.receiver, receiver)
+               is_same_address(channel.receiver, receiver)
 

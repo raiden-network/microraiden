@@ -2,6 +2,7 @@ import json
 import logging
 import os
 
+from eth_utils import decode_hex
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
@@ -223,11 +224,9 @@ class Client:
         ))
         current_block = self.web3.eth.blockNumber
 
-        calldata = self.channel_manager_proxy.create_transaction_data(
-            'createChannel', [self.account, receiver_address, deposit]
-        )
+        data = decode_hex(receiver_address)
         tx = self.token_proxy.create_signed_transaction(
-            'transfer', [self.channel_manager_address, deposit, calldata]
+            'transfer', [self.channel_manager_address, deposit, data]
         )
         self.web3.eth.sendRawTransaction(tx)
 

@@ -88,7 +88,7 @@ class HTTPClient(object):
             price: int,
             confirmed_balance: int,
             channel_manager_address: str
-    ):
+    ) -> bool:
         return False
 
     def on_payment_approved(self, receiver: str, price: int, confirmed_balance: int):
