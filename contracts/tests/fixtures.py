@@ -37,7 +37,7 @@ def channels_contract(chain, create_contract):
         print_logs(channels_contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'GasCost', 'RaidenMicroTransferChannels')
-        print_logs(channels_contract, 'TokenFallback', 'RaidenMicroTransferChannels')
+        # print_logs(channels_contract, 'TokenFallback', 'RaidenMicroTransferChannels')
 
         return channels_contract
     return get

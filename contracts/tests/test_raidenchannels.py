@@ -16,15 +16,24 @@ from fixtures import (
     print_gas_used
 )
 
-from ethereum.abi import (
-    ContractTranslator
-)
-
 import json
 import os
 
 global logs
 logs = {}
+
+
+'''
+from ethereum.abi import (
+    ContractTranslator
+)
+
+
+abi = get_contract_abi()
+ct = ContractTranslator(abi)
+txdata = ct.encode('createChannel', [B, A, depozit_B])
+print('---txdata', txdata)
+'''
 
 
 def get_contract_abi():
@@ -132,10 +141,8 @@ def channel(contract, web3):
     global channel_deposit
     channel_deposit = 220
 
-    abi = get_contract_abi()
-    ct = ContractTranslator(abi)
-    txdata = ct.encode('createChannel', [A, B, channel_deposit])
-    print('---txdata', txdata)
+    txdata = B[2:].zfill(40)
+    txdata = bytes.fromhex(txdata)
 
     print('Owner', Owner)
     print('sender', A)
@@ -152,6 +159,75 @@ def channel(contract, web3):
     open_block_number = get_last_open_block_number(contract)
 
     return (A, B, open_block_number)
+
+
+def test_channel_223_create(web3, chain, contract, channels_contract):
+    (Owner, A, B, C, D) = web3.eth.accounts[:5]
+    other_contract = channels_contract([token.address, 10], {'from': D})
+    depozit_B = 100
+    depozit_D = 120
+
+    # Allocate some tokens first
+    token.transact({"from": Owner}).transfer(B, depozit_B)
+    token.transact({"from": Owner}).transfer(D, depozit_D)
+    assert token.call().balanceOf(B) == depozit_B
+    assert token.call().balanceOf(D) == depozit_D
+    assert token.call().balanceOf(contract.address) == 0
+
+    # address - 20 bytes
+    txdata = A[2:].zfill(40)
+    print('----A', A, txdata)
+    txdata = bytes.fromhex(txdata)
+
+
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": B}).transfer(other_contract.address, depozit_B, txdata)
+    with pytest.raises(TypeError):
+        token.transact({"from": B}).transfer(contract.address, -2, txdata)
+
+    # TODO should this fail?
+    #token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes_fake)
+    #A_bytes = '0x829bd824b016326a401d083b33d092293333a830'
+    trxid = token.transact({"from": B}).transfer(contract.address, depozit_B, txdata)
+
+    channel_post_create_tests(contract, B, A, depozit_B)
+
+    print('----------------------------------')
+    print('GAS USED test_channel_223_create', get_gas_used(chain, trxid))
+    print('----------------------------------')
+
+
+def test_channel_topup_223(web3, chain, contract, channel):
+    (sender, receiver, open_block_number) = channel
+    (A) = web3.eth.accounts[3]
+    top_up_deposit = 14
+
+    # address 20 bytes
+    # padded block number from uint32 (4 bytes) to 32 bytes
+    top_up_data = receiver[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
+    print('---top_up_data', top_up_data)
+    top_up_data = bytes.fromhex(top_up_data)
+
+    top_up_data_wrong_receiver = A[2:].zfill(64) + hex(open_block_number)[2:].zfill(8)
+
+    top_up_data_wrong_block = receiver[2:].zfill(64) + hex(open_block_number+30)[2:].zfill(8)
+
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, 0, top_up_data)
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_receiver)
+    with pytest.raises(tester.TransactionFailed):
+        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_block)
+
+    # Call Token - this calls contract.tokenFallback
+    trxid = token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data)
+
+    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
+    assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
+
+    print('----------------------------------')
+    print('GAS USED test_channel_topup_223', get_gas_used(chain, trxid))
+    print('----------------------------------')
 
 
 def test_get_channel_info(web3, contract, channel):
@@ -172,157 +248,6 @@ def test_get_channel_info(web3, contract, channel):
     assert channel_data[1] != 0
     assert channel_data[2] == 0
     assert channel_data[3] == 0
-
-
-def test_channel_20_create(web3, chain, contract):
-    (Owner, A, B, C, D) = web3.eth.accounts[:5]
-    depozit_B = 100
-    depozit_D = 120
-
-    gas_used_create = 0
-
-    # Fund accounts with tokens
-    token.transact({"from": Owner}).transfer(B, depozit_B)
-    token.transact({"from": Owner}).transfer(D, depozit_D)
-
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({"from": B}).createChannelERC20(A, depozit_B)
-
-    # Approve token allowance
-    trxid = token.transact({"from": B}).approve(contract.address, depozit_B)
-    gas_used_create += get_gas_used(chain, trxid)
-
-    with pytest.raises(TypeError):
-        contract.transact({"from": B}).createChannelERC20(A, -2)
-
-    # Cannot create a channel if tokens were not approved
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({"from": D}).createChannelERC20(C, depozit_D)
-
-    assert token.call().balanceOf(contract.address) == 0
-    pre_balance_B = token.call().balanceOf(B)
-
-    # Create channel
-    trxid = contract.transact({"from": B}).createChannelERC20(A, depozit_B)
-    gas_used_create += get_gas_used(chain, trxid)
-
-    # Check balances
-    assert token.call().balanceOf(contract.address) == depozit_B
-    assert token.call().allowance(B, contract.address) == 0
-    assert token.call().balanceOf(B) == pre_balance_B - depozit_B
-
-    open_block_number = get_last_open_block_number(contract)
-
-    channel_data = contract.call().getChannelInfo(B, A, open_block_number)
-    print('-- --- -- channel_data', channel_data)
-    assert channel_data[1] == 100  # deposit
-    assert channel_data[2] == 0  # settle_block_number
-    assert channel_data[3] == 0  # closing_balance
-
-    print('----------------------------------')
-    print('GAS USED test_channel_20_create', gas_used_create)
-    print('----------------------------------')
-
-
-def test_channel_223_create(web3, chain, contract, channels_contract):
-    (Owner, A, B, C, D) = web3.eth.accounts[:5]
-    other_contract = channels_contract([token.address, 10], {'from': D})
-    depozit_B = 100
-    depozit_D = 120
-
-    # Allocate some tokens first
-    token.transact({"from": Owner}).transfer(B, depozit_B)
-    token.transact({"from": Owner}).transfer(D, depozit_D)
-    assert token.call().balanceOf(B) == depozit_B
-    assert token.call().balanceOf(D) == depozit_D
-    assert token.call().balanceOf(contract.address) == 0
-
-    abi = get_contract_abi()
-    ct = ContractTranslator(abi)
-    txdata = ct.encode('createChannel', [B, A, depozit_B])
-    print('---txdata', txdata)
-
-    with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": B}).transfer(other_contract.address, depozit_B, txdata)
-    with pytest.raises(TypeError):
-        token.transact({"from": B}).transfer(contract.address, -2, txdata)
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({"from": D}).createChannel(B, A, depozit_B)
-
-    # TODO should this fail?
-    #token.transact({"from": B}).transfer(contract.address, depozit_B, A_bytes_fake)
-    #A_bytes = '0x829bd824b016326a401d083b33d092293333a830'
-    trxid = token.transact({"from": B}).transfer(contract.address, depozit_B, txdata)
-
-    channel_post_create_tests(contract, B, A, depozit_B)
-
-    print('----------------------------------')
-    print('GAS USED test_channel_223_create', get_gas_used(chain, trxid))
-    print('----------------------------------')
-
-
-def test_channel_topup_20(web3, chain, contract, channel_20):
-    (sender, receiver, open_block_number) = channel_20
-    (A) = web3.eth.accounts[3]
-    top_up_deposit = 14
-
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
-
-    # Approve token allowance
-    trxid = token.transact({"from": sender}).approve(contract.address, top_up_deposit)
-    gas_used_approve = get_gas_used(chain, trxid)
-
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': A}).topUpERC20(receiver, open_block_number, top_up_deposit)
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUpERC20(A, open_block_number, top_up_deposit)
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, 0)
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({'from': sender}).topUpERC20(receiver, 0, top_up_deposit)
-
-    trxid = contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
-
-    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
-    assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
-
-    print('----------------------------------')
-    print('GAS USED test_channel_topup_20', gas_used_approve + get_gas_used(chain, trxid))
-    print('----------------------------------')
-
-
-def test_channel_topup_223(web3, chain, contract, channel):
-    (sender, receiver, open_block_number) = channel
-    (A) = web3.eth.accounts[3]
-    top_up_deposit = 14
-
-    abi = get_contract_abi()
-    ct = ContractTranslator(abi)
-    top_up_data = ct.encode('topUp', [sender, receiver, open_block_number, top_up_deposit])
-    print('---txdata', top_up_data)
-
-    top_up_data_wrong_receiver = ct.encode('topUp', [sender, A, open_block_number, top_up_deposit])
-    top_up_data_wrong_block = ct.encode('topUp', [sender, receiver, open_block_number + 30, top_up_deposit])
-
-    with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": sender}).transfer(contract.address, 0, top_up_data)
-    with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_receiver)
-    with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data_wrong_block)
-    with pytest.raises(tester.TransactionFailed):
-        contract.transact({"from": A}).topUp(sender, receiver, open_block_number, top_up_deposit)
-
-    # Call Token - this calls contract.tokenFallback
-    trxid = token.transact({"from": sender}).transfer(contract.address, top_up_deposit, top_up_data)
-
-    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
-    assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
-
-    print('----------------------------------')
-    print('GAS USED test_channel_topup_223', get_gas_used(chain, trxid))
-    print('----------------------------------')
 
 
 def test_close_call(web3, chain, contract, channel):
@@ -577,4 +502,85 @@ def test_close_by_sender_challenge_settle_by_sender2(web3, chain, contract, chan
 
     print('----------------------------------')
     print('GAS USED test_close_by_sender_challenge_settle_by_sender2', get_gas_used(chain, trxid1) + get_gas_used(chain, trxid2))
+    print('----------------------------------')
+
+
+def test_channel_20_create(web3, chain, contract):
+    (Owner, A, B, C, D) = web3.eth.accounts[:5]
+    depozit_B = 100
+    depozit_D = 120
+
+    gas_used_create = 0
+
+    # Fund accounts with tokens
+    token.transact({"from": Owner}).transfer(B, depozit_B)
+    token.transact({"from": Owner}).transfer(D, depozit_D)
+
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({"from": B}).createChannelERC20(A, depozit_B)
+
+    # Approve token allowance
+    trxid = token.transact({"from": B}).approve(contract.address, depozit_B)
+    gas_used_create += get_gas_used(chain, trxid)
+
+    with pytest.raises(TypeError):
+        contract.transact({"from": B}).createChannelERC20(A, -2)
+
+    # Cannot create a channel if tokens were not approved
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({"from": D}).createChannelERC20(C, depozit_D)
+
+    assert token.call().balanceOf(contract.address) == 0
+    pre_balance_B = token.call().balanceOf(B)
+
+    # Create channel
+    trxid = contract.transact({"from": B}).createChannelERC20(A, depozit_B)
+    gas_used_create += get_gas_used(chain, trxid)
+
+    # Check balances
+    assert token.call().balanceOf(contract.address) == depozit_B
+    assert token.call().allowance(B, contract.address) == 0
+    assert token.call().balanceOf(B) == pre_balance_B - depozit_B
+
+    open_block_number = get_last_open_block_number(contract)
+
+    channel_data = contract.call().getChannelInfo(B, A, open_block_number)
+    print('-- --- -- channel_data', channel_data)
+    assert channel_data[1] == 100  # deposit
+    assert channel_data[2] == 0  # settle_block_number
+    assert channel_data[3] == 0  # closing_balance
+
+    print('----------------------------------')
+    print('GAS USED test_channel_20_create', gas_used_create)
+    print('----------------------------------')
+
+
+def test_channel_topup_20(web3, chain, contract, channel_20):
+    (sender, receiver, open_block_number) = channel_20
+    (A) = web3.eth.accounts[3]
+    top_up_deposit = 14
+
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
+
+    # Approve token allowance
+    trxid = token.transact({"from": sender}).approve(contract.address, top_up_deposit)
+    gas_used_approve = get_gas_used(chain, trxid)
+
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': A}).topUpERC20(receiver, open_block_number, top_up_deposit)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': sender}).topUpERC20(A, open_block_number, top_up_deposit)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, 0)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': sender}).topUpERC20(receiver, 0, top_up_deposit)
+
+    trxid = contract.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
+
+    channel_data = contract.call().getChannelInfo(sender, receiver, open_block_number)
+    assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
+
+    print('----------------------------------')
+    print('GAS USED test_channel_topup_20', gas_used_approve + get_gas_used(chain, trxid))
     print('----------------------------------')

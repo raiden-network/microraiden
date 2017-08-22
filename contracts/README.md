@@ -8,8 +8,8 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-RDNToken address is 0xa9a7b9864de5217a0d1431a21823360ba1c6af12
-RaidenMicroTransferChannels address is 0x794bf0bb5dcf528c4b631c699ff37e91257fac84
+RDNToken  address is 0x6b3da80008814e116a3963065b77928be91cfa93
+RaidenMicroTransferChannels address is 0x7e1528bfc6c3fd9863055bb0d4f89d69aaacdb5c
 
 ```
 

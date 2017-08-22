@@ -63,15 +63,10 @@ contract RaidenMicroTransferChannels {
         address indexed _receiver,
         uint32 indexed _open_block_number,
         uint192 _balance);
-    event TokenFallback(
-        address indexed _sender,
-        address indexed _receiver,
-        uint192 _deposit,
-        bytes indexed _data);
     event GasCost(
         string _function_name,
         uint _gaslimit,
-        uint _gas);
+        uint _gas_remaining);
 
     /*
      *  Constructor
@@ -190,45 +185,28 @@ contract RaidenMicroTransferChannels {
         bytes _data)
         public
     {
-        if(_data.length > 0){
-            require(this.delegatecall(_data));
+        GasCost('tokenFallback start0', block.gaslimit, msg.gas);
+        uint length = _data.length;
+
+        // createChannel - receiver address (20 bytes + padding = 32 bytes)
+        // topUp - receiver address (32 bytes) + open_block_number (4 bytes + padding = 32 bytes)
+        require(length == 20 || length == 24);
+
+        address receiver = addressFromData(_data);
+
+        if(length == 20) {
+            createChannelPrivate(_sender, receiver, uint192(_deposit));
         }
+        else {
+            uint32 open_block_number = blockNumberFromData(_data);
+            topUpPrivate(_sender, receiver, open_block_number, uint192(_deposit));
+        }
+        GasCost('tokenFallback end', block.gaslimit, msg.gas);
     }
 
     /*
      *  Public functions
      */
-
-    /// @dev Creates a new channel between a sender and a receiver, only callable by the Token contract.
-    /// @param _sender The address that receives tokens.
-    /// @param _receiver The address that receives tokens.
-    /// @param _deposit The amount of tokens that the sender escrows.
-    function createChannel(
-        address _sender,
-        address _receiver,
-        uint192 _deposit)
-        public
-        isToken
-    {
-        createChannelPrivate(_sender, _receiver, _deposit);
-    }
-
-    // TODO (WIP)
-    /// @dev Funds channel with an additional deposit of tokens, only callable by the Token contract.
-    /// @param _sender The address that sends tokens.
-    /// @param _receiver The address that receives tokens.
-    /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
-    /// @param _added_deposit The added token deposit with which the current deposit is increased.
-    function topUp(
-        address _sender,
-        address _receiver,
-        uint32 _open_block_number,
-        uint192 _added_deposit)
-        public
-        isToken
-    {
-        topUpPrivate(_sender, _receiver, _open_block_number, _added_deposit);
-    }
 
     /*
      *  External functions
@@ -500,5 +478,50 @@ contract RaidenMicroTransferChannels {
     {
         if (a < b) return a;
         else return b;
+    }
+
+    /// @dev Internal function for getting an address from bytes.
+    /// @param b Bytes received.
+    /// @return Address resulted.
+    function addressFromData (
+        bytes b)
+        internal
+        constant
+        returns (address)
+    {
+        require(b.length >= 20);
+        uint start = 1;
+        uint end = 19;
+
+        uint result = 0;
+        for (uint i = end; i >= start; i--) {
+            uint c = uint(b[i]);
+            uint exp = (end - i) * 2;
+            result += c * (16**exp);
+        }
+        result += uint(b[0]) * (16**38);
+        return address(result);
+    }
+
+    /// @dev Internal function for getting the block number from bytes.
+    /// @param b Bytes received.
+    /// @return Block number.
+    function blockNumberFromData(
+        bytes b)
+        internal
+        constant
+        returns (uint32)
+    {
+        require(b.length >= 20);
+        uint start = 20;
+        uint end = b.length - 1;
+
+        uint result = 0;
+        for (uint i = end; i >= start; i--) {
+            uint c = uint(b[i]);
+            uint exp = (end - i) * 2;
+            result += c * (16**exp);
+        }
+        return uint32(result);
     }
 }
