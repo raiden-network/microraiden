@@ -302,12 +302,16 @@ class ChannelManager(gevent.Greenlet):
     def unconfirmed_event_channel_topup(self, sender, open_block_number, txhash, added_deposit,
                                         deposit):
         """Notify the channel manager of a topup with not enough confirmations yet."""
+        if (sender, open_block_number) not in self.state.channels:
+            assert (sender, open_block_number) in self.state.unconfirmed_channels
+            self.log.info('Ignoring unconfirmed topup of unconfirmed channel '
+                          '(sender %s, block number %s, aded %s)',
+                          sender, open_block_number, added_deposit)
+            return
         self.log.info('Registering unconfirmed deposit top up '
-                      '(sender %s, block number %s, new deposit %s)',
-                      sender, open_block_number, deposit)
-        assert (sender, open_block_number) in self.state.channels
+                      '(sender %s, block number %s, aded %s)',
+                      sender, open_block_number, added_deposit)
         c = self.state.channels[(sender, open_block_number)]
-        assert c.deposit + added_deposit == deposit
         c.unconfirmed_event_channel_topups[txhash] = added_deposit
         self.state.store()
 
