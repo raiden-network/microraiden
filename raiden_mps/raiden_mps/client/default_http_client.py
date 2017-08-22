@@ -61,6 +61,13 @@ class DefaultHTTPClient(HTTPClient):
             )
             return False
 
+        if confirmed_balance > self.channel.balance:
+            log.error(
+                'Server confirmed an invalid channel balance: {}/{}'
+                    .format(confirmed_balance, self.channel.balance)
+            )
+            return False
+
         if self.channel:
             price -= self.channel.balance - confirmed_balance
 
