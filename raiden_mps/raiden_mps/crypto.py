@@ -42,7 +42,8 @@ def sha3(*args) -> bytes:
     """
 
     def format_int(value, size):
-        assert value
+        assert isinstance(value, int)
+        assert isinstance(size, int)
         if value >= 0:
             return decode_hex('{:x}'.format(value).zfill(size // 4))
         else:
