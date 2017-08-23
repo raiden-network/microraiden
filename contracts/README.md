@@ -24,17 +24,17 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-ERC223Token  address is 0x6b3da80008814e116a3963065b77928be91cfa93
-RaidenMicroTransferChannels address is 0x7e1528bfc6c3fd9863055bb0d4f89d69aaacdb5c
+ERC223Token  address is 0xad6e12d1e0ce6780b1eb1599ab6b1e75fbd9306b
+RaidenMicroTransferChannels address is 0x22c527350d0f56d49eb0502226cfdf44741e850e
 
 ```
 
-### Ropsten
+### Ropsten Revival
 
 ```
 
-ERC223Token address is
-RaidenMicroTransferChannels address is
+ERC223Token  address is 0xdd5dc98e14c5c4bb7d9813eebc123f769965459e
+RaidenMicroTransferChannels address is 0x4abdf31df1284504fa821f7843f0298dcee52a21
 
 ```
 
@@ -43,8 +43,8 @@ RaidenMicroTransferChannels address is
 
 ```
 
-ERC223Token address is
-RaidenMicroTransferChannels address is
+ERC223Token  address is 0xb6a7a5742ec869cc3293bb9bbe019053cb66d9c0
+RaidenMicroTransferChannels address is 0x3adbaff68967a217901b55284464eaf3ffaf203d
 
 ```
 
@@ -93,13 +93,13 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
    ```
 
  * `kovan`
-   - change default account: [/contracts/populus.json#L180](/contracts/populus.json#L180)
+   - change default account: [/contracts/populus.json#L177](/contracts/populus.json#L177)
    - start https://github.com/paritytech/parity
    ```
    parity --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --unlock 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb --password ~/password.txt --author 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb
    ```
  * `ropsten`
-   - change default account: [/contracts/populus.json#L52](/contracts/populus.json#L52)
+   - change default account: [/contracts/populus.json#L49](/contracts/populus.json#L49)
    - start:
    ```
    geth --testnet --rpc  --rpcport 8545 --unlock 0xbB5AEb01acF5b75bc36eC01f5137Dd2728FbE983 --password ~/password.txt
@@ -108,7 +108,7 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
 
  * `rinkeby`
    - https://www.rinkeby.io/ (has a Faucet)
-   - change default account: [/contracts/populus.json#L215](/contracts/populus.json#L215)
+   - change default account: [/contracts/populus.json#L212](/contracts/populus.json#L212)
    - start:
    ```
    # First time
@@ -127,9 +127,18 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
 
 # Following two calls are quivalent
 python deploy/deploy_testnet.py
-python deploy/deploy_testnet.py --chain kovan --challenge-period 30 --supply 10000000 --token-name ERC223Token --token-decimals 6 --token-symbol TKN --senders 5 --sender-addresses '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
+python deploy/deploy_testnet.py \
+    --chain kovan \
+    --owner 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb  \  # web3.eth.accounts[0]
+    --challenge-period 30 \
+    --supply 10000000 \
+    --token-name ERC223Token \
+    --token-decimals 6 \
+    --token-symbol TKN \
+    --senders 5 \
+    --sender-addresses \ '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
 
-# Provide a custom token
+# Provide a custom deployed token
 python deploy/deploy_testnet.py --token-address address
 
 

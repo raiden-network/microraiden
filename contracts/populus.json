@@ -30,9 +30,6 @@
       },
       "contracts": {
         "backends": {
-          "InstalledPackages": {
-            "$ref": "contracts.backends.InstalledPackages"
-          },
           "JSONFile": {
             "$ref": "contracts.backends.JSONFile"
           },
@@ -177,16 +174,16 @@
       },
       "web3": {
         "eth": {
-            "default_account": "0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb"
+          "default_account": "0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb"
         },
         "provider": {
-            "class": "web3.providers.rpc.HTTPProvider",
+          "class": "web3.providers.rpc.HTTPProvider",
             "settings": {
             "endpoint_uri": "http://127.0.0.1:8545",
             "request_kwargs": {
                 "timeout": 180
             }
-            }
+          }
         }
       }
     },

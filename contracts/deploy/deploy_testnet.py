@@ -1,6 +1,6 @@
-"""
+'''
 A simple Python script to deploy contracts and then do a smoke test for them.
-"""
+'''
 import click
 from populus import Project
 from populus.utils.wait import wait_for_transaction_receipt
@@ -16,12 +16,12 @@ from ethereum.utils import encode_hex
 
 
 def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
-    """See if transaction went through (Solidity code did not throw).
+    '''See if transaction went through (Solidity code did not throw).
     :return: Transaction receipt
-    """
+    '''
     receipt = wait_for_transaction_receipt(web3, txid, timeout=timeout)
     txinfo = web3.eth.getTransaction(txid)
-    assert txinfo["gas"] != receipt["gasUsed"]
+    assert txinfo['gas'] != receipt['gasUsed']
     return receipt
 
 
@@ -34,8 +34,8 @@ def createWallet():
     return (encode_hex(priv.to_string()), address)
 
 
-def wait(transfer_filter):
-    with Timeout(30) as timeout:
+def wait(transfer_filter, timeout=30):
+    with Timeout(timeout) as timeout:
         while not transfer_filter.get(False):
             timeout.sleep(2)
 
@@ -45,6 +45,10 @@ def wait(transfer_filter):
     '--chain',
     default='kovan',
     help='Chain to deploy on: kovan | ropsten | rinkeby | tester | privtest'
+)
+@click.option(
+    '--owner',
+    help='Contracts owner, default: web3.eth.accounts[0]'
 )
 @click.option(
     '--challenge-period',
@@ -90,6 +94,7 @@ def getTokens(**kwargs):
 
     # print(kwargs)
     chain_name = kwargs['chain']
+    owner = kwargs['owner']
     challenge_period = kwargs['challenge_period']
     supply = kwargs['supply']
     senders = kwargs['senders']
@@ -100,24 +105,31 @@ def getTokens(**kwargs):
     token_address = kwargs['token_address']
     token_assign = int(supply / (len(sender_addresses) + senders))
 
-    print("Make sure {} chain is running, you can connect to it, or you'll get timeout".format(chain_name))
+    txn_wait = 250
+    event_wait = 50
+    if chain_name == 'rinkeby':
+        txn_wait = 500
+        event_wait = 500
+
+    print("Make sure {} chain is running, you can connect to it and it is synced, or you'll get timeout".format(chain_name))
 
     with project.get_chain(chain_name) as chain:
         web3 = chain.web3
-        print("Web3 provider is", web3.currentProvider)
+        owner = owner or web3.eth.accounts[0]
+        print('Web3 provider is', web3.currentProvider)
 
         if not token_address:
-            token = chain.provider.get_contract_factory("ERC223Token")
-            txhash = token.deploy(args=[supply, token_name, token_decimals, token_symbol])
-            receipt = check_succesful_tx(chain.web3, txhash, 250)
+            token = chain.provider.get_contract_factory('ERC223Token')
+            txhash = token.deploy(args=[supply, token_name, token_decimals, token_symbol], transaction={'from': owner})
+            receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
             token_address = receipt['contractAddress']
             print(token_name, ' address is', token_address)
 
-        channel_factory = chain.provider.get_contract_factory("RaidenMicroTransferChannels")
+        channel_factory = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
         txhash = channel_factory.deploy(args=[token_address, challenge_period])
-        receipt = check_succesful_tx(chain.web3, txhash, 250)
-        cf_address = receipt["contractAddress"]
-        print("RaidenMicroTransferChannels address is", cf_address)
+        receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
+        cf_address = receipt['contractAddress']
+        print('RaidenMicroTransferChannels address is', cf_address)
 
         priv_keys = []
         addresses = []
@@ -127,14 +139,14 @@ def getTokens(**kwargs):
         for i in range(senders-1):
             priv_key, address = createWallet()
             priv_keys.append(priv_key)
-            addresses.append("0x" + address)
+            addresses.append('0x' + address)
 
         # send tokens to each new wallet
         for sender in addresses:
-            token(token_address).transact({"from": web3.eth.accounts[0]}).transfer(sender, token_assign)
+            token(token_address).transact({'from': owner}).transfer(sender, token_assign)
         # also send tokens to sender addresses
         for sender in sender_addresses:
-            token(token_address).transact({"from": web3.eth.accounts[0]}).transfer(sender, token_assign)
+            token(token_address).transact({'from': owner}).transfer(sender, token_assign)
 
         print('Senders have each been issued', token_assign, ' tokens')
 
@@ -142,23 +154,23 @@ def getTokens(**kwargs):
         # 1. get message balance hash for address[0]
         hash = channel_factory(cf_address).call().balanceMessageHash(addresses[0], 100, 10000)
         # 2. sign the hash with private key corresponding to address[0]
-        hash_sig, addr = sign.check(bytes(hash, "raw_unicode_escape"), binascii.unhexlify(priv_keys[0]))
+        hash_sig, addr = sign.check(bytes(hash, 'raw_unicode_escape'), binascii.unhexlify(priv_keys[0]))
         # 3. check if ECVerify and ec_recovered address are equal
         ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0], 100, 10000, hash_sig)
-        print("EC_RECOVERED_ADDR:", ec_recovered_addr)
-        print("FIRST WALLET ADDR:", addresses[0])
+        print('EC_RECOVERED_ADDR:', ec_recovered_addr)
+        print('FIRST WALLET ADDR:', addresses[0])
         assert ec_recovered_addr == addresses[0]
 
         print('Wait for confirmation...')
 
         transfer_filter = token.on('Transfer')
-        wait(transfer_filter)
+        wait(transfer_filter, event_wait)
 
-        print("BALANCE:", token(token_address).call().balanceOf(addresses[0]))
+        print('BALANCE:', token(token_address).call().balanceOf(addresses[0]))
         assert token(token_address).call().balanceOf(addresses[0]) > 0
 
     # return arrays with generated wallets (private keys first, then addresses, so that priv_key[0] <-> address[0]
     return (priv_keys, addresses, token(token_address))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     print(getTokens())
