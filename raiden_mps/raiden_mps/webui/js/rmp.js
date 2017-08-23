@@ -295,8 +295,8 @@ class RaidenMicropaymentsClient {
     this.token.transfer["address,uint256,bytes"].sendTransaction(
       this.contract.address,
       deposit,
-      // receiver goes as 3rd param, 20 bytes, plus blocknumber, 8bytes
-      this.channel.receiver + this.encodeHex(this.channel.block, 16),
+      // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
+      this.channel.receiver + this.encodeHex(this.channel.block, 8),
       { from: this.channel.account },
       (err, transferTxHash) => {
         if (err) {
