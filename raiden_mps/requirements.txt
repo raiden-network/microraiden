@@ -12,3 +12,4 @@ requests
 werkzeug
 populus
 munch
+typing

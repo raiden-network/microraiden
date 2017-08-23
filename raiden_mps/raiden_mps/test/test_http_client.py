@@ -1,4 +1,5 @@
 import logging
+import json
 
 from raiden_mps import DefaultHTTPClient
 
@@ -98,3 +99,25 @@ def test_default_http_client_existing_channel_topup(
     assert channel.deposit == 13
 
 
+def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels,
+                    sender_address, receiver_address):
+    logging.basicConfig(level=logging.INFO)
+
+    check_response(default_http_client.run('doggo.jpg'))
+
+    client = default_http_client.client
+    open_channels = [c for c in client.channels if c.state == Channel.State.open]
+    assert len(open_channels) == 1
+
+    channel = open_channels[0]
+    import requests
+    reply = requests.get('http://localhost:5000/api/1/channels/%s/%s' %
+                         (channel.sender, channel.block))
+    assert reply.status_code == 200
+    json_reply = json.loads(reply.text)
+
+    request_data = {'signature': json_reply['last_signature']}
+    reply = requests.delete('http://localhost:5000/api/1/channels/%s/%s' %
+                            (channel.sender, channel.block), data=request_data)
+
+    assert reply.status_code == 200

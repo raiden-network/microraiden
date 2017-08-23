@@ -500,8 +500,7 @@ class Channel(object):
         self.unconfirmed_event_channel_topups = {}  # txhash to added deposit
 
     def toJSON(self):
-        import json
-        return json.dumps(self, default=lambda o: o.__dict__)
+        return self.__dict__
 
 
 class PublicAPI(object):
