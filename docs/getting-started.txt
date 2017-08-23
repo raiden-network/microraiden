@@ -1,0 +1,66 @@
+A simple pay-per-view demo
+==============================================
+
+0. Installing the requirements
+------------------------------
+
+- Browser
+You'll need Chrome browser with MetaMask extension to be able to sign the payments.
+Get MetaMask from here: https://metamask.github.io/
+
+Create or import an account and ask someone to send you some tokens and bit of 
+ether too.
+
+- Python 
+
+It is preferrable to have a virtual environment set up for running the proxy.
+
+`virtualenv -p /usr/bin/python3 raiden-micropayments`
+
+This will create a directory that contains a local installation of Python 3.
+To activate the environment, do `cd raiden-micropayments && . bin/activate`.
+
+Now change to the directory that contains raiden micropayment code and install
+python dependencies.
+
+`pip install -r raiden_mps/requirements.txt`
+
+
+1. Starting the proxy
+---------------------
+You are ready to start the proxy! Run
+
+`python -m raiden_mps.proxy`
+
+
+2. WebUI client
+----------------
+If there are no errors, open Chrome and navigate to `localhost:5000/doggo.txt`.
+Hm, a paywall. Someone expects you to pay for an image of a cute pooch. But the 
+price is fair - we have micropayments after all.
+
+Start by creating a channel. Choose how much you want to deposit and click `start`.
+A MetaMask window will pop up, asking you to send a transaction. Do that, and after
+the transaction is confirmed, sign & send another transaction. Disregard the warning 
+displayed in the window - it is there only to scare the weak.
+
+If everything went well, you will now see a magnificient doggo. Unfortunately, in this age
+of greed, people expect you to pay-per-view. If you reload the page, a paywall
+appears again, asking you to sign another transaction. If there are enough tokens
+remaining in the channel, and if you want to entertain yourself by looking at funny
+animal, press the `sign` button and repeat the procedure by signing the message.
+(every Sign creates a new balance proof and every time the balance must increase, otherwise
+receiver will reject this payment)
+
+When your resources are depleted, you have an option of topping up the channel with more
+tokens, or closing and settling the channel.
+
+After pressing `close` and confirming the transaction, channel will be switched to `closed`
+state. (The receiver can now challenge the balance proof - don't try to cheat by closing
+the channel with an earlier signature!)
+
+Settling is possible only after the challenge period is over. Settling will effectively
+terminate the channel and transfers spent funds to the receiver on-chain, and returns
+the rest to the sender.
+
+

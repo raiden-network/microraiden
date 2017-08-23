@@ -7,6 +7,7 @@ import sys
 #  app with python -m raiden_mps.
 #
 from raiden_mps.crypto import privkey_to_addr
+from flask import make_response
 
 
 if __package__ is None:
@@ -21,6 +22,20 @@ from raiden_mps.proxy.content import (
     PaywalledContent,
     PaywalledProxyUrl
 )
+
+
+def get_doggo(_):
+    doggo_str = """
+         |\_/|
+         | @ @   Woof!
+         |   <>              _
+         |  _/\------____ ((| |))
+         |               `--' |
+     ____|_       ___|   |___.'
+    /_/_____/____/_______|
+    """
+    headers = {"Content-type": 'text/ascii'}
+    return make_response(doggo_str, 200, headers)
 
 
 @click.command()
@@ -71,6 +86,7 @@ def main(
 
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
+    app.add_content(PaywalledContent("doggo.txt", 2, get_doggo))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
     app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
     app.add_content(PaywalledProxyUrl("p\/.*", 1, lambda x: x))
