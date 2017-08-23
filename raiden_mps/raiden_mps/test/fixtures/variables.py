@@ -5,7 +5,7 @@ from ethereum.tester import keys
 import os
 import json
 from raiden_mps.client.client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
-from raiden_mps.config import (
+from raiden_mps.test.config import (
     TEST_SENDER_PRIVKEY,
     TEST_RECEIVER_PRIVKEY,
     TEST_SECONDARY_RECEIVER_PRIVKEY

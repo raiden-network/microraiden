@@ -10,6 +10,8 @@ from flask_restful import (
     Api,
 )
 
+from raiden_mps import config
+
 from raiden_mps.channel_manager import (
     ChannelManager
 )
@@ -32,21 +34,20 @@ import logging
 
 log = logging.getLogger(__name__)
 
-RAIDEN_MPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-HTML_DIR = os.path.join(RAIDEN_MPS_DIR, 'raiden_mps', 'webui')
-JSLIB_DIR = os.path.join(HTML_DIR, 'js')
-
 
 class PaywalledProxy:
     def __init__(self,
                  channel_manager,
                  flask_app=None,
-                 paywall_html_dir=HTML_DIR):
+                 paywall_html_dir=None,
+                 paywall_js_dir=None):
         if not flask_app:
             self.app = Flask(__name__)
         else:
             assert isinstance(flask_app, Flask)
             self.app = flask_app
+        paywall_html_dir = paywall_html_dir or config.HTML_DIR
+        paywall_js_dir = paywall_js_dir or config.JSLIB_DIR
         assert isinstance(channel_manager, ChannelManager)
         assert isinstance(paywall_html_dir, str)
         self.paywall_db = PaywallDatabase()
@@ -65,7 +66,7 @@ class PaywalledProxy:
             'light_client_proxy': LightClientProxy(paywall_html_dir + "/index.html")
         }
         self.api.add_resource(StaticFilesServer, "/js/<path:content>",
-                              resource_class_kwargs={'directory': JSLIB_DIR})
+                              resource_class_kwargs={'directory': paywall_js_dir})
         self.api.add_resource(Expensive, "/<path:content>", resource_class_kwargs=cfg)
         self.api.add_resource(ChannelManagementChannelInfo,
                               API_PATH + "/channels/<string:sender_address>/<int:opening_block>",

@@ -1,7 +1,7 @@
 import pytest
 
 from raiden_mps import HTTPHeaders
-from raiden_mps.config import TEST_RECEIVER_ADDR, TEST_SENDER_ADDR
+from raiden_mps.test.config import TEST_RECEIVER_ADDR, TEST_SENDER_ADDR
 
 
 def test_headers():

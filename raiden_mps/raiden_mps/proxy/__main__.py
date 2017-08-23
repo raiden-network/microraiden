@@ -15,8 +15,7 @@ if __package__ is None:
     sys.path.insert(0, path + "/../")
 
 import raiden_mps.utils as utils
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
-from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
+from raiden_mps import config
 from raiden_mps.proxy.content import (
     PaywalledFile,
     PaywalledContent,
@@ -27,7 +26,7 @@ from raiden_mps.proxy.content import (
 @click.command()
 @click.option(
     '--channel-manager-address',
-    default=CHANNEL_MANAGER_ADDRESS,
+    default=None,
     help='Ethereum address of the channel manager contract.'
 )
 @click.option(
@@ -58,6 +57,7 @@ def main(
             private_key = keyfile.readline()[:-1]
 
     receiver_address = privkey_to_addr(private_key)
+    channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
 
     if not state_file:
         state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)
@@ -66,9 +66,9 @@ def main(
             os.makedirs(app_dir)
         state_file = os.path.join(app_dir, state_file_name)
 
-    channel_manager = utils.make_channel_manager(private_key, state_file, channel_manager_address)
+    config.paywall_html_dir = paywall_info
+    app = utils.make_paywalled_proxy(private_key, state_file)
 
-    app = PaywalledProxy(channel_manager, paywall_html_dir=paywall_info)
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
