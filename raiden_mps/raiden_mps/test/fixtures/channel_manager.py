@@ -6,7 +6,7 @@ from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.channel_manager import ChannelManager
 from web3 import Web3, EthereumTesterProvider
 from web3.providers.rpc import RPCProvider
-from raiden_mps.config import (
+from raiden_mps.test.config import (
     CHANNEL_MANAGER_ADDRESS,
     TOKEN_ADDRESS,
     GAS_PRICE,

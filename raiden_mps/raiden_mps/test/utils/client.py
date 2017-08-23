@@ -1,6 +1,6 @@
 from raiden_mps.client import Channel
 from raiden_mps import Client
-from raiden_mps.config import TEST_RECEIVER_PRIVKEY
+from raiden_mps.test.config import TEST_RECEIVER_PRIVKEY
 from raiden_mps.crypto import sign_close, privkey_to_addr
 
 

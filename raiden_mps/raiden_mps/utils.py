@@ -10,11 +10,13 @@ import logging
 
 log = logging.getLogger(__name__)
 
+from raiden_mps import config
 from raiden_mps.channel_manager import (
     ChannelManager,
     StateReceiverAddrMismatch,
     StateContractAddrMismatch
 )
+from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
 
 
 def parse_balance_proof_msg(proxy, receiver, open_block_number, balance, signature):
@@ -27,12 +29,13 @@ def make_contract_proxy(web3, private_key, contract_address):
     return ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9), 100000)
 
 
-def make_channel_manager(private_key: str, state_filename: str, channel_contract_address: str):
-    web3 = Web3(RPCProvider())
+def make_channel_manager(private_key: str, state_filename: str, web3=None):
+    if web3 is None:
+        web3 = Web3(RPCProvider())
     try:
         return ChannelManager(
             web3,
-            make_contract_proxy(web3, private_key, channel_contract_address),
+            make_contract_proxy(web3, private_key, config.CHANNEL_MANAGER_ADDRESS),
             private_key,
             state_filename=state_filename
         )
@@ -48,3 +51,9 @@ def make_channel_manager(private_key: str, state_filename: str, channel_contract
                   'start proxy again (%s)' %
                   (state_filename, e))
         sys.exit(1)
+
+
+def make_paywalled_proxy(private_key: str, state_filename: str, flask_app=None, web3=None):
+    channel_manager = make_channel_manager(private_key, state_filename, web3)
+    proxy = PaywalledProxy(channel_manager, flask_app, config.HTML_DIR, config.JSLIB_DIR)
+    return proxy

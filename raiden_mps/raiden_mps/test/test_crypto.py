@@ -1,7 +1,7 @@
 from coincurve import PublicKey
 from eth_utils import force_bytes, encode_hex, decode_hex
 
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS
+from raiden_mps.test.config import CHANNEL_MANAGER_ADDRESS
 from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.crypto import (
     privkey_to_addr,
