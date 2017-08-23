@@ -24,7 +24,7 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-RDNToken  address is 0x6b3da80008814e116a3963065b77928be91cfa93
+ERC223Token  address is 0x6b3da80008814e116a3963065b77928be91cfa93
 RaidenMicroTransferChannels address is 0x7e1528bfc6c3fd9863055bb0d4f89d69aaacdb5c
 
 ```
@@ -33,7 +33,7 @@ RaidenMicroTransferChannels address is 0x7e1528bfc6c3fd9863055bb0d4f89d69aaacdb5
 
 ```
 
-RDNToken address is
+ERC223Token address is
 RaidenMicroTransferChannels address is
 
 ```
@@ -43,7 +43,7 @@ RaidenMicroTransferChannels address is
 
 ```
 
-RDNToken address is
+ERC223Token address is
 RaidenMicroTransferChannels address is
 
 ```
@@ -127,7 +127,7 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
 
 # Following two calls are quivalent
 python deploy/deploy_testnet.py
-python deploy/deploy_testnet.py --chain kovan --challenge-period 30 --supply 10000000 --token-name RDNToken --token-decimals 6 --token-symbol RDN --senders 5 --sender-addresses '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
+python deploy/deploy_testnet.py --chain kovan --challenge-period 30 --supply 10000000 --token-name ERC223Token --token-decimals 6 --token-symbol TKN --senders 5 --sender-addresses '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
 
 # Provide a custom token
 python deploy/deploy_testnet.py --token-address address
@@ -155,7 +155,7 @@ npm install -g solidity-doc
 - _Sender_ = token sender
 - _Receiver_ = token receiver
 - _Contract_ = Raiden MicroTransferChannels Smart Contract
-- _Token_ = RDNToken
+- _Token_ = ERC223Token
 
 ![ContractClass](/contracts/docs/diagrams/ContractClass.png)
 

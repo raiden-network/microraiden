@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import "./RDNToken/Token.sol";
+import "./Token/Token.sol";
 import "./lib/ECVerify.sol";
 
 /// @title Raiden MicroTransfer Channels Contract.

@@ -16,7 +16,7 @@ import "./ContractReceiver.sol";
 
 pragma solidity ^0.4.8;
 
-contract RDNToken is StandardToken {
+contract ERC223Token is StandardToken {
 
     /* Public variables of the token */
 
@@ -30,7 +30,7 @@ contract RDNToken is StandardToken {
     */
     string public version = 'H0.1';       //human 0.1 standard. Just an arbitrary versioning scheme.
 
-    function RDNToken (
+    function ERC223Token (
         uint256 _initialAmount,
         string _tokenName,
         uint8 _decimalUnits,

@@ -58,7 +58,7 @@ def wait(transfer_filter):
 )
 @click.option(
     '--token-name',
-    default='RDNToken',
+    default='ERC223Token',
     help='Token contract name.'
 )
 @click.option(
@@ -68,7 +68,7 @@ def wait(transfer_filter):
 )
 @click.option(
     '--token-symbol',
-    default='RDN',
+    default='TKN',
     help='Token contract symbol.'
 )
 @click.option(
@@ -107,7 +107,7 @@ def getTokens(**kwargs):
         print("Web3 provider is", web3.currentProvider)
 
         if not token_address:
-            token = chain.provider.get_contract_factory("RDNToken")
+            token = chain.provider.get_contract_factory("ERC223Token")
             txhash = token.deploy(args=[supply, token_name, token_decimals, token_symbol])
             receipt = check_succesful_tx(chain.web3, txhash, 250)
             token_address = receipt['contractAddress']

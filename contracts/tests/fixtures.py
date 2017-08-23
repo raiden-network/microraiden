@@ -14,12 +14,12 @@ def create_contract(chain):
 @pytest.fixture()
 def token_contract(chain, create_contract):
     def get(arguments, transaction=None):
-        RDNToken = chain.provider.get_contract_factory('RDNToken')
-        token_contract = create_contract(RDNToken, arguments, transaction)
+        ERC223Token = chain.provider.get_contract_factory('ERC223Token')
+        token_contract = create_contract(ERC223Token, arguments, transaction)
 
-        print_logs(token_contract, 'Approval', 'RDNToken')
-        print_logs(token_contract, 'Transfer', 'RDNToken')
-        # print_logs(token_contract, 'GasCost', 'RDNToken')
+        print_logs(token_contract, 'Approval', 'ERC223Token')
+        print_logs(token_contract, 'Transfer', 'ERC223Token')
+        # print_logs(token_contract, 'GasCost', 'ERC223Token')
 
         return token_contract
     return get
