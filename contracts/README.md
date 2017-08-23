@@ -208,7 +208,7 @@ Gas cost (testing): 68636
 
  * `_to` = `Contract.address`
  * `_value` = deposit value (number of tokens)
- * `_data` contains the Receiver address encoded in 20 bytes + the open_block_number in 8 bytes
+ * `_data` contains the Receiver address encoded in 20 bytes + the open_block_number in 4 bytes
    - in python
    ```
     _data = receiver_address[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
