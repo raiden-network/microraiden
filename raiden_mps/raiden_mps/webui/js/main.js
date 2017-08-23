@@ -46,8 +46,10 @@ function pageReady(json) {
           return window.alert("An error occurred getting channel info: "+err);
         }
         $("#channel_present_state").text(info.state);
-        $("#channel_present .btn.on-state-"+info.state).attr("disabled", false);
-        $("#channel_present .btn:not(.on-state-"+info.state+")").attr("disabled", true);
+
+        $("#channel_present .btn.on-state-"+info.state).show();
+        $("#channel_present .btn:not(.on-state-"+info.state+")").hide();
+
         $("#channel_present #channel_present_balance").attr("value", rmpc.channel.balance);
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
       });
