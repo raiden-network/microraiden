@@ -33,10 +33,10 @@ def test_default_http_client(doggo_proxy, default_http_client: DefaultHTTPClient
     )
 
 
-def test_receiver_validation(channel_manager, clean_channels, rmp_client, wait_for_blocks):
+def test_receiver_validation(channel_manager, clean_channels, client, wait_for_blocks):
     n = 1000
     # open channel
-    channel = rmp_client.open_channel(channel_manager.state.receiver, n)
+    channel = client.open_channel(channel_manager.state.receiver, n)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_frequency)
     assert (channel.sender, channel.block) in channel_manager.state.channels
