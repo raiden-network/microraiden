@@ -136,6 +136,10 @@ class RaidenMicropaymentsClient {
         } else {
           settled = settleEvents[0].blockNumber;
         }
+        // for settled channel, getChannelInfo call will fail, so we return before
+        if (settled) {
+          return callback(null, {"state": "settled", "block": settled, "deposit": 0});
+        }
         return this.contract.getChannelInfo.call(
           this.channel.account,
           this.channel.receiver,
@@ -148,7 +152,8 @@ class RaidenMicropaymentsClient {
               return callback(new Error("Invalid channel deposit: "+JSON.stringify(info)));
             }
             return callback(null, {
-              "state": settled ? "settled" : closed ? "closed" : "opened",
+              "state": closed ? "closed" : "opened",
+              "block": closed || this.channel.block,
               "deposit": info[1].toNumber(),
             });
           });
