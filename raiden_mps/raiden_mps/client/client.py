@@ -3,7 +3,7 @@ import json
 import logging
 import os
 
-from eth_utils import decode_hex
+from eth_utils import decode_hex, is_same_address
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
@@ -254,3 +254,78 @@ class Client:
             channel = None
 
         return channel
+
+    def get_open_channels(self, receiver=None):
+        """
+        Returns all open channels to the given receiver. If no receiver is specified, all open
+        channels are returned.
+        """
+        return [
+            c for c in self.channels
+            if is_same_address(c.sender, self.account.lower()) and
+            (not receiver or is_same_address(c.receiver, receiver)) and
+            c.state == Channel.State.open
+        ]
+
+    def get_suitable_channel(
+            self, receiver, value, initial_deposit=lambda x: x, topup_deposit=lambda x: x
+    ):
+        """
+        Searches stored channels for one that can sustain the given transfer value. If none is
+        found, a possibly open channel is topped up using the topup callable to determine its topup
+        value. If both attempts fail, a new channel is created based on the initial deposit
+        callable.
+        Note: In the realistic case that only one channel is opened per (sender,receiver) pair,
+        this method usually performs like this:
+        1. Directly return open channel if sufficiently funded.
+        2. Topup existing open channel if insufficiently funded.
+        3. Create new channel if no open channel exists.
+        If topping up or creating fails, this method returns None.
+        """
+        open_channels = self.get_open_channels(receiver)
+        suitable_channels = [
+            c for c in open_channels if c.deposit - c.balance >= value
+        ]
+
+        if suitable_channels:
+            # At least one channel with sufficient funds.
+
+            if len(suitable_channels) > 1:
+                # This is not impossible but should only happen after bad channel management.
+                log.warning(
+                    'Warning: {} suitable channels found. '
+                    'Choosing the one with the lowest remaining capacity.'
+                        .format(len(suitable_channels))
+                )
+
+            capacity, channel = min(
+                ((c.deposit - c.balance, c) for c in suitable_channels), key=lambda x: x[0]
+            )
+            log.info(
+                'Found suitable open channel, opened at block #{}.'.format(channel.block)
+            )
+            return channel
+
+        elif open_channels:
+            # Open channel(s) but insufficient funds. Requires topup.
+
+            if len(open_channels) > 1:
+                # This is not impossible but should only happen after bad channel management.
+                log.warning(
+                    'Warning: {} open channels for topup found. '
+                    'Choosing the one with the highest remaining capacity.'
+                        .format(len(open_channels))
+                )
+
+            capacity, channel = max(
+                ((c.deposit - c.balance, c) for c in open_channels), key=lambda x: x[0]
+            )
+            deposit = max(value, topup_deposit(value)) - capacity
+            event = channel.topup(deposit)
+            return channel if event else None
+
+        else:
+            # No open channels to receiver. Create a new one.
+            deposit = max(value, initial_deposit(value))
+            log.info('Creating new channel with deposit {}.'.format(deposit))
+            return self.open_channel(receiver, deposit)

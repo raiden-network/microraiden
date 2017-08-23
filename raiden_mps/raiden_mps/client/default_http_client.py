@@ -117,43 +117,17 @@ class DefaultHTTPClient(HTTPClient):
 
         log.info('Preparing payment of price {} to {}.'.format(price, receiver))
 
-        if not self.channel or not self.is_suitable_channel(self.channel, receiver, price):
-            open_channels = [
-                c for c in self.client.channels
-                if is_same_address(c.sender, self.client.account.lower()) and
-                   is_same_address(c.receiver, receiver) and
-                   c.state == Channel.State.open
-            ]
-            suitable_channels = [
-                c for c in open_channels if c.deposit - c.balance >= price
-            ]
+        channel = self.client.get_suitable_channel(
+            receiver, price, self.initial_deposit, self.topup_deposit
+        )
 
-            if len(suitable_channels) > 1:
-                log.warning(
-                    'Warning: {} suitable channels found. Choosing a random one.'
-                        .format(len(suitable_channels))
-                )
+        if self.channel and channel != self.channel:
+            # This should only happen if there are multiple open channels to the target.
+            log.warning(
+                'Channels switched. Previous balance proofs not applicable to new channel.'
+            )
 
-            if suitable_channels:
-                # At least one channel with sufficient funds.
-                self.channel = suitable_channels[0]
-                log.info(
-                    'Found suitable open channel, opened at block #{}.'.format(self.channel.block)
-                )
-
-            elif open_channels:
-                # Open channel(s) but insufficient funds. Requires topup.
-                log.info('Insufficient funds. Topping up existing channel.')
-                channel = max((c.deposit - c.balance, c) for c in open_channels)[1]
-                deposit = max(price, self.topup_deposit(price))
-                event = channel.topup(deposit)
-                self.channel = channel if event else None
-
-            else:
-                # No open channels to receiver. Create a new one.
-                deposit = max(price, self.initial_deposit(price))
-                log.info('Creating new channel with deposit {}.'.format(deposit))
-                self.channel = self.client.open_channel(receiver, deposit)
+        self.channel = channel
 
         if not self.channel:
             log.error("No channel could be created or sufficiently topped up.")
