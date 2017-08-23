@@ -114,10 +114,11 @@ class Expensive(Resource):
         proxy_handle = self.paywall_db.get_content(content)
         if proxy_handle is None:
             return "NOT FOUND", 404
-        if not data.balance_signature:
-            return self.reply_payment_required(content, proxy_handle)
 
         accepts_html = r'text/html' in request.headers.get('Accept', '')
+
+        if not data.balance_signature:
+            return self.reply_payment_required(content, proxy_handle, gen_ui=accepts_html)
 
         # try to get an existing channel
         try:
@@ -133,6 +134,7 @@ class Expensive(Resource):
 
         # set the headers to reflect actual state of a channel
         headers = {
+            header.GATEWAY_PATH: API_PATH,
             header.SENDER_ADDRESS: channel.sender,
             header.SENDER_BALANCE: channel.balance,
             header.RECEIVER_ADDRESS: self.receiver_address,
@@ -153,16 +155,9 @@ class Expensive(Resource):
             return self.reply_payment_required(content, proxy_handle, headers, gen_ui=accepts_html)
 
         # all ok, return premium content
-        return self.reply_premium(content, channel.sender, proxy_handle, channel.balance)
+        return self.reply_premium(content, proxy_handle, headers)
 
-    def reply_premium(self, content, sender_address, proxy_handle, sender_balance=0):
-        headers = {
-            header.GATEWAY_PATH: API_PATH,
-            header.CONTRACT_ADDRESS: self.contract_address,
-            header.RECEIVER_ADDRESS: self.receiver_address,
-            header.SENDER_ADDRESS: sender_address,
-            header.SENDER_BALANCE: sender_balance
-        }
+    def reply_premium(self, content, proxy_handle, headers):
         response = proxy_handle.get(content)
         if isinstance(response, Response):
             return response

@@ -5,6 +5,11 @@ from collections import defaultdict
 from flask_restful import reqparse
 
 from raiden_mps.crypto import sign_close
+from eth_utils import encode_hex
+
+from raiden_mps.channel_manager import (
+    NoOpenChannel
+)
 
 
 class ChannelManagementRoot(Resource):
@@ -86,6 +91,26 @@ class ChannelManagementChannelInfo(Resource):
             return "Sender address not found", 404
 
         return sender_channel.toJSON(), 200
+
+    def delete(self, sender_address, opening_block):
+        parser = reqparse.RequestParser()
+        parser.add_argument('signature', help='last balance proof signature')
+        args = parser.parse_args()
+        if args.signature is None:
+            return "Bad signature format", 400
+
+        try:
+            close_signature = self.channel_manager.sign_close(
+                sender_address,
+                opening_block,
+                args.signature)
+        except NoOpenChannel as e:
+            return str(e), 400
+        except KeyError:
+            return "Channel not found", 404
+        ret = {'close_signature': encode_hex(close_signature)}
+
+        return json.dumps(ret), 200
 
 
 class ChannelManagementAdmin(Resource):
