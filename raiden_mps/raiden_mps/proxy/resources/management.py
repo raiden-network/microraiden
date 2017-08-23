@@ -8,8 +8,10 @@ from raiden_mps.crypto import sign_close
 from eth_utils import encode_hex
 
 from raiden_mps.channel_manager import (
-    NoOpenChannel
+    NoOpenChannel,
+    Channel
 )
+
 
 
 class ChannelManagementRoot(Resource):
@@ -25,7 +27,10 @@ class ChannelManagementListChannels(Resource):
     def get_all_channels(self, channel_status='all', condition=lambda k, v: True):
         return [
             {'sender_address': k[0],
-             'open_block': k[1]} for k, v in
+             'open_block': k[1],
+             'state': self.get_channel_status(v),
+             'deposit': v.deposit,
+             'balance': v.balance} for k, v in
             self.channel_manager.state.channels.items()
             if (condition(k, v))]
 
@@ -37,10 +42,18 @@ class ChannelManagementListChannels(Resource):
         else:
             return lambda c: True
 
+    def get_channel_status(self, channel: Channel):
+        if channel.is_closed == True:
+            return "closed"
+        elif channel.is_closed == False:
+            return "open"
+        else:
+            return "unknown"
+
     def get(self, sender_address=None):
         parser = reqparse.RequestParser()
-        parser.add_argument('status', help='block the channel was opened', default='open',
-                            choices=('closed', 'opened', 'open'))
+        parser.add_argument('status', help='filter channels by a status', default='open',
+                            choices=('closed', 'opened', 'open', 'all'))
         args = parser.parse_args()
         channel_filter = self.get_channel_filter(args['status'])
 
@@ -56,13 +69,14 @@ class ChannelManagementListChannels(Resource):
         else:
             channels = self.get_all_channels(condition=lambda k, v:
                                              channel_filter(v))
+            import pudb;pudb.set_trace()
             joined_channels = defaultdict(list)
             for c in channels:
                 joined_channels[c['sender_address']].append(c['open_block'])
             ret = [
                 {'sender_address': k,
-                 'blocks': v,
-                 'status': args['status']} for k, v in joined_channels.items()
+                 'blocks': v
+                 } for k, v in joined_channels.items()
             ]
 
         return json.dumps(ret), 200
