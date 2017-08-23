@@ -137,6 +137,7 @@ class Expensive(Resource):
             header.SENDER_BALANCE: channel.balance,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.CONTRACT_ADDRESS: self.contract_address,
+            header.BALANCE_SIGNATURE: channel.last_signature,
             header.PRICE: proxy_handle.price
         }
         try:
