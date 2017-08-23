@@ -55,8 +55,7 @@ class HTTPClient(object):
             channel.create_transfer(0)
         response = requests.delete(url, data={'signature': encode_hex(channel.balance_sig)})
         if response.status_code == requests.codes.OK:
-            content = response.content.decode('unicode_escape').strip(' \n"')
-            closing_sig = json.loads(content)['close_signature']
+            closing_sig = json.loads(response.content.decode())['close_signature']
             channel.close_cooperatively(decode_hex(closing_sig))
         else:
             body = response.content.decode() if response.content else None

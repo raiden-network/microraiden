@@ -2,7 +2,7 @@ import logging
 import json
 
 from raiden_mps import DefaultHTTPClient
-
+from raiden_mps.client import Channel
 
 log = logging.getLogger(__name__)
 
