@@ -11,7 +11,7 @@ from raiden_mps import DefaultHTTPClient
 log = logging.getLogger(__name__)
 
 
-def test_default_http_client(doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels):
+def test_resource_request(doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels):
     logging.basicConfig(level=logging.DEBUG)
 
     requests = 1000

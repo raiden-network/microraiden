@@ -33,6 +33,12 @@ class Channel:
         self.balance_sig = balance_sig
         self.state = state
 
+        if not self.balance_sig:
+            self.balance_sig = sign_balance_proof(
+                self.client.privkey, self.receiver, self.block, self.balance,
+                self.client.channel_manager_address
+            )
+
     @staticmethod
     def deserialize(client, channels_raw):
         for channel_raw in channels_raw:
@@ -116,9 +122,7 @@ class Channel:
         current_block = self.client.web3.eth.blockNumber
 
         if balance is not None:
-            self.balance = 0
-            self.create_transfer(balance)
-        elif not self.balance_sig:
+            self.balance = balance
             self.create_transfer(0)
 
         tx = self.client.channel_manager_proxy.create_signed_transaction(
@@ -142,7 +146,7 @@ class Channel:
             log.error('No event received.')
             return None
 
-    def close_cooperatively(self, closing_sig):
+    def close_cooperatively(self, closing_sig: bytes):
         """
         Attempts to close the channel immediately by providing a hash of the channel's balance
         proof signed by the receiver. This signature must correspond to the balance proof stored in
@@ -257,3 +261,6 @@ class Channel:
         self.client.store_channels()
 
         return self.balance_sig
+
+    def is_suitable(self, value: int):
+        return self.deposit - self.balance >= value

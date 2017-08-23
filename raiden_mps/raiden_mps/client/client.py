@@ -1,8 +1,9 @@
-import click
 import json
 import logging
 import os
+from typing import List
 
+import click
 from eth_utils import decode_hex, is_same_address
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
@@ -255,7 +256,7 @@ class Client:
 
         return channel
 
-    def get_open_channels(self, receiver=None):
+    def get_open_channels(self, receiver: str = None) -> List[Channel]:
         """
         Returns all open channels to the given receiver. If no receiver is specified, all open
         channels are returned.
@@ -263,13 +264,13 @@ class Client:
         return [
             c for c in self.channels
             if is_same_address(c.sender, self.account.lower()) and
-            (not receiver or is_same_address(c.receiver, receiver)) and
-            c.state == Channel.State.open
+               (not receiver or is_same_address(c.receiver, receiver)) and
+               c.state == Channel.State.open
         ]
 
     def get_suitable_channel(
             self, receiver, value, initial_deposit=lambda x: x, topup_deposit=lambda x: x
-    ):
+    ) -> Channel:
         """
         Searches stored channels for one that can sustain the given transfer value. If none is
         found, a possibly open channel is topped up using the topup callable to determine its topup
@@ -281,11 +282,11 @@ class Client:
         2. Topup existing open channel if insufficiently funded.
         3. Create new channel if no open channel exists.
         If topping up or creating fails, this method returns None.
+        Channels are topped up just enough so that their remaining capacity equals
+        topup_deposit(value).
         """
         open_channels = self.get_open_channels(receiver)
-        suitable_channels = [
-            c for c in open_channels if c.deposit - c.balance >= value
-        ]
+        suitable_channels = [c for c in open_channels if c.is_suitable(value)]
 
         if suitable_channels:
             # At least one channel with sufficient funds.
@@ -327,5 +328,4 @@ class Client:
         else:
             # No open channels to receiver. Create a new one.
             deposit = max(value, initial_deposit(value))
-            log.info('Creating new channel with deposit {}.'.format(deposit))
             return self.open_channel(receiver, deposit)

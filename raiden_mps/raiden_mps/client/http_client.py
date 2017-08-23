@@ -1,9 +1,15 @@
+import logging
+
 import requests
 from eth_utils import encode_hex, decode_hex
+import json
 from munch import Munch
 
+from raiden_mps.client import Channel
 from raiden_mps.header import HTTPHeaders
 from .client import Client
+
+log = logging.getLogger(__name__)
 
 
 class HTTPClient(object):
@@ -15,19 +21,50 @@ class HTTPClient(object):
         self.channel = None
         self.requested_resource = None
         self.retry = False
+        self.running = False
 
     def run(self, requested_resource=None):
         if requested_resource:
             self.requested_resource = requested_resource
         self.on_init()
         resource = None
+        self.running = True
         self.retry = True
-        while self.retry and self.requested_resource:
+        while self.running and self.retry and self.requested_resource:
             self.retry = False
             resource = self._request_resource()
 
         self.on_exit()
         return resource
+
+    def stop(self):
+        log.info('Stopping HTTP client.')
+        self.running = False
+
+    def make_url(self, resource_path: str):
+        # TODO: HTTPS?
+        return 'http://{}:{}/{}'.format(self.api_endpoint, self.api_port, resource_path)
+
+    def close_channel(self, channel: Channel):
+        log.info(
+            'Requesting closing signature from server for balance {} on channel {}/{}/{}.'
+            .format(channel.balance, channel.sender, channel.sender, channel.block)
+        )
+        url = self.make_url('api/1/channels/{}/{}'.format(channel.sender, channel.block))
+        if not channel.balance_sig:
+            channel.create_transfer(0)
+        response = requests.delete(url, data={'signature': encode_hex(channel.balance_sig)})
+        if response.status_code == requests.codes.OK:
+            content = response.content.decode('unicode_escape').strip(' \n"')
+            closing_sig = json.loads(content)['close_signature']
+            channel.close_cooperatively(decode_hex(closing_sig))
+        else:
+            body = response.content.decode() if response.content else None
+            log.error('No closing signature received: {}'.format(body))
+
+    def close_active_channel(self):
+        if self.channel:
+            self.close_channel(self.channel)
 
     def _request_resource(self):
         """
@@ -43,7 +80,7 @@ class HTTPClient(object):
             headers.receiver_address = self.channel.receiver
             headers.open_block = str(self.channel.block)
 
-        url = 'http://{}:{}/{}'.format(self.api_endpoint, self.api_port, self.requested_resource)
+        url = self.make_url(self.requested_resource)
         response = requests.get(url, headers=HTTPHeaders.serialize(headers))
         headers = HTTPHeaders.deserialize(response.headers)
 
@@ -56,19 +93,16 @@ class HTTPClient(object):
             elif 'insuf_funds' in headers:
                 self.on_insufficient_funds()
             else:
-                balance = int(headers.get('sender_balance', 0))
-                if 'balance_signature' in headers:
-                    balance_sig = decode_hex(headers.balance_signature)
-                else:
-                    balance_sig = None
-                if self.approve_payment(
+                balance = int(headers.sender_balance) if 'sender_balance' in headers else None
+                balance_sig = decode_hex(headers.balance_signature) \
+                    if 'balance_signature' in headers else None
+                self.on_payment_requested(
                     headers.receiver_address,
                     int(headers.price),
                     balance,
                     balance_sig,
                     headers.get('contract_address')
-                ):
-                    self.on_payment_approved(headers.receiver_address, int(headers.price))
+                )
 
     def on_init(self):
         pass
@@ -85,15 +119,12 @@ class HTTPClient(object):
     def on_insufficient_confirmations(self):
         pass
 
-    def approve_payment(
+    def on_payment_requested(
             self,
             receiver: str,
             price: int,
             balance: int,
             balance_sig: bytes,
             channel_manager_address: str
-    ) -> bool:
-        return False
-
-    def on_payment_approved(self, receiver: str, price: int):
+    ):
         pass

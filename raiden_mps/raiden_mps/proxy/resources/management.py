@@ -69,7 +69,6 @@ class ChannelManagementListChannels(Resource):
         else:
             channels = self.get_all_channels(condition=lambda k, v:
                                              channel_filter(v))
-            import pudb;pudb.set_trace()
             joined_channels = defaultdict(list)
             for c in channels:
                 joined_channels[c['sender_address']].append(c['open_block'])

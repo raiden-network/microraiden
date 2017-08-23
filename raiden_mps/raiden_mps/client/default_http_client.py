@@ -48,14 +48,7 @@ class DefaultHTTPClient(HTTPClient):
     def on_insufficient_funds(self):
         log.error('Server was unable to verify the transfer.')
 
-    def approve_payment(
-            self,
-            receiver: str,
-            price: int,
-            balance: int,
-            balance_sig: bytes,
-            channel_manager_address: str
-    ) -> bool:
+    def _approve_payment(self, balance: int, balance_sig: bytes, channel_manager_address: str):
         if not channel_manager_address:
             log.warning('Server did not specify a contract address.')
         elif not is_same_address(channel_manager_address, self.client.channel_manager_address):
@@ -64,70 +57,92 @@ class DefaultHTTPClient(HTTPClient):
             )
             return False
 
-        if self.channel:
-            if balance > self.channel.balance:
-                if balance_sig and self.channel.sender == verify_balance_proof(
-                        self.channel.receiver, self.channel.block, balance, balance_sig,
-                        self.client.channel_manager_address
-                ):
-                    log.info(
-                        'Server proved a higher channel balance (server/local): {}/{}. Adopting.'
+        return self._sync_balance(balance, balance_sig)
+
+    def _sync_balance(self, balance: int, balance_sig: bytes) -> bool:
+        if not self.channel:
+            # Nothing to verify or sync. Server does not know about a channel yet.
+            return True
+        elif not balance:
+            # Server does know about the channel but cannot confirm its creation yet.
+            log.info(
+                'Server could not confirm new channel yet. Waiting for {} seconds.'
+                    .format(self.retry_interval)
+            )
+            time.sleep(self.retry_interval)
+            self.retry = True
+            return False
+
+        verified = balance_sig and self.channel.sender == verify_balance_proof(
+                    self.channel.receiver, self.channel.block, balance, balance_sig,
+                    self.client.channel_manager_address
+        )
+
+        if balance > self.channel.balance:
+            if verified:
+                log.info(
+                    'Server proved a higher channel balance (server/local): {}/{}. Adopting.'
                         .format(balance, self.channel.balance)
-                    )
-                    self.channel.balance = balance
-                    self.channel.balance_sig = balance_sig
-                else:
-                    log.error(
-                        'Server could not prove higher channel balance (server/local): {}/{}'
-                            .format(balance, self.channel.balance)
-                    )
-                    return False
+                )
+                self.channel.balance = balance
+                self.channel.balance_sig = balance_sig
+            else:
+                log.error(
+                    'Server could not prove higher channel balance (server/local): {}/{}'
+                        .format(balance, self.channel.balance)
+                )
+                return False
 
-            elif balance < self.channel.balance:
-                if balance_sig and self.channel.sender == verify_balance_proof(
-                        self.channel.receiver, self.channel.block, balance, balance_sig,
-                        self.client.channel_manager_address
-                ):
-                    # Free money.
-                    log.info(
-                        'Server sent older balance proof or rejected the last one (server/local): '
-                        '{}/{}. Retrying in {} seconds.'
+        elif balance < self.channel.balance:
+            if verified:
+                log.info(
+                    'Server sent older balance proof or rejected the last one (server/local): '
+                    '{}/{}. Possibly because of an unconfirmed topup. Retrying in {} seconds.'
                         .format(balance, self.channel.balance, self.retry_interval)
-                    )
-                    self.channel.balance = balance
-                    self.channel.balance_sig = balance_sig
+                )
+                self.channel.balance = balance
+                self.channel.balance_sig = balance_sig
 
-                    time.sleep(self.retry_interval)
-                    self.retry = True
-                    return False
-                else:
-                    log.info(
-                        'Server sent lower balance without proof. Attempting to continue on lower '
-                        'balance (server/local): {}.'.format(balance, self.channel.balance)
-                    )
-                    self.channel.balance = balance
-                    self.channel.create_transfer(0)
-
-                    return True
+                time.sleep(self.retry_interval)
+                self.retry = True
+                return False
+            else:
+                log.info(
+                    'Server sent lower balance without proof. Attempting to continue on lower '
+                    'balance (server/local): {}.'.format(balance, self.channel.balance)
+                )
+                self.channel.balance = balance
+                self.channel.create_transfer(0)
 
         return True
 
-    def on_payment_approved(self, receiver: str, price: int):
+    def on_payment_requested(
+            self,
+            receiver: str,
+            price: int,
+            balance: int,
+            balance_sig: bytes,
+            channel_manager_address: str
+    ):
+        if not self._approve_payment(balance, balance_sig, channel_manager_address):
+            return
+
         assert price > 0
 
         log.info('Preparing payment of price {} to {}.'.format(price, receiver))
 
-        channel = self.client.get_suitable_channel(
-            receiver, price, self.initial_deposit, self.topup_deposit
-        )
-
-        if self.channel and channel != self.channel:
-            # This should only happen if there are multiple open channels to the target.
-            log.warning(
-                'Channels switched. Previous balance proofs not applicable to new channel.'
+        if not self.channel or not self.channel.is_suitable(price):
+            channel = self.client.get_suitable_channel(
+                receiver, price, self.initial_deposit, self.topup_deposit
             )
 
-        self.channel = channel
+            if self.channel and channel != self.channel:
+                # This should only happen if there are multiple open channels to the target.
+                log.warning(
+                    'Channels switched. Previous balance proofs not applicable to new channel.'
+                )
+
+            self.channel = channel
 
         if not self.channel:
             log.error("No channel could be created or sufficiently topped up.")

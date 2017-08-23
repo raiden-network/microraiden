@@ -7,7 +7,7 @@ def default_http_client(client, api_endpoint, api_endpoint_port):
     # patch request_resource of this instance in order to advance blocks when doing requests
     x = DefaultHTTPClient._request_resource
 
-    def request_patched(self):
+    def request_patched(self: DefaultHTTPClient):
         if self.client.channel_manager_proxy.tester_mode:
             self.client.web3.testing.mine(1)
         return x(self)
