@@ -41,7 +41,6 @@ class DefaultHTTPClient(HTTPClient):
             'Newly created channel does not have enough confirmations yet. Retrying in {} seconds.'
                 .format(self.retry_interval)
         )
-
         time.sleep(self.retry_interval)
         self.retry = True
 
