@@ -5,31 +5,39 @@ https://bramp.github.io/js-sequence-diagrams/
 # RDNMicroTransferChannels
 
 
-
-## HTTPHeaders
-
-
-```uml
-
-#fill: #ffffff
-
-[HTTPHeaders
-	|
-	PRICE = 'RDN-Price'
-    CONTRACT_ADDRESS = 'RDN-Contract-Address'
-    RECEIVER_ADDRESS = 'RDN-Receiver-Address'
-    PAYMENT = 'RDN-Payment'
-    BALANCE = 'RDN-Balance'
-    BALANCE_SIGNATURE = 'RDN-Balance-Signature'
-    SENDER_ADDRESS = 'RDN-Sender-Address'
-    GATEWAY_PATH = 'RDN-Gateway-Path'
-    INSUF_FUNDS = 'RDN-Insufficient-Funds'
-    INSUF_CONFS = 'RDN-Insufficient-Confirmations'
-    COST = 'RDN-Cost'
-    OPEN_BLOCK = 'RDN-Open-Block'
-]
+## MicroRaiden UseCase Examples
 
 
+### Client
+
+ - m2mclient = DefaultHTTPClient(client, api_endpoint, api_port)
+ - eth_ticker
+
+
+### Server
+
+- app = PaywalledProxy(CHANNEL_MANAGER_ADDRESS, private_key, tempfile)
+- custom proxy
+
+
+## HTTP Headers
+
+
+
+```
+RDN-Price
+RDN-Contract-Address
+RDN-Receiver-Address
+RDN-Payment
+RDN-Balance
+RDN-Balance-Signature
+RDN-Sender-Address
+RDN-Sender-Balance
+RDN-Gateway-Path
+RDN-Insufficient-Funds
+RDN-Insufficient-Confirmations
+RDN-Cost
+RDN-Open-Block
 
 ```
 
@@ -50,8 +58,10 @@ https://bramp.github.io/js-sequence-diagrams/
 	cm (channel_manager)
 	n_confirmations
 	log
+	wait_sync_event
 	|
 	_run()
+	wait_sync()
 	_update()
 ]
 
@@ -87,13 +97,17 @@ https://bramp.github.io/js-sequence-diagrams/
 	unconfirmed_event_channel_opened()
 	event_channel_close_requested()
 	event_channel_settled()
+	unconfirmed_event_channel_topup()
+	event_channel_topup()
 	close_channel()
+	force_close_channel()
 	sign_close()
 	get_token_balance()
 	verifyBalanceProof()
 	register_payment()
 	channels_to_dict()
 	unconfirmed_channels_to_dict()
+	wait_sync()
 ]
 
 [Channel
@@ -110,11 +124,13 @@ https://bramp.github.io/js-sequence-diagrams/
 	settle_timeout
 	mtime
 	ctime
+	|
+	toJSON()
 ]
 
-[ChannelManager]->[Blockchain]
-[ChannelManager]->[ChannelManagerState]
-[ChannelManager]->[Channel]
+[ChannelManager]+->[Blockchain]
+[ChannelManager]+->[ChannelManagerState]
+[ChannelManager]+->[Channel]
 
 ```
 
@@ -135,40 +151,52 @@ https://bramp.github.io/js-sequence-diagrams/
 	|
 	app
 	paywall_db: PaywallDatabase
-	config
-	api
-	web3
+	api: Api (Flask)
+	rest_server: WSGIServer
+	server_greenlet
 	channel_manager
 	|
 	add_content(content)
 	run()
-	|
-	  [ChannelManagementRoot
-	  |
-	  get()
-  ]
-
-  [ChannelManagementListChannels
-	  |
-	  channel_manager
-	  |
-	  get(channel_id)
-	  delete(sender_address)
-  ]
-
-  [ChannelManagementAdmin
-	  |
-	  get()
-	  delete()
-  ]
-
-  [StaticFilesServer
-	  |
-	  directory
-	  |
-	  get(content)
-  ]
+	stop()
+	join()
 ]
+
+[ChannelManagementRoot
+  |
+  get()
+]
+
+[ChannelManagementListChannels
+	|
+	channel_manager
+	|
+	get_all_channels()
+	get_channel_filter()
+	get(sender_address)
+	delete(sender_address)
+]
+
+[ChannelManagementAdmin
+	|
+	get()
+	delete()
+]
+
+[ChannelManagementChannelInfo
+	|
+	channel_manager
+	|
+	get(sender_address,opening_block)
+]
+
+[StaticFilesServer
+	|
+	directory
+	|
+	get(content)
+]
+
 
 [PaywalledContent
 	|
@@ -189,6 +217,7 @@ https://bramp.github.io/js-sequence-diagrams/
 	|
 	path
 	price
+	get_fn
 	|
 	get(request)
 ]
@@ -202,6 +231,231 @@ https://bramp.github.io/js-sequence-diagrams/
 ]
 
 
+
+[RequestData
+	|
+	sender_address
+	|
+	check_headers(headers)
+]
+
+[LightClientProxy
+	|
+	data
+	|
+	get(receiver, amount, token)
+]
+
+[Expensive
+	|
+	contract_address
+	receiver_address
+	channel_manager
+	paywall_db
+	light_client_proxy
+	|
+	get(content)
+	reply_premium(content, sender_address, proxy_handle, sender_balance)
+	reply_payment_required(content, proxy_handle)
+	get_webUI_reply(price, headers)
+
+]
+
+
+[PaywalledProxy]+->[ChannelManager]
+[PaywalledProxy]+->[PaywallDatabase]
+[PaywalledProxy]+->[LightClientProxy]
+[PaywalledProxy]+->[StaticFilesServer]
+[PaywalledProxy]+->[Expensive]
+[PaywalledProxy]+->[ChannelManagementListChannels]
+[PaywalledProxy]+->[ChannelManagementChannelInfo]
+[PaywalledProxy]+->[ChannelManagementAdmin]
+[PaywalledProxy]+->[ChannelManagementRoot]
+
+
+[PaywalledContent]<:-[PaywalledFile]
+[PaywallDatabase]<:-[PaywalledProxyUrl]
+[PaywallDatabase]<:-[PaywalledContent]
+
+
+[Expensive]+->[RequestData]
+[Expensive]+->[ChannelManager]
+[Expensive]+->[PaywallDatabase]
+[Expensive]+->[LightClientProxy]
+
+
+
+
+
+```
+
+
+
+
+
+
+```uml
+
+#fill: #ffffff
+
+[PublicAPI
+	|
+	cm (channel_manager)
+	|
+	_channel(sender)
+	register_payment(msg)
+	get_balance(sender_address)
+	get_deposit(sender_address)
+	get_credit(sender_address)
+	settle(sender_address)
+	sign_close(sender_address)
+	get_addresses()
+	outstanding_balance()
+	settled_balance()
+]
+
+[PublicAPI]+->[ChannelManager]
+
+
+```
+
+
+```uml
+
+#fill: #ffffff
+
+[Exception]<:-[InvalidBalanceAmount]
+[Exception]<:-[InvalidBalanceProof]
+[Exception]<:-[NoOpenChannel]
+[Exception]<:-[InsufficientConfirmations]
+[Exception]<:-[NoBalanceProofReceived]
+[Exception]<:-[StateContractAddrMismatch]
+[Exception]<:-[StateReceiverAddrMismatch]
+
+
+
+```
+
+
+
+## JS Client
+
+
+```uml
+#fill: #ffffff
+
+
+[RaidenMicropaymentsClient
+	|
+	web3
+	contract
+	token
+	|
+	loadStoredChannel(account, receiver)
+	forgetStoredChannel()
+	setChannel(channel)
+	getAccounts(callback)
+	signHash(msg, account, callback)
+	encodeHex(str, zPadLength)
+	isChannelValid()
+	getChannelInfo(callback)
+	openChannel(account, receiver, deposit, callback
+	topUpChannel(deposit, callback)
+	openChannel_ERC20(account, receiver, deposit, callback)
+	topUpChannel_ERC20(deposit, callback)
+	closeChannel(receiverSig, callback)
+	settleChannel(callback)
+	signBalance(newBalance, callback)
+	incrementBalanceAndSign(amount, callback)
+	waitTx(txHash, callback)
+
+]
+
+
+```
+
+
+## Python Client
+
+
+```uml
+
+#fill: #ffffff
+
+
+[HTTPClient
+	|
+	client
+	api_endpoint
+	api_port
+	channel
+	requested_resource
+	retry
+	|
+	run(requested_resource)
+	_request_resource()
+	on_init()
+	on_exit()
+	on_success(resource, cost)
+	on_insufficient_funds()
+	on_insufficient_confirmations()
+	approve_payment()
+	on_payment_approved()
+]
+
+[DefaultHTTPClient
+	|
+	initial_deposit
+	topup_deposit
+	|
+	approve_payment(receiver,price,confirmed_balance,channel_manager_address)
+	on_payment_approved(receiver,price,confirmed_balance)
+	is_suitable_channel(channel, receiver, value)
+]
+
+[Client
+	|
+	privkey
+	datadir
+	channel_manager_address
+	token_address: ContractProxy
+	web3
+	channel_manager_proxy: ChannelContractProxy
+	token_proxy
+	account
+	channels
+	contract_abi_path
+	|
+	load_channels()
+	sync_channels()
+	store_channels()
+	open_channel(receiver, deposit)
+]
+
+[Channel
+	|
+	sender
+	receiver
+	deposit
+	block
+	balance
+	balance_sig
+	state
+	|
+	topup(deposit)
+	close(balance)
+	close_cooperatively(closing_sig)
+	settle()
+	create_transfer(value)
+
+
+	from_json(file)
+	to_json(channel, file)
+	from_event(event, state)
+	merge_infos(stored, created, settling, closed)
+
+
+]
 
 [ContractProxy
 	|
@@ -235,199 +489,13 @@ https://bramp.github.io/js-sequence-diagrams/
 
 ]
 
-[RequestData
-	|
-	sender_address
-	|
-	check_headers(headers)
-]
-
-[LightClientProxy
-	|
-	data
-	|
-	get(receiver, amount, token)
-]
-
-[Expensive
-	|
-	contract_address
-	receiver_address
-	channel_manager
-	paywall_db
-	light_client_proxy
-	|
-	get(content)
-	reply_premium(content, sender_address, proxy_handle, sender_balance)
-	reply_payment_required(content, proxy_handle)
-
-]
-
-
-[Expensive]->[RequestData]
-
-[PaywalledProxy]->[ChannelContractProxy]
-[PaywalledProxy]->[LightClientProxy]
-[PaywalledProxy]->[ChannelManager]
-
-[PaywalledProxy]->[Expensive]
-[PaywalledProxy]->[PaywallDatabase]
-
-[PaywalledContent]<:-[PaywalledFile]
-[PaywallDatabase]<:-[PaywalledProxyUrl]
-[PaywallDatabase]<:-[PaywalledContent]
-
 [ContractProxy]<:-[ChannelContractProxy]
 
-
-
-
-```
-
-
-
-
-
-
-```uml
-
-#fill: #ffffff
-
-[PublicAPI
-	|
-	cm (channel_manager)
-	|
-	_channel(sender)
-	register_payment(msg)
-	get_balance(sender_address)
-	get_deposit(sender_address)
-	get_credit(sender_address)
-	settle(sender_address)
-	sign_close(sender_address)
-	get_addresses()
-	outstanding_balance()
-	settled_balance()
-]
-
-[PublicAPI]->[ChannelManager]
-
-
-```
-
-
-```uml
-
-#fill: #ffffff
-
-[Exception]<:-[InvalidBalanceProof]
-[Exception]<:-[NoOpenChannel]
-[Exception]<:-[NoBalanceProofReceived]
-
-
-```
-
-
-
-## JS Client
-
-
-```uml
-#fill: #ffffff
-
-
-[RaidenMicroTransferJSClient
-	|
-	|
-	loadStoredChannel(account, receiver)
-	forgetStoredChannel()
-	setChannelInfo(channel)
-	getAccounts(callback)
-	signHash(msg, account, callback)
-	isChannelValid()
-	isChannelOpen(callback)
-	openChannel(account, receiver, deposit, callback
-	topUpChannel(deposit, callback)
-	closeChannel(receiverSig, callback)
-	settleChannel(callback)
-	signBalance(newBalance, callback)
-	incrementBalanceAndSign(amount, callback)
-	waitTx(txHash, callback)
-
-]
-
-
-```
-
-
-## Python Client
-
-
-```uml
-
-#fill: #ffffff
-
-[RMPClient
-	|
-	key_path
-	rpc_endpoint
-	rpc_port
-	datadir
-	dry_run
-	channel_manager_address
-	contract_abi_path
-	token_address
-	channels
-	account
-	rpc
-	web3
-	channel_manager_proxy
-	token_proxy
-	|
-	load_channels()
-	sync_channels()
-	store_channels()
-	open_channel(receiver, deposit)
-	topup_channel()
-	close_channel(channel, balance)
-	settle_channel(channel)
-	create_transfer(channel, value)
-
-]
-
-[M2MClient
-	|
-	rmp_client
-	api_endpoint
-	api_port
-	|
-	request_resource(resource, tries_max)
-	request_resource_x(resource)
-	perform_payment(receiver, value)
-	perform_request(resource, channel)
-]
-
-[ChannelInfo
-	|
-	sender
-	receiver
-	deposit
-	block
-	balance
-	balance_sig
-	state
-	|
-	from_json(file)
-	to_json(channel, file)
-	from_event(event, state)
-	merge_infos(stored, created, settling, closed)
-
-
-]
-
-[M2MClient]->[RMPClient]
-[RMPClient]+->0..*[ChannelInfo]
-
-
+[HTTPClient]<:-[DefaultHTTPClient]
+[HTTPClient]+->0..*[Channel]
+[HTTPClient]+->[Client]
+[Client]+->[ChannelContractProxy]
+[Client]+->[ContractProxy]
 
 ```
 
@@ -469,12 +537,12 @@ https://bramp.github.io/js-sequence-diagrams/
 	RaidenMicroTransferChannels(address _token, uint8 _challenge_period)
 	|
 	------- events -----------------
-	ChannelCreated
-	ChannelToppedUp
-	ChannelCloseRequested
-	ChannelSettled
+	ChannelCreated (_sender*,_receiver*,_deposit)
+	ChannelToppedUp (_sender*,_receiver*,_open_block_number*,_added_deposit,_deposit)
+	ChannelCloseRequested (_sender*,_receiver*,_open_block_number*,_balance)
+	ChannelSettled (_sender*,_receiver*,_open_block_number*,_balance)
 	|
-	------- constant -------
+	------- public constant -------
 	getChannelInfo(address _sender, address _receiver, uint32 _open_block_number)
 	getKey(address _sender, address _receiver, uint32 _open_block_number)
 	balanceMessageHash(address _receiver, uint32 _open_block_number, uint192 _balance)
@@ -486,16 +554,22 @@ https://bramp.github.io/js-sequence-diagrams/
 	tokenFallback(address _sender, uint256 _deposit, bytes _data)
 	|
 	------- external ---------------
-	createChannel(receiver, deposit)
-	topUp(receiver, open_block_number, added_deposit)
+	createChannelERC20(receiver, deposit)
+	topUpERC20(receiver, open_block_number, added_deposit)
 	close(address _receiver, uint32 _open_block_number, uint192 _balance, bytes _balance_msg_sig, *bytes _closing_sig)
 	settle(receiver, open_block_number)
 	|
 	------- private ----------------
 	createChannelPrivate()
+	topUpPrivate()
 	initChallengePeriod()
 	settleChannel()
-
+	|
+	------- internal ----------------
+	max(a,b)
+	min(a,b)
+	addressFromData(bytes b)
+	blockNumberFromData(bytes b)
 ]
 
 
@@ -571,22 +645,6 @@ https://bramp.github.io/js-sequence-diagrams/
 
 
 
-### Opening a transfer channel ERC20
-
-
-```sequence
-
-Sender -> WebApp: Open Channel with Receiver, \n deposit = 10
-WebApp -> Token: approve \n (ChannelsContract, 10)
-WebApp -> ChannelsContract: createChannel \n (receiver, deposit)
-ChannelsContract -> Token: transferFrom \n (sender, contract, 10)
-Note over ChannelsContract,Token: ChannelCreated
-ChannelsContract -> WebApp: ChannelCreated \n (sender, receiver, 10)
-
-```
-
-
-
 ### Opening a transfer channel ERC223
 
 
@@ -595,9 +653,60 @@ ChannelsContract -> WebApp: ChannelCreated \n (sender, receiver, 10)
 Sender -> WebApp: Open Channel with Receiver, \n deposit = 10
 WebApp -> Token: transfer \n (ChannelsContract, 10, data)
 Token -> ChannelsContract: tokenFallback \n (sender, 10, data)
-ChannelsContract -> ChannelsContract: get receiver \n from data
-ChannelsContract -> ChannelsContract: createChannel \n (receiver, 10)
+Note over ChannelsContract: receiver address \n from data
+ChannelsContract -> ChannelsContract: createChannelPrivate \n (sender, receiver, 10)
 Note over ChannelsContract: ChannelCreated
 ChannelsContract -> WebApp: ChannelCreated \n (sender, receiver, 10)
+
+```
+
+
+
+### Topping Up a channel ERC223
+
+
+```sequence
+
+Sender -> WebApp: Top Up Channel \n Receiver, open_block_number, \n add 10 tokens \n existing deposit = 20
+WebApp -> Token: transfer \n (ChannelsContract, 10, data)
+Note over Token: data = msg.data \n for topUp
+Token -> ChannelsContract: tokenFallback \n (sender, 10, data)
+Note over ChannelsContract: receiver address + open_block_number \n from data
+ChannelsContract -> ChannelsContract: topUpPrivate \n (sender, receiver, \n open_block_number, 10)
+Note over ChannelsContract: ChannelToppedUp
+ChannelsContract -> WebApp: ChannelToppedUp \n (sender, receiver, \n open_block_number, 10, 30)
+
+```
+
+
+### Opening a transfer channel ERC20
+
+
+
+
+```sequence
+
+Sender -> WebApp: Open Channel with Receiver, \n deposit = 10
+WebApp -> Token: approve \n (ChannelsContract, 10)
+WebApp -> ChannelsContract: createChannelERC20 \n (receiver, deposit)
+ChannelsContract -> Token: transferFrom \n (sender, contract, 10)
+Note over ChannelsContract,Token: ChannelCreated
+ChannelsContract -> WebApp: ChannelCreated \n (sender, receiver, 10)
+
+```
+
+
+
+
+### Topping Up a channel ERC20
+
+```sequence
+
+Sender -> WebApp: Top Up Channel \n Receiver, open_block_number, \n add 10 tokens \n existing deposit = 20
+WebApp -> Token: approve \n (ChannelsContract, 10)
+WebApp -> ChannelsContract: topUpERC20 \n (receiver, deposit)
+ChannelsContract -> Token: transferFrom \n (sender, contract, 10)
+Note over ChannelsContract,Token: ChannelToppedUp
+ChannelsContract -> WebApp: ChannelToppedUp \n (sender, receiver, \n open_block_number, 10, 30)
 
 ```
