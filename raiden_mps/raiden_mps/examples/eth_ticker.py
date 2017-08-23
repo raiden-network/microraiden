@@ -45,8 +45,8 @@ class Main(ttk.Frame):
             self.client,
             'localhost',
             5000,
-            initial_deposit=lambda x: 100 * x,
-            topup_deposit=lambda x: 50 * x
+            initial_deposit=lambda x: 20 * x,
+            topup_deposit=lambda x: 10 * x
         )
 
     def run(self):

@@ -1,5 +1,5 @@
 import requests
-from eth_utils import encode_hex
+from eth_utils import encode_hex, decode_hex
 from munch import Munch
 
 from raiden_mps.header import HTTPHeaders
@@ -56,16 +56,19 @@ class HTTPClient(object):
             elif 'insuf_funds' in headers:
                 self.on_insufficient_funds()
             else:
-                confirmed_balance = int(headers.get('sender_balance', 0))
+                balance = int(headers.get('sender_balance', 0))
+                if 'balance_signature' in headers:
+                    balance_sig = decode_hex(headers.balance_signature)
+                else:
+                    balance_sig = None
                 if self.approve_payment(
                     headers.receiver_address,
                     int(headers.price),
-                    confirmed_balance,
+                    balance,
+                    balance_sig,
                     headers.get('contract_address')
                 ):
-                    self.on_payment_approved(
-                        headers.receiver_address, int(headers.price), confirmed_balance
-                    )
+                    self.on_payment_approved(headers.receiver_address, int(headers.price))
 
     def on_init(self):
         pass
@@ -86,10 +89,11 @@ class HTTPClient(object):
             self,
             receiver: str,
             price: int,
-            confirmed_balance: int,
+            balance: int,
+            balance_sig: bytes,
             channel_manager_address: str
     ) -> bool:
         return False
 
-    def on_payment_approved(self, receiver: str, price: int, confirmed_balance: int):
+    def on_payment_approved(self, receiver: str, price: int):
         pass
