@@ -39,7 +39,6 @@ class Client:
     ):
         assert privkey or key_path
         assert not privkey or isinstance(privkey, str)
-        assert os.path.isdir(datadir)
 
         # Plain copy initializations.
         self.privkey = privkey
@@ -54,6 +53,9 @@ class Client:
         if not privkey:
             with open(key_path) as keyfile:
                 self.privkey = keyfile.readline()[:-1]
+
+        os.makedirs(datadir, exist_ok=True)
+        assert os.path.isdir(datadir)
 
         self.account = privkey_to_addr(self.privkey)
         self.channels = []

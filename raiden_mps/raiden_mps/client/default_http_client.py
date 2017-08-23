@@ -16,7 +16,7 @@ class DefaultHTTPClient(HTTPClient):
             client,
             api_endpoint,
             api_port,
-            retry_interval: int = 5,
+            retry_interval: float = 5,
             initial_deposit: Callable[[int], int] = lambda price: 10 * price,
             topup_deposit: Callable[[int], int] = lambda price: 5 * price
     ):
@@ -32,7 +32,7 @@ class DefaultHTTPClient(HTTPClient):
             log.info('No resource specified.')
 
     def on_success(self, resource, cost: int):
-        log.info('Successfully requested resource.')
+        log.info('Resource received.')
         if cost:
             log.info('Final cost was {}.'.format(cost))
 
@@ -42,12 +42,7 @@ class DefaultHTTPClient(HTTPClient):
                 .format(self.retry_interval)
         )
 
-        if not self.client.channel_manager_proxy.tester_mode:
-            # wait for confirmations
-            time.sleep(self.retry_interval)
-        else:
-            # force mining if tester chain is used
-            self.client.web3.testing.mine(1)
+        time.sleep(self.retry_interval)
         self.retry = True
 
     def on_insufficient_funds(self):
@@ -67,7 +62,7 @@ class DefaultHTTPClient(HTTPClient):
         if self.channel:
             if confirmed_balance > self.channel.balance:
                 log.error(
-                    'Server confirmed an invalid channel balance: {}/{}'
+                    'Server confirmed an invalid channel balance (server/local): {}/{}'
                         .format(confirmed_balance, self.channel.balance)
                 )
                 return False
@@ -75,8 +70,9 @@ class DefaultHTTPClient(HTTPClient):
 
         if price == 0:
             log.info(
-                'Requested amount already paid. Retrying payment in {} seconds.'
-                    .format(self.retry_interval)
+                'Requested amount already paid. Balances (server/local): {}/{}. '
+                'Retrying payment in {} seconds.'
+                    .format(confirmed_balance, self.channel.balance, self.retry_interval)
             )
             time.sleep(self.retry_interval)
             self.retry = True

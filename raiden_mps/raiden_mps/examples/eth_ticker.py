@@ -34,9 +34,9 @@ class Main(ttk.Frame):
     def __init__(self):
         self.root = tkinter.Tk()
         ttk.Frame.__init__(self, self.root)
-        self.root.title('mRaiden ETH Ticker')
+        self.root.title('µRaiden ETH Ticker')
         self.pack()
-        self.pricevar = tkinter.StringVar()
+        self.pricevar = tkinter.StringVar(value='0.00 USD')
         ttk.Label(self, textvariable=self.pricevar, font=('Helvetica', '72')).pack()
 
         self.app = start_proxy()
@@ -58,6 +58,7 @@ class Main(ttk.Frame):
         if response:
             ticker = json.loads(response.decode())
             price = float(ticker['last_price'])
+            log.info('New price received: {:.2f} USD'.format(price))
             self.pricevar.set('{:.2f} USD'.format(price))
         else:
             log.warning('No response.')
