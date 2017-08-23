@@ -1,0 +1,19 @@
+import os
+from raiden_mps.crypto import privkey_to_addr
+
+CHANNEL_MANAGER_ADDRESS = '0x7e1528bfc6c3fd9863055bb0d4f89d69aaacdb5c'
+TOKEN_ADDRESS = '0x6b3da80008814e116a3963065b77928be91cfa93'
+TEST_SENDER_PRIVKEY = '558ce5d09417f127c89097f8c41def07883cbec094da79f5dddfd4590607f7c2'  # 0x005d
+# TEST_SENDER_PRIVKEY = '028f5efe7cb1d42997603a05d85d744031d5d5b5d187b132a7d42bb8c0de2ad4'  # 0xe2e4
+TEST_RECEIVER_PRIVKEY = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946' # 0x004b
+TEST_SECONDARY_RECEIVER_PRIVKEY = '883f724ea3fa17728f759d3999f92aa46fee224f24efc09e4a354ba3f7b29411'  # 0xd1Bf
+API_PATH = "/api/1"
+GAS_LIMIT = 150000
+GAS_PRICE = 20 * 1000 * 1000 * 1000
+
+TEST_SENDER_ADDR = privkey_to_addr(TEST_SENDER_PRIVKEY)
+TEST_RECEIVER_ADDR = privkey_to_addr(TEST_RECEIVER_PRIVKEY)
+
+RAIDEN_MPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+HTML_DIR = os.path.join(RAIDEN_MPS_DIR, 'raiden_mps', 'webui')
+JSLIB_DIR = os.path.join(HTML_DIR, 'js')
