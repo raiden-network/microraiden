@@ -12,23 +12,79 @@ MicroRaiden components overview.
 
 ## HTTP Request and Response Headers
 
+Encoding:
+ * `address`	`0x` prefixed hex encoded
+ * `uint`	`[0-9]`
+ * `bytes`	`0x` prefixed hex encoded
 
-```
-RDN-Price
-RDN-Contract-Address
-RDN-Receiver-Address
-RDN-Payment
-RDN-Balance
-RDN-Balance-Signature
-RDN-Sender-Address
-RDN-Sender-Balance
-RDN-Gateway-Path
-RDN-Insufficient-Funds
-RDN-Insufficient-Confirmations
-RDN-Cost
-RDN-Open-Block
 
-```
+### Response Headers
+
+
+#### 200 OK
+
+
+|        Headers        |   Type   |   Description                              |
+| --------------------- | -------- | ------------------------------------------ |
+|  RDN-Gateway-Path     | bytes    |  Path root of the channel management app   |
+|  RDN-Cost             | uint     |  Cost of the payment                       |
+|  RDN-Contract-Address | address  |  Address of MicroTransferChannels contract |
+|  RDN-Receiver-Address | address  |  Address of the Merchant                   |
+|  RDN-Sender-Address   | address  |  Address of the Client                     |
+|  RDN-Sender-Balance   | uint     |  Balance of the Channel                    |
+
+
+
+#### 402 Payment Required
+
+
+
+|        Headers        |   Type   |   Description                              |
+| --------------------- | -------- | ------------------------------------------ |
+|  RDN-Gateway-Path     | bytes    |  Path root of the channel management app   |
+|  RDN-Price            | uint     |  The price of answering the request        |
+|  RDN-Contract-Address | address  |  Address of MicroTransferChannels contract |
+|  RDN-Receiver-Address | address  |  Address of the Merchant                   |
+
+
+
+#### 402 Payment Required (non accepted RDN-Sender-Balance-Signature )
+
+
+
+
+|        Headers                  |   Type   |   Description                              |
+| ---------------------           | -------- | ------------------------------------------ |
+| RDN-Gateway-Path                | bytes    |  Path root of the channel management app   |
+| RDN-Price                       | uint     |  The price of answering the request        |
+| RDN-Contract-Address            | address  |  Address of MicroTransferChannels contract |
+| RDN-Receiver-Address            | address  |  Address of the Merchant                   |
+| RDN-Sender-Address              | address  |  Address of the Client                     |
+| RDN-Sender-Balance              | uint     |  Balance of the Channel                    |
+| RDN-Insufficient-Funds?         | uint     |  Failure - either Payment value too low or balance exceeds deposit|
+| RND-Inssuficient-Confirmations? | uint     |  Failure - not enough confirmations after the channel creation. Client should wait and retry. |
+
+
+
+#### 4xx / 5xx Errors
+
+Refund.
+
+
+### Request Headers
+
+
+
+|        Headers        |   Type   |   Description                              |
+| --------------------- | -------- | ------------------------------------------ |
+| RDN-Contract-Address  | address  |  Address of MicroTransferChannels contract |
+| RDN-Receiver-Address  | address  |  Address of the Merchant                   |
+| RDN-Sender-Address    | address  |  Address of the Client                     |
+| RDN-Payment           | uint     |  Amount of the payment                     |
+| RDN-Sender-Balance    | uint     |  Balance of the Channel                    |
+| RDN-Balance-Signature | bytes    |  Signature from the Sender, signing the balance (post payment) |
+| RDN-Open-Block        | uint     |  Opening block number of the channel required for unique identification |
+
 
 
 ## Exceptions
@@ -50,7 +106,7 @@ StateReceiverAddrMismatch
 <sequence diagram>
 
 
-## Proxy Resources
+## Proxy
 
 ### API
 

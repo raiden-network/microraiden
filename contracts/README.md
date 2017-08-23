@@ -8,7 +8,7 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
    - [Prerequisites](#prerequisites)
    - [Usage](#usage)
    - [Deployment](#deployment)
-   - [Generated docs](#Generated docs)
+   - [Generated docs](#generated-docs)
  * [API](#api)
    - [Opening a transfer channel](#opening-a-transfer-channel)
    - [Topping up a channel](#topping-up-a-channel)
