@@ -24,7 +24,7 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-ERC223Token  address is 0xad6e12d1e0ce6780b1eb1599ab6b1e75fbd9306b
+ERC223Token address is 0xad6e12d1e0ce6780b1eb1599ab6b1e75fbd9306b
 RaidenMicroTransferChannels address is 0x22c527350d0f56d49eb0502226cfdf44741e850e
 
 ```
@@ -33,7 +33,7 @@ RaidenMicroTransferChannels address is 0x22c527350d0f56d49eb0502226cfdf44741e850
 
 ```
 
-ERC223Token  address is 0xdd5dc98e14c5c4bb7d9813eebc123f769965459e
+ERC223Token address is 0xdd5dc98e14c5c4bb7d9813eebc123f769965459e
 RaidenMicroTransferChannels address is 0x4abdf31df1284504fa821f7843f0298dcee52a21
 
 ```
@@ -43,7 +43,7 @@ RaidenMicroTransferChannels address is 0x4abdf31df1284504fa821f7843f0298dcee52a2
 
 ```
 
-ERC223Token  address is 0xb6a7a5742ec869cc3293bb9bbe019053cb66d9c0
+ERC223Token address is 0xb6a7a5742ec869cc3293bb9bbe019053cb66d9c0
 RaidenMicroTransferChannels address is 0x3adbaff68967a217901b55284464eaf3ffaf203d
 
 ```
@@ -230,7 +230,7 @@ Gas cost (testing): 68636
 #### ERC20 compatible
 
 ```py
-#approve token transfers to the contract from the Sender's behalf
+# approve token transfers to the contract from the Sender's behalf
 Token.approve(contract, added_deposit)
 
 Contract.createChannelERC20(receiver, deposit)
