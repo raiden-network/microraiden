@@ -4,7 +4,8 @@ hex-encoded values, such as hashes and private keys, come without a 0x prefix.
 """
 
 from coincurve import PrivateKey, PublicKey
-from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak, is_0x_prefixed
+from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak, is_0x_prefixed, \
+    is_same_address
 
 
 def generate_privkey() -> bytes:
@@ -108,12 +109,9 @@ def eth_sign(privkey: str, msg: str) -> bytes:
 
 def verify_sig(expected_signer: str, sig: bytes, msg: bytes) -> bool:
     # TODO: waiting for the day to drop support for the deprecated way
-    # Try the 'standard' way using prefixed `eth_sign` on the encoded string.
-    if addr_from_eth_sig(sig, msg) == expected_signer.lower():
-        return True
-
-    # Try the old way on the raw signature, e.g. Metamask.
-    return addr_from_sig(sig, sha3(msg)) == expected_signer.lower()
+    # Try the 'standard' way using prefixed `eth_sign` on the encoded string, then old raw sign.
+    return is_same_address(addr_from_eth_sig(sig, msg), expected_signer) or \
+        is_same_address(addr_from_sig(sig, sha3(msg)), expected_signer.lower())
 
 
 def balance_message(

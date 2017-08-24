@@ -66,8 +66,10 @@ def test_eth_sign():
 
 
 @pytest.mark.xfail
-def test_balance_message_hash(client_contract_proxy: ChannelContractProxy,
-                              channel_manager_contract_address):
+def test_balance_message_contract(
+        client_contract_proxy: ChannelContractProxy,
+        channel_manager_contract_address
+):
     msg1 = balance_message(RECEIVER_ADDR, 37, 15, channel_manager_contract_address)
     assert len(msg1) == 32
     msg2 = client_contract_proxy.contract.call().balanceMessageHash(RECEIVER_ADDR, 37, 15)
@@ -76,8 +78,10 @@ def test_balance_message_hash(client_contract_proxy: ChannelContractProxy,
 
 
 @pytest.mark.xfail
-def test_sign_balance_proof(client_contract_proxy: ChannelContractProxy,
-                           channel_manager_contract_address):
+def test_sign_balance_proof_contract(
+        client_contract_proxy: ChannelContractProxy,
+        channel_manager_contract_address
+):
     sig = sign_balance_proof(
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract_address
     )
@@ -107,7 +111,7 @@ def test_verify_balance_proof_v0():
 
 
 @pytest.mark.xfail
-def test_closing_agreement_message_hash(client_contract_proxy: ChannelContractProxy):
+def test_closing_agreement_message_contract(client_contract_proxy: ChannelContractProxy):
     sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 13, 2, CHANNEL_MANAGER_ADDRESS)
     msg1 = closing_agreement_message(sig)
     msg2 = client_contract_proxy.contract.call().closingAgreementMessageHash(sig)
@@ -116,7 +120,7 @@ def test_closing_agreement_message_hash(client_contract_proxy: ChannelContractPr
 
 
 @pytest.mark.xfail
-def test_sign_close(client_contract_proxy: ChannelContractProxy):
+def test_sign_close_contract(client_contract_proxy: ChannelContractProxy):
     balance_sig = sign_balance_proof(
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 13, 2, CHANNEL_MANAGER_ADDRESS
     )

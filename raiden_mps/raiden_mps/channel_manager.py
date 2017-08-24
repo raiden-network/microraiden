@@ -462,8 +462,7 @@ class ChannelManager(gevent.Greenlet):
         c.is_closed = True  # FIXME block number
         c.mtime = time.time()
         receiver_sig = sign_close(self.private_key, decode_hex(signature.replace('0x', '')))
-        recovered_receiver = verify_closing_signature(signature, receiver_sig)
-        assert recovered_receiver == self.receiver.lower()
+        assert verify_closing_signature(self.receiver, signature, receiver_sig)
         self.state.store()
         self.log.info('signed cooperative closing message (sender %s, block number %s)',
                       sender, open_block_number)
@@ -497,12 +496,11 @@ class ChannelManager(gevent.Greenlet):
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
 
-        signer = verify_balance_proof(
-            self.receiver, open_block_number, balance,
+        if not verify_balance_proof(
+            sender, self.receiver, open_block_number, balance,
             decode_hex(signature.replace('0x', '')),
             self.contract_proxy.address
-        )
-        if not is_same_address(signer, sender):
+        ):
             raise InvalidBalanceProof('Recovered signer does not match the sender')
         return c
 

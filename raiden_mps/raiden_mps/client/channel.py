@@ -161,8 +161,7 @@ class Channel:
             self.receiver, self.block
         ))
         current_block = self.client.web3.eth.blockNumber
-        receiver_rec = verify_closing_signature(self.balance_sig, closing_sig)
-        if receiver_rec != self.receiver:
+        if not verify_closing_signature(self.receiver, self.balance_sig, closing_sig):
             log.error('Invalid closing signature or balance signature.')
             return None
 
