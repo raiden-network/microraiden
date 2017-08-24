@@ -243,32 +243,67 @@ Gas cost (testing): 90144
 ### Generating and validating a transfer
 
 
-Sender has to provide a **balance proof**:
-- **balance message**: `receiver`, `open_block_number`, `balance`
-- **signed balance message**: `balance_msg_sig`
-  - `Contract.balanceMessageHash(receiver, open_block_number, balance)` -> signed by the Sender with MetaMask
+```js
 
+// Sender has to provide a balance_proof = balance_message + his signature to the Receiver when making a microtransfer
+// The contract implements some helper functions for that
 
-Balance proof signature verification:
+// hashed balance message
+balance_message_hash = Contract.balanceMessageHash(receiver, open_block_number, balance)
 
- - `Contract.verifyBalanceProof(receiver, open_block_number, balance, balance_msg_sig)` -> returns the Sender's address
+// This hash is signed by the Sender with MetaMask
+balance_msg_sig
+
+// and sent to the Receiver (receiver, open_block_number, balance, balance_msg_sig)
+
+```
+
+#### Balance proof signature verification:
+
+```js
+
+// Returns the Sender's address
+sender = Contract.verifyBalanceProof(receiver, open_block_number, balance, balance_msg_sig)
+
+// Use this address to find the channel (sender, receiver, open_block_number)
+
+```
 
 
 
 ### Generating and validating a closing agreement
 
+```js
 
-Sender has to provide a **balance proof** and a **closing agreement proof**
-- **balance message**: `receiver`, `open_block_number`, `balance`
-- **signed balance message**: `balance_msg_sig`
-- **double signed balance message**: `closing_sig` - signed by both the sender and the receiver
- - `Contract.closingAgreementMessageHash(balance_msg_sig)`
- - Receiver signs this hash with MetaMask and sends it to the Sender
+// Sender has to provide a balance_proof = balance_message + his signature to the Receiver
+// + a closing_sig (closing agreement proof from Receiver)
 
+// balance message to be hashed
+balance_message_hash = Contract.balanceMessageHash(receiver, open_block_number, balance)
 
-Closing agreement signature verification:
+// This hash is signed by the Sender with MetaMask
+balance_msg_sig
 
-- `Contract.verifyClosingSignature(balance_msg_sig, closing_sig)` -> returns the Receiver's address
+// hashed balance_msg_sig
+balance_msg_sig_hash = Contract.closingAgreementMessageHash(balance_msg_sig)
+
+// This hash is signed by the Receiver
+closing_sig
+
+// Send to the Contract (example of collaborative closing, transaction sent by Sender)
+Contract.close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+
+```
+
+#### Closing agreement signature verification:
+
+```js
+
+// Returns the Receiver's address
+receiver = Contract.verifyClosingSignature(balance_msg_sig, closing_sig)
+
+// Use this address to find the channel (sender, receiver, open_block_number)
+```
 
 
 ### Closing a channel

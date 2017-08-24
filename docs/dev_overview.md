@@ -106,26 +106,25 @@ StateReceiverAddrMismatch
 ### Micropayment Sequence
 
 (not-so-standard sequence diagram)
-For a better overview, also check out [/contracts/README.md#generating-and-validating-a-transfer](/contracts/README.md#generating-and-validating-a-transfer)
+For a better overview, also check out how the smart contract does a transfer validation:  [/contracts/README.md#generating-and-validating-a-transfer](/contracts/README.md#generating-and-validating-a-transfer)
 
 ![](/docs/diagrams/OffChainSequence.png)
 
 ### Channel Closing Sequence
 
-For a better overview, also check out [/contracts/README.md#generating-and-validating-a-closing-agreement](/contracts/README.md#generating-and-validating-a-closing-agreement)
+For a better overview, also check out how the smart contract does a closing signature validation:  [/contracts/README.md#generating-and-validating-a-closing-agreement](/contracts/README.md#generating-and-validating-a-closing-agreement)
 
 ![](/docs/diagrams/OffChainSequenceClosing.png)
 
 
 ## Proxy
 
-### API
 
 ### Channel manager
 
 ![](/docs/diagrams/ChannelManagerClass.png)
 
-### Proxy Components
+### Paywalled Proxy
 
 ![](/docs/diagrams/PaywalledProxyClass.png)
 
