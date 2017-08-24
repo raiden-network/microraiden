@@ -93,12 +93,14 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
    ```
 
  * `kovan`
+   - functional faucet: https://gitter.im/kovan-testnet/faucet
    - change default account: [/contracts/populus.json#L177](/contracts/populus.json#L177)
    - start https://github.com/paritytech/parity
    ```
    parity --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --unlock 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb --password ~/password.txt --author 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb
    ```
  * `ropsten`
+   - functional faucet: https://www.reddit.com/r/ethdev/comments/61zdn8/if_you_need_some_ropsten_testnet_ethers/
    - change default account: [/contracts/populus.json#L49](/contracts/populus.json#L49)
    - start:
    ```
