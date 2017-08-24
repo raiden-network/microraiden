@@ -33,6 +33,8 @@ class Channel:
         self.balance_sig = balance_sig
         self.state = state
 
+        assert self.block is not None
+
         if not self.balance_sig:
             self.balance_sig = sign_balance_proof(
                 self.client.privkey, self.receiver, self.block, self.balance,

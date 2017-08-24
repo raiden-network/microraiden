@@ -4,7 +4,7 @@ hex-encoded values, such as hashes and private keys, come without a 0x prefix.
 """
 
 from coincurve import PrivateKey, PublicKey
-from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak
+from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak, is_0x_prefixed
 
 
 def generate_privkey() -> bytes:
@@ -55,8 +55,8 @@ def sha3(*args) -> bytes:
         if isinstance(arg, bytes):
             msg += arg
         elif isinstance(arg, str):
-            if arg[:2] == '0x':
-                msg += decode_hex(arg[2:])
+            if is_0x_prefixed(arg):
+                msg += decode_hex(arg)
             else:
                 msg += arg.encode()
         elif isinstance(arg, int):
