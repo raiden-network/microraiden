@@ -41,6 +41,41 @@ RDN-Open-Block
 
 ```
 
+## Off-chain
+
+
+```sequence
+
+participant Sender
+participant WebApp
+participant Proxy
+
+Sender -> Proxy: request paywalled content
+Proxy -> WebApp: serve paywall UI
+Proxy -> Proxy: RDN-Balance-Signature \n not set
+
+Proxy -> WebApp: HTTP 402 PaymentRequired \n RDN-Contract-Address \n RDN-Receiver-Address \n RDN-Gateway-Path \n RDN-Price
+WebApp -> WebApp: LocalStorage \n check if channel exists
+Note over WebApp: channel found (sender, receiver, block)
+
+WebApp->Sender: paywall UI
+Sender -> WebApp: Buy resource
+
+WebApp -> Sender: Ask for balance proof hash signing
+Sender -> WebApp: Sign balance proof
+WebApp -> Proxy: RDN-Open-Block \n RDN-Sender-Balance \n RDN-Balance-Signature
+
+Proxy -> ChannelManager: verify balance proof \n receiver, block, \n balance, balance signature
+
+
+Note over ChannelManager,Proxy: balance proof OK
+Proxy -> WebApp: Serve premium content
+WebApp -> Sender: Premium content
+
+
+```
+
+
 
 ## Channel Manager
 

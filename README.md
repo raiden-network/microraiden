@@ -21,6 +21,8 @@ In a nutshell, clients wanting to access a provider's payable resources, will [o
 
 ### Off-chain transactions
 
+A visual description of the process can be found [here](/docs/dev_overview.md#off-chain-messages).
+
 However, the heart of the system lies in its client -> provider off-chain transactions. They offer a secure way to keep track of the last verified channel balance. The channel balance is calculated each time the client pays for a resource. He is prompted to sign a hash of the balance proof (balance + information to uniquely identify the channel: receiver address and the block number at which the channel was opened). This balance proof is then sent to the receiver's server. If the balance proof checks out after comparing it with the last received balance and verifying the sender's signature, the receiver replaces the old balance value with the new one.
 
 ### Closing and settling channels

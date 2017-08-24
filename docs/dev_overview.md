@@ -48,7 +48,7 @@ Encoding:
 
 
 
-#### 402 Payment Required (non accepted RDN-Sender-Balance-Signature )
+#### 402 Payment Required (non accepted RDN-Balance-Signature )
 
 
 
@@ -61,8 +61,8 @@ Encoding:
 | RDN-Receiver-Address            | address  |  Address of the Merchant                   |
 | RDN-Sender-Address              | address  |  Address of the Client                     |
 | RDN-Sender-Balance              | uint     |  Balance of the Channel                    |
-| RDN-Insufficient-Funds?         | uint     |  Failure - either Payment value too low or balance exceeds deposit|
-| RND-Inssuficient-Confirmations? | uint     |  Failure - not enough confirmations after the channel creation. Client should wait and retry. |
+| RDN-Insufficient-Funds          | uint     |  Failure - either Payment value too low or balance exceeds deposit|
+| RDN-Insufficient-Confirmations  | uint     |  Failure - not enough confirmations after the channel creation. Client should wait and retry. |
 
 
 
@@ -103,7 +103,7 @@ StateReceiverAddrMismatch
 
 ## Off-Chain Messages
 
-<sequence diagram>
+![](/docs/diagrams/OffChainSequence.png)
 
 
 ## Proxy
