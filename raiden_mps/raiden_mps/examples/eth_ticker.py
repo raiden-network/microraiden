@@ -5,18 +5,29 @@ import logging
 
 import time
 
+import click
+import os
+
 from raiden_mps import Client, DefaultHTTPClient
-from raiden_mps.test.config import TEST_SENDER_PRIVKEY, TEST_RECEIVER_PRIVKEY
+from raiden_mps.crypto import privkey_to_addr
+from raiden_mps.test.config import TEST_SENDER_PRIVKEY, TEST_RECEIVER_PRIVKEY, \
+    CHANNEL_MANAGER_ADDRESS
 from raiden_mps.proxy.content import PaywalledProxyUrl
 from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
-from raiden_mps.utils import make_channel_manager
+from raiden_mps.utils import make_paywalled_proxy
 
 log = logging.getLogger(__name__)
 
 
 def start_proxy(receiver_privkey: str) -> PaywalledProxy:
-    cm = make_channel_manager(receiver_privkey, 'eth_ticker_proxy.pkl')
-    app = PaywalledProxy(cm)
+    state_file_name = '{}_{}.pkl'.format(
+        CHANNEL_MANAGER_ADDRESS, privkey_to_addr(TEST_RECEIVER_PRIVKEY)
+    )
+    app_dir = click.get_app_dir('micro-raiden')
+    if not os.path.exists(app_dir):
+        os.makedirs(app_dir)
+
+    app = make_paywalled_proxy(receiver_privkey, os.path.join(app_dir, state_file_name))
     app.add_content(PaywalledProxyUrl(
         "[A-Z]{6}",
         1,
@@ -87,7 +98,7 @@ class ETHTicker(ttk.Frame):
         else:
             log.warning('No response.')
 
-        if not self.running:
+        if self.running:
             self.root.after(5000, self.query_price)
         self.active_query = False
 
