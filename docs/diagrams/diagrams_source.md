@@ -43,6 +43,7 @@ RDN-Open-Block
 
 ## Off-chain
 
+## Off-chain micropayment
 
 ```sequence
 
@@ -54,27 +55,88 @@ Sender -> Proxy: request paywalled content
 Proxy -> WebApp: serve paywall UI
 Proxy -> Proxy: RDN-Balance-Signature \n not set
 
+Note left of WebApp: STATE 402
 Proxy -> WebApp: HTTP 402 PaymentRequired \n RDN-Contract-Address \n RDN-Receiver-Address \n RDN-Gateway-Path \n RDN-Price
 WebApp -> WebApp: LocalStorage \n check if channel exists
 Note over WebApp: channel found (sender, receiver, block)
 
 WebApp->Sender: paywall UI
 Sender -> WebApp: Buy resource
+Note over WebApp: get balance proof hash \n from ChannelsContract
 
 WebApp -> Sender: Ask for balance proof hash signing
 Sender -> WebApp: Sign balance proof
 WebApp -> Proxy: RDN-Open-Block \n RDN-Sender-Balance \n RDN-Balance-Signature
 
 Proxy -> ChannelManager: verify balance proof \n receiver, block, \n balance, balance signature
+ChannelManager -> ChannelManager: crypto.py \n verify_balance_proof
+
+Note over Proxy, ChannelManager: Exception
+
+ChannelManager -> Proxy: InsufficientConfirmations OR \n NoOpenChannel\n
+
+Proxy -> WebApp: HTTP 402 PaymentRequired
+Note left of WebApp: STATE 402
 
 
-Note over ChannelManager,Proxy: balance proof OK
+Note over ChannelManager,Proxy: channel found
+Proxy -> ChannelManager: register_payment(receiver, block, \n balance, balance signature)
+
+Note over Proxy, ChannelManager: Exception
+ChannelManager -> Proxy: InvalidBalanceAmount OR \n InvalidBalanceProof\n
+Proxy -> WebApp: HTTP 402 PaymentRequired
+Note left of WebApp: STATE 402
+
+
+
+Note over ChannelManager,Proxy: balance proof OK \n payment registered
 Proxy -> WebApp: Serve premium content
 WebApp -> Sender: Premium content
 
 
 ```
 
+## Off-chain channel close
+
+```sequence
+
+participant Sender
+participant WebApp
+participant Proxy
+
+Sender -> WebApp: close channel \n (receiver, block)
+
+WebApp -> ChannelsContract: close(receiver, block, last balance, \n last balance_signature)
+ChannelsContract -> ChannelsContract: challenge period
+
+ChannelsContract -> Blockchain: ChannelCloseRequested (sender, \n receiver, block, balance)
+Blockchain -> ChannelManager: receive \n ChannelCloseRequested
+ChannelManager -> ChannelManager: crypto.py \n verify closing balance
+
+Note over ChannelManager,ChannelsContract: incorrect balance
+ChannelManager -> ChannelManager: close_channel()
+ChannelManager -> ChannelsContract: close()
+Note left of ChannelsContract: State CLOSED
+
+Note over ChannelManager,ChannelsContract: correct balance
+ChannelManager -> ChannelManager: set channel as closed \n set settle_timeout
+
+Note over Sender, ChannelsContract: Challenge period ended
+Sender -> WebApp: settle channel (receiver, block)
+WebApp -> ChannelsContract: settle(receiver, block)
+Note left of ChannelsContract: State CLOSED
+
+ChannelsContract -> Blockchain: ChannelSettled (sender, \n receiver, block, balance)
+
+Blockchain -> ChannelManager: receive \n ChannelSettled
+ChannelManager -> ChannelManager: event_channel_settled()
+ChannelManager -> ChannelManager: store state
+
+Blockchain -> WebApp: receive \n ChannelSettled
+WebApp -> Sender: show channel closed state
+
+
+```
 
 
 ## Channel Manager

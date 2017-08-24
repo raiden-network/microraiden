@@ -103,7 +103,18 @@ StateReceiverAddrMismatch
 
 ## Off-Chain Messages
 
+### Micropayment Sequence
+
+(not-so-standard sequence diagram)
+For a better overview, also check out [/contracts/README.md#generating-and-validating-a-transfer](/contracts/README.md#generating-and-validating-a-transfer)
+
 ![](/docs/diagrams/OffChainSequence.png)
+
+### Channel Closing Sequence
+
+For a better overview, also check out [/contracts/README.md#generating-and-validating-a-closing-agreement](/contracts/README.md#generating-and-validating-a-closing-agreement)
+
+![](/docs/diagrams/OffChainSequenceClosing.png)
 
 
 ## Proxy
