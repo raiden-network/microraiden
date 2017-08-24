@@ -29,8 +29,6 @@ class RequestData:
         self.check_headers(headers)
         if cookies:
             self.check_cookies(cookies)
-#        self.sender_address, _ = parse_balance_proof_msg(self.balance_signature, 2, 3, 4)
-        self.sender_address = 0
 
     def check_cookies(self, cookies):
         if header.BALANCE_SIGNATURE in cookies:
@@ -125,7 +123,7 @@ class Expensive(Resource):
         # try to get an existing channel
         try:
             channel = self.channel_manager.verify_balance_proof(
-                self.receiver_address, data.open_block_number,
+                data.sender_address, data.open_block_number,
                 data.balance, data.balance_signature)
         except InsufficientConfirmations as e:
             headers = {header.INSUF_CONFS: "1"}
@@ -138,7 +136,7 @@ class Expensive(Resource):
         headers = self.generate_headers(channel, proxy_handle)
         try:
             self.channel_manager.register_payment(
-                self.receiver_address,
+                channel.sender,
                 data.open_block_number,
                 data.balance,
                 data.balance_signature)

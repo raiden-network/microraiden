@@ -128,7 +128,7 @@ def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiv
 
     # valid transfer
     sig1 = encode_hex(confirmed_open_channel.create_transfer(2))
-    channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 2, sig1)
+    channel_manager.register_payment(sender_address, channel_rec.open_block_number, 2, sig1)
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
 
@@ -140,8 +140,8 @@ def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiv
         4,
         channel_manager.state.contract_address
     ))
-    with pytest.raises(NoOpenChannel):  # wrong sender will be recovered
-        channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 4,
+    with pytest.raises(InvalidBalanceProof):
+        channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4,
                                          invalid_sig)
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
@@ -154,8 +154,8 @@ def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiv
         4,
         channel_manager.state.contract_address
     ))
-    with pytest.raises(NoOpenChannel):  # wrong message -> wrong sender recovered
-        channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 4,
+    with pytest.raises(InvalidBalanceProof):
+        channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4,
                                          invalid_sig)
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
@@ -169,31 +169,31 @@ def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiv
         channel_manager.state.contract_address
     ))
     with pytest.raises(InvalidBalanceAmount):
-        channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 1,
+        channel_manager.register_payment(sender_address, channel_rec.open_block_number, 1,
                                          invalid_sig)
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
 
     # parameters should match balance proof
     sig2 = encode_hex(confirmed_open_channel.create_transfer(2))
-    with pytest.raises(InvalidBalanceProof):
-        channel_manager.register_payment(channel_rec.sender, channel_rec.open_block_number,
+    with pytest.raises(NoOpenChannel):
+        channel_manager.register_payment(receiver_address, channel_rec.open_block_number,
                                          4, sig2)
     with pytest.raises(NoOpenChannel):
-        channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number + 1,
+        channel_manager.register_payment(sender_address, channel_rec.open_block_number + 1,
                                          4, sig2)
-    with pytest.raises(NoOpenChannel):  # wrong message -> wrong sender recovered
-        channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number,
+    with pytest.raises(InvalidBalanceProof):
+        channel_manager.register_payment(sender_address, channel_rec.open_block_number,
                                          5, sig2)
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
-    channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 4, sig2)
+    channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4, sig2)
     assert channel_rec.balance == 4
     assert channel_rec.last_signature == sig2
 
     # should transfer up to deposit
     sig3 = encode_hex(confirmed_open_channel.create_transfer(6))
-    channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 10, sig3)
+    channel_manager.register_payment(sender_address, channel_rec.open_block_number, 10, sig3)
     assert channel_rec.balance == 10
     assert channel_rec.last_signature == sig3
 
@@ -206,7 +206,7 @@ def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiv
         channel_manager.state.contract_address
     ))
     with pytest.raises(InvalidBalanceProof):
-        channel_manager.register_payment(channel_rec.receiver, channel_rec.open_block_number, 12,
+        channel_manager.register_payment(sender_address, channel_rec.open_block_number, 12,
                                          invalid_sig)
     assert channel_rec.balance == 10
     assert channel_rec.last_signature == sig3
@@ -298,7 +298,7 @@ def test_cooperative(channel_manager, clean_channels, confirmed_open_channel, re
     channel_rec = channel_manager.state.channels[channel_id]
 
     sig1 = encode_hex(confirmed_open_channel.create_transfer(5))
-    channel_manager.register_payment(receiver_address, confirmed_open_channel.block, 5, sig1)
+    channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig1)
 
     receiver_sig = channel_manager.sign_close(sender_address, confirmed_open_channel.block, sig1)
     assert channel_rec.is_closed is True
@@ -325,7 +325,7 @@ def test_cooperative_wrong_balance_proof(channel_manager, clean_channels, confir
     channel_rec = channel_manager.state.channels[channel_id]
 
     sig1 = encode_hex(confirmed_open_channel.create_transfer(5))
-    channel_manager.register_payment(receiver_address, confirmed_open_channel.block, 5, sig1)
+    channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig1)
 
     sig2 = encode_hex(confirmed_open_channel.create_transfer(1))
     with pytest.raises(InvalidBalanceProof):

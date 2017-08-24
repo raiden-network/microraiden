@@ -53,7 +53,7 @@ def test_receiver_validation(channel_manager, clean_channels, client, wait_for_b
     for i, balance_proof in enumerate(balance_proofs):
         log.debug('Transfer {}'.format(i))
         sender, received = channel_manager.register_payment(
-            channel.receiver,
+            channel.sender,
             channel.block,
             i + 1,
             balance_proof)

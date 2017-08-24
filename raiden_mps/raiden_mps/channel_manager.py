@@ -399,36 +399,37 @@ class ChannelManager(gevent.Greenlet):
             balance += channel.balance
         return balance
 
-    def verify_balance_proof(self, receiver, open_block_number, balance, signature):
+    def verify_balance_proof(self, sender, open_block_number, balance, signature):
         """Verify that a balance proof is valid and return the sender.
 
         Does not check the balance itself.
 
         :returns: the channel
         """
-        if receiver.lower() != self.receiver.lower():
-            raise InvalidBalanceProof('Channel has wrong receiver.')
+        if (sender, open_block_number) in self.state.unconfirmed_channels:
+            raise InsufficientConfirmations(
+                'Insufficient confirmations for the channel '
+                '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
+        try:
+            c = self.state.channels[(sender, open_block_number)]
+        except KeyError:
+            raise NoOpenChannel('Channel does not exist or has been closed'
+                                '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
+        if c.is_closed:
+            raise NoOpenChannel('Channel closing has been requested already.')
+
         signer = verify_balance_proof(
             self.receiver, open_block_number, balance,
             decode_hex(signature.replace('0x', '')),
             self.contract_proxy.address
         )
-        if (signer, open_block_number) in self.state.unconfirmed_channels:
-            raise InsufficientConfirmations(
-                'Insufficient confirmations for the channel '
-                '(sender=%s, open_block_number=%d)' % (signer, open_block_number))
-        try:
-            c = self.state.channels[(signer, open_block_number)]
-        except KeyError:
-            raise NoOpenChannel('Channel does not exist or has been closed'
-                                '(sender=%s, open_block_number=%d)' % (signer, open_block_number))
-        if c.is_closed:
-            raise NoOpenChannel('Channel closing has been requested already.')
+        if not is_same_address(signer, sender):
+            raise InvalidBalanceProof('Recovered signer does not match the sender')
         return c
 
-    def register_payment(self, receiver, open_block_number, balance, signature):
+    def register_payment(self, sender, open_block_number, balance, signature):
         """Register a payment."""
-        c = self.verify_balance_proof(receiver, open_block_number, balance, signature)
+        c = self.verify_balance_proof(sender, open_block_number, balance, signature)
         log.info(c.unconfirmed_event_channel_topups)
         if balance <= c.balance:
             raise InvalidBalanceAmount('The balance must not decrease.')
