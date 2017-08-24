@@ -4,11 +4,13 @@ from flask_restful import (
 )
 from raiden_mps.channel_manager import (
     ChannelManager,
+    Channel,
     NoOpenChannel,
     InvalidBalanceProof,
     InvalidBalanceAmount,
     InsufficientConfirmations
 )
+from raiden_mps.proxy.content import PaywalledContent
 # from raiden_mps.utils import parse_balance_proof_msg
 
 from raiden_mps import HTTPHeaders as header
@@ -133,15 +135,7 @@ class Expensive(Resource):
             return self.reply_payment_required(content, proxy_handle, gen_ui=accepts_html)
 
         # set the headers to reflect actual state of a channel
-        headers = {
-            header.GATEWAY_PATH: API_PATH,
-            header.SENDER_ADDRESS: channel.sender,
-            header.SENDER_BALANCE: channel.balance,
-            header.RECEIVER_ADDRESS: self.receiver_address,
-            header.CONTRACT_ADDRESS: self.contract_address,
-            header.BALANCE_SIGNATURE: channel.last_signature,
-            header.PRICE: proxy_handle.price
-        }
+        headers = self.generate_headers(channel, proxy_handle)
         try:
             self.channel_manager.register_payment(
                 self.receiver_address,
@@ -156,6 +150,20 @@ class Expensive(Resource):
 
         # all ok, return premium content
         return self.reply_premium(content, proxy_handle, headers)
+
+    def generate_headers(self, channel: Channel, proxy_handle: PaywalledContent):
+        assert channel.sender is not None
+        assert channel.balance >= 0
+        headers = {
+            header.GATEWAY_PATH: API_PATH,
+            header.RECEIVER_ADDRESS: self.receiver_address,
+            header.CONTRACT_ADDRESS: self.contract_address,
+            header.PRICE: proxy_handle.price,
+            header.SENDER_ADDRESS: channel.sender,
+            header.SENDER_BALANCE: channel.balance,
+        }
+        if channel.last_signature is not None:
+            headers.update({header.BALANCE_SIGNATURE: channel.last_signature})
 
     def reply_premium(self, content, proxy_handle, headers):
         response = proxy_handle.get(content)
