@@ -165,6 +165,8 @@ class Expensive(Resource):
         if channel.last_signature is not None:
             headers.update({header.BALANCE_SIGNATURE: channel.last_signature})
 
+        return headers
+
     def reply_premium(self, content, proxy_handle, headers):
         response = proxy_handle.get(content)
         if isinstance(response, Response):
