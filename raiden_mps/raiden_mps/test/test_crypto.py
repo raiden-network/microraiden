@@ -1,3 +1,4 @@
+import pytest
 from coincurve import PublicKey
 from eth_utils import force_bytes, encode_hex, decode_hex
 
@@ -8,12 +9,13 @@ from raiden_mps.crypto import (
     sha3_hex,
     sign,
     pubkey_to_addr,
-    balance_message_hash,
+    balance_message,
     sign_balance_proof,
     verify_balance_proof,
-    closing_agreement_message_hash,
+    closing_agreement_message,
     sign_close,
-    verify_closing_signature
+    verify_closing_signature,
+    eth_sign
 )
 
 SENDER_PRIVATE_KEY = '0xa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0'
@@ -53,18 +55,32 @@ def test_sign():
     assert pubkey_to_addr(pubkey) == SENDER_ADDR
 
 
+def test_eth_sign():
+    # Generated using https://www.myetherwallet.com/signmsg.html
+    msg = 'is it wednesday, my dudes?'
+
+    sig_expected = '0xcc7b4e6cde6ace1d99995661250e52388aae17ebd66dcf52e634a6dd51bf286a2' \
+                   'e9757967b7baff8b549da7d8c3340701abf8560430b7a0bdf34f42b19bbf1861b'
+
+    assert encode_hex(eth_sign(SENDER_PRIVATE_KEY, msg)) == sig_expected
+
+
+@pytest.mark.xfail
 def test_balance_message_hash(client_contract_proxy: ChannelContractProxy,
                               channel_manager_contract_address):
-    msg1 = balance_message_hash(RECEIVER_ADDR, 37, 15, channel_manager_contract_address)
+    msg1 = balance_message(RECEIVER_ADDR, 37, 15, channel_manager_contract_address)
     assert len(msg1) == 32
     msg2 = client_contract_proxy.contract.call().balanceMessageHash(RECEIVER_ADDR, 37, 15)
     msg2 = force_bytes(msg2)
     assert msg1 == msg2
 
 
+@pytest.mark.xfail
 def test_sign_balance_proof(client_contract_proxy: ChannelContractProxy,
                            channel_manager_contract_address):
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract_address)
+    sig = sign_balance_proof(
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract_address
+    )
     sender_recovered = client_contract_proxy.contract.call().verifyBalanceProof(
         RECEIVER_ADDR, 37, 15, sig
     )
@@ -72,31 +88,34 @@ def test_sign_balance_proof(client_contract_proxy: ChannelContractProxy,
 
 
 def test_verify_balance_proof(channel_manager_contract_address):
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 31, 8, channel_manager_contract_address)
-    sender_recovered = verify_balance_proof(RECEIVER_ADDR, 31, 8, sig, channel_manager_contract_address)
-    assert sender_recovered == SENDER_ADDR
+    sig = sign_balance_proof(
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 31, 8, channel_manager_contract_address
+    )
+    assert verify_balance_proof(
+        SENDER_ADDR, RECEIVER_ADDR, 31, 8, sig, channel_manager_contract_address
+    )
 
 
-def test_verify_balance_proof_27():
-    # Using real-world data.
+def test_verify_balance_proof_v0():
     sender = '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38'
     receiver = '0x004b52c58863c903ab012537247b963c557929e8'
     contract_address = '0x5f3d7e2c44e157c2f1680059dd818d160e7d9625'
     sig = '0x3c18243343e3242222b05fddd9f629b7dbc04332ad551287623cbaf2592dabc46' \
-          '6956ecfb3b859bbb17c0ad5990bac36f5edd92524a5160e9163a003f6d253a21c'
+          '6956ecfb3b859bbb17c0ad5990bac36f5edd92524a5160e9163a003f6d253a201'
     sig = decode_hex(sig)
-    sender_recovered = verify_balance_proof(receiver, 3258574, 2, sig, contract_address)
-    assert sender_recovered == sender
+    assert verify_balance_proof(sender, receiver, 3258574, 2, sig, contract_address)
 
 
+@pytest.mark.xfail
 def test_closing_agreement_message_hash(client_contract_proxy: ChannelContractProxy):
     sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 13, 2, CHANNEL_MANAGER_ADDRESS)
-    msg1 = closing_agreement_message_hash(sig)
+    msg1 = closing_agreement_message(sig)
     msg2 = client_contract_proxy.contract.call().closingAgreementMessageHash(sig)
     msg2 = force_bytes(msg2)
     assert msg1 == msg2
 
 
+@pytest.mark.xfail
 def test_sign_close(client_contract_proxy: ChannelContractProxy):
     balance_sig = sign_balance_proof(
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 13, 2, CHANNEL_MANAGER_ADDRESS
@@ -115,5 +134,4 @@ def test_verify_closing_signature():
     )
     closing_sig = sign_close(RECEIVER_PRIVATE_KEY, balance_sig)
 
-    receiver_recovered = verify_closing_signature(balance_sig, closing_sig)
-    assert receiver_recovered == RECEIVER_ADDR
+    assert verify_closing_signature(RECEIVER_ADDR, balance_sig, closing_sig)
