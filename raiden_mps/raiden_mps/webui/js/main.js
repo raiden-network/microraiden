@@ -45,13 +45,24 @@ function pageReady(json) {
           console.error(err);
           return window.alert("An error occurred getting channel info: "+err);
         }
-        $("#channel_present_state").text(info.state);
+        console.log(info)
+        if (info.state === 'opened') {
+          $("#status-icon").html(`<span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>`)
+          $("#status").html(`<span class="label label-success"><strong>opened</strong></span>`)
+        } else if (info.state === 'closed') {
+          $("#status-icon").html(`<span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>`)
+          $("#status").html(`<span class="label label-danger"><strong>closed</strong></span>`)
+        } else {
+          $("#status-icon").html(`<span class="glyphicon glyphicon-resize-full" aria-hidden="true"></span>`)
+          $("#status").html(`<span class="label label-warning"><strong>settled</strong></span>`)
+        }
 
         $("#channel_present .btn.on-state-"+info.state).show();
         $("#channel_present .btn:not(.on-state-"+info.state+")").hide();
 
-        $("#channel_present #channel_present_balance").attr("value", rmpc.channel.balance);
+        $("#channel_present #channel_present_balance").text(rmpc.channel.balance);
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
+        $(".btn-bar").show()
       });
     } else {
       mainSwitch("#channel_missing");
@@ -120,7 +131,7 @@ function pageReady(json) {
 
   $("#channel_present_sign").click(signRetry);
 
-  $("#channel_present_close").click(() => {
+  $(".channel_present_close").click(() => {
     if (!window.confirm("Are you sure you want to close this channel?")) {
       return;
     }
@@ -146,7 +157,7 @@ function pageReady(json) {
     });
   });
 
-  $("#channel_present_forget").click(() => {
+  $(".channel_present_forget").click(() => {
     if (!window.confirm("Are you sure you want to forget this channel?")) {
       return;
     }
