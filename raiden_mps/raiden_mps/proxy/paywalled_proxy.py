@@ -42,7 +42,7 @@ class PaywalledProxy:
                  paywall_html_dir=None,
                  paywall_js_dir=None):
         if not flask_app:
-            self.app = Flask(__name__)
+            self.app = Flask(__name__, static_url_path='/mystatic')
         else:
             assert isinstance(flask_app, Flask)
             self.app = flask_app

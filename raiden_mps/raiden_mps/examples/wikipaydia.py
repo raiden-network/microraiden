@@ -1,14 +1,6 @@
 import click
 import os
 import sys
-#
-# Flask restarts itself when a file changes, but this restart
-#  does not have PYTHONPATH set properly if you start the
-#  app with python -m raiden_mps.
-#
-from raiden_mps.crypto import privkey_to_addr
-from flask import make_response
-
 
 if __package__ is None:
     path = os.path.dirname(os.path.dirname(__file__))
@@ -18,23 +10,8 @@ if __package__ is None:
 import raiden_mps.utils as utils
 from raiden_mps import config
 from raiden_mps.proxy.content import (
-    PaywalledFile,
-    PaywalledContent
+    PaywalledProxyUrl
 )
-
-
-def get_doggo(_):
-    doggo_str = """
-         |\_/|
-         | @ @   Woof!
-         |   <>              _
-         |  _/\------____ ((| |))
-         |               `--' |
-     ____|_       ___|   |___.'
-    /_/_____/____/_______|
-    """
-    headers = {"Content-type": 'text/ascii'}
-    return make_response(doggo_str, 200, headers)
 
 
 @click.command()
@@ -42,11 +19,6 @@ def get_doggo(_):
     '--channel-manager-address',
     default=None,
     help='Ethereum address of the channel manager contract.'
-)
-@click.option(
-    '--state-file',
-    default=None,
-    help='State file of the proxy'
 )
 @click.option(
     '--private-key',
@@ -62,7 +34,6 @@ def get_doggo(_):
 )
 def main(
     channel_manager_address,
-    state_file,
     private_key,
     paywall_info
 ):
@@ -70,24 +41,12 @@ def main(
         with open(private_key) as keyfile:
             private_key = keyfile.readline()[:-1]
 
-    receiver_address = privkey_to_addr(private_key)
     channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
 
-    if not state_file:
-        state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)
-        app_dir = click.get_app_dir('micro-raiden')
-        if not os.path.exists(app_dir):
-            os.makedirs(app_dir)
-        state_file = os.path.join(app_dir, state_file_name)
-
     config.paywall_html_dir = paywall_info
-    app = utils.make_paywalled_proxy(private_key, state_file)
+    app = utils.make_paywalled_proxy(private_key, None)
 
-    app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
-    app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
-    app.add_content(PaywalledContent("doggo.txt", 2, get_doggo))
-    app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
-    app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
+    app.add_content(PaywalledProxyUrl(".*", 1, "http://en.wikipedia.org/", [r"wiki/.*"]))
     app.run(debug=True)
     app.join()
 
