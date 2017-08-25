@@ -216,7 +216,7 @@ def test_challenge(channel_manager, clean_channels, confirmed_open_channel, rece
                    sender_address, wait_for_blocks, web3, client_token_proxy):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     sig = encode_hex(confirmed_open_channel.create_transfer(5))
-    channel_manager.register_payment(receiver_address, confirmed_open_channel.block, 5, sig)
+    channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig)
     # hack channel to decrease balance
     confirmed_open_channel.balance = 0
     sig = confirmed_open_channel.create_transfer(3)
@@ -270,7 +270,7 @@ def test_settlement(channel_manager, clean_channels, confirmed_open_channel, rec
     channel_rec = channel_manager.state.channels[channel_id]
 
     sig = encode_hex(confirmed_open_channel.create_transfer(2))
-    channel_manager.register_payment(receiver_address, confirmed_open_channel.block, 2, sig)
+    channel_manager.register_payment(sender_address, confirmed_open_channel.block, 2, sig)
 
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
