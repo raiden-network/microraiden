@@ -49,9 +49,12 @@ function pageReady(json) {
         $(`#channel_present .on-state.on-state-${info.state}`).show();
         $(`#channel_present .on-state:not(.on-state-${info.state})`).hide();
 
-        $("#channel_present #channel_present_balance").text(rmpc.channel && rmpc.channel.balance);
+        $("#channel_present #channel_present_balance").text(info.deposit - ((rmpc.channel && rmpc.channel.balance) || 0));
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
         $(".btn-bar").show()
+        if (info.state === 'opened') {
+          signRetry();
+        }
       });
     } else {
       mainSwitch("#channel_missing");
