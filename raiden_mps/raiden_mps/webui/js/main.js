@@ -43,15 +43,18 @@ function pageReady(json) {
       rmpc.getChannelInfo((err, info) => {
         if (err) {
           console.error(err);
-          return window.alert("An error occurred getting channel info: "+err);
+          info = { state: "error", deposit: 0 }
         }
-        $("#channel_present_state").text(info.state);
 
-        $("#channel_present .btn.on-state-"+info.state).show();
-        $("#channel_present .btn:not(.on-state-"+info.state+")").hide();
+        $(`#channel_present .on-state.on-state-${info.state}`).show();
+        $(`#channel_present .on-state:not(.on-state-${info.state})`).hide();
 
-        $("#channel_present #channel_present_balance").attr("value", rmpc.channel.balance);
+        $("#channel_present #channel_present_balance").text(info.deposit - ((rmpc.channel && rmpc.channel.balance) || 0));
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
+        $(".btn-bar").show()
+        if (info.state === 'opened') {
+          signRetry();
+        }
       });
     } else {
       mainSwitch("#channel_missing");
@@ -59,6 +62,9 @@ function pageReady(json) {
   });
 
   function refreshAccounts() {
+    $(`#channel_present .on-state.on-state-opened`).show();
+    $(`#channel_present .on-state:not(.on-state-opened)`).hide();
+
     $select.empty();
     rmpc.getAccounts((err, accounts) => {
       if (err || !accounts || !accounts.length) {
@@ -119,9 +125,9 @@ function pageReady(json) {
     });
   });
 
-  $("#channel_present_sign").click(signRetry);
+  $(".channel_present_sign").click(signRetry);
 
-  $("#channel_present_close").click(() => {
+  $(".channel_present_close").click(() => {
     if (!window.confirm("Are you sure you want to close this channel?")) {
       return;
     }
@@ -134,7 +140,7 @@ function pageReady(json) {
     });
   });
 
-  $("#channel_present_settle").click(() => {
+  $(".channel_present_settle").click(() => {
     if (!window.confirm("Are you sure you want to settle this channel?")) {
       return;
     }
@@ -147,7 +153,7 @@ function pageReady(json) {
     });
   });
 
-  $("#channel_present_forget").click(() => {
+  $(".channel_present_forget").click(() => {
     if (!window.confirm("Are you sure you want to forget this channel?")) {
       return;
     }

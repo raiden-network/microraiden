@@ -443,8 +443,7 @@ class RaidenMicropaymentsClient {
       } else if (info.state !== "opened") {
         return callback(new Error("Tried signing on closed channel"));
       } else if (newBalance > info.deposit) {
-        return callback(new Error("Insuficient funds: current = "+deposit+
-          ", required = +"+newBalance-deposit));
+        return callback(new Error(`Insuficient funds: current = ${info.deposit}, required = ${newBalance-info.deposit}`));
       }
       // get hash for new balance proof
       return this.signBalance(newBalance, (err, sign) => {

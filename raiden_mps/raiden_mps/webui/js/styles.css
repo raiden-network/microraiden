@@ -1,0 +1,175 @@
+body {
+  font-size: 16px;
+  height: 100vh;
+  background: -webkit-linear-gradient(left top, red, yellow); /* For Safari 5.1 to 6.0 */
+  background: -o-linear-gradient(bottom right, red, yellow); /* For Opera 11.1 to 12.0 */
+  background: -moz-linear-gradient(bottom right, red, yellow); /* For Firefox 3.6 to 15 */
+  background: linear-gradient(to bottom right, black, white); /* Standard syntax */
+}
+
+@media screen and (min-width: 980px) {
+  .box-container {
+    width: 750px;
+    margin: auto;
+    margin-top: 50px;
+    box-shadow: 0 0 20px #888888;
+  }
+}
+
+@media screen and (max-width: 979px) {
+  .box-container {
+    width: 70%;
+    margin-left: 15%;
+    margin-right: 15%;
+    margin-top: 50px;
+    box-shadow: 0 0 20px #888888;
+  }
+}
+
+.panel-heading {
+  text-align: center;
+}
+
+.logo {
+  height: 65px;
+  float: left;
+  margin-right: -50px;
+}
+
+.panel-body {
+  text-align: center;
+}
+
+mark {
+  background-color: black;
+  color: white;
+}
+
+.account-dropdown {
+  margin-top: 35px;
+}
+
+.account-label {
+  padding-left: 125px;
+  padding-top: 5px;
+}
+
+.account-select {
+  font-size: 16px;
+  width: auto;
+  margin-left: 25px;
+}
+
+li {
+  display: block;
+  float: left;
+  padding-left: 30px;
+  padding-top: 20px;
+  font-size: 16px;
+}
+
+.transfer li:before {
+  /*Using a Bootstrap glyphicon as the bullet point*/
+  content: "\e081";
+  font-family: 'Glyphicons Halflings';
+  font-size: 25px;
+  float: left;
+  margin-top: -5px;
+  margin-left: 10px;
+  padding-right: 10px;
+  color: black;
+}
+
+.sign li:before {
+  /*Using a Bootstrap glyphicon as the bullet point*/
+  content: "\270f";
+  font-family: 'Glyphicons Halflings';
+  font-size: 25px;
+  float: left;
+  margin-top: -5px;
+  margin-left: 10px;
+  padding-right: 10px;
+  color: black;
+}
+
+.deposit {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  padding-left: 40px;
+  padding-right: 40px;
+
+}
+
+.btn {
+  margin-left:
+}
+
+.rdn-btn {
+  background-color: black;
+  color: white;
+}
+
+.rdn-btn:hover {
+  opacity: .65;
+  color: white;
+}
+
+.alert {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.channel {
+  padding-top: 15px;
+  padding-bottom: 90px;
+}
+
+.status-label {
+  font-weight: bold;
+  text-align: left;
+}
+
+.glyphicon.on-state-opened {
+  color: #5cb85c;
+  font-size: 60px;
+  padding-left: 90px;
+}
+
+.glyphicon.on-state-closed,
+.glyphicon.on-state-error {
+  color: #d9534f;
+  font-size: 60px;
+  padding-left: 90px;
+}
+
+.glyphicon.on-state-settled {
+  color: #f0ad4e;
+  font-size: 50px;
+  padding-left: 90px;
+}
+
+.status {
+  text-align: left;
+  font-size: 20px;
+}
+
+.balance {
+  font-size: 20px;
+  text-align: left;
+}
+
+.balance-icon {
+  font-size: 30px;
+  font-weight: bold;
+  text-align: left;
+  padding-top: 5px;
+}
+
+.balance-content {
+  margin-left: -20px;
+}
+
+.balance-label {
+  font-weight: bold;
+  text-align: left;
+}
