@@ -68,21 +68,9 @@ li {
   font-size: 16px;
 }
 
-.approve li:before {
+.transfer li:before {
   /*Using a Bootstrap glyphicon as the bullet point*/
-  content: "\e084";
-  font-family: 'Glyphicons Halflings';
-  font-size: 25px;
-  float: left;
-  margin-top: -5px;
-  margin-left: 10px;
-  padding-right: 10px;
-  color: black;
-}
-
-.open li:before {
-  /*Using a Bootstrap glyphicon as the bullet point*/
-  content: "\e005";
+  content: "\e081";
   font-family: 'Glyphicons Halflings';
   font-size: 25px;
   float: left;
