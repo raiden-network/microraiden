@@ -48,7 +48,7 @@ Encoding:
 
 
 
-#### 402 Payment Required (non accepted RDN-Sender-Balance-Signature )
+#### 402 Payment Required (non accepted RDN-Balance-Signature )
 
 
 
@@ -61,8 +61,8 @@ Encoding:
 | RDN-Receiver-Address            | address  |  Address of the Merchant                   |
 | RDN-Sender-Address              | address  |  Address of the Client                     |
 | RDN-Sender-Balance              | uint     |  Balance of the Channel                    |
-| RDN-Insufficient-Funds?         | uint     |  Failure - either Payment value too low or balance exceeds deposit|
-| RND-Inssuficient-Confirmations? | uint     |  Failure - not enough confirmations after the channel creation. Client should wait and retry. |
+| RDN-Insufficient-Funds          | uint     |  Failure - either Payment value too low or balance exceeds deposit|
+| RDN-Insufficient-Confirmations  | uint     |  Failure - not enough confirmations after the channel creation. Client should wait and retry. |
 
 
 
@@ -103,18 +103,28 @@ StateReceiverAddrMismatch
 
 ## Off-Chain Messages
 
-<sequence diagram>
+### Micropayment Sequence
+
+(not-so-standard sequence diagram)
+For a better overview, also check out how the smart contract does a transfer validation:  [/contracts/README.md#generating-and-validating-a-transfer](/contracts/README.md#generating-and-validating-a-transfer)
+
+![](/docs/diagrams/OffChainSequence.png)
+
+### Channel Closing Sequence
+
+For a better overview, also check out how the smart contract does a closing signature validation:  [/contracts/README.md#generating-and-validating-a-closing-agreement](/contracts/README.md#generating-and-validating-a-closing-agreement)
+
+![](/docs/diagrams/OffChainSequenceClosing.png)
 
 
 ## Proxy
 
-### API
 
 ### Channel manager
 
 ![](/docs/diagrams/ChannelManagerClass.png)
 
-### Proxy Components
+### Paywalled Proxy
 
 ![](/docs/diagrams/PaywalledProxyClass.png)
 

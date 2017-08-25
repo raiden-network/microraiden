@@ -31,7 +31,8 @@ def start_proxy(receiver_privkey: str) -> PaywalledProxy:
     app.add_content(PaywalledProxyUrl(
         "[A-Z]{6}",
         1,
-        lambda request: 'api.bitfinex.com/v1/pubticker/' + request
+        'http://api.bitfinex.com/v1/pubticker/',
+        [r'/v1/pubticker/[A-Z]{6}']
     ))
     app.run()
     return app
@@ -58,7 +59,8 @@ class ETHTicker(ttk.Frame):
             self.app.add_content(PaywalledProxyUrl(
                 "[A-Z]{6}",
                 1,
-                lambda request: 'api.bitfinex.com/v1/pubticker/' + request
+                'http://api.bitfinex.com/v1/pubticker/',
+                [r'/v1/pubticker/[A-Z]{6}']
             ))
         else:
             self.app = start_proxy(receiver_privkey)

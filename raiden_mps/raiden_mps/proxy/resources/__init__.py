@@ -3,6 +3,7 @@ from .management import (
     ChannelManagementRoot,
     ChannelManagementAdmin,
     ChannelManagementListChannels,
+    ChannelManagementStats,
     ChannelManagementChannelInfo,
 )
 from .staticfiles import StaticFilesServer
@@ -13,5 +14,6 @@ __all__ = (
     'ChannelManagementListChannels',
     'ChannelManagementChannelInfo',
     'ChannelManagementAdmin',
+    'ChannelManagementStats',
     'StaticFilesServer'
 )

@@ -100,6 +100,7 @@ function pageReady(json) {
         return window.alert("An error occurred trying to sign the transfer: "+err);
       }
       console.log("SIGNED!", sign);
+      Cookies.set("RDN-Sender-Address", rmpc.channel.account);
       Cookies.set("RDN-Open-Block", rmpc.channel.block);
       Cookies.set("RDN-Sender-Balance", rmpc.channel.balance);
       Cookies.set("RDN-Balance-Signature", sign);

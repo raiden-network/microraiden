@@ -24,7 +24,7 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-ERC223Token  address is 0xad6e12d1e0ce6780b1eb1599ab6b1e75fbd9306b
+ERC223Token address is 0xad6e12d1e0ce6780b1eb1599ab6b1e75fbd9306b
 RaidenMicroTransferChannels address is 0x22c527350d0f56d49eb0502226cfdf44741e850e
 
 ```
@@ -33,7 +33,7 @@ RaidenMicroTransferChannels address is 0x22c527350d0f56d49eb0502226cfdf44741e850
 
 ```
 
-ERC223Token  address is 0xdd5dc98e14c5c4bb7d9813eebc123f769965459e
+ERC223Token address is 0xdd5dc98e14c5c4bb7d9813eebc123f769965459e
 RaidenMicroTransferChannels address is 0x4abdf31df1284504fa821f7843f0298dcee52a21
 
 ```
@@ -43,7 +43,7 @@ RaidenMicroTransferChannels address is 0x4abdf31df1284504fa821f7843f0298dcee52a2
 
 ```
 
-ERC223Token  address is 0xb6a7a5742ec869cc3293bb9bbe019053cb66d9c0
+ERC223Token address is 0xb6a7a5742ec869cc3293bb9bbe019053cb66d9c0
 RaidenMicroTransferChannels address is 0x3adbaff68967a217901b55284464eaf3ffaf203d
 
 ```
@@ -93,12 +93,14 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
    ```
 
  * `kovan`
+   - functional faucet: https://gitter.im/kovan-testnet/faucet
    - change default account: [/contracts/populus.json#L177](/contracts/populus.json#L177)
    - start https://github.com/paritytech/parity
    ```
    parity --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --unlock 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb --password ~/password.txt --author 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb
    ```
  * `ropsten`
+   - functional faucet: https://www.reddit.com/r/ethdev/comments/61zdn8/if_you_need_some_ropsten_testnet_ethers/
    - change default account: [/contracts/populus.json#L49](/contracts/populus.json#L49)
    - start:
    ```
@@ -230,7 +232,7 @@ Gas cost (testing): 68636
 #### ERC20 compatible
 
 ```py
-#approve token transfers to the contract from the Sender's behalf
+# approve token transfers to the contract from the Sender's behalf
 Token.approve(contract, added_deposit)
 
 Contract.createChannelERC20(receiver, deposit)
@@ -243,32 +245,67 @@ Gas cost (testing): 90144
 ### Generating and validating a transfer
 
 
-Sender has to provide a **balance proof**:
-- **balance message**: `receiver`, `open_block_number`, `balance`
-- **signed balance message**: `balance_msg_sig`
-  - `Contract.balanceMessageHash(receiver, open_block_number, balance)` -> signed by the Sender with MetaMask
+```js
 
+// Sender has to provide a balance_proof = balance_message + his signature to the Receiver when making a microtransfer
+// The contract implements some helper functions for that
 
-Balance proof signature verification:
+// hashed balance message
+balance_message_hash = Contract.balanceMessageHash(receiver, open_block_number, balance)
 
- - `Contract.verifyBalanceProof(receiver, open_block_number, balance, balance_msg_sig)` -> returns the Sender's address
+// This hash is signed by the Sender with MetaMask
+balance_msg_sig
+
+// and sent to the Receiver (receiver, open_block_number, balance, balance_msg_sig)
+
+```
+
+#### Balance proof signature verification:
+
+```js
+
+// Returns the Sender's address
+sender = Contract.verifyBalanceProof(receiver, open_block_number, balance, balance_msg_sig)
+
+// Use this address to find the channel (sender, receiver, open_block_number)
+
+```
 
 
 
 ### Generating and validating a closing agreement
 
+```js
 
-Sender has to provide a **balance proof** and a **closing agreement proof**
-- **balance message**: `receiver`, `open_block_number`, `balance`
-- **signed balance message**: `balance_msg_sig`
-- **double signed balance message**: `closing_sig` - signed by both the sender and the receiver
- - `Contract.closingAgreementMessageHash(balance_msg_sig)`
- - Receiver signs this hash with MetaMask and sends it to the Sender
+// Sender has to provide a balance_proof = balance_message + his signature to the Receiver
+// + a closing_sig (closing agreement proof from Receiver)
 
+// balance message to be hashed
+balance_message_hash = Contract.balanceMessageHash(receiver, open_block_number, balance)
 
-Closing agreement signature verification:
+// This hash is signed by the Sender with MetaMask
+balance_msg_sig
 
-- `Contract.verifyClosingSignature(balance_msg_sig, closing_sig)` -> returns the Receiver's address
+// hashed balance_msg_sig
+balance_msg_sig_hash = Contract.closingAgreementMessageHash(balance_msg_sig)
+
+// This hash is signed by the Receiver
+closing_sig
+
+// Send to the Contract (example of collaborative closing, transaction sent by Sender)
+Contract.close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+
+```
+
+#### Closing agreement signature verification:
+
+```js
+
+// Returns the Receiver's address
+receiver = Contract.verifyClosingSignature(balance_msg_sig, closing_sig)
+
+// Use this address to find the channel (sender, receiver, open_block_number)
+```
 
 
 ### Closing a channel

@@ -19,6 +19,8 @@ from raiden_mps.config import API_PATH
 from flask import Response, make_response
 
 import raiden_mps.config as config
+import logging
+log = logging.getLogger(__name__)
 
 
 class RequestData:
@@ -29,8 +31,6 @@ class RequestData:
         self.check_headers(headers)
         if cookies:
             self.check_cookies(cookies)
-#        self.sender_address, _ = parse_balance_proof_msg(self.balance_signature, 2, 3, 4)
-        self.sender_address = 0
 
     def check_cookies(self, cookies):
         if header.BALANCE_SIGNATURE in cookies:
@@ -39,6 +39,8 @@ class RequestData:
             self.open_block_number = int(cookies.get(header.OPEN_BLOCK))
         if header.SENDER_BALANCE in cookies:
             self.balance = int(cookies.get(header.SENDER_BALANCE))
+        if header.SENDER_ADDRESS in cookies:
+            self.sender_address = cookies.get(header.SENDER_ADDRESS)
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
@@ -109,6 +111,7 @@ class Expensive(Resource):
         self.light_client_proxy = light_client_proxy
 
     def get(self, content):
+        log.info(content)
         try:
             data = RequestData(request.headers, request.cookies)
         except ValueError as e:
@@ -116,6 +119,9 @@ class Expensive(Resource):
         proxy_handle = self.paywall_db.get_content(content)
         if proxy_handle is None:
             return "NOT FOUND", 404
+
+        if proxy_handle.is_paywalled(content) is False:
+            return self.reply_premium(content, proxy_handle, {})
 
         accepts_html = r'text/html' in request.headers.get('Accept', '')
 
@@ -125,7 +131,7 @@ class Expensive(Resource):
         # try to get an existing channel
         try:
             channel = self.channel_manager.verify_balance_proof(
-                self.receiver_address, data.open_block_number,
+                data.sender_address, data.open_block_number,
                 data.balance, data.balance_signature)
         except InsufficientConfirmations as e:
             headers = {header.INSUF_CONFS: "1"}
@@ -138,7 +144,7 @@ class Expensive(Resource):
         headers = self.generate_headers(channel, proxy_handle)
         try:
             self.channel_manager.register_payment(
-                self.receiver_address,
+                channel.sender,
                 data.open_block_number,
                 data.balance,
                 data.balance_signature)
@@ -164,6 +170,9 @@ class Expensive(Resource):
         }
         if channel.last_signature is not None:
             headers.update({header.BALANCE_SIGNATURE: channel.last_signature})
+        return headers
+
+        return headers
 
     def reply_premium(self, content, proxy_handle, headers):
         response = proxy_handle.get(content)

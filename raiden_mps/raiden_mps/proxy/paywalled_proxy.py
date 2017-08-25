@@ -1,6 +1,5 @@
 import gevent
 
-import os
 from gevent import monkey
 
 
@@ -22,6 +21,7 @@ from raiden_mps.proxy.resources import (
     ChannelManagementListChannels,
     ChannelManagementChannelInfo,
     ChannelManagementRoot,
+    ChannelManagementStats,
     StaticFilesServer
 )
 
@@ -42,7 +42,7 @@ class PaywalledProxy:
                  paywall_html_dir=None,
                  paywall_js_dir=None):
         if not flask_app:
-            self.app = Flask(__name__)
+            self.app = Flask(__name__, static_url_path='/mystatic')
         else:
             assert isinstance(flask_app, Flask)
             self.app = flask_app
@@ -77,6 +77,9 @@ class PaywalledProxy:
         self.api.add_resource(ChannelManagementListChannels,
                               API_PATH + "/channels/",
                               API_PATH + "/channels/<string:sender_address>",
+                              resource_class_kwargs={'channel_manager': self.channel_manager})
+        self.api.add_resource(ChannelManagementStats,
+                              API_PATH + "/stats",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementRoot, "/cm")
 

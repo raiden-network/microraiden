@@ -13,10 +13,24 @@ from raiden_mps.channel_manager import (
 )
 
 
-
 class ChannelManagementRoot(Resource):
     def get(self):
         return "OK"
+
+
+class ChannelManagementStats(Resource):
+    def __init__(self, channel_manager):
+        super(ChannelManagementStats, self).__init__()
+        self.channel_manager = channel_manager
+
+    def get(self):
+        balance_sum = sum([c.balance for c in self.channel_manager.state.channels.values()])
+        deposit_sum = sum([c.deposit for c in self.channel_manager.state.channels.values()])
+        unique_senders = len({c[0]: 1 for c in self.channel_manager.state.channels.keys()})
+        return {'balance_sum': balance_sum,
+                'deposit_sum': deposit_sum,
+                'open_channels': len(self.channel_manager.state.channels),
+                'unique_senders': unique_senders}
 
 
 class ChannelManagementListChannels(Resource):
@@ -43,9 +57,9 @@ class ChannelManagementListChannels(Resource):
             return lambda c: True
 
     def get_channel_status(self, channel: Channel):
-        if channel.is_closed == True:
+        if channel.is_closed is True:
             return "closed"
-        elif channel.is_closed == False:
+        elif channel.is_closed is False:
             return "open"
         else:
             return "unknown"

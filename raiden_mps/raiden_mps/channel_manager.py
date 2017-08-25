@@ -267,7 +267,7 @@ class ChannelManager(gevent.Greenlet):
         self.state.unconfirmed_channels.pop((sender, open_block_number), None)
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
         self.log.info('new channel opened (sender %s, block number %s)', sender, open_block_number)
-        self.state.channels[(sender, open_block_number)] = c
+        self.state.channels[sender, open_block_number] = c
         self.state.store()
 
     def unconfirmed_event_channel_opened(self, sender, open_block_number, deposit):
@@ -275,7 +275,7 @@ class ChannelManager(gevent.Greenlet):
         assert (sender, open_block_number) not in self.state.channels
         assert (sender, open_block_number) not in self.state.unconfirmed_channels
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
-        self.state.unconfirmed_channels[(sender, open_block_number)] = c
+        self.state.unconfirmed_channels[sender, open_block_number] = c
         self.log.info('unconfirmed channel event received (sender %s, block_number %s)',
                       sender, open_block_number)
         self.state.store()
@@ -286,7 +286,7 @@ class ChannelManager(gevent.Greenlet):
             self.log.warn('attempt to close a non existing channel (sender %ss, block_number %ss)',
                           sender, open_block_number)
             return
-        c = self.state.channels[(sender, open_block_number)]
+        c = self.state.channels[sender, open_block_number]
         if c.balance > balance:
             self.log.info('sender tried to cheat, sending challenge (sender %s, block number %s)',
                           sender, open_block_number)
@@ -302,7 +302,7 @@ class ChannelManager(gevent.Greenlet):
         """Notify the channel manager that a channel has been settled."""
         self.log.info('Forgetting settled channel (sender %s, block number %s)',
                       sender, open_block_number)
-        del self.state.channels[(sender, open_block_number)]
+        del self.state.channels[sender, open_block_number]
         self.state.store()
 
     def unconfirmed_event_channel_topup(self, sender, open_block_number, txhash, added_deposit,
@@ -317,7 +317,7 @@ class ChannelManager(gevent.Greenlet):
         self.log.info('Registering unconfirmed deposit top up '
                       '(sender %s, block number %s, aded %s)',
                       sender, open_block_number, added_deposit)
-        c = self.state.channels[(sender, open_block_number)]
+        c = self.state.channels[sender, open_block_number]
         c.unconfirmed_event_channel_topups[txhash] = added_deposit
         self.state.store()
 
@@ -326,7 +326,7 @@ class ChannelManager(gevent.Greenlet):
         self.log.info('Registering deposit top up (sender %s, block number %s, new deposit %s)',
                       sender, open_block_number, deposit)
         assert (sender, open_block_number) in self.state.channels
-        c = self.state.channels[(sender, open_block_number)]
+        c = self.state.channels[sender, open_block_number]
         if c.is_closed is True:
             self.log.warn("Topup of an already closed channel (sender=%s open_block=%d)" %
                           (sender, open_block_number))
@@ -344,7 +344,7 @@ class ChannelManager(gevent.Greenlet):
             self.log.warn("attempt to close a non-registered channel (sender=%s open_block=%s" %
                           (sender, open_block_number))
             return
-        c = self.state.channels[(sender, open_block_number)]
+        c = self.state.channels[sender, open_block_number]
         if c.last_signature is None:
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
         # send closing tx
@@ -365,7 +365,7 @@ class ChannelManager(gevent.Greenlet):
             self.close_channel(sender, open_block_number)
             return
         except NoBalanceProofReceived:
-            c = self.state.channels[(sender, open_block_number)]
+            c = self.state.channels[sender, open_block_number]
             c.is_closed = True
             self.state.store()
 
@@ -374,7 +374,7 @@ class ChannelManager(gevent.Greenlet):
         if (sender, open_block_number) not in self.state.channels:
             raise NoOpenChannel('Channel does not exist or has been closed'
                                 '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
-        c = self.state.channels[(sender, open_block_number)]
+        c = self.state.channels[sender, open_block_number]
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
         assert signature is not None
@@ -399,36 +399,37 @@ class ChannelManager(gevent.Greenlet):
             balance += channel.balance
         return balance
 
-    def verify_balance_proof(self, receiver, open_block_number, balance, signature):
+    def verify_balance_proof(self, sender, open_block_number, balance, signature):
         """Verify that a balance proof is valid and return the sender.
 
         Does not check the balance itself.
 
         :returns: the channel
         """
-        if receiver.lower() != self.receiver.lower():
-            raise InvalidBalanceProof('Channel has wrong receiver.')
+        if (sender, open_block_number) in self.state.unconfirmed_channels:
+            raise InsufficientConfirmations(
+                'Insufficient confirmations for the channel '
+                '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
+        try:
+            c = self.state.channels[sender, open_block_number]
+        except KeyError:
+            raise NoOpenChannel('Channel does not exist or has been closed'
+                                '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
+        if c.is_closed:
+            raise NoOpenChannel('Channel closing has been requested already.')
+
         signer = verify_balance_proof(
             self.receiver, open_block_number, balance,
             decode_hex(signature.replace('0x', '')),
             self.contract_proxy.address
         )
-        if (signer, open_block_number) in self.state.unconfirmed_channels:
-            raise InsufficientConfirmations(
-                'Insufficient confirmations for the channel '
-                '(sender=%s, open_block_number=%d)' % (signer, open_block_number))
-        try:
-            c = self.state.channels[(signer, open_block_number)]
-        except KeyError:
-            raise NoOpenChannel('Channel does not exist or has been closed'
-                                '(sender=%s, open_block_number=%d)' % (signer, open_block_number))
-        if c.is_closed:
-            raise NoOpenChannel('Channel closing has been requested already.')
+        if not is_same_address(signer, sender):
+            raise InvalidBalanceProof('Recovered signer does not match the sender')
         return c
 
-    def register_payment(self, receiver, open_block_number, balance, signature):
+    def register_payment(self, sender, open_block_number, balance, signature):
         """Register a payment."""
-        c = self.verify_balance_proof(receiver, open_block_number, balance, signature)
+        c = self.verify_balance_proof(sender, open_block_number, balance, signature)
         log.info(c.unconfirmed_event_channel_topups)
         if balance <= c.balance:
             raise InvalidBalanceAmount('The balance must not decrease.')
@@ -447,7 +448,7 @@ class ChannelManager(gevent.Greenlet):
         """Export all channels as a dictionary."""
         d = {}
         for sender, block_number in self.state.channels:
-            channel = self.state.channels[(sender, block_number)]
+            channel = self.state.channels[sender, block_number]
             channel_dict = {
                 'deposit': channel.deposit,
                 'balance': channel.balance,
@@ -466,7 +467,7 @@ class ChannelManager(gevent.Greenlet):
         """Export all unconfirmed channels as a dictionary."""
         d = {}
         for sender, block_number in self.state.unconfirmed_channels:
-            channel = self.state.unconfirmed_channels[(sender, block_number)]
+            channel = self.state.unconfirmed_channels[sender, block_number]
             channel_dict = {
                 'deposit': channel.deposit,
                 'ctime': channel.ctime
@@ -501,52 +502,3 @@ class Channel(object):
 
     def toJSON(self):
         return self.__dict__
-
-
-class PublicAPI(object):
-
-    def __init__(self, channel_manager):
-        assert isinstance(channel_manager, ChannelManager)
-        self.cm = channel_manager
-
-    def _channel(self, sender):
-        return self.cm.state.channels[sender]
-
-    def register_payment(self, msg):
-        """
-        registers a payment message
-        returns its sender and value
-        """
-        return self.register_payment(msg)
-
-    def get_balance(self, sender_address):
-        "returns balance of address (i.e. total payed in current channel)"
-        return self._channel(sender_address).balance
-
-    def get_deposit(self, sender_address):
-        "returns the deposit setup by address"
-        return self._channel(sender_address).deposit
-
-    def get_credit(self, sender_address):
-        "returns the credit of address"
-        return self.get_deposit(sender_address) - self.get_balance(sender_address)
-
-    def settle(self, sender_address):
-        "closes the channel, can directly be settled"
-        self.cm.close_channel(sender_address)
-
-    def sign_close(self, sender_address):
-        "signs a cooperative close message (i.e. signs last message received by address)"
-        return self.cm.sign_close(sender_address)
-
-    def get_addresses(self):
-        "returns the list of address that have an open channel"
-        return self.cm.state.channels.keys()
-
-    def outstanding_balance(self):
-        "returns the not settled balance (i.e. the sum of balances of all open channels)"
-        return sum(c.balance for c in self.cm.state.channels.values())
-
-    def settled_balance(self):
-        "returns the balance of server address at token"
-        return self.cm.get_token_balance()

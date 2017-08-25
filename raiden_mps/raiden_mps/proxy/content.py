@@ -1,44 +1,9 @@
-from flask import make_response, request, Response
+from flask import make_response, request, Response, stream_with_context
 import requests
 import re
 import mimetypes
-
-
-def split_url(url):
-    """Splits the given URL into a tuple of (protocol, host, uri)"""
-    proto, rest = url.split(':', 1)
-    rest = rest[2:].split('/', 1)
-    host, uri = (rest[0], rest[1]) if len(rest) == 2 else (rest[0], "")
-    return (proto, host, uri)
-
-
-def proxy_ref_info(request):
-    """Parses out Referer info indicating the request is from a previously proxied page.
-    For example, if:
-        Referer: http://localhost:8080/p/google.com/search?q=foo
-    then the result is:
-        ("google.com", "search?q=foo")
-    """
-    ref = request.headers.get('referer')
-    if ref:
-        _, _, uri = split_url(ref)
-        if uri.find("/") < 0:
-            return None
-        first, rest = uri.split("/", 1)
-        if first in "pd":
-            parts = rest.split("/", 1)
-            r = (parts[0], parts[1]) if len(parts) == 2 else (parts[0], "")
-            return r
-    return None
-
-
-def get_source_rsp(url):
-        url = 'http://%s' % url
-        # Pass original Referer for subsequent resource requests
-        proxy_ref = proxy_ref_info(request)
-        headers = {"Referer": "http://%s/%s" % (proxy_ref[0], proxy_ref[1])} if proxy_ref else {}
-        # Fetch the URL, and stream it back
-        return requests.get(url, stream=True, params=request.args, headers=headers)
+import logging
+log = logging.getLogger(__name__)
 
 
 class PaywalledContent:
@@ -61,6 +26,9 @@ class PaywalledContent:
     def get(self, request):
         return "OK"
 
+    def is_paywalled(self, request):
+        return True
+
 
 class PaywalledFile(PaywalledContent):
     def __init__(self, path, price, filepath):
@@ -80,23 +48,28 @@ class PaywalledFile(PaywalledContent):
             return 500, ""
 
 
-class PaywalledProxyUrl:
-    def __init__(self, path, price, get_fn=lambda r: r.split('/', 1)[1]):
+class PaywalledProxyUrl(PaywalledContent):
+    def __init__(self, path, price, domain, paywalled_resources=[]):
+        super(PaywalledProxyUrl, self).__init__(path, price)
         assert isinstance(path, str)
         assert isinstance(price, int) or callable(price)
-        assert callable(get_fn)
         self.path = path
         self.price = price
-        self.get_fn = get_fn
+        self.get_fn = lambda x: x
+        self.domain = domain
+        self.paywalled_resources = [re.compile(x) for x in paywalled_resources]
 
-    def get(self, request):
+    def is_paywalled(self, request):
         url = self.get_fn(request)
-        r = get_source_rsp(url)
+        for resource in self.paywalled_resources:
+            if resource.match(url):
+                return True
+        return False
 
-        def generate():
-            for chunk in r.iter_content(1024):
-                yield chunk
-        return Response(generate())
+    def get(self, url):
+        req = requests.get(self.domain + url, stream=True, params=request.args)
+        return Response(stream_with_context(req.iter_content()),
+                        content_type=req.headers['content-type'])
 
 
 class PaywallDatabase:

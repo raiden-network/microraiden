@@ -120,12 +120,15 @@ def channel_manager_contract_proxy(channel_manager_contract_proxy1):
 
 
 @pytest.fixture
-def channel_manager1(web3, channel_manager_contract_proxy1, receiver_address, receiver_privkey):
+def channel_manager1(web3, channel_manager_contract_proxy1, receiver_address, receiver_privkey,
+                     use_tester):
     # disable logging during sync
     logging.getLogger('channel_manager').setLevel(logging.WARNING)
     channel_manager = ChannelManager(web3,
                                      channel_manager_contract_proxy1,
                                      receiver_privkey)
+    if use_tester:
+       channel_manager.blockchain.poll_frequency = 0
     channel_manager.start()
     channel_manager.wait_sync()
     logging.getLogger('channel_manager').setLevel(logging.DEBUG)
@@ -139,6 +142,8 @@ def channel_manager2(web3, channel_manager_contract_proxy2, receiver2_address, r
     channel_manager = ChannelManager(web3,
                                      channel_manager_contract_proxy2,
                                      receiver2_privkey)
+    if use_tester:
+       channel_manager.blockchain.poll_frequency = 0
     channel_manager.start()
     channel_manager.wait_sync()
     logging.getLogger('channel_manager').setLevel(logging.DEBUG)
