@@ -141,19 +141,20 @@ li {
   text-align: left;
 }
 
-.glyphicon-ok-circle {
+.glyphicon.on-state-opened {
   color: #5cb85c;
   font-size: 60px;
   padding-left: 90px;
 }
 
-.glyphicon-ban-circle {
+.glyphicon.on-state-closed,
+.glyphicon.on-state-error {
   color: #d9534f;
   font-size: 60px;
   padding-left: 90px;
 }
 
-.glyphicon-resize-full {
+.glyphicon.on-state-settled {
   color: #f0ad4e;
   font-size: 50px;
   padding-left: 90px;

@@ -43,23 +43,13 @@ function pageReady(json) {
       rmpc.getChannelInfo((err, info) => {
         if (err) {
           console.error(err);
-          return window.alert("An error occurred getting channel info: "+err);
-        }
-        if (info.state === 'opened') {
-          $("#status-icon").html(`<span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>`)
-          $("#status").html(`<span class="label label-success"><strong>opened</strong></span>`)
-        } else if (info.state === 'closed') {
-          $("#status-icon").html(`<span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>`)
-          $("#status").html(`<span class="label label-danger"><strong>closed</strong></span>`)
-        } else {
-          $("#status-icon").html(`<span class="glyphicon glyphicon-resize-full" aria-hidden="true"></span>`)
-          $("#status").html(`<span class="label label-warning"><strong>settled</strong></span>`)
+          info = { state: "error", deposit: 0 }
         }
 
-        $("#channel_present .btn.on-state-"+info.state).show();
-        $("#channel_present .btn:not(.on-state-"+info.state+")").hide();
+        $(`#channel_present .on-state.on-state-${info.state}`).show();
+        $(`#channel_present .on-state:not(.on-state-${info.state})`).hide();
 
-        $("#channel_present #channel_present_balance").text(rmpc.channel.balance);
+        $("#channel_present #channel_present_balance").text(rmpc.channel && rmpc.channel.balance);
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
         $(".btn-bar").show()
       });
@@ -69,6 +59,9 @@ function pageReady(json) {
   });
 
   function refreshAccounts() {
+    $(`#channel_present .on-state.on-state-opened`).show();
+    $(`#channel_present .on-state:not(.on-state-opened)`).hide();
+
     $select.empty();
     rmpc.getAccounts((err, accounts) => {
       if (err || !accounts || !accounts.length) {
@@ -129,7 +122,7 @@ function pageReady(json) {
     });
   });
 
-  $("#channel_present_sign").click(signRetry);
+  $(".channel_present_sign").click(signRetry);
 
   $(".channel_present_close").click(() => {
     if (!window.confirm("Are you sure you want to close this channel?")) {
@@ -144,7 +137,7 @@ function pageReady(json) {
     });
   });
 
-  $("#channel_present_settle").click(() => {
+  $(".channel_present_settle").click(() => {
     if (!window.confirm("Are you sure you want to settle this channel?")) {
       return;
     }
