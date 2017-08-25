@@ -396,10 +396,7 @@ class ChannelManager(gevent.Greenlet):
 
     def get_locked_balance(self):
         """Get the balance in all channels combined."""
-        balance = 0
-        for channel in self.state.channels.values():
-            balance += channel.balance
-        return balance
+        return sum([c.balance for c in self.state.channels.values()])
 
     def get_liquid_balance(self):
         """Get the balance of the receiver in the token contract (not locked in channels)."""

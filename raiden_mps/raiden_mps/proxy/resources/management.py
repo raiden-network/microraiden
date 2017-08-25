@@ -24,13 +24,13 @@ class ChannelManagementStats(Resource):
         self.channel_manager = channel_manager
 
     def get(self):
-        balance_sum = sum([c.balance for c in self.channel_manager.state.channels.values()])
         deposit_sum = sum([c.deposit for c in self.channel_manager.state.channels.values()])
         unique_senders = len({c[0]: 1 for c in self.channel_manager.state.channels.keys()})
-        return {'balance_sum': balance_sum,
+        return {'balance_sum': self.channel_manager.get_locked_balance(),
                 'deposit_sum': deposit_sum,
                 'open_channels': len(self.channel_manager.state.channels),
-                'unique_senders': unique_senders}
+                'unique_senders': unique_senders,
+                'liquid_balance': self.channel_manager.get_liquid_balance()}
 
 
 class ChannelManagementListChannels(Resource):
