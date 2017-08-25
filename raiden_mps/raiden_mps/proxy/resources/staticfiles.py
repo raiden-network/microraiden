@@ -16,6 +16,6 @@ class StaticFilesServer(Resource):
             return "", 403
         except ValueError:
             pass
-        data = open(self.directory + "/" + content).read()
+        data = open(self.directory + "/" + content, 'rb').read()
         mimetype = mimetypes.guess_type(self.directory + "/" + content)
         return make_response(data, 200, {'Content-Type': mimetype[0]})
