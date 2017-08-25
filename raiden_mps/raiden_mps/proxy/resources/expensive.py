@@ -31,7 +31,6 @@ class RequestData:
         self.check_headers(headers)
         if cookies:
             self.check_cookies(cookies)
-        self.sender_address = None
 
     def check_cookies(self, cookies):
         if header.BALANCE_SIGNATURE in cookies:
@@ -40,6 +39,8 @@ class RequestData:
             self.open_block_number = int(cookies.get(header.OPEN_BLOCK))
         if header.SENDER_BALANCE in cookies:
             self.balance = int(cookies.get(header.SENDER_BALANCE))
+        if header.SENDER_ADDRESS in cookies:
+            self.sender_address = cookies.get(header.SENDER_ADDRESS)
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
