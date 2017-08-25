@@ -120,15 +120,21 @@ def channel_manager_contract_proxy(channel_manager_contract_proxy1):
 
 
 @pytest.fixture
+def token_contract(web3, token_contract_address, token_abi):
+    return web3.eth.contract(abi=token_abi, address=token_contract_address)
+
+
+@pytest.fixture
 def channel_manager1(web3, channel_manager_contract_proxy1, receiver_address, receiver_privkey,
-                     use_tester):
+                     token_contract, use_tester):
     # disable logging during sync
     logging.getLogger('channel_manager').setLevel(logging.WARNING)
     channel_manager = ChannelManager(web3,
                                      channel_manager_contract_proxy1,
+                                     token_contract,
                                      receiver_privkey)
     if use_tester:
-       channel_manager.blockchain.poll_frequency = 0
+        channel_manager.blockchain.poll_frequency = 0
     channel_manager.start()
     channel_manager.wait_sync()
     logging.getLogger('channel_manager').setLevel(logging.DEBUG)
@@ -136,14 +142,16 @@ def channel_manager1(web3, channel_manager_contract_proxy1, receiver_address, re
 
 
 @pytest.fixture
-def channel_manager2(web3, channel_manager_contract_proxy2, receiver2_address, receiver2_privkey):
+def channel_manager2(web3, channel_manager_contract_proxy2, receiver2_address, receiver2_privkey,
+                     token_contract, use_tester):
     # disable logging during sync
     logging.getLogger('channel_manager').setLevel(logging.WARNING)
     channel_manager = ChannelManager(web3,
                                      channel_manager_contract_proxy2,
+                                     token_contract,
                                      receiver2_privkey)
     if use_tester:
-       channel_manager.blockchain.poll_frequency = 0
+        channel_manager.blockchain.poll_frequency = 0
     channel_manager.start()
     channel_manager.wait_sync()
     logging.getLogger('channel_manager').setLevel(logging.DEBUG)

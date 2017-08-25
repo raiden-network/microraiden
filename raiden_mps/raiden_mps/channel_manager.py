@@ -223,12 +223,14 @@ class ChannelManagerState(object):
 class ChannelManager(gevent.Greenlet):
     """Manages channels from the receiver's point of view."""
 
-    def __init__(self, web3, contract_proxy, private_key: str, state_filename=None):
+    def __init__(self, web3, contract_proxy, token_contract, private_key: str,
+                 state_filename=None):
         gevent.Greenlet.__init__(self)
         self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=1)
         self.receiver = privkey_to_addr(private_key)
         self.private_key = private_key
         self.contract_proxy = contract_proxy
+        self.token_contract = token_contract
         self.log = logging.getLogger('channel_manager')
         assert privkey_to_addr(self.private_key) == self.receiver.lower()
 
@@ -392,11 +394,16 @@ class ChannelManager(gevent.Greenlet):
                       sender, open_block_number)
         return receiver_sig
 
-    def get_token_balance(self):
+    def get_locked_balance(self):
         """Get the balance in all channels combined."""
         balance = 0
         for channel in self.state.channels.values():
             balance += channel.balance
+        return balance
+
+    def get_liquid_balance(self):
+        """Get the balance of the receiver in the token contract (not locked in channels)."""
+        balance = self.token_contract.call().balanceOf(self.receiver)
         return balance
 
     def verify_balance_proof(self, sender, open_block_number, balance, signature):

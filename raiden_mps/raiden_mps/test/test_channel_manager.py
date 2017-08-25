@@ -331,3 +331,23 @@ def test_cooperative_wrong_balance_proof(channel_manager, clean_channels, confir
     with pytest.raises(InvalidBalanceProof):
         channel_manager.sign_close(sender_address, confirmed_open_channel.block, sig2)
     assert channel_rec.is_closed is False
+
+
+def test_balances(channel_manager, confirmed_open_channel, receiver_address, sender_address,
+                  wait_for_blocks, clean_channels):
+    assert channel_manager.get_liquid_balance() == 0
+    assert channel_manager.get_locked_balance() == 0
+
+    sig = encode_hex(confirmed_open_channel.create_transfer(5))
+    channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig)
+
+    assert channel_manager.get_liquid_balance() == 0
+    assert channel_manager.get_locked_balance() == 5
+
+    receiver_sig = channel_manager.sign_close(sender_address, confirmed_open_channel.block, sig)
+    confirmed_open_channel.close_cooperatively(receiver_sig)
+    wait_for_blocks(1)
+    gevent.sleep(channel_manager.blockchain.poll_frequency)
+
+    assert channel_manager.get_liquid_balance() == 5
+    assert channel_manager.get_locked_balance() == 0
