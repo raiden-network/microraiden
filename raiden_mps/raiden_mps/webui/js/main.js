@@ -45,7 +45,6 @@ function pageReady(json) {
           console.error(err);
           return window.alert("An error occurred getting channel info: "+err);
         }
-        console.log(info)
         if (info.state === 'opened') {
           $("#status-icon").html(`<span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>`)
           $("#status").html(`<span class="label label-success"><strong>opened</strong></span>`)
