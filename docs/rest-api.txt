@@ -145,6 +145,7 @@ This will return a status of balances, open channels etc.
 
 deposit_sum - sum of all open channel deposits
 open_channels - count of all open channels
+pending_channels - count of all closed, but not yet settled channels
 balance_sum - sum of all spent, but not yet settled funds
 unique_senders - count of all unique addresses that have channels open
 liquid_balance - amount of tokens that are settled and available to the receiver
@@ -162,8 +163,9 @@ Example Response
 ::
 
     { 
-      "deposit_sum": 268, 
-      "open_channels": 33, 
+      "deposit_sum": 268,
+      "open_channels": 33,
+      "pending_channels": 15,
       "balance_sum": 12, 
       "unique_senders": 6, 
       "liquid_balance": 334

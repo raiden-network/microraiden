@@ -25,11 +25,20 @@ class ChannelManagementStats(Resource):
 
     def get(self):
         deposit_sum = sum([c.deposit for c in self.channel_manager.state.channels.values()])
-        unique_senders = len({c[0]: 1 for c in self.channel_manager.state.channels.keys()})
+        unique_senders = {}
+        open_channels = []
+        pending_channels = []
+        for k,v in self.channel_manager.state.channels.items():
+            unique_senders[k[0]] = 1
+            if v.is_closed is True:
+                pending_channels.append(v)
+            else:
+                open_channels.append(v)
         return {'balance_sum': self.channel_manager.get_locked_balance(),
                 'deposit_sum': deposit_sum,
-                'open_channels': len(self.channel_manager.state.channels),
-                'unique_senders': unique_senders,
+                'open_channels': len(open_channels),
+                'pending_channels': len(pending_channels),
+                'unique_senders': len(unique_senders),
                 'liquid_balance': self.channel_manager.get_liquid_balance()}
 
 
