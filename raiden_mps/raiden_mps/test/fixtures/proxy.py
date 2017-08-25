@@ -19,7 +19,6 @@ def doggo_proxy(channel_manager1, receiver_privkey, proxy_state_filename):
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
     app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
-    app.add_content(PaywalledProxyUrl("p\/.*", 1))
     app.run(debug=True)
     yield app
     app.stop()

@@ -1,6 +1,5 @@
 import gevent
 
-import os
 from gevent import monkey
 
 
@@ -22,6 +21,7 @@ from raiden_mps.proxy.resources import (
     ChannelManagementListChannels,
     ChannelManagementChannelInfo,
     ChannelManagementRoot,
+    ChannelManagementStats,
     StaticFilesServer
 )
 
@@ -77,6 +77,9 @@ class PaywalledProxy:
         self.api.add_resource(ChannelManagementListChannels,
                               API_PATH + "/channels/",
                               API_PATH + "/channels/<string:sender_address>",
+                              resource_class_kwargs={'channel_manager': self.channel_manager})
+        self.api.add_resource(ChannelManagementStats,
+                              API_PATH + "/stats",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementRoot, "/cm")
 
