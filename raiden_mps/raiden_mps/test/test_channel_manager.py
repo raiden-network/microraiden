@@ -351,3 +351,49 @@ def test_balances(channel_manager, confirmed_open_channel, receiver_address, sen
 
     assert channel_manager.get_liquid_balance() == 5
     assert channel_manager.get_locked_balance() == 0
+
+
+def test_different_receivers(web3, channel_manager1, channel_manager2,
+                             receiver1_address, receiver2_address, client, sender_address,
+                             wait_for_blocks, clean_channels):
+    n_confirmations = channel_manager1.blockchain.n_confirmations
+    assert channel_manager2.blockchain.n_confirmations == n_confirmations
+
+    # unconfirmed open
+    channel = client.open_channel(receiver1_address, 10)
+    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    assert (sender_address, channel.block) in channel_manager1.state.unconfirmed_channels
+    assert (sender_address, channel.block) not in channel_manager2.state.unconfirmed_channels
+
+    # confirmed open
+    wait_for_blocks(n_confirmations)
+    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    assert (sender_address, channel.block) in channel_manager1.state.channels
+    assert (sender_address, channel.block) not in channel_manager2.state.channels
+    channel_rec = channel_manager1.state.channels[sender_address, channel.block]
+
+    # unconfirmed topup
+    channel.topup(5)
+    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    assert len(channel_rec.unconfirmed_event_channel_topups) == 1
+    assert channel_rec.deposit == 10
+
+    # confirmed topup
+    wait_for_blocks(n_confirmations)
+    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    assert len(channel_rec.unconfirmed_event_channel_topups) == 0
+    assert channel_rec.deposit == 15
+
+    # closing
+    channel.close()
+    wait_for_blocks(n_confirmations)
+    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    assert channel_rec.is_closed is True
+
+    # settlement
+    block_before = web3.eth.blockNumber
+    wait_for_blocks(channel_rec.settle_timeout - block_before)
+    channel.settle()
+    wait_for_blocks(n_confirmations)
+    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    assert (sender_address, channel.block) not in channel_manager1.state.channels

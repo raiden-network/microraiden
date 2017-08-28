@@ -120,8 +120,6 @@ class Blockchain(gevent.Greenlet):
         # unconfirmed channel top ups
         logs = self.contract_proxy.get_channel_topup_logs(**filters_unconfirmed)
         for log in logs:
-            if log['args']['_receiver'] != self.cm.state.receiver:
-                continue
             assert log['args']['_receiver'] == self.cm.state.receiver
             txhash = log['transactionHash']
             sender = log['args']['_sender']
@@ -136,8 +134,6 @@ class Blockchain(gevent.Greenlet):
         # confirmed channel top ups
         logs = self.contract_proxy.get_channel_topup_logs(**filters_confirmed)
         for log in logs:
-            if log['args']['_receiver'] != self.cm.state.receiver:
-                continue
             assert log['args']['_receiver'] == self.cm.state.receiver
             txhash = log['transactionHash']
             sender = log['args']['_sender']
@@ -253,7 +249,7 @@ class ChannelManager(gevent.Greenlet):
 
     def _run(self):
         self.blockchain.start()
-        gevent.joinall([self.blockchain])
+        self.blockchain.get()  # re-raises exception
 
     def set_head(self, number, _hash):
         """Set the block number up to which all events have been registered."""

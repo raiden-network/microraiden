@@ -135,6 +135,10 @@ def channel_manager1(web3, channel_manager_contract_proxy1, receiver_address, re
                                      receiver_privkey)
     if use_tester:
         channel_manager.blockchain.poll_frequency = 0
+
+    def fail(greenlet):
+        raise greenlet.exception
+    channel_manager.link_exception(fail)
     channel_manager.start()
     channel_manager.wait_sync()
     logging.getLogger('channel_manager').setLevel(logging.DEBUG)
@@ -152,6 +156,10 @@ def channel_manager2(web3, channel_manager_contract_proxy2, receiver2_address, r
                                      receiver2_privkey)
     if use_tester:
         channel_manager.blockchain.poll_frequency = 0
+
+    def fail(greenlet):
+        raise greenlet.exception
+    channel_manager.link_exception(fail)
     channel_manager.start()
     channel_manager.wait_sync()
     logging.getLogger('channel_manager').setLevel(logging.DEBUG)
