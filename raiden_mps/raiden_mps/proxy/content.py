@@ -90,8 +90,13 @@ class PaywalledProxyUrl(PaywalledContent):
         js_paths = [
             "//code.jquery.com/jquery-3.2.1.js",
             "//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js",
+<<<<<<< HEAD
             "js/web3.js",
             "js/rmp.js"]
+=======
+            "/js/web3.js",
+            "/js/rmp.js"]
+>>>>>>> added paywall content overlay
         for src in js_paths:
             js_tag = soup.new_tag('script', type="text/javascript", src=src)
             soup.head.insert(0, js_tag)
