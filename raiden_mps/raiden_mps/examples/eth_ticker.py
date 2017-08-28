@@ -2,7 +2,6 @@ import json
 from tkinter import ttk
 import tkinter
 import logging
-
 import time
 
 import click
@@ -32,18 +31,34 @@ def start_proxy(receiver_privkey: str) -> PaywalledProxy:
         "[A-Z]{6}",
         1,
         'http://api.bitfinex.com/v1/pubticker/',
-        [r'/v1/pubticker/[A-Z]{6}']
+        [r'[A-Z]{6}']
     ))
     app.run()
     return app
 
 
-class ETHTicker(ttk.Frame):
+class ETHTickerProxy:
+    def __init__(self, privkey: str, proxy: PaywalledProxy = None):
+        if proxy:
+            self.app = proxy
+            self.app.add_content(PaywalledProxyUrl(
+                "[A-Z]{6}",
+                1,
+                'http://api.bitfinex.com/v1/pubticker/',
+                [r'[A-Z]{6}']
+            ))
+        else:
+            self.app = start_proxy(privkey)
+
+    def stop(self):
+        self.app.stop()
+
+
+class ETHTickerClient(ttk.Frame):
     def __init__(
             self,
             sender_privkey: str,
             receiver_privkey: str = None,
-            proxy: PaywalledProxy = None,
             httpclient: DefaultHTTPClient = None
     ):
         self.root = tkinter.Tk()
@@ -54,17 +69,6 @@ class ETHTicker(ttk.Frame):
         self.pricevar = tkinter.StringVar(value='0.00 USD')
         ttk.Label(self, textvariable=self.pricevar, font=('Helvetica', '72')).pack()
 
-        if proxy:
-            self.app = proxy
-            self.app.add_content(PaywalledProxyUrl(
-                "[A-Z]{6}",
-                1,
-                'http://api.bitfinex.com/v1/pubticker/',
-                [r'/v1/pubticker/[A-Z]{6}']
-            ))
-        else:
-            self.app = start_proxy(receiver_privkey)
-
         self.client = Client(sender_privkey)
 
         if httpclient:
@@ -74,8 +78,8 @@ class ETHTicker(ttk.Frame):
                 self.client,
                 'localhost',
                 5000,
-                initial_deposit=lambda x: 20 * x,
-                topup_deposit=lambda x: 10 * x
+                initial_deposit=lambda x: 10 * x,
+                topup_deposit=lambda x: 5 * x
             )
 
         self.active_query = False
@@ -116,7 +120,24 @@ class ETHTicker(ttk.Frame):
         self.httpclient.close_active_channel()
 
 
+@click.command()
+@click.option(
+    '--start-proxy',
+    default=False
+)
+def main(start_proxy):
+    proxy = None
+    try:
+        if start_proxy:
+            proxy = ETHTickerProxy(TEST_RECEIVER_PRIVKEY)
+        ticker = ETHTickerClient(TEST_SENDER_PRIVKEY)
+        ticker.run()
+    except KeyboardInterrupt:
+        ticker.close()
+        if proxy is not None:
+            proxy.stop()
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    ticker = ETHTicker(TEST_SENDER_PRIVKEY, TEST_RECEIVER_PRIVKEY)
-    ticker.run()
+    main()
