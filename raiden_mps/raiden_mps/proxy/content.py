@@ -107,7 +107,9 @@ class PaywalledProxyUrl(PaywalledContent):
             soup.head.insert(0, js_tag)
         # generate css
         css_tag = soup.new_tag('link', rel="stylesheet", type="text/css", href="/js/styles.css")
+        bs_tag = soup.new_tag('link', rel="stylesheet", type="text/css", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
         soup.head.insert(0, css_tag)
+        soup.head.insert(0, bs_tag)
 
         # inject div that generates the paywall
         soup.body.insert(0, self.paywall_html)
