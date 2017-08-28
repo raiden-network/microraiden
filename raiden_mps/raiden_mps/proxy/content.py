@@ -3,6 +3,7 @@ import requests
 import re
 import mimetypes
 import logging
+import bs4
 log = logging.getLogger(__name__)
 
 
@@ -66,6 +67,16 @@ class PaywalledProxyUrl(PaywalledContent):
         self.get_fn = lambda x: x
         self.domain = domain
         self.paywalled_resources = [re.compile(x) for x in paywalled_resources]
+        self.paywall_html = self.extract_paywall_body('raiden_mps/webui/index.html')
+
+    def extract_paywall_body(self, path):
+        # extract body of the paywall page and transform it into a div we'll be
+        #  using later
+        soup = bs4.BeautifulSoup(open(path).read(), "html.parser")
+        b = soup.body
+        b['id'] = "overlay"
+        b.name = "div"
+        return b
 
     def is_paywalled(self, url):
         url = self.get_fn(url)
@@ -84,19 +95,13 @@ class PaywalledProxyUrl(PaywalledContent):
 
 #  <link rel="stylesheet" type="text/css" href="/js/styles.css">
 
-        import bs4
         soup = bs4.BeautifulSoup(data.data.decode(), "html.parser")
         # generate js paths that are required
         js_paths = [
             "//code.jquery.com/jquery-3.2.1.js",
             "//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js",
-<<<<<<< HEAD
-            "js/web3.js",
-            "js/rmp.js"]
-=======
             "/js/web3.js",
             "/js/rmp.js"]
->>>>>>> added paywall content overlay
         for src in js_paths:
             js_tag = soup.new_tag('script', type="text/javascript", src=src)
             soup.head.insert(0, js_tag)
@@ -105,8 +110,8 @@ class PaywalledProxyUrl(PaywalledContent):
         soup.head.insert(0, css_tag)
 
         # inject div that generates the paywall
-        div_tag = soup.new_tag('div', id="paywalled-content")
-        soup.body.insert(0, div_tag)
+        soup.body.insert(0, self.paywall_html)
+
         return str(soup)
 
 
