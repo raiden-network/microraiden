@@ -5,7 +5,7 @@ from raiden_mps.crypto import sign_balance_proof
 import gevent
 import pytest
 
-log = logging.getLogger('tests.channel_manager')
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture
@@ -17,12 +17,15 @@ def confirmed_open_channel(channel_manager, client, receiver_address, wait_for_b
     yield channel
 
 
-def test_channel_opening(channel_manager, channel_manager2, client, receiver_address,
+def test_channel_opening(channel_managers, client, receiver_address,
                          wait_for_blocks, clean_channels):
+    channel_manager, channel_manager2 = channel_managers
+    channel_manager.wait_sync()
+    channel_manager2.wait_sync()
     blockchain = channel_manager.blockchain
     channel = client.open_channel(receiver_address, 10)
     # should be in unconfirmed channels
-    gevent.sleep(blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert (channel.sender, channel.block) not in channel_manager.state.channels
     assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
     channel_rec = channel_manager.state.unconfirmed_channels[channel.sender, channel.block]
@@ -50,15 +53,14 @@ def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait
                                  clean_channels):
     # if unconfirmed channel is closed it should simply be forgotten
     channel = client.open_channel(receiver_address, 10)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
     assert (channel.sender, channel.block) not in channel_manager.state.channels
     channel.close()
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
     assert (channel.sender, channel.block) in channel_manager.state.channels
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
     assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
     assert (channel.sender, channel.block) in channel_manager.state.channels
 
@@ -96,12 +98,11 @@ def test_channel_settled_event(channel_manager, clean_channels, confirmed_open_c
 def test_topup(channel_manager, clean_channels, confirmed_open_channel, wait_for_blocks):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.topup(5)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    wait_for_blocks(0)
     channel_rec = channel_manager.state.channels[channel_id]
     topup_txs = channel_rec.unconfirmed_event_channel_topups
     assert len(topup_txs) == 1 and list(topup_txs.values())[0] == 5
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
     assert len(topup_txs) == 0
     assert channel_rec.deposit == 15
 
@@ -109,11 +110,10 @@ def test_topup(channel_manager, clean_channels, confirmed_open_channel, wait_for
 def test_unconfirmed_topup(channel_manager, client, receiver_address, wait_for_blocks,
                            clean_channels):
     channel = client.open_channel(receiver_address, 10)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
     channel.topup(5)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
     assert (channel.sender, channel.block) in channel_manager.state.channels
     channel_rec = channel_manager.state.channels[channel.sender, channel.block]
     assert channel_rec.deposit == 15
@@ -245,14 +245,14 @@ def test_multiple_topups(channel_manager, clean_channels, confirmed_open_channel
     # first unconfirmed topup
     assert channel_rec.deposit == 10
     confirmed_open_channel.topup(5)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert len(channel_rec.unconfirmed_event_channel_topups) == 1
     assert list(channel_rec.unconfirmed_event_channel_topups.values()) == [5]
     assert channel_rec.deposit == 10
 
     # second unconfirmed_event_channel_topups
     confirmed_open_channel.topup(10)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert len(channel_rec.unconfirmed_event_channel_topups) >= 1  # equality if first is confirmed
     assert 10 in channel_rec.unconfirmed_event_channel_topups.values()
     assert channel_rec.deposit in [10, 15]  # depends if first topup is confirmed or not
@@ -353,15 +353,17 @@ def test_balances(channel_manager, confirmed_open_channel, receiver_address, sen
     assert channel_manager.get_locked_balance() == 0
 
 
-def test_different_receivers(web3, channel_manager1, channel_manager2,
-                             receiver1_address, receiver2_address, client, sender_address,
+def test_different_receivers(web3, channel_managers,
+                             receiver_addresses, client, sender_address,
                              wait_for_blocks, clean_channels):
+    channel_manager1, channel_manager2 = channel_managers
+    receiver1_address, receiver2_privkey = receiver_addresses
     n_confirmations = channel_manager1.blockchain.n_confirmations
     assert channel_manager2.blockchain.n_confirmations == n_confirmations
 
     # unconfirmed open
     channel = client.open_channel(receiver1_address, 10)
-    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert (sender_address, channel.block) in channel_manager1.state.unconfirmed_channels
     assert (sender_address, channel.block) not in channel_manager2.state.unconfirmed_channels
 
@@ -374,7 +376,7 @@ def test_different_receivers(web3, channel_manager1, channel_manager2,
 
     # unconfirmed topup
     channel.topup(5)
-    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    wait_for_blocks(0)
     assert len(channel_rec.unconfirmed_event_channel_topups) == 1
     assert channel_rec.deposit == 10
 

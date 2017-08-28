@@ -430,7 +430,6 @@ class ChannelManager(gevent.Greenlet):
     def register_payment(self, sender, open_block_number, balance, signature):
         """Register a payment."""
         c = self.verify_balance_proof(sender, open_block_number, balance, signature)
-        log.info(c.unconfirmed_event_channel_topups)
         if balance <= c.balance:
             raise InvalidBalanceAmount('The balance must not decrease.')
         if balance > c.deposit:

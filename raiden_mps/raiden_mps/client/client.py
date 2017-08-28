@@ -223,10 +223,10 @@ class Client:
                     .format(token_balance, deposit)
             )
 
-        log.info('Creating channel to {} with an initial deposit of {}.'.format(
-            receiver_address, deposit
-        ))
         current_block = self.web3.eth.blockNumber
+        log.info('Creating channel to {} with an initial deposit of {} @{}'.format(
+            receiver_address, deposit, current_block
+        ))
 
         data = decode_hex(receiver_address)
         tx = self.token_proxy.create_signed_transaction(

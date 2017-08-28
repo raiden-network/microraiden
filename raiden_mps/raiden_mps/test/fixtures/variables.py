@@ -61,23 +61,13 @@ def sender_address(sender_privkey):
 
 
 @pytest.fixture
-def receiver1_address(receiver1_privkey):
-    return privkey_to_addr(receiver1_privkey)
+def receiver_address(receiver_addresses):
+    return receiver_addresses[0]
 
 
 @pytest.fixture
-def receiver2_address(receiver2_privkey):
-    return privkey_to_addr(receiver2_privkey)
-
-
-@pytest.fixture
-def receiver_address(receiver1_address):
-    return receiver1_address
-
-
-@pytest.fixture
-def receiver_privkey(receiver1_privkey):
-    return receiver1_privkey
+def receiver_privkey(receiver_privkeys):
+    return receiver_privkeys[0]
 
 
 @pytest.fixture
@@ -89,19 +79,17 @@ def sender_privkey(use_tester):
 
 
 @pytest.fixture
-def receiver1_privkey(use_tester):
+def receiver_privkeys(use_tester, channel_managers_count):
     if use_tester:
-        return remove_0x_prefix(encode_hex(keys[1]))
+        return [remove_0x_prefix(encode_hex(k))
+                for k in keys[1:(channel_managers_count + 1)]]
     else:
-        return TEST_RECEIVER_PRIVKEY
+        return [TEST_RECEIVER_PRIVKEY, TEST_SECONDARY_RECEIVER_PRIVKEY]
 
 
 @pytest.fixture
-def receiver2_privkey(use_tester):
-    if use_tester:
-        return remove_0x_prefix(encode_hex(keys[2]))
-    else:
-        return TEST_SECONDARY_RECEIVER_PRIVKEY
+def receiver_addresses(receiver_privkeys):
+    return [privkey_to_addr(k) for k in receiver_privkeys]
 
 
 @pytest.fixture
