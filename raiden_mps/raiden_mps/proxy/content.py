@@ -22,12 +22,18 @@ class PaywalledContent:
         if get_fn is not None:
             assert callable(get_fn)
             self.get = get_fn
+        # this is an object that returns paywall proxy html to be sent to the browser
+        self.light_client_proxy = None
 
     def get(self, request):
         return "OK"
 
     def is_paywalled(self, request):
         return True
+
+    def get_paywall(self, request: str, receiver_address: str, price: int, token_address: str):
+        assert(self.light_client_proxy is not None)
+        return self.light_client_proxy.get(request, receiver_address, price, token_address)
 
 
 class PaywalledFile(PaywalledContent):
@@ -70,6 +76,31 @@ class PaywalledProxyUrl(PaywalledContent):
         req = requests.get(self.domain + url, stream=True, params=request.args)
         return Response(stream_with_context(req.iter_content()),
                         content_type=req.headers['content-type'])
+
+    def get_paywall(self, request: str, receiver_address: str, price: int, token_address: str):
+        data = self.get(request)
+
+#  <link rel="stylesheet" type="text/css" href="/js/styles.css">
+
+        import bs4
+        soup = bs4.BeautifulSoup(data.data.decode(), "html.parser")
+        # generate js paths that are required
+        js_paths = [
+            "//code.jquery.com/jquery-3.2.1.js",
+            "//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js",
+            "/js/web3.js",
+            "/js/rmp.js"]
+        for src in js_paths:
+            js_tag = soup.new_tag('script', type="text/javascript", src=src)
+            soup.head.insert(0, js_tag)
+        # generate css
+        css_tag = soup.new_tag('link', rel="stylesheet", type="text/css", href="/js/styles.css")
+        soup.head.insert(0, css_tag)
+
+        # inject div that generates the paywall
+        div_tag = soup.new_tag('div', id="paywalled-content")
+        soup.body.insert(0, div_tag)
+        return str(soup)
 
 
 class PaywallDatabase:

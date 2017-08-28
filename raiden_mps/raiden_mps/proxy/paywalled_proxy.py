@@ -25,7 +25,7 @@ from raiden_mps.proxy.resources import (
     StaticFilesServer
 )
 
-from raiden_mps.proxy.content import PaywallDatabase
+from raiden_mps.proxy.content import PaywallDatabase, PaywalledContent
 from raiden_mps.proxy.resources.expensive import LightClientProxy
 from raiden_mps.config import API_PATH
 
@@ -58,12 +58,14 @@ class PaywalledProxy:
         self.channel_manager = channel_manager
         self.channel_manager.start()
 
+        self.light_client_proxy = LightClientProxy(paywall_html_dir + "/index.html")
+
         cfg = {
             'contract_address': channel_manager.state.contract_address,
             'receiver_address': channel_manager.receiver,
             'channel_manager': self.channel_manager,
             'paywall_db': self.paywall_db,
-            'light_client_proxy': LightClientProxy(paywall_html_dir + "/index.html")
+            'light_client_proxy': self.light_client_proxy
         }
         self.api.add_resource(StaticFilesServer, "/js/<path:content>",
                               resource_class_kwargs={'directory': paywall_js_dir})
@@ -84,6 +86,9 @@ class PaywalledProxy:
         self.api.add_resource(ChannelManagementRoot, "/cm")
 
     def add_content(self, content):
+        assert isinstance(content, PaywalledContent)
+        if content.light_client_proxy is None:
+            content.light_client_proxy = self.light_client_proxy
         self.paywall_db.add_content(content)
 
     def run(self, debug=False):
