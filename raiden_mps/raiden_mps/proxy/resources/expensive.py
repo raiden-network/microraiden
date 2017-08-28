@@ -85,7 +85,7 @@ class LightClientProxy:
     def __init__(self, index_html):
         self.data = open(index_html).read()
 
-    def get(self, receiver, amount, token):
+    def get(self, content, receiver, amount, token):
         return self.data
 
 
@@ -204,18 +204,17 @@ class Expensive(Resource):
             header.PRICE: price
         })
         if gen_ui is True:
-            return self.get_webUI_reply(price, headers)
+            return self.get_webUI_reply(content, proxy_handle, price, headers)
         else:
             return make_response('', 402, headers)
 
-    def get_webUI_reply(self, price: int, headers: dict):
+    def get_webUI_reply(self, content: str, proxy_handle: PaywalledContent,
+                        price: int, headers: dict):
         headers.update({
             "Content-Type": "text/html",
         })
-        if self.light_client_proxy:
-            data = self.light_client_proxy.get(self.receiver_address, price, config.TOKEN_ADDRESS)
-        else:
-            data = ""
+        data = proxy_handle.get_paywall(content, self.receiver_address,
+                                        price, config.TOKEN_ADDRESS)
         reply = make_response(data, 402, headers)
         for hdr in (header.GATEWAY_PATH, header.CONTRACT_ADDRESS,
                     header.RECEIVER_ADDRESS, header.PRICE,
