@@ -1,9 +1,5 @@
 import gevent
 
-from gevent import monkey
-
-
-monkey.patch_all()
 from flask import Flask
 from flask_restful import (
     Api,

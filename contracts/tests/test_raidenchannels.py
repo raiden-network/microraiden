@@ -1,8 +1,9 @@
 import pytest
-from populus.utils.wait import wait_for_transaction_receipt
+import os
 from web3.utils.compat import (
     Timeout,
 )
+
 from ethereum import tester
 import sign
 
@@ -17,7 +18,6 @@ from fixtures import (
 )
 
 import json
-import os
 
 global logs
 logs = {}

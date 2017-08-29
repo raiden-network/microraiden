@@ -1,6 +1,6 @@
+from raiden_mps.test.fixtures import * # flake8: noqa
 from gevent import monkey
-monkey.patch_all()
-from raiden_mps.test.fixtures import *
+monkey.patch_all(thread=False) # thread is false due to clash when testing both contract/raiden_mps modules
 
 
 def pytest_addoption(parser):
