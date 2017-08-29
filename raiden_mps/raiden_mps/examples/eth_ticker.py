@@ -13,7 +13,7 @@ from raiden_mps.test.config import TEST_SENDER_PRIVKEY, TEST_RECEIVER_PRIVKEY, \
     CHANNEL_MANAGER_ADDRESS
 from raiden_mps.proxy.content import PaywalledProxyUrl
 from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
-from raiden_mps.utils import make_paywalled_proxy
+from raiden_mps.make_helpers import make_paywalled_proxy
 
 log = logging.getLogger(__name__)
 

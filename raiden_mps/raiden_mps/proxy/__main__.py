@@ -8,6 +8,9 @@ import sys
 #
 from raiden_mps.crypto import privkey_to_addr
 from flask import make_response
+import logging
+
+log = logging.getLogger(__name__)
 
 
 if __package__ is None:
@@ -16,6 +19,7 @@ if __package__ is None:
     sys.path.insert(0, path + "/../")
 
 import raiden_mps.utils as utils
+from raiden_mps.make_helpers import make_paywalled_proxy
 from raiden_mps import config
 from raiden_mps.proxy.content import (
     PaywalledFile,
@@ -67,6 +71,9 @@ def main(
     paywall_info
 ):
     if os.path.isfile(private_key):
+        if utils.is_file_rwxu_only(private_key) is False:
+            log.fatal("Private key file %s must be readable only by its owner." % (private_key))
+            sys.exit(1)
         with open(private_key) as keyfile:
             private_key = keyfile.readline()[:-1]
 
@@ -81,7 +88,7 @@ def main(
         state_file = os.path.join(app_dir, state_file_name)
 
     config.paywall_html_dir = paywall_info
-    app = utils.make_paywalled_proxy(private_key, state_file)
+    app = make_paywalled_proxy(private_key, state_file)
 
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
@@ -93,7 +100,6 @@ def main(
 
 
 if __name__ == '__main__':
-    import logging
     from gevent import monkey
     monkey.patch_all()
     logging.basicConfig(level=logging.DEBUG)
