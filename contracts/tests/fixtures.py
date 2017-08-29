@@ -1,5 +1,9 @@
 import pytest
 
+global token
+global logs
+global challenge_period
+
 
 @pytest.fixture
 def create_contract(chain):
@@ -32,15 +36,32 @@ def channels_contract(chain, create_contract):
 
         channels_contract = create_contract(RaidenMicroTransferChannels, arguments, transaction)
 
+        print_logs(channels_contract, 'StringTest', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelCreated', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelToppedUp', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'GasCost', 'RaidenMicroTransferChannels')
-        # print_logs(channels_contract, 'TokenFallback', 'RaidenMicroTransferChannels')
+
 
         return channels_contract
     return get
+
+
+@pytest.fixture
+def contract(chain, web3, token_contract, channels_contract):
+    global token
+    global logs
+    global challenge_period
+    challenge_period = 5
+    logs = {}
+    token = token_contract([10000, "ERC223Token", 2, "TKN"])
+    contract = channels_contract([token.address, challenge_period])
+    return contract
+
+
+def get_balance_message(receiver, open_block_number, balance):
+    return "Receiver: " + receiver + "\nBalance: " + str(balance) + "\nChannel ID: " + str(open_block_number)
 
 
 def print_logs(contract, event, name=''):

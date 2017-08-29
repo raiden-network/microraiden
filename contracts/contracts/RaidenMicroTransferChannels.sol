@@ -13,6 +13,12 @@ contract RaidenMicroTransferChannels {
     address public owner;
     address public token_address;
     uint8 public challenge_period;
+    string constant prefix = "\x19Ethereum Signed Message:\n";
+
+    struct slice {
+        uint _len;
+        uint _ptr;
+    }
 
     Token token;
 
@@ -67,6 +73,7 @@ contract RaidenMicroTransferChannels {
         string _function_name,
         uint _gaslimit,
         uint _gas_remaining);
+    event StringTest(string str, string msg, bytes sign, bytes32 hash);
 
     /*
      *  Constructor
@@ -106,6 +113,7 @@ contract RaidenMicroTransferChannels {
         return sha3(_sender, _receiver, _open_block_number);
     }
 
+    // TODO remove this or create balanceMessageHex
     /// @dev Returns a hash of the balance message needed to be signed by the sender.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
@@ -122,6 +130,7 @@ contract RaidenMicroTransferChannels {
         return sha3(_receiver, _open_block_number, _balance, address(this));
     }
 
+    // TODO remove this or create closingAgreementMessageHex
     /// @dev Returns a hash of the balance message that was signed by the sender, so it can be subsequently signed by the receiver.
     /// @param _balance_msg_sig The balance message signed by the sender.
     /// @return Hash of the balance message signed by the sender.
@@ -137,8 +146,8 @@ contract RaidenMicroTransferChannels {
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
-    /// @param _balance_msg_sig The balance message signed by the sender.
-    /// @return Address of the token sender.
+    /// @param _balance_msg_sig The balance message signed by the sender or receiver.
+    /// @return Address of the balance proof signer.
     function verifyBalanceProof(
         address _receiver,
         uint32 _open_block_number,
@@ -149,10 +158,22 @@ contract RaidenMicroTransferChannels {
         returns (address)
     {
         // Create message which should be signed by sender
-        bytes32 message = balanceMessageHash(_receiver, _open_block_number, _balance);
+        string memory str = concat("Receiver: 0x", addressToString(_receiver));
+        str = concat(str, "\nBalance: ");
+        str = concat(str, uintToString2(uint256(_balance)));
+        str = concat(str, "\nChannel ID: ");
+        str = concat(str, uintToString2(uint256(_open_block_number)));
+
+        // Prefix the message
+        string memory message = concat(prefix, uintToString2(strLen(str)));
+        message = concat(message, str);
+
+        // Hash the prefixed message string
+        bytes32 message_hash = sha3(message);
+
         // Derive address from signature
-        address sender = ECVerify.ecverify(message, _balance_msg_sig);
-        return sender;
+        address signer = ECVerify.ecverify(message_hash, _balance_msg_sig);
+        return signer;
     }
 
     /// @dev Returns the receiver address extracted from the closing signature and the signed balance message.
@@ -256,6 +277,7 @@ contract RaidenMicroTransferChannels {
         bytes _balance_msg_sig)
         external
     {
+        //require(_balance_msg_sig.length == 65);
         address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
 
         if(msg.sender == _receiver) {
@@ -281,8 +303,11 @@ contract RaidenMicroTransferChannels {
         bytes _closing_sig)
         external
     {
+        require(_balance_msg_sig.length == 65);
+        require(_closing_sig.length == 65);
+
         // derive address from signature
-        address receiver = verifyClosingSignature(_balance_msg_sig, _closing_sig);
+        address receiver = verifyBalanceProof(_receiver, _open_block_number, _balance, _closing_sig);
         require(receiver == _receiver);
 
         address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
@@ -523,5 +548,131 @@ contract RaidenMicroTransferChannels {
             result += c * (16**exp);
         }
         return uint32(result);
+    }
+
+    function toSlice(string self) internal returns (slice) {
+        uint ptr;
+        assembly {
+            ptr := add(self, 0x20)
+        }
+        return slice(bytes(self).length, ptr);
+    }
+
+    function strLen(string self) internal constant returns (uint) {
+        return bytes(self).length;
+    }
+
+    function memcpy(
+        uint dest,
+        uint src,
+        uint len)
+        private
+    {
+        // Copy word-length chunks while possible
+        for(; len >= 32; len -= 32) {
+            assembly {
+                mstore(dest, mload(src))
+            }
+            dest += 32;
+            src += 32;
+        }
+
+        // Copy remaining bytes
+        uint mask = 256 ** (32 - len) - 1;
+        assembly {
+            let srcpart := and(mload(src), not(mask))
+            let destpart := and(mload(dest), mask)
+            mstore(dest, or(destpart, srcpart))
+        }
+    }
+
+    function concat(
+        string _self,
+        string _other)
+        internal
+        constant
+        returns(string)
+    {
+        slice memory self = toSlice(_self);
+        slice memory other = toSlice(_other);
+        var ret = new string(self._len + other._len);
+        uint retptr;
+        assembly { retptr := add(ret, 32) }
+        memcpy(retptr, self._ptr, self._len);
+        memcpy(retptr + self._len, other._ptr, other._len);
+        return ret;
+    }
+
+    function uintToBytes (
+        uint256 n)
+        internal
+        constant
+        returns (bytes b)
+    {
+        b = new bytes(32);
+        assembly {
+            mstore(add(b, 32), n)
+        }
+    }
+
+    function uintToString2(
+        uint v)
+        internal
+        constant
+        returns(string)
+    {
+        bytes32 ret;
+        if (v == 0) {
+            ret = '0';
+        }
+        else {
+             while (v > 0) {
+                ret = bytes32(uint(ret) / (2 ** 8));
+                ret |= bytes32(((v % 10) + 48) * 2 ** (8 * 31));
+                v /= 10;
+            }
+        }
+
+        bytes memory bytesString = new bytes(32);
+        uint charCount = 0;
+        for (uint j=0; j<32; j++) {
+            byte char = byte(bytes32(uint(ret) * 2 ** (8 * j)));
+            if (char != 0) {
+                bytesString[j] = char;
+                charCount++;
+            }
+        }
+        bytes memory bytesStringTrimmed = new bytes(charCount);
+        for (j = 0; j < charCount; j++) {
+            bytesStringTrimmed[j] = bytesString[j];
+        }
+
+        return string(bytesStringTrimmed);
+    }
+
+    function addressToString(
+        address x)
+        internal
+        constant
+        returns(string)
+    {
+        bytes memory str = new bytes(40);
+        for (uint i = 0; i < 20; i++) {
+            byte b = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+            byte hi = byte(uint8(b) / 16);
+            byte lo = byte(uint8(b) - 16 * uint8(hi));
+            str[2*i] = char(hi);
+            str[2*i+1] = char(lo);
+        }
+        return string(str);
+    }
+
+    function char(byte b)
+        internal
+        constant
+        returns(byte c)
+    {
+        if (b < 10) return byte(uint8(b) + 0x30);
+        else return byte(uint8(b) + 0x57);
     }
 }
