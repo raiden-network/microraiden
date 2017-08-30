@@ -14,6 +14,7 @@ class HTTPHeaders(object):
     GATEWAY_PATH = 'RDN-Gateway-Path'
     INSUF_FUNDS = 'RDN-Insufficient-Funds'
     INSUF_CONFS = 'RDN-Insufficient-Confirmations'
+    NONEXISTING_CHANNEL = 'RDN-Nonexisting-Channel'
     COST = 'RDN-Cost'
     OPEN_BLOCK = 'RDN-Open-Block'
 

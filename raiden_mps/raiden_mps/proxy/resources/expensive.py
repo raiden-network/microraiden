@@ -138,7 +138,9 @@ class Expensive(Resource):
             return self.reply_payment_required(
                 content, proxy_handle, headers=headers, gen_ui=accepts_html)
         except NoOpenChannel as e:
-            return self.reply_payment_required(content, proxy_handle, gen_ui=accepts_html)
+            return self.reply_payment_required(content, proxy_handle,
+                                               headers={header.NONEXISTING_CHANNEL: 1},
+                                               gen_ui=accepts_html)
 
         # set the headers to reflect actual state of a channel
         headers = self.generate_headers(channel, proxy_handle)
@@ -212,6 +214,8 @@ class Expensive(Resource):
             data = ""
         reply = make_response(data, 402, headers)
         for hdr in (header.GATEWAY_PATH, header.CONTRACT_ADDRESS,
-                    header.RECEIVER_ADDRESS, header.PRICE):
-            reply.set_cookie(hdr, str(headers[hdr]))
+                    header.RECEIVER_ADDRESS, header.PRICE,
+                    header.NONEXISTING_CHANNEL):
+            if hdr in headers:
+                reply.set_cookie(hdr, str(headers[hdr]))
         return reply
