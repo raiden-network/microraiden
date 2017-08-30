@@ -1,6 +1,6 @@
+from flask_restful import Resource, reqparse
 import json
 from collections import defaultdict
-from flask_restful import Resource, reqparse
 
 from raiden_mps.crypto import sign_balance_proof
 from raiden_mps.proxy.resources.login import auth
