@@ -37,6 +37,36 @@ class RaidenMicropaymentsClient {
     this.token = this.web3.eth.contract(tokenABI).at(tokenAddr);
   }
 
+  // "static" methods/utils
+  encodeHex(str, zPadLength) {
+    /* Encode a string or number as hexadecimal, without '0x' prefix
+     */
+    if (typeof str === "number") {
+      str = str.toString(16);
+    } else {
+      str = [...str].map((char) =>
+          char.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join('');
+    }
+    return str.padStart(zPadLength, '0');
+  }
+
+  catchCallback(func, ...params) {
+    /* This method calls a function, with a node-style callback as last parameter,
+     * forwarding call exceptions to callback first parameter
+     */
+    const callback = params[params.length - 1];
+    if (typeof callback !== 'function') {
+      throw new Error('Invalid callback as last parameter');
+    }
+    try {
+      return func(...params);
+    } catch (e) {
+      return callback(e);
+    }
+  }
+
+  // instance methods
   loadStoredChannel(account, receiver) {
     if (!localStorage) {
       this.channel = undefined;
@@ -71,25 +101,24 @@ class RaidenMicropaymentsClient {
     return this.web3.eth.getAccounts(callback);
   }
 
-  signHash(msg, account, callback) {
-    try {
-      console.log("Signing", msg, account);
-      return this.web3.eth
-        .sign(account, msg, callback);
-    } catch (e) {
-      return callback(e);
+  signMessage(msg, callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
     }
-  }
-
-  encodeHex(str, zPadLength) {
-    if (typeof str === "number") {
-      str = str.toString(16);
-    } else {
-      str = [...str].map((char) =>
-          char.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('');
-    }
-    return str.padStart(zPadLength, '0');
+    console.log("Signing", msg, account);
+    const hex = this.encodeHex(msg);
+    return this.catchCallback(this.web3.personal.sign,
+                              hex,
+                              this.channel.account,
+                              (err, sign) => {
+      if (err && err.message && err.message.includes('Method not found')) {
+        return this.catchCallback(this.web3.eth.sign,
+                                  this.channel.account,
+                                  hex,
+                                  callback);
+      }
+      return callback(err, sign);
+    });
   }
 
   isChannelValid() {
@@ -413,23 +442,23 @@ class RaidenMicropaymentsClient {
     if (newBalance === this.channel.balance && this.channel.sign) {
       return callback(null, this.channel.sign);
     }
-    return this.contract.balanceMessageHash.call(
+    return this.contract.getBalanceMessage.call(
       this.channel.receiver,
       this.channel.block,
       newBalance,
       { from: this.channel.account },
-      (err, msgHash) => {
+      (err, msg) => {
         if (err) {
           return callback(err);
         }
         // ask for signing of this message
-        this.signHash(msgHash, this.channel.account, (err, sign) => {
+        return this.signMessage(msg, (err, sign) => {
           if (err) {
             return callback(err);
           }
           // return signed message
           if (newBalance === this.channel.balance && !this.channel.sign) {
-            this.channel.sign = sign;
+            this.setChannel(Object.assign({}, this.channel, { sign }));
           }
           return callback(null, sign);
         });
