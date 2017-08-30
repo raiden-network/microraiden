@@ -1,4 +1,4 @@
-from flask import request
+import logging
 from flask_restful import (
     Resource
 )
@@ -14,12 +14,10 @@ from raiden_mps.proxy.content import PaywalledContent
 # from raiden_mps.utils import parse_balance_proof_msg
 
 from raiden_mps import HTTPHeaders as header
-from raiden_mps.config import API_PATH
-
-from flask import Response, make_response
-
 import raiden_mps.config as config
-import logging
+
+from flask import Response, make_response, request
+
 log = logging.getLogger(__name__)
 
 
@@ -163,7 +161,7 @@ class Expensive(Resource):
         assert channel.sender is not None
         assert channel.balance >= 0
         headers = {
-            header.GATEWAY_PATH: API_PATH,
+            header.GATEWAY_PATH: config.API_PATH,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.PRICE: proxy_handle.price,
@@ -184,7 +182,9 @@ class Expensive(Resource):
             data, status_code = response
             return data, status_code, headers
 
-    def reply_payment_required(self, content, proxy_handle, headers={}, gen_ui=False):
+    def reply_payment_required(self, content, proxy_handle, headers=None, gen_ui=False):
+        if headers is None:
+            headers = {}
         assert isinstance(headers, dict)
         assert isinstance(gen_ui, bool)
         if callable(proxy_handle.price):
@@ -194,7 +194,7 @@ class Expensive(Resource):
         else:
             return "Invalid price attribute", 500
         headers.update({
-            header.GATEWAY_PATH: API_PATH,
+            header.GATEWAY_PATH: config.API_PATH,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.PRICE: price

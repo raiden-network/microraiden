@@ -1,11 +1,10 @@
-from flask_restful import Resource
 import json
 from collections import defaultdict
+from flask_restful import Resource, reqparse
 
-from flask_restful import reqparse
+from eth_utils import encode_hex
 
 from raiden_mps.crypto import sign_close
-from eth_utils import encode_hex
 
 from raiden_mps.channel_manager import (
     NoOpenChannel,
@@ -14,7 +13,8 @@ from raiden_mps.channel_manager import (
 
 
 class ChannelManagementRoot(Resource):
-    def get(self):
+    @staticmethod
+    def get():
         return "OK"
 
 
@@ -28,7 +28,7 @@ class ChannelManagementStats(Resource):
         unique_senders = {}
         open_channels = []
         pending_channels = []
-        for k,v in self.channel_manager.state.channels.items():
+        for k, v in self.channel_manager.state.channels.items():
             unique_senders[k[0]] = 1
             if v.is_closed is True:
                 pending_channels.append(v)

@@ -23,10 +23,10 @@ class PaywalledContent:
             assert callable(get_fn)
             self.get_cb = get_fn
 
-    def get(self, request):
-        return self.get_cb(request)
+    def get(self, url):
+        return self.get_cb(url)
 
-    def is_paywalled(self, request):
+    def is_paywalled(self, url):
         return True
 
 
@@ -36,7 +36,7 @@ class PaywalledFile(PaywalledContent):
         assert isinstance(filepath, str)
         self.filepath = filepath
 
-    def get(self, request):
+    def get(self, url):
         try:
             mimetype = mimetypes.guess_type(self.filepath)
             data = open(self.filepath, 'rb').read()
@@ -49,18 +49,20 @@ class PaywalledFile(PaywalledContent):
 
 
 class PaywalledProxyUrl(PaywalledContent):
-    def __init__(self, path, price, domain, paywalled_resources=[]):
+    def __init__(self, path, price, domain, paywalled_resources=None):
         super(PaywalledProxyUrl, self).__init__(path, price)
         assert isinstance(path, str)
         assert isinstance(price, int) or callable(price)
+        if paywalled_resources is None:
+            paywalled_resources = []
         self.path = path
         self.price = price
         self.get_fn = lambda x: x
         self.domain = domain
         self.paywalled_resources = [re.compile(x) for x in paywalled_resources]
 
-    def is_paywalled(self, request):
-        url = self.get_fn(request)
+    def is_paywalled(self, url):
+        url = self.get_fn(url)
         for resource in self.paywalled_resources:
             if resource.match(url):
                 return True
@@ -83,5 +85,5 @@ class PaywallDatabase:
         return None
 
     def add_content(self, content):
-        assert isinstance(content, PaywalledContent) or isinstance(content, PaywalledProxyUrl)
+        assert isinstance(content, (PaywalledContent, PaywalledProxyUrl))
         self.db[content.path] = content
