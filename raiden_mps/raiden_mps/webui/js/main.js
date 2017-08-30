@@ -101,7 +101,7 @@ function pageReady(json) {
         return window.alert('User denied message signature');
       } else if (err) {
         console.error(err);
-        return window.alert("An error occurred trying to sign the transfer: "+err);
+        return window.alert(`An error occurred trying to sign the transfer: ${err.message}`);
       }
       $('.channel_present_sign').removeClass('green-btn')
       console.log("SIGNED!", sign);
@@ -129,7 +129,7 @@ function pageReady(json) {
     rmpc.openChannel(account, RMPparams.receiver, deposit, (err, channel) => {
       if (err) {
         refreshAccounts();
-        return window.alert("An error ocurred trying to open a channel: "+err);
+        return window.alert(`An error ocurred trying to open a channel: ${err.message}`);
       }
       return signRetry();
     });
@@ -143,7 +143,7 @@ function pageReady(json) {
     }
     rmpc.closeChannel(null, (err, res) => {
       if (err) {
-        return window.alert("An error occurred trying to close the channel: "+err);
+        return window.alert(`An error occurred trying to close the channel: ${err.message}`);
       }
       window.alert("CLOSED");
       refreshAccounts();
@@ -156,7 +156,7 @@ function pageReady(json) {
     }
     rmpc.settleChannel((err, res) => {
       if (err) {
-        return window.alert("An error occurred trying to settle the channel: "+err);
+        return window.alert(`An error occurred trying to settle the channel: ${err.message}`);
       }
       window.alert("SETTLED");
       refreshAccounts();
@@ -187,7 +187,7 @@ function pageReady(json) {
       if (err) {
         refreshAccounts();
         console.error(err);
-        return window.alert("An error ocurred trying to deposit to channel: "+err);
+        return window.alert(`An error ocurred trying to deposit to channel: ${err.message}`);
       }
       return signRetry();
     });

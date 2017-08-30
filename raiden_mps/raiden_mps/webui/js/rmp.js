@@ -174,8 +174,8 @@ class RaidenMicropaymentsClient {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
-    console.log("Signing", msg, this.channel.account);
-    const hex = this.encodeHex(msg);
+    const hex = '0x' + this.encodeHex(msg);
+    console.log(`Signing "${msg}" => ${hex}, account: ${this.channel.account}`);
     return this.catchCallback(this.web3.personal.sign,
                               hex,
                               this.channel.account,
