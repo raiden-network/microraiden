@@ -109,6 +109,20 @@ class RaidenMicropaymentsClient {
     return true;
   }
 
+  getTokenInfo(callback) {
+    return this.token.name.call((err, name) => {
+      if (err) {
+        return callback(err);
+      }
+      return this.token.symbol.call((err, symbol) => {
+        if (err) {
+          return callback(err);
+        }
+        return callback(null, { name, symbol });
+      });
+    });
+  }
+
   getChannelInfo(callback) {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));

@@ -22,6 +22,14 @@ function pageReady(json) {
     };
   }
 
+  rmpc.getTokenInfo((err, token) => {
+    if (err) {
+      return console.log('Error getting token info', err);
+    }
+    $('.tkn-name').text(token.name);
+    $('.tkn-symbol').text(token.symbol);
+  });
+
   $("#amount").text(RMPparams["amount"]);
   $("#token").text(RMPparams.token);
 
