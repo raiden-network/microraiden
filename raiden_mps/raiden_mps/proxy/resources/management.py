@@ -2,9 +2,8 @@ import json
 from collections import defaultdict
 from flask_restful import Resource, reqparse
 
-from flask_restful import reqparse
-
 from raiden_mps.crypto import sign_balance_proof
+from raiden_mps.proxy.resources.login import auth
 from eth_utils import encode_hex
 
 from raiden_mps.channel_manager import (
@@ -160,17 +159,22 @@ class ChannelManagementChannelInfo(Resource):
         return ret, 200
 
 
+class ChannelManagementAdminChannels(Resource):
+    def __init__(self, channel_manager):
+        super(ChannelManagementAdminChannels, self).__init__()
+        self.channel_manager = channel_manager
+
+    @auth.login_required
+    def delete(self, sender_address, opening_block):
+        self.channel_manager.force_close_channel(sender_address, opening_block)
+        return "force closed (%s, %d)" % (sender_address, opening_block), 200
+
+
 class ChannelManagementAdmin(Resource):
     def __init__(self, channel_manager):
         super(ChannelManagementAdmin, self).__init__()
         self.channel_manager = channel_manager
 
+    @auth.login_required
     def get(self):
-        return "OK"
-
-    def delete(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('open_block', type=int, help='block the channel was opened')
-        parser.add_argument('sender')
-        args = parser.parse_args()
-        self.channel_manager.close_channel(args.sender.lower(), args.open_block)
+        return "NOTHING TO SEE HERE, GO AWAY", 200

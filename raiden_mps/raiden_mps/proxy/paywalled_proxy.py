@@ -14,8 +14,11 @@ from raiden_mps.channel_manager import (
 from raiden_mps.proxy.resources import (
     Expensive,
     ChannelManagementAdmin,
+    ChannelManagementAdminChannels,
     ChannelManagementListChannels,
     ChannelManagementChannelInfo,
+    ChannelManagementLogin,
+    ChannelManagementLogout,
     ChannelManagementRoot,
     ChannelManagementStats,
     StaticFilesServer
@@ -65,14 +68,24 @@ class PaywalledProxy:
             'paywall_db': self.paywall_db,
             'light_client_proxy': self.light_client_proxy
         }
+        # static files
         self.api.add_resource(StaticFilesServer, "/js/<path:content>",
                               resource_class_kwargs={'directory': paywall_js_dir})
+        # paywall
         self.api.add_resource(Expensive, "/<path:content>", resource_class_kwargs=cfg)
+
+        # REST interface
+        self.api.add_resource(ChannelManagementLogin, API_PATH + "/login")
+        self.api.add_resource(ChannelManagementLogout, API_PATH + "/logout")
         self.api.add_resource(ChannelManagementChannelInfo,
                               API_PATH + "/channels/<string:sender_address>/<int:opening_block>",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementAdmin,
                               API_PATH + "/admin",
+                              resource_class_kwargs={'channel_manager': self.channel_manager})
+        self.api.add_resource(ChannelManagementAdminChannels,
+                              API_PATH +
+                              "/admin/channels/<string:sender_address>/<int:opening_block>",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementListChannels,
                               API_PATH + "/channels/",
