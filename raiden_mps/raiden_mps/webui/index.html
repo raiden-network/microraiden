@@ -21,11 +21,13 @@
     <div class="panel panel-default">
       <div class="panel-heading">
         <img src="/js/raiden.png" class="logo" />
-        <h1><strong>Payment Requested</strong></h1>
+        <h3>Payment Requested</h3>
       </div>
       <div class="panel-body">
-        <h3>Read this article and support the publisher -</h3>
-        <h3>by paying <mark><strong id="amount"></strong> <strong>RDN</strong></mark> tokens.</h3>
+        <h4>Read this article and support the
+          <span id="publisher" data-toggle="tooltip" data-placement="top" title="" data-original-title="Tooltip on top">publisher</span> -
+        </h4>
+        <h4>by paying <strong id="amount"></strong> <strong>RDN</strong> tokens.</h4>
         <div class="account-dropdown form-horizontal">
           <div class="row">
             <div class="col-xs-3 account-label"><strong>Account:</strong></div>
@@ -37,14 +39,14 @@
         <hr>
 
         <div class="row main_switch" id="no_accounts">
-          <div class="alert alert-danger">
-            <strong>Error!</strong>
-            No accounts found! You may need to unlock your account on your Web3 provider (Metamask/Mist/Parity)
+          <div class="log">
+            <h5 class="text-danger">No accounts found!</h5>
+            <h5 class="text-danger">You may need to unlock your account on your Web3 provider (Metamask/Mist/Parity)</h5>
           </div>
         </div>
 
         <div class="row main_switch" id="channel_present">
-          <h3>A channel was found for this address.</h3>
+          <h5>A channel was found for this address.</h5>
 
           <div class="channel" id="channel">
             <div class="col-xs-6">
@@ -64,45 +66,45 @@
                 </div>
               </div>
             </div>
-            <div class="col-xs-6">
-              <div class="col-xs-4 balance-icon"><mark>RDN</mark></div>
-              <div class="col-xs-8 balance-content">
+            <div class="col-xs-6 balance-content">
+              <div class="col-xs-4 balance-icon">RDN</div>
+              <div class="col-xs-8">
                 <div class="balance-label">Remaining Balance</div>
                 <div class="balance" id="channel_present_balance"></div>
               </div>
             </div>
           </div>
 
-          <h4 class="col-sm-12">Press the Sign button to authorize the payment, or make another action</h4>
+          <h5 class="col-sm-12">Press the Sign button to authorize the payment, or make another action</h5>
 
           <div class="col-sm-12 btn-bar" style="display: none">
             <div class="col-sm-2"></div>
 
             <!-- OPENED -->
-            <button type="button" class="col-sm-2 btn btn-lg btn-primary on-state on-state-opened channel_present_close"
+            <button type="button" class="col-sm-2 btn btn-default on-state on-state-opened channel_present_close"
               style="margin-right: 5px">
               <span class="glyphicon glyphicon-remove"></span> Close
             </button>
-            <button type="button" class="col-sm-2 btn btn-lg btn-danger on-state on-state-opened channel_present_forget"
+            <button type="button" class="col-sm-2 btn btn-default on-state on-state-opened channel_present_forget"
               style="margin-right: 5px">
               <span class="glyphicon glyphicon-trash"></span> Forget
             </button>
-            <button type="button" class="col-sm-4 btn btn-lg btn-success on-state on-state-opened channel_present_sign">
+            <button type="button" class="col-sm-4 btn btn-default on-state on-state-opened channel_present_sign">
               <span class="glyphicon glyphicon-pencil"></span> Sign
             </button>
 
             <!-- CLOSED -->
-            <button type="button" class="col-sm-4 btn btn-lg btn-danger on-state on-state-closed channel_present_forget">
+            <button type="button" class="col-sm-4 btn btn-default on-state on-state-closed channel_present_forget">
               <span class="glyphicon glyphicon-trash"></span> Forget
             </button>
-            <button type="button" class="col-sm-4 btn btn-lg btn-warning on-state on-state-closed channel_present_settle"
+            <button type="button" class="col-sm-4 btn btn-default on-state on-state-closed channel_present_settle"
               style="margin-left: 5px">
               <span class="glyphicon glyphicon-ok"></span> Settle
             </button>
 
             <!-- SETTLED -->
             <div class="col-sm-2"></div>
-            <button type="button" class="col-sm-4 btn btn-lg btn-danger on-state on-state-settled on-state-error channel_present_forget">
+            <button type="button" class="col-sm-4 btn btn-default on-state on-state-settled on-state-error channel_present_forget">
               <span class="glyphicon glyphicon-trash"></span> Forget
             </button>
 
@@ -111,22 +113,21 @@
         </div>
 
         <div class="row main_switch" id="channel_missing">
-          <div class="alert alert-warning">
-            <strong>Attention!</strong>
-            No channel was found registered for this account on this website.
+          <div class="log">
+            <h5 class="text-warning">No channel was found registered for this account on this website.</h5>
           </div>
           <div class="row">
             <span class="instructions">
-              <h3>In order to proceed, you must:</h3>
+              <h5>In order to proceed...</h5>
               <ol>
                 <div class="transfer">
                   <li>
-                    Make a desired token <strong><mark>deposit</mark></strong> to open a channel with this site.
+                    Make a desired token <strong>deposit</strong> to open a channel with this site.
                   </li>
                 </div>
                 <div class="sign">
                   <li>
-                    For each payment, <strong><mark>sign</mark></strong> a message confirming the balance with the new payment
+                    For each payment, <strong>sign</strong> a message confirming the balance with the new payment
                   </li>
                 </div>
               </ol>
@@ -135,10 +136,11 @@
           <div class="row deposit">
             <div class="col-xs-1 col-md-3"></div>
             <div class="col-xs-10 col-md-6">
-              <div class="input-group input-group-lg">
-                <input type="number" class="form-control" id="channel_missing_deposit" placeholder="Amount to deposit" style="text-align:right;" min="0"/>
+              <div class="input-group">
+                <input type="number" class="form-control" id="channel_missing_deposit" placeholder="Amount to deposit"
+                style="font-size: 16px; text-align:right; height: 40px;" min="0"/>
                 <span class="input-group-btn">
-                  <button type="button" class="btn rdn-btn" id="channel_missing_start">Deposit</button>
+                  <button type="button" class="btn btn-default" id="channel_missing_start">Deposit</button>
                 </span>
               </div>
             </div>
@@ -147,31 +149,60 @@
         </div>
 
         <div class="row main_switch" id="channel_opening">
-          <div class="alert alert-info">
-            <strong>Waiting confirmation!</strong>
-            <p>The transactions are being processed. Please, authorize with your Ethereum client.</p>
+          <div class="log">
+            <div class="loader"></div>
+            <h5 class="text-primary">The transactions are being processed.</h5>
+            <h5 class="text-primary">Please authorize with your Ethereum client.</h5>
           </div>
         </div>
 
         <div class="row main_switch" id="topup">
-          <div class="alert alert-warning">
-            <strong>Attention!</strong>
-            <p>Insuficient deposited funds on channel.</p>
+          <div class="log">
+            <h5 class="text-warning">Insufficient deposited funds on this channel.</h5>
           </div>
-          <span>
-            In order to proceed, you must make a new deposit on the channel, and then sign the transaction.
-          </span>
+          <div class="row">
+            <div class="col-xs-2"></div>
+            <div class="col-xs-5">
+              <div class="col-xs-4 balance-icon">RDN</div>
+              <div class="col-xs-8">
+                <div class="balance-label">Current Deposit</div>
+                <div class="balance" id="deposited"></div>
+              </div>
+            </div>
+            <div class="col-xs-5 balance-content">
+              <div class="col-xs-4 balance-icon">RDN</div>
+              <div class="col-xs-8">
+                <div class="balance-label">Required</div>
+                <div class="balance" id="required"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="padding-top: 30px;">
+            <span class="instructions">
+              <h5>In order to proceed, make a new deposit of at least <strong><span id="difference"></span> RDN</strong> tokens</h5>
+              <h5>and sign the transaction</h5>
+            </span>
+          </div>
           <div class="row deposit">
-            <div class="col-xs-1 col-md-3"></div>
-            <div class="col-xs-10 col-md-6">
-              <div class="input-group input-group-lg">
-                <input type="number" class="form-control" id="topup_deposit" placeholder="Amount to deposit" style="text-align:right;" min="0"/>
+            <div class="col-sm-3" style="padding-right: 0">
+              <button type="button" class="btn btn-default btn-block channel_present_close">
+                <span class="glyphicon glyphicon-remove"></span> Close
+              </button>
+            </div>
+            <div class="col-sm-3" style="padding-right: 0">
+              <button type="button" class="btn btn-default btn-block channel_present_forget">
+                <span class="glyphicon glyphicon-trash"></span> Forget
+              </button>
+            </div>
+            <div class="col-sm-6">
+              <div class="input-group input-group">
+                <input type="number" class="form-control" id="topup_deposit" placeholder="Amount to deposit"
+                style="text-align: right; font-size: 16px; height: 40px" min="0"/>
                 <span class="input-group-btn">
-                  <button type="button" class="btn rdn-btn" id="topup_start">Deposit</button>
+                  <button type="button" class="btn btn-default" id="topup_start">Deposit</button>
                 </span>
               </div>
             </div>
-            <div class="col-xs-1 col-md-3"></div>
           </div>
         </div>
 
