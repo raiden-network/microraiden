@@ -86,7 +86,7 @@ class RaidenMicropaymentsClient {
       str = str.toString(16);
     } else {
       str = [...str].map((char) =>
-          char.charCodeAt(0).toString(16))
+          char.charCodeAt(0).toString(16).padStart(2, '0'))
         .join('');
     }
     return str.padStart(zPadLength, '0');
