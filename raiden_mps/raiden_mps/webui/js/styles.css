@@ -1,3 +1,13 @@
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot');
+  src: url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2') format('woff2'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff') format('woff'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.ttf') format('truetype'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
+
 .no-print {
   -webkit-filter: blur(5px);
   -moz-filter: blur(5px);
@@ -27,7 +37,7 @@
   -moz-filter: blur(5px);
   -o-filter: blur(5px);
   -ms-filter: blur(5px);
-  filter: blur(5px); 
+  filter: blur(5px);
 }
 
 #footer {
@@ -35,11 +45,10 @@
   -moz-filter: blur(5px);
   -o-filter: blur(5px);
   -ms-filter: blur(5px);
-  filter: blur(5px); 
+  filter: blur(5px);
 }
 
 #overlay {
-  font-size: 16px;
   filter: none !important;
   position: fixed; /* Sit on top of the page content */
   /*display: none;*/
@@ -56,6 +65,7 @@
 
 @media screen and (min-width: 980px) {
   .box-container {
+    font-size: 16px;
     width: 750px;
     margin: auto;
     margin-top: 50px;
@@ -65,6 +75,7 @@
 
 @media screen and (max-width: 979px) {
   .box-container {
+    font-size: 16px;
     width: 70%;
     margin-left: 15%;
     margin-right: 15%;
@@ -87,18 +98,13 @@
   text-align: center;
 }
 
-mark {
-  background-color: black;
-  color: white;
-}
-
 .account-dropdown {
   margin-top: 35px;
 }
 
 .account-label {
   padding-left: 125px;
-  padding-top: 5px;
+  padding-top: 7px;
 }
 
 .account-select {
@@ -107,10 +113,30 @@ mark {
   margin-left: 25px;
 }
 
+.log {
+  padding-top: 5px;
+  padding-bottom: 15px;
+}
+
+.loader {
+  margin: auto;
+  border: 5px solid #f3f3f3; /* Light grey */
+  border-top: 5px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 li {
   display: block;
   float: left;
-  padding-left: 30px;
+  padding-left: 37px;
   padding-top: 20px;
   font-size: 16px;
 }
@@ -124,7 +150,6 @@ li {
   margin-top: -5px;
   margin-left: 10px;
   padding-right: 10px;
-  color: black;
 }
 
 .sign li:before {
@@ -136,7 +161,6 @@ li {
   margin-top: -5px;
   margin-left: 10px;
   padding-right: 10px;
-  color: black;
 }
 
 .deposit {
@@ -145,20 +169,6 @@ li {
   padding-left: 40px;
   padding-right: 40px;
 
-}
-
-.btn {
-  margin-left:
-}
-
-.rdn-btn {
-  background-color: black;
-  color: white;
-}
-
-.rdn-btn:hover {
-  opacity: .65;
-  color: white;
 }
 
 .alert {
@@ -177,20 +187,20 @@ li {
 }
 
 .glyphicon.on-state-opened {
-  color: #5cb85c;
+  color: #77b300;
   font-size: 60px;
   padding-left: 90px;
 }
 
 .glyphicon.on-state-closed,
 .glyphicon.on-state-error {
-  color: #d9534f;
+  color: #cc0000;
   font-size: 60px;
   padding-left: 90px;
 }
 
 .glyphicon.on-state-settled {
-  color: #f0ad4e;
+  color: #ff8800;
   font-size: 50px;
   padding-left: 90px;
 }
@@ -203,6 +213,7 @@ li {
 .balance {
   font-size: 20px;
   text-align: left;
+  color: white;
 }
 
 .balance-icon {
@@ -210,6 +221,9 @@ li {
   font-weight: bold;
   text-align: left;
   padding-top: 5px;
+  color: white;
+  background-color: black;
+  text-align: center;
 }
 
 .balance-content {
@@ -219,4 +233,16 @@ li {
 .balance-label {
   font-weight: bold;
   text-align: left;
+}
+
+.btn-bar {
+  padding-top: 15px;
+}
+
+.btn {
+  font-size: 16px;
+}
+
+.input-group {
+  font-size: 16px;
 }
