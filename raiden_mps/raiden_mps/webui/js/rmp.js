@@ -101,26 +101,6 @@ class RaidenMicropaymentsClient {
     return this.web3.eth.getAccounts(callback);
   }
 
-  signMessage(msg, callback) {
-    if (!this.isChannelValid()) {
-      return callback(new Error("No valid channelInfo"));
-    }
-    console.log("Signing", msg, account);
-    const hex = this.encodeHex(msg);
-    return this.catchCallback(this.web3.personal.sign,
-                              hex,
-                              this.channel.account,
-                              (err, sign) => {
-      if (err && err.message && err.message.includes('Method not found')) {
-        return this.catchCallback(this.web3.eth.sign,
-                                  this.channel.account,
-                                  hex,
-                                  callback);
-      }
-      return callback(err, sign);
-    });
-  }
-
   isChannelValid() {
     if (!this.channel || !this.channel.receiver || !this.channel.block
       || isNaN(this.channel.balance) || !this.channel.account) {
@@ -187,6 +167,26 @@ class RaidenMicropaymentsClient {
             });
           });
       });
+    });
+  }
+
+  signMessage(msg, callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
+    }
+    console.log("Signing", msg, this.channel.account);
+    const hex = this.encodeHex(msg);
+    return this.catchCallback(this.web3.personal.sign,
+                              hex,
+                              this.channel.account,
+                              (err, sign) => {
+      if (err && err.message && err.message.includes('Method not found')) {
+        return this.catchCallback(this.web3.eth.sign,
+                                  this.channel.account,
+                                  hex,
+                                  callback);
+      }
+      return callback(err, sign);
     });
   }
 
