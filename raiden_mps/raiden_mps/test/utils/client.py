@@ -19,7 +19,8 @@ def close_channel_cooperatively(
         channel.create_transfer(balance)
 
     closing_sig = sign_close(privkey_receiver, channel.balance_sig)
-    assert (channel.close_cooperatively(closing_sig))
+    close_retval = channel.close_cooperatively(closing_sig)
+    assert (close_retval is not None)
 
 
 def close_all_channels_cooperatively(

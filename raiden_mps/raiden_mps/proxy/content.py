@@ -14,17 +14,17 @@ class PaywalledContent:
             price (int)  : price of the resource
             get_fn (callable): function that returns paywalled content
         """
-    def __init__(self, path, price, get_fn=None):
+    def __init__(self, path, price, get_fn=lambda _: "OK"):
         assert isinstance(path, str)
         assert isinstance(price, int) or callable(price)
         self.path = path
         self.price = price
         if get_fn is not None:
             assert callable(get_fn)
-            self.get = get_fn
+            self.get_cb = get_fn
 
     def get(self, request):
-        return "OK"
+        return self.get_cb(request)
 
     def is_paywalled(self, request):
         return True

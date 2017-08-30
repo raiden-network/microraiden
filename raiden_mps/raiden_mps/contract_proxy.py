@@ -16,7 +16,7 @@ DEFAULT_RETRY_INTERVAL = 3
 
 class ContractProxy:
     def __init__(self, web3: Web3, privkey, contract_address, abi, gas_price, gas_limit,
-                 tester_mode=False):
+                 tester_mode=False) -> None:
         self.web3 = web3
         self.privkey = privkey
         self.caller_address = privkey_to_addr(privkey)
