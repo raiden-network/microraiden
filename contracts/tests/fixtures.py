@@ -36,7 +36,6 @@ def channels_contract(chain, create_contract):
 
         channels_contract = create_contract(RaidenMicroTransferChannels, arguments, transaction)
 
-        print_logs(channels_contract, 'StringTest', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelCreated', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelToppedUp', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')

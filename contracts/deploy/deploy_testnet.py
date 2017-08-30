@@ -152,11 +152,12 @@ def getTokens(**kwargs):
 
         # check if it works:
         # 1. get message balance hash for address[0]
-        hash = channel_factory(cf_address).call().balanceMessageHash(addresses[0], 100, 10000)
+        balance_msg = "Receiver: " + addresses[0] + "\nBalance: 10000\nChannel ID: 100"
+
         # 2. sign the hash with private key corresponding to address[0]
-        hash_sig, addr = sign.check(bytes(hash, 'raw_unicode_escape'), binascii.unhexlify(priv_keys[0]))
+        balance_msg_sig, addr = sign.check(balance_msg, binascii.unhexlify(priv_keys[0]))
         # 3. check if ECVerify and ec_recovered address are equal
-        ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0], 100, 10000, hash_sig)
+        ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0], 100, 10000, balance_msg_sig)
         print('EC_RECOVERED_ADDR:', ec_recovered_addr)
         print('FIRST WALLET ADDR:', addresses[0])
         assert ec_recovered_addr == addresses[0]

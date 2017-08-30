@@ -24,8 +24,8 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-ERC223Token address is 0xad6e12d1e0ce6780b1eb1599ab6b1e75fbd9306b
-RaidenMicroTransferChannels address is 0x22c527350d0f56d49eb0502226cfdf44741e850e
+ERC223Token  address is 0xfabf70d72bf871d0762603a23fb5264cba04a081
+RaidenMicroTransferChannels address is 0x7faa7e718f9c578c9f36a766079064b89068ce4c
 
 ```
 
@@ -33,8 +33,8 @@ RaidenMicroTransferChannels address is 0x22c527350d0f56d49eb0502226cfdf44741e850
 
 ```
 
-ERC223Token address is 0xdd5dc98e14c5c4bb7d9813eebc123f769965459e
-RaidenMicroTransferChannels address is 0x4abdf31df1284504fa821f7843f0298dcee52a21
+ERC223Token  address is 0x1e1638504be105ab013d7563b9d73d1cedf17176
+RaidenMicroTransferChannels address is 0xed164e95bde2247529931d2ebe99435bce238ec0
 
 ```
 
@@ -43,8 +43,8 @@ RaidenMicroTransferChannels address is 0x4abdf31df1284504fa821f7843f0298dcee52a2
 
 ```
 
-ERC223Token address is 0xb6a7a5742ec869cc3293bb9bbe019053cb66d9c0
-RaidenMicroTransferChannels address is 0x3adbaff68967a217901b55284464eaf3ffaf203d
+ERC223Token  address is 0xfce9fdfe69d0ed9f13ec9d06044dd5063a14edcd
+RaidenMicroTransferChannels address is 0x0e7232b42ec4e067b0ba63c34cf4c699fed0919d
 
 ```
 
@@ -93,14 +93,12 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
    ```
 
  * `kovan`
-   - functional faucet: https://gitter.im/kovan-testnet/faucet
    - change default account: [/contracts/populus.json#L177](/contracts/populus.json#L177)
    - start https://github.com/paritytech/parity
    ```
    parity --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --unlock 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb --password ~/password.txt --author 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb
    ```
  * `ropsten`
-   - functional faucet: https://www.reddit.com/r/ethdev/comments/61zdn8/if_you_need_some_ropsten_testnet_ethers/
    - change default account: [/contracts/populus.json#L49](/contracts/populus.json#L49)
    - start:
    ```
@@ -232,7 +230,7 @@ Gas cost (testing): 68636
 #### ERC20 compatible
 
 ```py
-# approve token transfers to the contract from the Sender's behalf
+#approve token transfers to the contract from the Sender's behalf
 Token.approve(contract, added_deposit)
 
 Contract.createChannelERC20(receiver, deposit)
@@ -242,69 +240,65 @@ Gas cost (testing): 90144
  ![ChannelTopUp_20](/contracts/docs/diagrams/ChannelTopUp_20.png)
 
 
-### Generating and validating a transfer
+### Generating and validating a balance proof
 
 
-```js
+```python
 
-// Sender has to provide a balance_proof = balance_message + his signature to the Receiver when making a microtransfer
-// The contract implements some helper functions for that
+# Sender has to provide a balance proof to the Receiver when making a micropayment
+# The contract implements some helper functions for that
 
-// hashed balance message
-balance_message_hash = Contract.balanceMessageHash(receiver, open_block_number, balance)
+# Balance message
+# Current format: "Receiver: 0xdceceaf3fc5c0a63d195d69b1a90011b7b19650d\nBalance: 23\nChannel ID: 5"
+balance_message = Contract.call().getBalanceMessage(receiver, open_block_number, balance)
 
-// This hash is signed by the Sender with MetaMask
+# Transform message to hexadecimal format
+# For the above example, result will be: 0x19457468657265756d205369676e6564204d6573736167653a0a3738
+balance_message_hex = "0x" + "".join("{:02x}".format(ord(c)) for c in msg)
+
+# balance_message_hex is signed by the Sender with MetaMask / Parity
+# For the above example, result will be: 0x52656365697665723a203078646365636561663366633563306136336431393564363962316139303031316237623139363530640a42616c616e63653a2032330a4368616e6e656c2049443a2035
 balance_msg_sig
 
-// and sent to the Receiver (receiver, open_block_number, balance, balance_msg_sig)
+# Data is sent to the Receiver (receiver, open_block_number, balance, balance_msg_sig)
 
 ```
-
-#### Balance proof signature verification:
-
-```js
-
-// Returns the Sender's address
-sender = Contract.verifyBalanceProof(receiver, open_block_number, balance, balance_msg_sig)
-
-// Use this address to find the channel (sender, receiver, open_block_number)
-
-```
-
 
 
 ### Generating and validating a closing agreement
 
-```js
+```python
 
-// Sender has to provide a balance_proof = balance_message + his signature to the Receiver
-// + a closing_sig (closing agreement proof from Receiver)
+# Sender has to provide a balance proof to the Contract and
+# a closing agreement proof from Receiver (closing_sig)
+# closing_sig is created in the same way as balance_msg_sig, but it is signed by the Receiver
 
-// balance message to be hashed
-balance_message_hash = Contract.balanceMessageHash(receiver, open_block_number, balance)
+# Balance message
+balance_message = Contract.call().getBalanceMessage(receiver, open_block_number, balance)
+balance_message_hex = "0x" + "".join("{:02x}".format(ord(c)) for c in msg)
 
-// This hash is signed by the Sender with MetaMask
+# balance_message_hex is signed by the Sender with MetaMask / Parity
 balance_msg_sig
 
-// hashed balance_msg_sig
-balance_msg_sig_hash = Contract.closingAgreementMessageHash(balance_msg_sig)
-
-// This hash is signed by the Receiver
+# balance_message_hex is signed by the Receiver with MetaMask / Parity
 closing_sig
 
-// Send to the Contract (example of collaborative closing, transaction sent by Sender)
-Contract.close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+# Send to the Contract (example of collaborative closing, transaction sent by Sender)
+Contract.transact({ "from": Sender }).close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
 
 ```
 
-#### Closing agreement signature verification:
+#### Balance proof / closing agreement signature verification:
 
-```js
+```python
 
-// Returns the Receiver's address
-receiver = Contract.verifyClosingSignature(balance_msg_sig, closing_sig)
+# Returns the Sender's address
+sender = Contract.call().verifyBalanceProof(receiver, open_block_number, balance, balance_msg_sig)
 
-// Use this address to find the channel (sender, receiver, open_block_number)
+# Returns the Receiver's address
+receiver = Contract.call().verifyBalanceProof(receiver, open_block_number, balance, closing_sig)
+
+
 ```
 
 

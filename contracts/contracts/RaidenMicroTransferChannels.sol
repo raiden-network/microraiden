@@ -73,7 +73,6 @@ contract RaidenMicroTransferChannels {
         string _function_name,
         uint _gaslimit,
         uint _gas_remaining);
-    event StringTest(string str, string msg, bytes sign, bytes32 hash);
 
     /*
      *  Constructor
@@ -113,33 +112,25 @@ contract RaidenMicroTransferChannels {
         return sha3(_sender, _receiver, _open_block_number);
     }
 
-    // TODO remove this or create balanceMessageHex
     /// @dev Returns a hash of the balance message needed to be signed by the sender.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @return Hash of the balance message.
-    function balanceMessageHash(
+    function getBalanceMessage(
         address _receiver,
         uint32 _open_block_number,
         uint192 _balance)
         public
         constant
-        returns (bytes32 data)
+        returns (string)
     {
-        return sha3(_receiver, _open_block_number, _balance, address(this));
-    }
-
-    // TODO remove this or create closingAgreementMessageHex
-    /// @dev Returns a hash of the balance message that was signed by the sender, so it can be subsequently signed by the receiver.
-    /// @param _balance_msg_sig The balance message signed by the sender.
-    /// @return Hash of the balance message signed by the sender.
-    function closingAgreementMessageHash(bytes _balance_msg_sig)
-        public
-        constant
-        returns (bytes32 data)
-    {
-        return sha3(_balance_msg_sig);
+        string memory str = concat("Receiver: 0x", addressToString(_receiver));
+        str = concat(str, "\nBalance: ");
+        str = concat(str, uintToString2(uint256(_balance)));
+        str = concat(str, "\nChannel ID: ");
+        str = concat(str, uintToString2(uint256(_open_block_number)));
+        return str;
     }
 
     /// @dev Returns the sender address extracted from the balance proof.
@@ -158,11 +149,7 @@ contract RaidenMicroTransferChannels {
         returns (address)
     {
         // Create message which should be signed by sender
-        string memory str = concat("Receiver: 0x", addressToString(_receiver));
-        str = concat(str, "\nBalance: ");
-        str = concat(str, uintToString2(uint256(_balance)));
-        str = concat(str, "\nChannel ID: ");
-        str = concat(str, uintToString2(uint256(_open_block_number)));
+        string memory str = getBalanceMessage(_receiver, _open_block_number, _balance);
 
         // Prefix the message
         string memory message = concat(prefix, uintToString2(strLen(str)));
@@ -176,24 +163,8 @@ contract RaidenMicroTransferChannels {
         return signer;
     }
 
-    /// @dev Returns the receiver address extracted from the closing signature and the signed balance message.
-    /// @param _balance_msg_sig The balance message signed by the sender.
-    /// @param _closing_sig The hash of the signed balance message, signed by the receiver.
-    /// @return Address of the tokens receiver.
-    function verifyClosingSignature(
-        bytes _balance_msg_sig,
-        bytes _closing_sig)
-        public
-        constant
-        returns (address)
-    {
-        bytes32 balance_msg_sig_hash = closingAgreementMessageHash(_balance_msg_sig);
-        address receiver = ECVerify.ecverify(balance_msg_sig_hash, _closing_sig);
-        return receiver;
-    }
-
     /*
-     *  Public functions
+     *  External functions
      */
 
     /// @dev Calls createChannel, compatibility with ERC 223; msg.sender is Token contract.
@@ -204,7 +175,7 @@ contract RaidenMicroTransferChannels {
         address _sender,
         uint256 _deposit,
         bytes _data)
-        public
+        external
     {
         GasCost('tokenFallback start0', block.gaslimit, msg.gas);
         uint length = _data.length;
@@ -225,21 +196,13 @@ contract RaidenMicroTransferChannels {
         GasCost('tokenFallback end', block.gaslimit, msg.gas);
     }
 
-    /*
-     *  Public functions
-     */
-
-    /*
-     *  External functions
-     */
-
     /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract, compatibility with ERC20 tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     function createChannelERC20(
         address _receiver,
         uint192 _deposit)
-        public
+        external
     {
         createChannelPrivate(msg.sender, _receiver, _deposit);
 
@@ -257,7 +220,7 @@ contract RaidenMicroTransferChannels {
         address _receiver,
         uint32 _open_block_number,
         uint192 _added_deposit)
-        public
+        external
     {
         // transferFrom deposit from msg.sender to contract
         // ! needs prior approval from user
@@ -550,7 +513,11 @@ contract RaidenMicroTransferChannels {
         return uint32(result);
     }
 
-    function toSlice(string self) internal returns (slice) {
+    function toSlice(
+        string self)
+        internal
+        returns (slice)
+    {
         uint ptr;
         assembly {
             ptr := add(self, 0x20)
@@ -558,7 +525,12 @@ contract RaidenMicroTransferChannels {
         return slice(bytes(self).length, ptr);
     }
 
-    function strLen(string self) internal constant returns (uint) {
+    function strLen(
+        string self)
+        internal
+        constant
+        returns (uint)
+    {
         return bytes(self).length;
     }
 
@@ -591,7 +563,7 @@ contract RaidenMicroTransferChannels {
         string _other)
         internal
         constant
-        returns(string)
+        returns (string)
     {
         slice memory self = toSlice(_self);
         slice memory other = toSlice(_other);
@@ -619,7 +591,7 @@ contract RaidenMicroTransferChannels {
         uint v)
         internal
         constant
-        returns(string)
+        returns (string)
     {
         bytes32 ret;
         if (v == 0) {
@@ -654,7 +626,7 @@ contract RaidenMicroTransferChannels {
         address x)
         internal
         constant
-        returns(string)
+        returns (string)
     {
         bytes memory str = new bytes(40);
         for (uint i = 0; i < 20; i++) {
@@ -670,7 +642,7 @@ contract RaidenMicroTransferChannels {
     function char(byte b)
         internal
         constant
-        returns(byte c)
+        returns (byte c)
     {
         if (b < 10) return byte(uint8(b) + 0x30);
         else return byte(uint8(b) + 0x57);
