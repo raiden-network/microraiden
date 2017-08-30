@@ -180,7 +180,9 @@ class RaidenMicropaymentsClient {
                               hex,
                               this.channel.account,
                               (err, sign) => {
-      if (err && err.message && err.message.includes('Method not found')) {
+      if (err && err.message &&
+          (err.message.includes('Method not found') ||
+           err.message.includes('is not a function'))) {
         return this.catchCallback(this.web3.eth.sign,
                                   this.channel.account,
                                   hex,
