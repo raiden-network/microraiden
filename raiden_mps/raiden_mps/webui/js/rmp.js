@@ -55,12 +55,12 @@ class RaidenMicropaymentsClient {
     /* This method calls a function, with a node-style callback as last parameter,
      * forwarding call exceptions to callback first parameter
      */
-    const callback = params[params.length - 1];
+    const callback = params.pop();
     if (typeof callback !== 'function') {
       throw new Error('Invalid callback as last parameter');
     }
     try {
-      return func(...params);
+      return func(...params, callback);
     } catch (e) {
       return callback(e);
     }

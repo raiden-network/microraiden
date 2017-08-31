@@ -149,16 +149,46 @@ function pageReady(json) {
 
   $(".channel_present_sign").click(signRetry);
 
-  $(".channel_present_close").click(() => {
-    if (!window.confirm("Are you sure you want to close this channel?")) {
-      return;
-    }
-    rmpc.closeChannel(null, (err, res) => {
+  function closeChannel(closeSign) {
+    rmpc.closeChannel(closeSign, (err, res) => {
       if (err) {
         return window.alert(`An error occurred trying to close the channel: ${err.message}`);
       }
       window.alert("CLOSED");
       refreshAccounts();
+    });
+  }
+
+  $(".channel_present_close").click(() => {
+    if (!window.confirm("Are you sure you want to close this channel?")) {
+      return;
+    }
+    // signBalance without balance, sign current balance only if needed
+    rmpc.signBalance(null, (err, sign) => {
+      if (err) {
+        return window.alert(`An error occurred trying to get balance signature: ${err.message}`);
+      }
+      // call cooperative-close URL, and closeChannel with close_signature data
+      $.ajax({
+        url: `/api/1/channels/${rmpc.channel.account}/${rmpc.channel.block}`,
+        method: 'DELETE',
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify({ 'signature': sign }),
+        success: (result) => {
+          let closeSign = null;
+          if (result && typeof result === 'object' && result['close_signature']) {
+            closeSign = result['close_signature'];
+          } else {
+            console.warn('Invalid cooperative-close response', result);
+          }
+          closeChannel(closeSign);
+        },
+        error: (request, msg, error) {
+          console.warn('Error calling cooperative-close', request, msg, error);
+          closeChannel(null);
+        }
+      });
     });
   });
 
