@@ -73,12 +73,9 @@ class DefaultHTTPClient(HTTPClient):
             self.retry = True
             return False
 
-        verified = balance_sig and verify_balance_proof(
-                    self.channel.sender,
-                    self.channel.receiver,
-                    self.channel.block,
-                    balance, balance_sig,
-                    self.client.channel_manager_address
+        verified = balance_sig and is_same_address(
+            verify_balance_proof(self.channel.receiver, self.channel.block, balance, balance_sig),
+            self.channel.sender
         )
 
         if balance > self.channel.balance:

@@ -15,7 +15,7 @@ from .channel import Channel
 
 CHANNELS_DB = 'channels.json'
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
-TOKEN_ABI_NAME = 'RDNToken'
+TOKEN_ABI_NAME = 'ERC223Token'
 
 log = logging.getLogger(__name__)
 

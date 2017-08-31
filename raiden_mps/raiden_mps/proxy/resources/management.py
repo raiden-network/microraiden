@@ -2,9 +2,10 @@ import json
 from collections import defaultdict
 from flask_restful import Resource, reqparse
 
-from eth_utils import encode_hex
+from flask_restful import reqparse
 
-from raiden_mps.crypto import sign_close
+from raiden_mps.crypto import sign_balance_proof
+from eth_utils import encode_hex
 
 from raiden_mps.channel_manager import (
     NoOpenChannel,
@@ -110,7 +111,17 @@ class ChannelManagementListChannels(Resource):
         args = parser.parse_args()
         if args.signature is None:
             return "Bad signature format", 400
-        ret = sign_close(self.channel_manager.private_key, args.signature)
+        if args.block is None:
+            return "No opening block specified", 400
+        channel = self.channel_manager.state.channels[sender_address, args.block]
+        if channel.last_signature != args.signature:
+            return "Invalid or outdated balance signature", 400
+        ret = sign_balance_proof(
+            self.channel_manager.private_key,
+            self.channel_manager.receiver,
+            args.block,
+            channel.balance
+        )
         return ret, 200
 
 

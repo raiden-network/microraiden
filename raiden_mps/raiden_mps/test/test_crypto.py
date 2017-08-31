@@ -1,21 +1,20 @@
 import pytest
 from coincurve import PublicKey
-from eth_utils import force_bytes, encode_hex, decode_hex
+from eth_utils import encode_hex, decode_hex
 
-from raiden_mps.test.config import CHANNEL_MANAGER_ADDRESS
 from raiden_mps.contract_proxy import ChannelContractProxy
 from raiden_mps.crypto import (
     privkey_to_addr,
     sha3_hex,
     sign,
     pubkey_to_addr,
-    balance_message,
+    get_balance_message,
     sign_balance_proof,
     verify_balance_proof,
-    closing_agreement_message,
-    sign_close,
-    verify_closing_signature,
-    eth_sign
+    eth_sign,
+    sha3,
+    addr_from_sig,
+    eth_verify
 )
 
 SENDER_PRIVATE_KEY = '0xa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0'
@@ -65,77 +64,51 @@ def test_eth_sign():
     assert encode_hex(eth_sign(SENDER_PRIVATE_KEY, msg)) == sig_expected
 
 
-@pytest.mark.xfail
-def test_balance_message_contract(
-        client_contract_proxy: ChannelContractProxy,
-        channel_manager_contract_address
-):
-    msg1 = balance_message(RECEIVER_ADDR, 37, 15, channel_manager_contract_address)
-    assert len(msg1) == 32
-    msg2 = client_contract_proxy.contract.call().balanceMessageHash(RECEIVER_ADDR, 37, 15)
-    msg2 = force_bytes(msg2)
+def test_get_balance_message():
+    msg = get_balance_message(RECEIVER_ADDR, 310214, 14)
+    assert msg == 'Receiver: {}, Balance: 14, Channel ID: 310214'.format(RECEIVER_ADDR)
+
+
+def test_balance_message_contract(client_contract_proxy: ChannelContractProxy):
+    msg1 = get_balance_message(RECEIVER_ADDR, 37, 15)
+    msg2 = client_contract_proxy.contract.call().getBalanceMessage(RECEIVER_ADDR, 37, 15)
     assert msg1 == msg2
 
 
-@pytest.mark.xfail
-def test_sign_balance_proof_contract(
-        client_contract_proxy: ChannelContractProxy,
-        channel_manager_contract_address
-):
-    sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract_address
-    )
+def test_sign_balance_proof_contract(client_contract_proxy: ChannelContractProxy):
+    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15)
     sender_recovered = client_contract_proxy.contract.call().verifyBalanceProof(
         RECEIVER_ADDR, 37, 15, sig
     )
     assert sender_recovered == SENDER_ADDR
 
 
-def test_verify_balance_proof(channel_manager_contract_address):
-    sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 31, 8, channel_manager_contract_address
-    )
-    assert verify_balance_proof(
-        SENDER_ADDR, RECEIVER_ADDR, 31, 8, sig, channel_manager_contract_address
-    )
+def test_verify_balance_proof():
+    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 315123, 8)
+    assert verify_balance_proof(RECEIVER_ADDR, 315123, 8, sig) == SENDER_ADDR
+
+
+def test_sign_v0():
+    msg = sha3('hello v=0')
+    sig = sign(SENDER_PRIVATE_KEY, msg)
+    assert sig[-1] == 1
+    assert addr_from_sig(sig, msg) == SENDER_ADDR
+
+
+def test_eth_sign_v27():
+    sig = eth_sign(SENDER_PRIVATE_KEY, 'hello v=27')
+    assert sig[-1] == 27
+    assert eth_verify(sig, 'hello v=27') == SENDER_ADDR
 
 
 def test_verify_balance_proof_v0():
-    sender = '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38'
-    receiver = '0x004b52c58863c903ab012537247b963c557929e8'
-    contract_address = '0x5f3d7e2c44e157c2f1680059dd818d160e7d9625'
-    sig = '0x3c18243343e3242222b05fddd9f629b7dbc04332ad551287623cbaf2592dabc46' \
-          '6956ecfb3b859bbb17c0ad5990bac36f5edd92524a5160e9163a003f6d253a201'
-    sig = decode_hex(sig)
-    assert verify_balance_proof(sender, receiver, 3258574, 2, sig, contract_address)
+    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11)
+    sig = sig[:-1] + b'\x00'
+    assert verify_balance_proof(RECEIVER_ADDR, 312524, 11, sig) == SENDER_ADDR
 
 
-@pytest.mark.xfail
-def test_closing_agreement_message_contract(client_contract_proxy: ChannelContractProxy):
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 13, 2, CHANNEL_MANAGER_ADDRESS)
-    msg1 = closing_agreement_message(sig)
-    msg2 = client_contract_proxy.contract.call().closingAgreementMessageHash(sig)
-    msg2 = force_bytes(msg2)
-    assert msg1 == msg2
-
-
-@pytest.mark.xfail
-def test_sign_close_contract(client_contract_proxy: ChannelContractProxy):
-    balance_sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 13, 2, CHANNEL_MANAGER_ADDRESS
-    )
-    closing_sig = sign_close(RECEIVER_PRIVATE_KEY, balance_sig)
-
-    receiver_recovered = client_contract_proxy.contract.call().verifyClosingSignature(
-        balance_sig, closing_sig
-    )
-    assert receiver_recovered == RECEIVER_ADDR
-
-
-def test_verify_closing_signature():
-    balance_sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 101, 6, CHANNEL_MANAGER_ADDRESS
-    )
-    closing_sig = sign_close(RECEIVER_PRIVATE_KEY, balance_sig)
-
-    assert verify_closing_signature(RECEIVER_ADDR, balance_sig, closing_sig)
+def test_verify_balance_proof_v27():
+    # Should be default but test anyway.
+    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11)
+    sig = sig[:-1] + b'\x1b'
+    assert verify_balance_proof(RECEIVER_ADDR, 312524, 11, sig) == SENDER_ADDR

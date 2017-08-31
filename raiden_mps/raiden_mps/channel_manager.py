@@ -12,8 +12,7 @@ from eth_utils import decode_hex, is_same_address
 
 import logging
 
-from raiden_mps.crypto import sign_close, verify_closing_signature, verify_balance_proof, \
-    privkey_to_addr
+from raiden_mps.crypto import sign_balance_proof, verify_balance_proof, privkey_to_addr
 
 log = logging.getLogger(__name__)
 
@@ -446,7 +445,7 @@ class ChannelManager(gevent.Greenlet):
             c.is_closed = True
             self.state.store()
 
-    def sign_close(self, sender, open_block_number, signature):
+    def sign_close(self, sender, open_block_number, balance):
         """Sign an agreement for a channel closing."""
         if (sender, open_block_number) not in self.state.channels:
             raise NoOpenChannel('Channel does not exist or has been closed'
@@ -454,15 +453,16 @@ class ChannelManager(gevent.Greenlet):
         c = self.state.channels[sender, open_block_number]
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
-        assert signature is not None
+        assert balance is not None
         if c.last_signature is None:
             raise NoBalanceProofReceived('Payment has not been registered.')
-        if signature != c.last_signature:
+        if balance != c.balance:
             raise InvalidBalanceProof('Balance proof does not match latest one.')
         c.is_closed = True  # FIXME block number
         c.mtime = time.time()
-        receiver_sig = sign_close(self.private_key, decode_hex(signature.replace('0x', '')))
-        assert verify_closing_signature(self.receiver, signature, receiver_sig)
+        receiver_sig = sign_balance_proof(
+            self.private_key, self.receiver, open_block_number, balance
+        )
         self.state.store()
         self.log.info('signed cooperative closing message (sender %s, block number %s)',
                       sender, open_block_number)
@@ -496,10 +496,11 @@ class ChannelManager(gevent.Greenlet):
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
 
-        if not verify_balance_proof(
-            sender, self.receiver, open_block_number, balance,
-            decode_hex(signature.replace('0x', '')),
-            self.contract_proxy.address
+        if not is_same_address(
+                verify_balance_proof(
+                    self.receiver, open_block_number, balance, decode_hex(signature)
+                ),
+                sender
         ):
             raise InvalidBalanceProof('Recovered signer does not match the sender')
         return c

@@ -1,7 +1,7 @@
 from raiden_mps.client import Channel
 from raiden_mps import Client
 from raiden_mps.test.config import TEST_RECEIVER_PRIVKEY
-from raiden_mps.crypto import sign_close, privkey_to_addr
+from raiden_mps.crypto import sign_balance_proof, privkey_to_addr
 
 
 def close_all_channels(client: Client):
@@ -12,15 +12,11 @@ def close_all_channels(client: Client):
 def close_channel_cooperatively(
         channel, privkey_receiver: str=TEST_RECEIVER_PRIVKEY, balance: int=None
 ):
-    if not channel.balance_sig:
-        balance = 0
-    if balance is not None:
-        channel.balance = 0
-        channel.create_transfer(balance)
-
-    closing_sig = sign_close(privkey_receiver, channel.balance_sig)
-    close_retval = channel.close_cooperatively(closing_sig)
-    assert (close_retval is not None)
+    closing_sig = sign_balance_proof(
+        privkey_receiver, channel.receiver, channel.block,
+        channel.balance if balance is None else balance
+    )
+    assert channel.close_cooperatively(closing_sig)
 
 
 def close_all_channels_cooperatively(
