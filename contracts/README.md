@@ -33,8 +33,8 @@ RaidenMicroTransferChannels address is 0xeb244b0502a2d3867e5cab2347c6e1cdeb5e1ee
 
 ```
 
-ERC223Token  address is 0x1e1638504be105ab013d7563b9d73d1cedf17176
-RaidenMicroTransferChannels address is 0xed164e95bde2247529931d2ebe99435bce238ec0
+ERC223Token  address is 0xe2aece17096c95b97329e90205eab8673d1d72b7
+RaidenMicroTransferChannels address is 0x770ba2be480504ccc703672e7053e857ba4c8f67
 
 ```
 
