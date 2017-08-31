@@ -115,7 +115,7 @@ function pageReady(json) {
       $("#channel_missing_start").attr("disabled", true);
     }
   });
-  $("#channel_missing_start").attr("disabled", true);
+  $("#channel_missing_start").attr("disabled", false);
 
   $("#channel_missing_start").click(() => {
     const deposit = +$("#channel_missing_deposit").val();
@@ -173,7 +173,7 @@ function pageReady(json) {
       $("#topup_start").attr("disabled", true);
     }
   });
-  $("#topup_start").attr("disabled", true);
+  $("#topup_start").attr("disabled", false);
 
   $("#topup_start").click(() => {
     const deposit = +$("#topup_deposit").val();
