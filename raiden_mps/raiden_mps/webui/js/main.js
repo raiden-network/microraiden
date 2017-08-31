@@ -93,7 +93,7 @@ function pageReady(json) {
         const required = err.message.split('=')[2]
         $('#deposited').text(current)
         $('#required').text(required)
-        $('#remaining').text(-required)
+        $('#remaining').text(current - (parseInt(current) + parseInt(required) - parseInt(RMPparams.amount)))
         return mainSwitch("#topup");
       } else if (err && err.message && err.message.includes('User denied message signature')) {
         console.error(err);
