@@ -6,7 +6,6 @@ import pickle
 import time
 import tempfile
 import shutil
-import filelock
 import gevent
 from eth_utils import decode_hex, is_same_address
 
