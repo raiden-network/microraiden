@@ -308,13 +308,18 @@ class RaidenMicropaymentsClient {
           if (err) {
             return callback(err);
           }
-          // return current deposit
-          return this.getChannelInfo((err, info) => {
+          return this.waitForConfirmations(transferTxHash, 1, (err, confirmations) => {
             if (err) {
               return callback(err);
             }
-            return callback(null, info.deposit);
-          });
+            // return current deposit
+            return this.getChannelInfo((err, info) => {
+              if (err) {
+                return callback(err);
+              }
+              return callback(null, info.deposit);
+            });
+          })
         });
       });
   }
@@ -487,6 +492,28 @@ class RaidenMicropaymentsClient {
         filter.stopWatching();
         filter = null;
         return callback(null, receipt);
+      });
+    });
+    return filter;
+  }
+
+  /**
+   * Wait for a given number of confirmations before executing callback
+   */
+  waitForConfirmations(txHash, confirmations, callback) {
+    let filter = this.web3.eth.filter('latest');
+    filter.watch((err, log) => {
+      // Get info about latest Ethereum block
+      return this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
+        if (err) {
+          return callback(err);
+        } else if ((log.blockNumber - receipt.blockNumber) <= confirmations) {
+          return console.log('actual confirmations: ', (log.blockNumber - receipt.blockNumber), 'given confirmations: ', confirmations);
+        }
+        // Tx is finished
+        filter.stopWatching();
+        filter = null;
+        return callback(null, (log.blockNumber - receipt.blockNumber));
       });
     });
     return filter;
