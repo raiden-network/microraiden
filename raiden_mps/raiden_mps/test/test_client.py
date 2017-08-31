@@ -26,10 +26,10 @@ def test_client(client: Client, receiver_address, clean_channels):
 
 
 def test_cooperative_close(client: Client, receiver_privkey, receiver_address, clean_channels):
-    c = client.open_channel(receiver_address, 10)
+    c = client.get_suitable_channel(receiver_address, 3)
     c.create_transfer(3)
 
-    assert c.deposit == 10
+    assert c.deposit >= 3
     assert c.balance == 3
 
     sig = sign_balance_proof(receiver_privkey, c.receiver, c.block, c.balance)

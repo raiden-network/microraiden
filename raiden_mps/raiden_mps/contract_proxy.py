@@ -10,7 +10,7 @@ from web3.utils.filters import construct_event_filter_params
 
 from raiden_mps.crypto import privkey_to_addr
 
-DEFAULT_TIMEOUT = 20
+DEFAULT_TIMEOUT = 60
 DEFAULT_RETRY_INTERVAL = 3
 
 
