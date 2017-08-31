@@ -58,14 +58,28 @@ def get_doggo(_):
     help='Private key of the proxy'
 )
 @click.option(
+    '--ssl-cert',
+    default=None,
+    help='Cerfificate of the server (cert.pem or similar)'
+)
+@click.option(
+    '--ssl-key',
+    default=None,
+    help='SSL key of the server (key.pem or similar)'
+)
+@click.option(
     '--paywall-info',
     default=os.path.abspath(os.path.join(os.path.dirname(__file__), '../webui')),
     help='Directory where the paywall info is stored. '
          'The directory shoud contain a index.html file with the payment info/webapp. '
          'Content of the directory (js files, images..) is available on the "js/" endpoint.'
 )
+
+
 def main(
     channel_manager_address,
+    ssl_key,
+    ssl_cert,
     state_file,
     private_key,
     paywall_info
@@ -95,7 +109,7 @@ def main(
     app.add_content(PaywalledContent("doggo.txt", 2, get_doggo))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
     app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
-    app.run(debug=True)
+    app.run(debug=True, ssl_context=(ssl_key, ssl_cert))
     app.join()
 
 

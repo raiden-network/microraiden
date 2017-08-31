@@ -139,6 +139,10 @@ class Expensive(Resource):
             return self.reply_payment_required(content, proxy_handle,
                                                headers={header.NONEXISTING_CHANNEL: 1},
                                                gen_ui=accepts_html)
+        except InvalidBalanceProof as e:
+            return self.reply_payment_required(content, proxy_handle,
+                                               headers={header.INVALID_PROOF: 1},
+                                               gen_ui=accepts_html)
 
         # set the headers to reflect actual state of a channel
         headers = self.generate_headers(channel, proxy_handle)

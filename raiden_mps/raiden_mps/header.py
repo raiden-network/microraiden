@@ -12,11 +12,14 @@ class HTTPHeaders(object):
     SENDER_ADDRESS = 'RDN-Sender-Address'
     SENDER_BALANCE = 'RDN-Sender-Balance'
     GATEWAY_PATH = 'RDN-Gateway-Path'
+    COST = 'RDN-Cost'
+    OPEN_BLOCK = 'RDN-Open-Block'
+
+# errors
     INSUF_FUNDS = 'RDN-Insufficient-Funds'
     INSUF_CONFS = 'RDN-Insufficient-Confirmations'
     NONEXISTING_CHANNEL = 'RDN-Nonexisting-Channel'
-    COST = 'RDN-Cost'
-    OPEN_BLOCK = 'RDN-Open-Block'
+    INVALID_PROOF = 'RDN-Invalid-Balance-Proof'
 
     DESERIALIZE_DICT = None
     SERIALIZE_DICT = None
@@ -45,4 +48,3 @@ class HTTPHeaders(object):
                 k.lower(): v for k, v in HTTPHeaders.__dict__.items() if str(v).startswith('RDN')
             }
         return {cls.SERIALIZE_DICT[k]: v for k, v in headers.items() if v}
-
