@@ -1,5 +1,5 @@
 {
-  "contractAddr": "0x7faa7e718f9c578c9f36a766079064b89068ce4c",
+  "contractAddr": "0xeb244b0502a2d3867e5cab2347c6e1cdeb5e1eef",
   "contractABI": [
     {
       "constant": true,
@@ -433,9 +433,111 @@
       ],
       "name": "GasCost",
       "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "UintE",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "bytes"
+        }
+      ],
+      "name": "BytesE",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "bytes32"
+        }
+      ],
+      "name": "Bytes32E",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "bytes4"
+        }
+      ],
+      "name": "Bytes4E",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "bytes20"
+        }
+      ],
+      "name": "Bytes20E",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "address"
+        }
+      ],
+      "name": "AddressE",
+      "type": "event"
     }
   ],
-  "tokenAddr": "0xfabf70d72bf871d0762603a23fb5264cba04a081",
+  "tokenAddr": "0xc97c510f7d79057c8ae98e0ff8b3841e824cb4b5",
   "tokenABI": [
     {
       "constant": true,
