@@ -15,11 +15,6 @@ contract RaidenMicroTransferChannels {
     uint8 public challenge_period;
     string constant prefix = "\x19Ethereum Signed Message:\n";
 
-    struct slice {
-        uint _len;
-        uint _ptr;
-    }
-
     Token token;
 
     mapping (bytes32 => Channel) channels;
@@ -133,6 +128,7 @@ contract RaidenMicroTransferChannels {
         return str;
     }
 
+    // 56014 gas cost
     /// @dev Returns the sender address extracted from the balance proof.
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the sender and receiver was created.
@@ -148,18 +144,34 @@ contract RaidenMicroTransferChannels {
         constant
         returns (address)
     {
+        //GasCost('close verifyBalanceProof getBalanceMessage start', block.gaslimit, msg.gas);
         // Create message which should be signed by sender
-        string memory str = getBalanceMessage(_receiver, _open_block_number, _balance);
+        string memory message = getBalanceMessage(_receiver, _open_block_number, _balance);
+        //GasCost('close verifyBalanceProof getBalanceMessage end', block.gaslimit, msg.gas);
 
+        //GasCost('close verifyBalanceProof length start', block.gaslimit, msg.gas);
+        // 2446 gas cost
+        // TODO: improve length calc
+        uint message_length = bytes(message).length;
+        //GasCost('close verifyBalanceProof length end', block.gaslimit, msg.gas);
+
+        //GasCost('close verifyBalanceProof uintToString start', block.gaslimit, msg.gas);
+        string memory message_length_string = uintToString(message_length);
+        //GasCost('close verifyBalanceProof uintToString end', block.gaslimit, msg.gas);
+
+        //GasCost('close verifyBalanceProof concat start', block.gaslimit, msg.gas);
         // Prefix the message
-        string memory message = concat(prefix, uintToString2(strLen(str)));
-        message = concat(message, str);
+        string memory prefixed_message = concat(prefix, message_length_string);
+        //GasCost('close verifyBalanceProof concat end', block.gaslimit, msg.gas);
+
+        prefixed_message = concat(prefixed_message, message);
+
 
         // Hash the prefixed message string
-        bytes32 message_hash = sha3(message);
+        bytes32 prefixed_message_hash = sha3(prefixed_message);
 
         // Derive address from signature
-        address signer = ECVerify.ecverify(message_hash, _balance_msg_sig);
+        address signer = ECVerify.ecverify(prefixed_message_hash, _balance_msg_sig);
         return signer;
     }
 
@@ -177,23 +189,26 @@ contract RaidenMicroTransferChannels {
         bytes _data)
         external
     {
-        GasCost('tokenFallback start0', block.gaslimit, msg.gas);
+        //GasCost('tokenFallback start0', block.gaslimit, msg.gas);
         uint length = _data.length;
 
         // createChannel - receiver address (20 bytes + padding = 32 bytes)
         // topUp - receiver address (32 bytes) + open_block_number (4 bytes + padding = 32 bytes)
         require(length == 20 || length == 24);
-
+        //GasCost('tokenFallback addressFromData start', block.gaslimit, msg.gas);
         address receiver = addressFromData(_data);
+        //GasCost('tokenFallback addressFromData end', block.gaslimit, msg.gas);
 
         if(length == 20) {
             createChannelPrivate(_sender, receiver, uint192(_deposit));
         }
         else {
+            //GasCost('tokenFallback blockNumberFromData start', block.gaslimit, msg.gas);
             uint32 open_block_number = blockNumberFromData(_data);
+            //GasCost('tokenFallback blockNumberFromData end', block.gaslimit, msg.gas);
             topUpPrivate(_sender, receiver, open_block_number, uint192(_deposit));
         }
-        GasCost('tokenFallback end', block.gaslimit, msg.gas);
+        //GasCost('tokenFallback end', block.gaslimit, msg.gas);
     }
 
     /// @dev Creates a new channel between a sender and a receiver and transfers the sender's token deposit to this contract, compatibility with ERC20 tokens.
@@ -240,8 +255,10 @@ contract RaidenMicroTransferChannels {
         bytes _balance_msg_sig)
         external
     {
-        //require(_balance_msg_sig.length == 65);
+        require(_balance_msg_sig.length == 65);
+        //GasCost('close verifyBalanceProof start', block.gaslimit, msg.gas);
         address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
+        //GasCost('close verifyBalanceProof end', block.gaslimit, msg.gas);
 
         if(msg.sender == _receiver) {
             settleChannel(sender, _receiver, _open_block_number, _balance);
@@ -269,8 +286,11 @@ contract RaidenMicroTransferChannels {
         require(_balance_msg_sig.length == 65);
         require(_closing_sig.length == 65);
 
+        //GasCost('close coop verifyBalanceProof start', block.gaslimit, msg.gas);
         // derive address from signature
         address receiver = verifyBalanceProof(_receiver, _open_block_number, _balance, _closing_sig);
+        //GasCost('close coop verifyBalanceProof start', block.gaslimit, msg.gas);
+
         require(receiver == _receiver);
 
         address sender = verifyBalanceProof(_receiver, _open_block_number, _balance, _balance_msg_sig);
@@ -327,7 +347,7 @@ contract RaidenMicroTransferChannels {
         uint192 _deposit)
         private
     {
-        GasCost('createChannel start', block.gaslimit, msg.gas);
+        //GasCost('createChannel start', block.gaslimit, msg.gas);
         uint32 open_block_number = uint32(block.number);
 
         // Create unique identifier from sender, receiver and current block number
@@ -339,7 +359,7 @@ contract RaidenMicroTransferChannels {
 
         // Store channel information
         channels[key] = Channel({deposit: _deposit, open_block_number: open_block_number});
-        GasCost('createChannel end', block.gaslimit, msg.gas);
+        //GasCost('createChannel end', block.gaslimit, msg.gas);
         ChannelCreated(_sender, _receiver, _deposit);
     }
 
@@ -356,7 +376,7 @@ contract RaidenMicroTransferChannels {
         uint192 _added_deposit)
         private
     {
-        GasCost('topUp start', block.gaslimit, msg.gas);
+        //GasCost('topUp start', block.gaslimit, msg.gas);
         require(_added_deposit != 0);
         require(_open_block_number != 0);
 
@@ -367,7 +387,7 @@ contract RaidenMicroTransferChannels {
 
         channels[key].deposit += _added_deposit;
         ChannelToppedUp(_sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
-        GasCost('topUp end', block.gaslimit, msg.gas);
+        //GasCost('topUp end', block.gaslimit, msg.gas);
     }
 
 
@@ -381,7 +401,7 @@ contract RaidenMicroTransferChannels {
         uint192 _balance)
         private
     {
-        GasCost('initChallengePeriod end', block.gaslimit, msg.gas);
+        //GasCost('initChallengePeriod end', block.gaslimit, msg.gas);
         bytes32 key = getKey(msg.sender, _receiver, _open_block_number);
 
         require(closing_requests[key].settle_block_number == 0);
@@ -391,7 +411,7 @@ contract RaidenMicroTransferChannels {
         closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
         closing_requests[key].closing_balance = _balance;
         ChannelCloseRequested(msg.sender, _receiver, _open_block_number, _balance);
-        GasCost('initChallengePeriod end', block.gaslimit, msg.gas);
+        //GasCost('initChallengePeriod end', block.gaslimit, msg.gas);
     }
 
     /// @dev Closes the channel and settles by transfering the balance to the receiver and the rest of the deposit back to the sender.
@@ -406,7 +426,7 @@ contract RaidenMicroTransferChannels {
         uint192 _balance)
         private
     {
-        GasCost('settleChannel start', block.gaslimit, msg.gas);
+        //GasCost('settleChannel start', block.gaslimit, msg.gas);
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
         Channel channel = channels[key];
 
@@ -417,14 +437,14 @@ contract RaidenMicroTransferChannels {
         // send minimum of _balance and deposit to receiver
         uint send_to_receiver = min(_balance, channel.deposit);
         if(send_to_receiver > 0) {
-            GasCost('settleChannel', block.gaslimit, msg.gas);
+            //GasCost('settleChannel', block.gaslimit, msg.gas);
             require(token.transfer(_receiver, send_to_receiver));
         }
 
         // send maximum of deposit - balance and 0 to sender
         uint send_to_sender = max(channel.deposit - _balance, 0);
         if(send_to_sender > 0) {
-            GasCost('settleChannel', block.gaslimit, msg.gas);
+            //GasCost('settleChannel', block.gaslimit, msg.gas);
             require(token.transfer(_sender, send_to_sender));
         }
 
@@ -435,7 +455,7 @@ contract RaidenMicroTransferChannels {
         delete closing_requests[key];
 
         ChannelSettled(_sender, _receiver, _open_block_number, _balance);
-        GasCost('settleChannel end', block.gaslimit, msg.gas);
+        //GasCost('settleChannel end', block.gaslimit, msg.gas);
     }
 
     /*
@@ -468,7 +488,8 @@ contract RaidenMicroTransferChannels {
         else return b;
     }
 
-    /// @dev Internal function for getting an address from bytes.
+    // 2656 gas cost
+    /// @dev Internal function for getting an address from tokenFallback data bytes.
     /// @param b Bytes received.
     /// @return Address resulted.
     function addressFromData (
@@ -477,21 +498,17 @@ contract RaidenMicroTransferChannels {
         constant
         returns (address)
     {
-        require(b.length >= 20);
-        uint start = 1;
-        uint end = 19;
-
-        uint result = 0;
-        for (uint i = end; i >= start; i--) {
-            uint c = uint(b[i]);
-            uint exp = (end - i) * 2;
-            result += c * (16**exp);
+        bytes20 addr;
+        assembly {
+            // Read address bytes
+            // Offset of 32 bytes, representing b.length
+            addr := mload(add(b, 0x20))
         }
-        result += uint(b[0]) * (16**38);
-        return address(result);
+        return address(addr);
     }
 
-    /// @dev Internal function for getting the block number from bytes.
+    // 2662 gas cost
+    /// @dev Internal function for getting the block number from tokenFallback data bytes.
     /// @param b Bytes received.
     /// @return Block number.
     function blockNumberFromData(
@@ -500,38 +517,13 @@ contract RaidenMicroTransferChannels {
         constant
         returns (uint32)
     {
-        require(b.length >= 20);
-        uint start = 20;
-        uint end = b.length - 1;
-
-        uint result = 0;
-        for (uint i = end; i >= start; i--) {
-            uint c = uint(b[i]);
-            uint exp = (end - i) * 2;
-            result += c * (16**exp);
-        }
-        return uint32(result);
-    }
-
-    function toSlice(
-        string self)
-        internal
-        returns (slice)
-    {
-        uint ptr;
+        bytes4 block_number;
         assembly {
-            ptr := add(self, 0x20)
+            // Read block number bytes
+            // Offset of 32 bytes (b.length) + 20 bytes (address)
+            block_number := mload(add(b, 0x34))
         }
-        return slice(bytes(self).length, ptr);
-    }
-
-    function strLen(
-        string self)
-        internal
-        constant
-        returns (uint)
-    {
-        return bytes(self).length;
+        return uint32(block_number);
     }
 
     function memcpy(
@@ -558,6 +550,7 @@ contract RaidenMicroTransferChannels {
         }
     }
 
+    // 3813 gas cost
     function concat(
         string _self,
         string _other)
@@ -565,29 +558,72 @@ contract RaidenMicroTransferChannels {
         constant
         returns (string)
     {
-        slice memory self = toSlice(_self);
-        slice memory other = toSlice(_other);
-        var ret = new string(self._len + other._len);
+        uint self_len = bytes(_self).length;
+        uint other_len = bytes(_other).length;
+        uint self_ptr;
+        uint other_ptr;
+
+        assembly {
+            self_ptr := add(_self, 0x20)
+            other_ptr := add(_other, 0x20)
+        }
+
+        var ret = new string(self_len + other_len);
         uint retptr;
         assembly { retptr := add(ret, 32) }
-        memcpy(retptr, self._ptr, self._len);
-        memcpy(retptr + self._len, other._ptr, other._len);
+        memcpy(retptr, self_ptr, self_len);
+        memcpy(retptr + self_len, other_ptr, other_len);
         return ret;
     }
 
-    function uintToBytes (
+    /*function uintToBytes (
         uint256 n)
         internal
         constant
-        returns (bytes b)
+        returns (bytes32 b)
     {
-        b = new bytes(32);
+        //b = new bytes(32);
         assembly {
-            mstore(add(b, 32), n)
+            //mstore(add(b, 32), n)
+            b := mload(add(n, 32))
         }
     }
 
-    function uintToString2(
+    function uintToBytes32 (
+        uint256 n)
+        internal
+        constant
+        returns (bytes32 b)
+    {
+        assembly {
+            b := mload(add(n, 32))
+        }
+    }
+
+    function stringToBytes1(
+        string str)
+        internal
+        constant
+        returns (bytes)
+    {
+        return bytes(str);
+    }
+
+    function stringToBytes2(
+        string source)
+        internal
+        constant
+        returns (bytes result)
+    {
+        uint len = bytes(source).length;
+        result = new bytes(len);
+        assembly {
+            result := mload(add(source, len))
+        }
+    }*/
+
+    // 9613 gas
+    function uintToString(
         uint v)
         internal
         constant

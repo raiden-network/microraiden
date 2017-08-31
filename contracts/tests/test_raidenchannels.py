@@ -587,3 +587,7 @@ def test_channel_topup_20(web3, chain, contract, channel_20):
     print('----------------------------------')
     print('GAS USED test_channel_topup_20', gas_used_approve + get_gas_used(chain, trxid))
     print('----------------------------------')
+
+def test_last_test_event_timeout():
+    with Timeout(20) as timeout:
+        timeout.sleep(2)
