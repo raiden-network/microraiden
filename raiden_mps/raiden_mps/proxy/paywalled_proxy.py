@@ -90,8 +90,9 @@ class PaywalledProxy:
         register_error_handler(self.gevent_error_handler)
         self.channel_manager.wait_sync()
         from gevent.pywsgi import WSGIServer
-        ssl_cond = all((len(ssl_context) == 2, ssl_context[0], ssl_context[1]))
-        if ssl_cond:
+        if ((ssl_context is not None) and
+           (len(ssl_context) > 2) and
+           (ssl_context[0] and ssl_context[1])):
             self.rest_server = WSGIServer(('localhost', 5000), self.app,
                                           keyfile=ssl_context[0],
                                           certfile=ssl_context[1])
