@@ -218,17 +218,11 @@ li {
 }
 
 .balance-icon {
-  font-size: 30px;
+  font-size: 20px;
   font-weight: bold;
-  text-align: left;
-  padding-top: 5px;
+  text-align: left !important;
   color: white;
-  background-color: black;
-  text-align: center;
-}
-
-.balance-content {
-  margin-left: -20px;
+  padding-left: 0;
 }
 
 .balance-label {
