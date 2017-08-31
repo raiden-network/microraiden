@@ -152,7 +152,7 @@ def getTokens(**kwargs):
 
         # check if it works:
         # 1. get message balance hash for address[0]
-        balance_msg = "Receiver: " + addresses[0] + "\nBalance: 10000\nChannel ID: 100"
+        balance_msg = "Receiver: " + addresses[0] + ", Balance: 10000, Channel ID: 100"
 
         # 2. sign the hash with private key corresponding to address[0]
         balance_msg_sig, addr = sign.check(balance_msg, binascii.unhexlify(priv_keys[0]))
