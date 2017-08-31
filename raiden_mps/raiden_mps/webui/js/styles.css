@@ -240,12 +240,12 @@ li {
   padding-top: 15px;
 }
 
-.btn {
-  font-size: 16px;
+.box-container .btn {
+  font-size: 16px !important;
 }
 
-.input-group {
-  font-size: 16px;
+.box-container .input-group {
+  font-size: 16px !important;
 }
 
 .box-container h3, .h3 {
