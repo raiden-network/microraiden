@@ -24,9 +24,11 @@ from raiden_mps.proxy.resources import (
 from raiden_mps.proxy.content import PaywallDatabase
 from raiden_mps.proxy.resources.expensive import LightClientProxy
 from raiden_mps.config import API_PATH
+from raiden_mps.proxy.gevent_error_patch import register_error_handler
 
 
 import logging
+import ssl
 
 log = logging.getLogger(__name__)
 
@@ -82,11 +84,19 @@ class PaywalledProxy:
     def add_content(self, content):
         self.paywall_db.add_content(content)
 
-    def run(self, debug=False):
-        gevent.get_hub().SYSTEM_ERROR += (BaseException, )
+    def run(self, debug=False, ssl_context=None):
+        assert ssl_context is None or len(ssl_context) == 2
+        # register our custom error handler to ignore some exceptions and fail on others
+        register_error_handler(self.gevent_error_handler)
         self.channel_manager.wait_sync()
-        from gevent.wsgi import WSGIServer
-        self.rest_server = WSGIServer(('localhost', 5000), self.app)
+        from gevent.pywsgi import WSGIServer
+        ssl_cond = all((len(ssl_context) == 2, ssl_context[0], ssl_context[1]))
+        if ssl_cond:
+            self.rest_server = WSGIServer(('localhost', 5000), self.app,
+                                          keyfile=ssl_context[0],
+                                          certfile=ssl_context[1])
+        else:
+            self.rest_server = WSGIServer(('localhost', 5000), self.app)
         self.server_greenlet = gevent.spawn(self.rest_server.serve_forever)
 
     def stop(self):
@@ -104,3 +114,10 @@ class PaywalledProxy:
 
     def join(self):
         self.server_greenlet.join()
+
+    @staticmethod
+    def gevent_error_handler(context, exc_info):
+        e = exc_info[1]
+        if isinstance(e, ssl.SSLError) and e.reason == 'HTTP_REQUEST':
+            return
+        gevent.get_hub().handle_system_error(exc_info[0], exc_info[1])

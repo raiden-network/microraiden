@@ -238,7 +238,7 @@ class ChannelManagerState(object):
         assert isinstance(filename, str)
         ret = pickle.load(open(filename, 'rb'))
         log.debug("loaded saved state. head_number=%d receiver=%s" %
-                  (ret.head_number, ret.receiver))
+                  (ret.confirmed_head_number, ret.receiver))
         for sender, block in ret.channels.keys():
             log.debug("loaded channel info from the saved state sender=%s open_block=%s" %
                       (sender, block))
