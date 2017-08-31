@@ -57,10 +57,10 @@ def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait
     assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
     assert (channel.sender, channel.block) not in channel_manager.state.channels
     channel.close()
-    wait_for_blocks(0)
+    wait_for_blocks(channel_manager.blockchain.n_confirmations)  # opening confirmed
     assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
     assert (channel.sender, channel.block) in channel_manager.state.channels
-    wait_for_blocks(channel_manager.blockchain.n_confirmations)
+    wait_for_blocks(1)  # closing confirmed
     assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
     assert (channel.sender, channel.block) in channel_manager.state.channels
 
@@ -346,8 +346,7 @@ def test_balances(channel_manager, confirmed_open_channel, receiver_address, sen
 
     receiver_sig = channel_manager.sign_close(sender_address, confirmed_open_channel.block, sig)
     confirmed_open_channel.close_cooperatively(receiver_sig)
-    wait_for_blocks(1)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    wait_for_blocks(channel_manager.n_confirmations)
 
     assert channel_manager.get_liquid_balance() == 5
     assert channel_manager.get_locked_balance() == 0
@@ -399,3 +398,44 @@ def test_different_receivers(web3, channel_managers,
     wait_for_blocks(n_confirmations)
     gevent.sleep(channel_manager1.blockchain.poll_frequency)
     assert (sender_address, channel.block) not in channel_manager1.state.channels
+
+
+def test_reorg(web3, channel_manager, client, receiver_address, wait_for_blocks, clean_channels):
+    wait_for_blocks(10)
+    # create unconfirmed channel
+    channel_manager.wait_sync()
+    snapshot_id = web3.testing.snapshot()
+    channel = client.open_channel(receiver_address, 10)
+    wait_for_blocks(0)
+    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
+
+    # remove unconfirmed channel opening with reorg
+    web3.testing.revert(snapshot_id)
+    wait_for_blocks(0)
+    assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
+    web3.testing.mine(channel_manager.n_confirmations)
+    assert (channel.sender, channel.block) not in channel_manager.state.channels
+
+    # leave confirmed channel opening
+    web3.testing.revert(snapshot_id)
+    channel = client.open_channel(receiver_address, 10)
+    wait_for_blocks(channel_manager.n_confirmations)
+    assert (channel.sender, channel.block) in channel_manager.state.channels
+    confirmed_snapshot_id = web3.testing.snapshot()
+    wait_for_blocks(3)
+    web3.testing.revert(confirmed_snapshot_id)
+    assert (channel.sender, channel.block) in channel_manager.state.channels
+
+    # remove unconfirmed topup
+    channel = client.open_channel(receiver_address, 10)
+    wait_for_blocks(channel_manager.n_confirmations)
+    assert (channel.sender, channel.block) in channel_manager.state.channels
+    channel_rec = channel_manager.state.channels[channel.sender, channel.block]
+    topup_snapshot_id = web3.testing.snapshot()
+    channel.topup(5)
+    wait_for_blocks(0)
+    assert len(channel_rec.unconfirmed_event_channel_topups) == 1
+    web3.testing.revert(topup_snapshot_id)
+    wait_for_blocks(0)
+    assert (channel.sender, channel.block) in channel_manager.state.channels
+    assert len(channel_rec.unconfirmed_event_channel_topups) == 0

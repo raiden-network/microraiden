@@ -49,13 +49,13 @@ class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
     poll_frequency = 2
 
-    def __init__(self, web3, contract_proxy, channel_manager, n_confirmations=5):
+    def __init__(self, web3, contract_proxy, channel_manager, n_confirmations):
         gevent.Greenlet.__init__(self)
         self.web3 = web3
         self.contract_proxy = contract_proxy
         self.cm = channel_manager
         self.n_confirmations = n_confirmations
-        self.log = log
+        self.log = logging.getLogger('blockchain')
         self.wait_sync_event = gevent.event.Event()
 
     def _run(self):
@@ -68,24 +68,45 @@ class Blockchain(gevent.Greenlet):
         self.wait_sync_event.wait()
 
     def _update(self):
-        # check that history hasn't changed
-        last_block = self.web3.eth.getBlock(self.cm.state.head_number)
-        assert last_block.number == 0 or last_block.hash == self.cm.state.head_hash
+        # reset unconfirmed channels in case of reorg
+        if self.wait_sync_event.is_set():  # but not on first sync
+            if self.web3.eth.blockNumber < self.cm.state.unconfirmed_head_number:
+                self.log.info('chain reorganization detected, resyncing unconfirmed events')
+                self.cm.reset_unconfirmed()
+            try:
+                # raises if hash doesn't exist (i.e. block has been replaced)
+                self.web3.eth.getBlock(self.cm.state.unconfirmed_head_hash)
+            except ValueError:
+                self.log.info('chain reorganization detected, resyncing unconfirmed events')
+                self.cm.reset_unconfirmed()
+
+            # in case of reorg longer than confirmation number fail
+            try:
+                self.web3.eth.getBlock(self.cm.state.confirmed_head_hash)
+            except ValueError:
+                self.log.critical('events considered confirmed have been reorganized')
+                assert False
+                # TODO: store balance proofs, resync, apply balance proofs
+
+        if self.cm.state.confirmed_head_number is None:
+            self.cm.state.confirmed_head_number = -1
+        if self.cm.state.unconfirmed_head_number is None:
+            self.cm.state.unconfirmed_head_number = -1
         current_block = self.web3.eth.blockNumber
-        if current_block == self.cm.state.head_number:
-            return
+        new_unconfirmed_head_number = current_block
+        new_confirmed_head_number = max(current_block - self.n_confirmations, 0)
 
         # filter for events after block_number
         filters_confirmed = {
-            'from_block': max(0, self.cm.state.head_number + 1 - self.n_confirmations),
-            'to_block': max(current_block - self.n_confirmations, 0),
+            'from_block': self.cm.state.confirmed_head_number + 1,
+            'to_block': new_confirmed_head_number,
             'filters': {
                 '_receiver': self.cm.state.receiver
             }
         }
         filters_unconfirmed = {
-            'from_block': filters_confirmed['to_block'] + 1,
-            'to_block': current_block,
+            'from_block': self.cm.state.unconfirmed_head_number + 1,
+            'to_block': new_unconfirmed_head_number,
             'filters': {
                 '_receiver': self.cm.state.receiver
             }
@@ -177,8 +198,14 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
 
         # update head hash and number
-        block = self.web3.eth.getBlock(current_block)
-        self.cm.set_head(block.number, block.hash)
+        new_unconfirmed_head_hash = self.web3.eth.getBlock(new_unconfirmed_head_number).hash
+        new_confirmed_head_hash = self.web3.eth.getBlock(new_confirmed_head_number).hash
+        self.cm.set_head(
+            new_unconfirmed_head_number,
+            new_unconfirmed_head_hash,
+            new_confirmed_head_number,
+            new_confirmed_head_hash
+        )
         self.wait_sync_event.set()
 
 
@@ -188,8 +215,10 @@ class ChannelManagerState(object):
     def __init__(self, contract_address, receiver, filename=None):
         self.contract_address = contract_address
         self.receiver = receiver.lower()
-        self.head_hash = None
-        self.head_number = 0
+        self.confirmed_head_number = None
+        self.confirmed_head_hash = None
+        self.unconfirmed_head_number = None
+        self.unconfirmed_head_hash = None
         self.channels = dict()
         self.filename = filename
         self.unconfirmed_channels = dict()
@@ -220,13 +249,14 @@ class ChannelManager(gevent.Greenlet):
     """Manages channels from the receiver's point of view."""
 
     def __init__(self, web3, contract_proxy, token_contract, private_key: str,
-                 state_filename=None):
+                 state_filename=None, n_confirmations=5):
         gevent.Greenlet.__init__(self)
-        self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=1)
+        self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=n_confirmations)
         self.receiver = privkey_to_addr(private_key)
         self.private_key = private_key
         self.contract_proxy = contract_proxy
         self.token_contract = token_contract
+        self.n_confirmations = n_confirmations
         self.log = logging.getLogger('channel_manager')
         assert privkey_to_addr(self.private_key) == self.receiver.lower()
 
@@ -251,10 +281,13 @@ class ChannelManager(gevent.Greenlet):
         self.blockchain.start()
         self.blockchain.get()  # re-raises exception
 
-    def set_head(self, number, _hash):
+    def set_head(self, unconfirmed_head_number, unconfirmed_head_hash,
+                 confirmed_head_number, confirmed_head_hash):
         """Set the block number up to which all events have been registered."""
-        self.state.head_number = number
-        self.state.head_hash = _hash
+        self.state.unconfirmed_head_number = unconfirmed_head_number
+        self.state.unconfirmed_head_hash = unconfirmed_head_hash
+        self.state.confirmed_head_number = confirmed_head_number
+        self.state.confirmed_head_hash = confirmed_head_hash
         self.state.store()
 
     # relevant events from the blockchain for receiver from contract
@@ -442,6 +475,14 @@ class ChannelManager(gevent.Greenlet):
         self.log.debug('registered payment (sender %s, block number %s, new balance %s)',
                        c.sender, open_block_number, balance)
         return (c.sender, received)
+
+    def reset_unconfirmed(self):
+        """Forget all unconfirmed channels and topups to allow for a clean resync."""
+        self.state.unconfirmed_channels.clear()
+        for channel in self.state.channels.values():
+            channel.unconfirmed_event_channel_topups.clear()
+        self.state.unconfirmed_head_number = self.state.confirmed_head_number
+        self.state.unconfirmed_head_hash = self.state.confirmed_head_hash
 
     def channels_to_dict(self):
         """Export all channels as a dictionary."""
