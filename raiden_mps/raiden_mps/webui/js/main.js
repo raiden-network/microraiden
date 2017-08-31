@@ -93,12 +93,17 @@ function pageReady(json) {
         const required = err.message.split('=')[2]
         $('#deposited').text(current)
         $('#required').text(required)
-        $('#difference').text(required - current)
+        $('#remaining').text(-required)
         return mainSwitch("#topup");
+      } else if (err && err.message && err.message.includes('User denied message signature')) {
+        console.error(err);
+        $('.channel_present_sign').addClass('green-btn')
+        return window.alert('User denied message signature');
       } else if (err) {
         console.error(err);
         return window.alert("An error occurred trying to sign the transfer: "+err);
       }
+      $('.channel_present_sign').removeClass('green-btn')
       console.log("SIGNED!", sign);
       Cookies.set("RDN-Sender-Address", rmpc.channel.account);
       Cookies.set("RDN-Open-Block", rmpc.channel.block);
