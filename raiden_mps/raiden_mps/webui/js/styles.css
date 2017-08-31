@@ -104,13 +104,13 @@
 }
 
 .account-label {
-  padding-left: 125px;
+  padding-left: 125px !important;
   padding-top: 7px;
 }
 
 .account-select {
-  font-size: 16px;
-  width: auto;
+  font-size: 16px !important;
+  width: auto !important;
   margin-left: 25px;
 }
 
