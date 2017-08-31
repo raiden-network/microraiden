@@ -3,7 +3,7 @@ import bitcoin
 from ethereum import utils
 from ethereum.utils import sha3
 from secp256k1 import PrivateKey
-from eth_utils import keccak, is_0x_prefixed, decode_hex
+from eth_utils import keccak, is_0x_prefixed, decode_hex, encode_hex
 
 
 eth_prefix = "\x19Ethereum Signed Message:\n"
@@ -16,7 +16,7 @@ def eth_privtoaddr(priv) -> str:
 def eth_message_hex(msg: str) -> bytes:
     msg = eth_prefix + str(len(msg)) + msg
     print("--eth_message_hex msg", msg)
-    msg_hex = "0x" + "".join("{:02x}".format(ord(c)) for c in msg)
+    msg_hex = encode_hex(msg)
     print("---eth_message_hex hex", msg_hex)
     return sha3(msg_hex)
 

@@ -254,7 +254,8 @@ balance_message = Contract.call().getBalanceMessage(receiver, open_block_number,
 
 # Transform message to hexadecimal format
 # For the above example, result will be: 0x19457468657265756d205369676e6564204d6573736167653a0a3738
-balance_message_hex = "0x" + "".join("{:02x}".format(ord(c)) for c in msg)
+from eth_utils import encode_hex
+balance_message_hex = encode_hex(balance_message)
 
 # balance_message_hex is signed by the Sender with MetaMask / Parity
 # For the above example, result will be: 0x52656365697665723a203078646365636561663366633563306136336431393564363962316139303031316237623139363530640a42616c616e63653a2032330a4368616e6e656c2049443a2035
@@ -268,6 +269,7 @@ balance_msg_sig
 ### Generating and validating a closing agreement
 
 ```python
+from eth_utils import encode_hex
 
 # Sender has to provide a balance proof to the Contract and
 # a closing agreement proof from Receiver (closing_sig)
@@ -275,7 +277,7 @@ balance_msg_sig
 
 # Balance message
 balance_message = Contract.call().getBalanceMessage(receiver, open_block_number, balance)
-balance_message_hex = "0x" + "".join("{:02x}".format(ord(c)) for c in msg)
+balance_message_hex = encode_hex(balance_message)
 
 # balance_message_hex is signed by the Sender with MetaMask / Parity
 balance_msg_sig
