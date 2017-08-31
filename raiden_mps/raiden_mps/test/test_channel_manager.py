@@ -340,7 +340,7 @@ def test_balances(channel_manager, confirmed_open_channel, receiver_address, sen
     assert channel_manager.get_liquid_balance() == 0
     assert channel_manager.get_locked_balance() == 5
 
-    receiver_sig = channel_manager.sign_close(sender_address, confirmed_open_channel.block, sig)
+    receiver_sig = channel_manager.sign_close(sender_address, confirmed_open_channel.block, 5)
     confirmed_open_channel.close_cooperatively(receiver_sig)
     wait_for_blocks(channel_manager.n_confirmations)
 
