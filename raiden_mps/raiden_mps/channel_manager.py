@@ -6,6 +6,7 @@ import pickle
 import time
 import tempfile
 import shutil
+import filelock
 import gevent
 from eth_utils import decode_hex, is_same_address
 
@@ -45,6 +46,10 @@ class StateReceiverAddrMismatch(Exception):
     pass
 
 
+class StateFileLocked(Exception):
+    pass
+
+
 class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
     poll_frequency = 2
@@ -57,12 +62,18 @@ class Blockchain(gevent.Greenlet):
         self.n_confirmations = n_confirmations
         self.log = logging.getLogger('blockchain')
         self.wait_sync_event = gevent.event.Event()
+        self.running = False
 
     def _run(self):
+        self.running = True
         self.log.info('starting blockchain polling (frequency %ss)', self.poll_frequency)
-        while True:
+        while self.running:
             self._update()
             gevent.sleep(self.poll_frequency)
+        self.log.info('stopped blockchain polling')
+
+    def stop(self):
+        self.running = False
 
     def wait_sync(self):
         self.wait_sync_event.wait()
@@ -222,6 +233,8 @@ class ChannelManagerState(object):
         self.channels = dict()
         self.filename = filename
         self.unconfirmed_channels = dict()
+        self.lock_filename = None
+        self.locked = False
 
     def store(self):
         """Store the state in a file."""
@@ -243,6 +256,26 @@ class ChannelManagerState(object):
             log.debug("loaded channel info from the saved state sender=%s open_block=%s" %
                       (sender, block))
         return ret
+
+    def lock(self):
+        """Make sure that no one else uses the same state file, if any.
+
+        Raises an exception if someone else is using it.
+        """
+        if self.filename:
+            self.lock_filename = self.filename + '.lock'
+            if os.path.exists(self.lock_filename):
+                raise StateFileLocked()
+            else:
+                open(self.lock_filename, 'a').close()
+                self.locked = True
+
+    def unlock(self):
+        """Let another process use the state file agian."""
+        if self.filename:
+            if os.path.exists(self.lock_filename):
+                os.remove(self.lock_filename)
+        self.locked = False
 
 
 class ChannelManager(gevent.Greenlet):
@@ -278,8 +311,21 @@ class ChannelManager(gevent.Greenlet):
                        (self.receiver, channel_contract_address))
 
     def _run(self):
-        self.blockchain.start()
-        self.blockchain.get()  # re-raises exception
+        try:
+            self.state.lock()
+        except StateFileLocked:
+            self.log.critical('state file is locked, make sure no other instance is running')
+            raise
+        else:
+            self.blockchain.start()
+            self.blockchain.get()  # re-raises exception
+
+    def stop(self):
+        if self.blockchain.running:
+            self.blockchain.stop()
+            self.blockchain.join()
+        if self.state.locked:
+            self.state.unlock()
 
     def set_head(self, unconfirmed_head_number, unconfirmed_head_hash,
                  confirmed_head_number, confirmed_head_hash):

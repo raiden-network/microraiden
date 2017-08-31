@@ -114,7 +114,10 @@ class PaywalledProxy:
         self.server_greenlet.join()
 
     def join(self):
-        self.server_greenlet.join()
+        try:
+            self.server_greenlet.join()
+        finally:
+            self.channel_manager.stop()
 
     @staticmethod
     def gevent_error_handler(context, exc_info):
