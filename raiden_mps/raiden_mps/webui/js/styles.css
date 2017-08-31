@@ -100,6 +100,7 @@
 
 .account-dropdown {
   margin-top: 35px;
+  margin-bottom: 30px;
 }
 
 .account-label {
@@ -245,4 +246,37 @@ li {
 
 .input-group {
   font-size: 16px;
+}
+
+.box-container h3, .h3 {
+    font-size: 34px !important;
+    color: #ffffff;
+}
+
+.box-container h4, .h4 {
+    font-size: 24px !important;
+    color: #ffffff;
+}
+
+.box-container h5, .h5 {
+    font-size: 20px !important;
+    color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: "Roboto","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+    font-weight: 500 !important;
+    line-height: 1.1 !important;
+}
+
+.text-danger {
+  color: #cc0000 !important;
+}
+
+.text-warning {
+  color: #ff8800 !important;
+}
+
+.text-primary {
+  color: #2a9fd6 !important;
 }
