@@ -121,10 +121,10 @@ contract RaidenMicroTransferChannels {
         returns (string)
     {
         string memory str = concat("Receiver: 0x", addressToString(_receiver));
-        str = concat(str, "\nBalance: ");
-        str = concat(str, uintToString2(uint256(_balance)));
-        str = concat(str, "\nChannel ID: ");
-        str = concat(str, uintToString2(uint256(_open_block_number)));
+        str = concat(str, ", Balance: ");
+        str = concat(str, uintToString(uint256(_balance)));
+        str = concat(str, ", Channel ID: ");
+        str = concat(str, uintToString(uint256(_open_block_number)));
         return str;
     }
 

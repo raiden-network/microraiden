@@ -60,7 +60,7 @@ def contract(chain, web3, token_contract, channels_contract):
 
 
 def get_balance_message(receiver, open_block_number, balance):
-    return "Receiver: " + receiver + "\nBalance: " + str(balance) + "\nChannel ID: " + str(open_block_number)
+    return "Receiver: " + receiver + ", Balance: " + str(balance) + ", Channel ID: " + str(open_block_number)
 
 
 def print_logs(contract, event, name=''):

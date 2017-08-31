@@ -177,7 +177,7 @@ Sender sends tokens to the Contract, with a payload for calling `createChannel`.
 ```
 Token.transfer(_to, _value, _data)
 ```
-Gas cost (testing): 86954
+Gas cost (testing): 73908
 
  * `_to` = `Contract.address`
  * `_value` = deposit value (number of tokens)
@@ -198,7 +198,7 @@ Token.approve(contract, deposit)
 
 Contract.createChannelERC20(receiver, deposit)
 ```
-Gas cost (testing): 109133
+Gas cost (testing): 104802
 
 ![ChannelOpen_ERC20](/contracts/docs/diagrams/ChannelOpen_20.png)
 
@@ -213,7 +213,7 @@ Sender sends tokens to the Contract, with a payload for calling `topUp`.
 ```
 Token.transfer(_to, _value, _data)
 ```
-Gas cost (testing): 68636
+Gas cost (testing): 54770
 
  * `_to` = `Contract.address`
  * `_value` = deposit value (number of tokens)
@@ -235,7 +235,7 @@ Token.approve(contract, added_deposit)
 
 Contract.createChannelERC20(receiver, deposit)
 ```
-Gas cost (testing): 90144
+Gas cost (testing): 85747
 
  ![ChannelTopUp_20](/contracts/docs/diagrams/ChannelTopUp_20.png)
 
@@ -307,22 +307,22 @@ receiver = Contract.call().verifyBalanceProof(receiver, open_block_number, balan
 ```py
 
 # 1. Receiver calls Contract with the sender's signed balance message = instant close & settle
-# Gas cost (testing): 70947
+# Gas cost (testing): 107105
 Contract.close(receiver, open_block_number, balance, balance_msg_sig)
 
 # 2. Client calls Contract with receiver's closing signature = instant close & settle
-# Gas cost (testing): 80764
+# Gas cost (testing): 163375
 Contract.close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
 
 # 3. Client calls Contract without receiver's closing signature = settlement period starts
 Contract.close(receiver, open_block_number, balance, balance_msg_sig)
 
 # 3.a. Receiver calls Contract with the sender's signed balance message = instant close & settle
-# Gas cost (testing): 122888
+# Gas cost (testing): 199532
 Contract.close(receiver, open_block_number, balance, balance_msg_sig)
 
 # 3.b. Client calls Contract after settlement period ends
-# Gas cost (testing): 114135
+# Gas cost (testing): 149193
 Contract.settle(receiver, open_block_number)
 
 ```
