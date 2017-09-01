@@ -25,6 +25,7 @@ from raiden_mps.proxy.content import (
     PaywalledFile,
     PaywalledContent
 )
+from raiden_mps.channel_manager import StateFileLocked
 
 
 def get_doggo(_):
@@ -102,7 +103,11 @@ def main(
         state_file = os.path.join(app_dir, state_file_name)
 
     config.paywall_html_dir = paywall_info
-    app = make_paywalled_proxy(private_key, state_file)
+    try:
+        app = make_paywalled_proxy(private_key, state_file)
+    except StateFileLocked as ex:
+        log.fatal('Another uRaiden process is already running (%s)!' % str(ex))
+        sys.exit(1)
 
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
