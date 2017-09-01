@@ -106,7 +106,8 @@ class PaywalledProxyUrl(PaywalledContent):
             js_tag = soup.new_tag('script', type="text/javascript", src=src)
             soup.head.insert(0, js_tag)
         # generate css
-        bs_tag = soup.new_tag('link', rel="stylesheet", type="text/css", href="/js/dark-bootstrap.min.css")
+        bs_tag = soup.new_tag('link', rel="stylesheet",
+                              type="text/css", href="/js/dark-bootstrap.min.css")
         css_tag = soup.new_tag('link', rel="stylesheet", type="text/css", href="/js/styles.css")
         soup.head.insert(0, bs_tag)
         soup.head.insert(0, css_tag)
