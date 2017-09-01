@@ -7,7 +7,7 @@ if __package__ is None:
     sys.path.insert(0, path)
     sys.path.insert(0, path + "/../")
 
-import raiden_mps.utils as utils
+from raiden_mps.make_helpers import make_paywalled_proxy
 from raiden_mps import config
 from raiden_mps.proxy.content import (
     PaywalledProxyUrl
@@ -44,7 +44,7 @@ def main(
     channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
 
     config.paywall_html_dir = paywall_info
-    app = utils.make_paywalled_proxy(private_key, None)
+    app = make_paywalled_proxy(private_key, None)
 
     app.add_content(PaywalledProxyUrl(".*", 1, "http://en.wikipedia.org/", [r"wiki/.*"]))
     app.run(debug=True)

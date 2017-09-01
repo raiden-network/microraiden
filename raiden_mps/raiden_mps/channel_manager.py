@@ -7,6 +7,7 @@ import time
 import tempfile
 import shutil
 import gevent
+import gevent.event
 from eth_utils import decode_hex, is_same_address
 
 import logging

@@ -89,11 +89,21 @@ function pageReady(json) {
     rmpc.incrementBalanceAndSign(RMPparams.amount, (err, sign) => {
       if (err && err.message && err.message.includes('Insuficient funds')) {
         console.error(err);
+        const current = err.message.split('=')[1].split(',')[0]
+        const required = err.message.split('=')[2]
+        $('#deposited').text(current)
+        $('#required').text(required)
+        $('#remaining').text(current - (parseInt(current) + parseInt(required) - parseInt(RMPparams.amount)))
         return mainSwitch("#topup");
+      } else if (err && err.message && err.message.includes('User denied message signature')) {
+        console.error(err);
+        $('.channel_present_sign').addClass('green-btn')
+        return window.alert('User denied message signature');
       } else if (err) {
         console.error(err);
         return window.alert("An error occurred trying to sign the transfer: "+err);
       }
+      $('.channel_present_sign').removeClass('green-btn')
       console.log("SIGNED!", sign);
       Cookies.set("RDN-Sender-Address", rmpc.channel.account);
       Cookies.set("RDN-Open-Block", rmpc.channel.block);
@@ -110,7 +120,7 @@ function pageReady(json) {
       $("#channel_missing_start").attr("disabled", true);
     }
   });
-  $("#channel_missing_start").attr("disabled", true);
+  $("#channel_missing_start").attr("disabled", false);
 
   $("#channel_missing_start").click(() => {
     const deposit = +$("#channel_missing_deposit").val();
@@ -154,7 +164,7 @@ function pageReady(json) {
   });
 
   $(".channel_present_forget").click(() => {
-    if (!window.confirm("Are you sure you want to forget this channel?")) {
+    if (!window.confirm("Are you sure you want to forget this channel? Warning: channel will be left in an unsettled state.")) {
       return;
     }
     rmpc.forgetStoredChannel();
@@ -168,7 +178,7 @@ function pageReady(json) {
       $("#topup_start").attr("disabled", true);
     }
   });
-  $("#topup_start").attr("disabled", true);
+  $("#topup_start").attr("disabled", false);
 
   $("#topup_start").click(() => {
     const deposit = +$("#topup_deposit").val();
@@ -185,7 +195,7 @@ function pageReady(json) {
 
 };
 
-$.getJSON("js/parameters.json", (json) => {
+$.getJSON("/js/parameters.json", (json) => {
   let cnt = 20;
   // wait up to 20*200ms for web3 and call ready()
   const pollingId = setInterval(() => {
