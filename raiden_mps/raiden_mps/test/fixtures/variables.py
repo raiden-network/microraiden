@@ -46,6 +46,11 @@ def api_endpoint_port():
 
 
 @pytest.fixture
+def api_endpoint_address(api_endpoint, api_endpoint_port):
+    return api_endpoint + ":" + str(api_endpoint_port)
+
+
+@pytest.fixture
 def init_contract_address():
     return "0x" + "a" * 40
 

@@ -3,8 +3,8 @@ from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
 from raiden_mps.proxy.content import (
     PaywalledFile,
     PaywalledContent,
-    PaywalledProxyUrl
 )
+import raiden_mps.proxy.resources.login as login
 
 
 @pytest.fixture
@@ -22,3 +22,8 @@ def doggo_proxy(channel_manager, receiver_privkey, proxy_state_filename):
     app.run(debug=True)
     yield app
     app.stop()
+
+
+@pytest.fixture
+def users_db():
+    return login.userDB
