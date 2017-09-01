@@ -37,7 +37,7 @@ def channel_managers_count():
 
 def deploy_token_contract(web3, deployer_address, token_abi, token_bytecode, sender_address):
     Token = web3.eth.contract(abi=token_abi, bytecode=token_bytecode)
-    txhash = Token.deploy({'from': deployer_address}, args=[100000, "RDNToken", 6, "RDN"])
+    txhash = Token.deploy({'from': deployer_address}, args=[100000, "ERC223", 6, "ERC223"])
     receipt = web3.eth.getTransactionReceipt(txhash)
     contract_address = receipt.contractAddress
     token = Token(contract_address)
