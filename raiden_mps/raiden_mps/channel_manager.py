@@ -8,6 +8,7 @@ import tempfile
 import shutil
 import gevent
 import gevent.event
+import filelock
 from eth_utils import decode_hex, is_same_address
 
 import logging
@@ -233,8 +234,6 @@ class ChannelManagerState(object):
         self.channels = dict()
         self.filename = filename
         self.unconfirmed_channels = dict()
-        self.lock_filename = None
-        self.locked = False
 
     def store(self):
         """Store the state in a file."""
@@ -257,32 +256,14 @@ class ChannelManagerState(object):
                       (sender, block))
         return ret
 
-    def lock(self):
-        """Make sure that no one else uses the same state file, if any.
 
-        Raises an exception if someone else is using it.
-        """
-        if self.filename:
-            self.lock_filename = self.filename + '.lock'
-            if os.path.exists(self.lock_filename):
-                raise StateFileLocked()
-            else:
-                open(self.lock_filename, 'a').close()
-                self.locked = True
-
-    def unlock(self):
-        """Let another process use the state file agian."""
-        if self.filename:
-            if os.path.exists(self.lock_filename):
-                os.remove(self.lock_filename)
-        self.locked = False
 
 
 class ChannelManager(gevent.Greenlet):
     """Manages channels from the receiver's point of view."""
 
     def __init__(self, web3, contract_proxy, token_contract, private_key: str,
-                 state_filename=None, n_confirmations=5):
+                 state_filename=None, n_confirmations=5) -> None:
         gevent.Greenlet.__init__(self)
         self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=n_confirmations)
         self.receiver = privkey_to_addr(private_key)
@@ -299,6 +280,12 @@ class ChannelManager(gevent.Greenlet):
         else:
             self.state = ChannelManagerState(channel_contract_address,
                                              self.receiver, state_filename)
+        if state_filename is not None:
+            self.lock_state = filelock.FileLock(state_filename)
+            try:
+                self.lock_state.acquire(timeout=0)
+            except:
+                raise StateFileLocked("state file %s is locked by another process" % state_filename)
 
         if not is_same_address(self.receiver, self.state.receiver):
             raise StateReceiverAddrMismatch('%s != %s' %
@@ -311,21 +298,13 @@ class ChannelManager(gevent.Greenlet):
                        (self.receiver, channel_contract_address))
 
     def _run(self):
-        try:
-            self.state.lock()
-        except StateFileLocked:
-            self.log.critical('state file is locked, make sure no other instance is running')
-            raise
-        else:
-            self.blockchain.start()
-            self.blockchain.get()  # re-raises exception
+        self.blockchain.start()
+        self.blockchain.get()  # re-raises exception
 
     def stop(self):
         if self.blockchain.running:
             self.blockchain.stop()
             self.blockchain.join()
-        if self.state.locked:
-            self.state.unlock()
 
     def set_head(self, unconfirmed_head_number, unconfirmed_head_hash,
                  confirmed_head_number, confirmed_head_hash):
