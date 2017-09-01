@@ -4,16 +4,17 @@ import os
 from typing import List
 
 import click
+import filelock
 from eth_utils import decode_hex, is_same_address
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
-from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE
+from raiden_mps.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE, \
+    NETWORK_NAMES
 from raiden_mps.contract_proxy import ContractProxy, ChannelContractProxy
 from raiden_mps.crypto import privkey_to_addr
 from .channel import Channel
 
-CHANNELS_DB = 'channels.json'
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 TOKEN_ABI_NAME = 'ERC223Token'
 
@@ -100,8 +101,25 @@ class Client:
         assert self.token_proxy
         assert self.channel_manager_proxy.web3 == self.web3 == self.token_proxy.web3
 
+        netid = self.web3.version.network
+        self.balances_filename = 'balances_{}_{}.json'.format(
+            NETWORK_NAMES.get(netid, netid), self.account[:10]
+        )
+
+        self.filelock = filelock.FileLock(os.path.join(self.datadir, self.balances_filename))
+        self.filelock.acquire(timeout=0)
+
         self.load_channels()
         self.sync_channels()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
+        self.filelock.release()
 
     def sync_channels(self):
         """
@@ -170,8 +188,8 @@ class Client:
         """
         Loads the locally available channel storage if it exists.
         """
-        channels_path = os.path.join(self.datadir, CHANNELS_DB)
-        if not os.path.exists(channels_path):
+        channels_path = os.path.join(self.datadir, self.balances_filename)
+        if not os.path.exists(channels_path) or os.path.getsize(channels_path) == 0:
             return
         with open(channels_path) as channels_file:
             try:
@@ -189,7 +207,7 @@ class Client:
         """
         os.makedirs(self.datadir, exist_ok=True)
 
-        store_path = os.path.join(self.datadir, CHANNELS_DB)
+        store_path = os.path.join(self.datadir, self.balances_filename)
         if os.path.exists(store_path):
             with open(store_path) as channels_file:
                 try:

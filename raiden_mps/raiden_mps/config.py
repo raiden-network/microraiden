@@ -6,6 +6,14 @@ API_PATH = "/api/1"
 GAS_LIMIT = 250000
 GAS_PRICE = 20 * 1000 * 1000 * 1000
 
+NETWORK_NAMES = {
+    1: 'mainnet',
+    2: 'morden',
+    3: 'ropsten',
+    4: 'rinkeby',
+    42: 'kovan'
+}
+
 RAIDEN_MPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 HTML_DIR = os.path.join(RAIDEN_MPS_DIR, 'raiden_mps', 'webui')
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')

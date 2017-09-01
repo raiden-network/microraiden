@@ -1,8 +1,7 @@
 import logging
 from enum import Enum
-from typing import List
 
-from eth_utils import encode_hex, decode_hex, is_same_address
+from eth_utils import decode_hex, is_same_address
 from raiden_mps.crypto import sign_balance_proof, verify_balance_proof
 
 log = logging.getLogger(__name__)

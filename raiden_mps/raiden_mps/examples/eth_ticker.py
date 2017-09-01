@@ -118,6 +118,7 @@ class ETHTickerClient(ttk.Frame):
             gevent.sleep(1)
 
         self.httpclient.close_active_channel()
+        self.client.close()
 
 
 @click.command()

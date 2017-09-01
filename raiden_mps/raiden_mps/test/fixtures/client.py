@@ -66,7 +66,7 @@ def client(
         channel_manager_contract_address,
         token_contract_address
 ):
-    return Client(
+    client = Client(
         privkey=sender_privkey,
         channel_manager_proxy=client_contract_proxy,
         token_proxy=client_token_proxy,
@@ -74,6 +74,8 @@ def client(
         channel_manager_address=channel_manager_contract_address,
         token_address=token_contract_address
     )
+    yield client
+    client.close()
 
 
 @pytest.fixture

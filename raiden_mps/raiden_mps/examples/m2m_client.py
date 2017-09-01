@@ -37,16 +37,15 @@ def run(api_endpoint, api_port, **kwargs):
     kwargs_client = {
         key: value for key, value in kwargs.items() if value and key not in exclude_kwargs
     }
-    client = Client(**kwargs_client)
+    with Client(**kwargs_client) as client:
+        m2mclient = DefaultHTTPClient(client, api_endpoint, api_port)
+        resource = m2mclient.run('doggo.jpg')
+        log.info('Response: {}'.format(resource))
 
-    m2mclient = DefaultHTTPClient(client, api_endpoint, api_port)
-    resource = m2mclient.run('doggo.jpg')
-    log.info('Response: {}'.format(resource))
-
-    if kwargs['close_channels'] is True:
-        for channel in client.channels:
-            if channel.state == Channel.State.open:
-                channel.close_channel()
+        if kwargs['close_channels'] is True:
+            for channel in client.channels:
+                if channel.state == Channel.State.open:
+                    channel.close_channel()
 
 
 if __name__ == '__main__':

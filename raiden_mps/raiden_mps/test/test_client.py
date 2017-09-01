@@ -1,3 +1,6 @@
+import os
+
+import filelock
 import pytest
 
 from raiden_mps import Client
@@ -59,3 +62,34 @@ def test_integrity(client: Client, clean_channels, receiver_address):
     c.balance = 100
     assert not c.is_valid()
 
+
+def test_filelock(
+        sender_privkey,
+        client_contract_proxy,
+        client_token_proxy,
+        datadir,
+        channel_manager_contract_address,
+        token_contract_address
+):
+    kwargs = {
+        'privkey': sender_privkey,
+        'channel_manager_proxy': client_contract_proxy,
+        'token_proxy': client_token_proxy,
+        'datadir':  datadir,
+        'channel_manager_address': channel_manager_contract_address,
+        'token_address': token_contract_address
+    }
+    client = Client(**kwargs)
+    client.close()
+
+    client = Client(**kwargs)
+    with pytest.raises(filelock.Timeout):
+        Client(**kwargs)
+    client.close()
+
+    with Client(**kwargs):
+        pass
+
+    with Client(**kwargs):
+        with pytest.raises(filelock.Timeout):
+            Client(**kwargs)
