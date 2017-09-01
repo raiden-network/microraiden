@@ -105,8 +105,8 @@ function pageReady(json) {
     rmpc.incrementBalanceAndSign(RMPparams.amount, (err, sign) => {
       if (err && err.message && err.message.includes('Insuficient funds')) {
         console.error(err);
-        const current = +(err.message.match(/current ?= ?(\d+)/gi)[0]);
-        const required = +(err.message.match(/required ?= ?(\d+)/gi)[0]);
+        const current = +(err.message.match(/current ?= ?(\d+)/i)[1]);
+        const required = +(err.message.match(/required ?= ?(\d+)/i)[1]);
         $('#deposited').text(current);
         $('#required').text(required);
         $('#remaining').text(current - rmpc.channel.balance);
