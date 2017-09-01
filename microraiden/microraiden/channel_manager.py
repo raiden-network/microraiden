@@ -14,6 +14,7 @@ from eth_utils import decode_hex, is_same_address
 import logging
 
 from microraiden.crypto import sign_balance_proof, verify_balance_proof, privkey_to_addr
+from microraiden.utils import is_secure_statefile
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +48,10 @@ class StateReceiverAddrMismatch(Exception):
 
 
 class StateFileLocked(Exception):
+    pass
+
+
+class InsecureStateFile(Exception):
     pass
 
 
@@ -241,12 +246,15 @@ class ChannelManagerState(object):
             pickle.dump(self, tmp)
             tmp.flush()
             shutil.copyfile(tmp.name, self.filename)
+            shutil.copystat(tmp.name, self.filename)
 
     @classmethod
     def load(cls, filename):
         """Load a previously stored state."""
         assert filename is not None
         assert isinstance(filename, str)
+        if not is_secure_statefile(filename):
+            raise InsecureStateFile(filename)
         ret = pickle.load(open(filename, 'rb'))
         log.debug("loaded saved state. head_number=%d receiver=%s" %
                   (ret.confirmed_head_number, ret.receiver))
@@ -254,8 +262,6 @@ class ChannelManagerState(object):
             log.debug("loaded channel info from the saved state sender=%s open_block=%s" %
                       (sender, block))
         return ret
-
-
 
 
 class ChannelManager(gevent.Greenlet):

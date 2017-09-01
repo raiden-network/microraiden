@@ -25,7 +25,7 @@ from microraiden.proxy.content import (
     PaywalledFile,
     PaywalledContent
 )
-from microraiden.channel_manager import StateFileLocked
+from microraiden.channel_manager import StateFileLocked, InsecureStateFile
 
 
 def get_doggo(_):
@@ -107,6 +107,11 @@ def main(
         app = make_paywalled_proxy(private_key, state_file)
     except StateFileLocked as ex:
         log.fatal('Another uRaiden process is already running (%s)!' % str(ex))
+        sys.exit(1)
+    except InsecureStateFile as ex:
+        msg = ('The permission bits of the state file are set incorrectly (others can read or '
+               'write) or you are not the owner. For reasons of security, startup is aborted.')
+        log.fatal(msg)
         sys.exit(1)
 
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
