@@ -215,7 +215,9 @@ function pageReady(json) {
   });
 
   $(".channel_present_forget").click(() => {
-    if (!window.confirm("Are you sure you want to forget this channel? Warning: channel will be left in an unsettled state.")) {
+    if (!window.confirm("Are you sure you want to forget this channel?" +
+        ($('.on-state-settled').is(':visible') ? "" :
+         "\nWarning: channel will be left in an unsettled state."))) {
       return;
     }
     uraiden.forgetStoredChannel();
