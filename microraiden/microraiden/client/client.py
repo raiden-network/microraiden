@@ -196,7 +196,7 @@ class Client:
                 store = json.load(channels_file)
                 if isinstance(store, dict) and self.channel_manager_address in store:
                     self.channels = Channel.deserialize(self, store[self.channel_manager_address])
-            except json.decoder.JSONDecodeError:
+            except ValueError:
                 log.warning('Failed to load local channel storage.')
 
         log.info('Loaded {} channels from disk.'.format(len(self.channels)))
@@ -212,7 +212,7 @@ class Client:
             with open(store_path) as channels_file:
                 try:
                     store = json.load(channels_file)
-                except json.decoder.JSONDecodeError:
+                except ValueError:
                     store = dict()
         else:
             store = dict()
