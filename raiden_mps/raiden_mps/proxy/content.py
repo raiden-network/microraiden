@@ -1,9 +1,13 @@
+import os
 from flask import make_response, request, Response, stream_with_context
 import requests
 import re
 import mimetypes
 import logging
 import bs4
+
+from raiden_mps.config import RAIDEN_MPS_DIR
+
 log = logging.getLogger(__name__)
 
 
@@ -67,7 +71,9 @@ class PaywalledProxyUrl(PaywalledContent):
         self.get_fn = lambda x: x
         self.domain = domain
         self.paywalled_resources = [re.compile(x) for x in paywalled_resources]
-        self.paywall_html = self.extract_paywall_body('raiden_mps/webui/index.html')
+        self.paywall_html = self.extract_paywall_body(
+            os.path.join(RAIDEN_MPS_DIR, 'raiden_mps/webui/index.html')
+        )
 
     def extract_paywall_body(self, path):
         # extract body of the paywall page and transform it into a div we'll be
