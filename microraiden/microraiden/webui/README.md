@@ -1,6 +1,6 @@
-# Raiden Microtransfers Client Web Interface / Paywall page
+# MicroRaiden Microtransfers Client Web Interface / Paywall page
 
-This webpage ([index.html](./index.html)) and its associated [JS files](./js) are a small [jQuery](https://jquery.com)-based demonstration page of the [javascript client library for Raiden Microtransfers Service](./js/rmp.js) DApp. It implements a basic paywall example, where, once the user tries to access a protected resource/URL, it'll ask for a small token transfer before allowing access to the resource, through the creation of a channel with the server address as receiver, a basic deposit, and small signed token transfers.
+This webpage ([index.html](./index.html)) and its associated [JS files](./js) are a small [jQuery](https://jquery.com)-based demonstration page of the [javascript client library for Raiden Microtransfers Service](./js/microraiden.js) DApp. It implements a basic paywall example, where, once the user tries to access a protected resource/URL, it'll ask for a small token transfer before allowing access to the resource, through the creation of a channel with the server address as receiver, a basic deposit, and small signed token transfers.
 
 The library itself is compatible with current browsers and [Node.js](https://nodejs.org) environments, making use of some ES6 features (e.g. classes, arrow-functions, const and let variables, spread operator), which should be supported in most recent browsers and up-to-date Node (8+) versions.
 
@@ -10,7 +10,7 @@ The library itself is compatible with current browsers and [Node.js](https://nod
 Include it below your `web3 < 1.0.0` distribution:
 ```
 <script type="text/javascript" src="/js/web3.js"></script>
-<script type="text/javascript" src="/js/rmp.js"></script>
+<script type="text/javascript" src="/js/microraiden.js"></script>
 ```
 
 
@@ -18,24 +18,24 @@ Include it below your `web3 < 1.0.0` distribution:
 
 Just require it:
 ```
-var RaidenMicropaymentsClient = require("rmp").RaidenMicropaymentsClient;
+var MicroRaiden = require("microraiden").MicroRaiden;
 ```
 
 
 ## Instantiation
 
-The RaidenMicropaymentsClient object takes as parameters a web3 instance or web3 HTTP RPC URL string as first parameter, followed by address and ABI of channel manager contract and token.
+The MicroRaiden object takes as parameters a web3 instance or web3 HTTP RPC URL string as first parameter, followed by address and ABI of channel manager contract and token.
 For the web3 object, if you are using injected Metamask or Parity, you may want to wait a little until it actually gets injected in the page before instantiating the client, as it may take up to a couple of seconds. It'll only use the `web3.currentProvider` of the object, and using shipped Web3 library, so it can stay compatible with [recent](https://github.com/ethereum/mist/releases/tag/v0.9.0) Mist changes.
 
 Example:
 ```
-var rmpc = new RaidenMicropaymentsClient(web3, contractAddr, contractABI, tokenAddr, tokenABI);
+var uraiden = new MicroRaiden(web3, contractAddr, contractABI, tokenAddr, tokenABI);
 ```
 
 
 ## Usage
 
-The RaidenMicropaymentsClient class presents an interface mostly constituted of a Node-style callback async API, where the last parameter of almost every method is a callback in the form:
+The MicroRaiden class presents an interface mostly constituted of a Node-style callback async API, where the last parameter of almost every method is a callback in the form:
 ```
 function callback(error, response) {...}
 ```
@@ -59,7 +59,7 @@ This object is automatically populated on `openChannel`, and can also be loaded 
 
 The basic workflow for the client should be something like:
 
-1. Load parameters and instantiate RaidenMicropaymentsClient object
+1. Load parameters and instantiate MicroRaiden object
 2. Load default account using `getAccounts(callback)`
 3. Get an open channel:
   1. Try to load from storage with `loadStoredChannel(account, receiver)`

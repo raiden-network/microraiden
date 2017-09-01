@@ -1,5 +1,5 @@
 function pageReady(json) {
-  window.rmpc = new RaidenMicropaymentsClient(
+  window.uraiden = new MicroRaiden(
     window.web3,
     json["contractAddr"],
     json["contractABI"],
@@ -8,21 +8,21 @@ function pageReady(json) {
   );
 
   // you can set this variable in a new 'script' tag, for example
-  if (!window.RMPparams && Cookies.get("RDN-Price")) {
-    window.RMPparams = {
+  if (!window.uRaidenParams && Cookies.get("RDN-Price")) {
+    window.uRaidenParams = {
       receiver: Cookies.get("RDN-Receiver-Address"),
       amount: +(Cookies.get("RDN-Price")),
       token: json["tokenAddr"],
     };
-  } else if (!window.RMPparams) {
-    window.RMPparams = {
+  } else if (!window.uRaidenParams) {
+    window.uRaidenParams = {
       receiver: json["receiver"],
       amount: json["amount"],
       token: json["tokenAddr"],
     };
   }
 
-  rmpc.getTokenInfo((err, token) => {
+  uraiden.getTokenInfo((err, token) => {
     if (err) {
       return console.error('Error getting token info', err);
     }
@@ -30,8 +30,8 @@ function pageReady(json) {
     $('.tkn-symbol').text(token.symbol);
   });
 
-  $("#amount").text(RMPparams["amount"]);
-  $("#token").text(RMPparams.token);
+  $("#amount").text(uRaidenParams["amount"]);
+  $("#token").text(uRaidenParams.token);
 
   let $select = $("#accounts");
 
@@ -42,13 +42,13 @@ function pageReady(json) {
   }
 
   $select.change(($event) => {
-    rmpc.loadStoredChannel($event.target.value, RMPparams.receiver);
+    uraiden.loadStoredChannel($event.target.value, uRaidenParams.receiver);
 
-    if (rmpc.isChannelValid() &&
-        rmpc.channel.account === $event.target.value &&
-        rmpc.channel.receiver === RMPparams.receiver) {
+    if (uraiden.isChannelValid() &&
+        uraiden.channel.account === $event.target.value &&
+        uraiden.channel.receiver === uRaidenParams.receiver) {
       mainSwitch("#channel_present");
-      rmpc.getChannelInfo((err, info) => {
+      uraiden.getChannelInfo((err, info) => {
         if (err) {
           console.error(err);
           info = { state: "error", deposit: 0 }
@@ -62,8 +62,8 @@ function pageReady(json) {
         $(`#channel_present .on-state:not(.on-state-${info.state})`).hide();
 
         let remaining = 0;
-        if (info.deposit > 0 && rmpc.channel && !isNaN(rmpc.channel.balance)) {
-          remaining = info.deposit - rmpc.channel.balance;
+        if (info.deposit > 0 && uraiden.channel && !isNaN(uraiden.channel.balance)) {
+          remaining = info.deposit - uraiden.channel.balance;
         }
         $("#channel_present #channel_present_balance").text(remaining);
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
@@ -82,7 +82,7 @@ function pageReady(json) {
     $(`#channel_present .on-state:not(.on-state-opened)`).hide();
 
     $select.empty();
-    rmpc.getAccounts((err, accounts) => {
+    uraiden.getAccounts((err, accounts) => {
       if (err || !accounts || !accounts.length) {
         mainSwitch("#no_accounts");
         // retry after 1s
@@ -102,14 +102,14 @@ function pageReady(json) {
   refreshAccounts();
 
   function signRetry() {
-    rmpc.incrementBalanceAndSign(RMPparams.amount, (err, sign) => {
+    uraiden.incrementBalanceAndSign(uRaidenParams.amount, (err, sign) => {
       if (err && err.message && err.message.includes('Insuficient funds')) {
         console.error(err);
         const current = +(err.message.match(/current ?= ?(\d+)/i)[1]);
         const required = +(err.message.match(/required ?= ?(\d+)/i)[1]);
         $('#deposited').text(current);
         $('#required').text(required);
-        $('#remaining').text(current - rmpc.channel.balance);
+        $('#remaining').text(current - uraiden.channel.balance);
         return mainSwitch("#topup");
       } else if (err && err.message && err.message.includes('User denied message signature')) {
         console.error(err);
@@ -121,9 +121,9 @@ function pageReady(json) {
       }
       $('.channel_present_sign').removeClass('green-btn')
       console.log("SIGNED!", sign);
-      Cookies.set("RDN-Sender-Address", rmpc.channel.account);
-      Cookies.set("RDN-Open-Block", rmpc.channel.block);
-      Cookies.set("RDN-Sender-Balance", rmpc.channel.balance);
+      Cookies.set("RDN-Sender-Address", uraiden.channel.account);
+      Cookies.set("RDN-Open-Block", uraiden.channel.block);
+      Cookies.set("RDN-Sender-Balance", uraiden.channel.balance);
       Cookies.set("RDN-Balance-Signature", sign);
       location.reload();
     });
@@ -142,7 +142,7 @@ function pageReady(json) {
     const deposit = +$("#channel_missing_deposit").val();
     const account = $("#accounts").val();
     mainSwitch("#channel_opening");
-    rmpc.openChannel(account, RMPparams.receiver, deposit, (err, channel) => {
+    uraiden.openChannel(account, uRaidenParams.receiver, deposit, (err, channel) => {
       if (err) {
         refreshAccounts();
         return window.alert(`An error ocurred trying to open a channel: ${err.message}`);
@@ -154,7 +154,7 @@ function pageReady(json) {
   $(".channel_present_sign").click(signRetry);
 
   function closeChannel(closeSign) {
-    rmpc.closeChannel(closeSign, (err, res) => {
+    uraiden.closeChannel(closeSign, (err, res) => {
       if (err) {
         window.alert(`An error occurred trying to close the channel: ${err.message}`);
         return refreshAccounts();
@@ -170,18 +170,18 @@ function pageReady(json) {
     }
     mainSwitch("#channel_opening");
     // signBalance without balance, sign current balance only if needed
-    rmpc.signBalance(null, (err, sign) => {
+    uraiden.signBalance(null, (err, sign) => {
       if (err) {
         window.alert(`An error occurred trying to get balance signature: ${err.message}`);
         return refreshAccounts();
       }
       // call cooperative-close URL, and closeChannel with close_signature data
       $.ajax({
-        url: `/api/1/channels/${rmpc.channel.account}/${rmpc.channel.block}`,
+        url: `/api/1/channels/${uraiden.channel.account}/${uraiden.channel.block}`,
         method: 'DELETE',
         contentType: 'application/json',
         dataType: 'json',
-        data: JSON.stringify({ 'balance': rmpc.channel.balance }),
+        data: JSON.stringify({ 'balance': uraiden.channel.balance }),
         success: (result) => {
           let closeSign = null;
           if (result && typeof result === 'object' && result['close_signature']) {
@@ -204,7 +204,7 @@ function pageReady(json) {
       return;
     }
     mainSwitch("#channel_opening");
-    rmpc.settleChannel((err, res) => {
+    uraiden.settleChannel((err, res) => {
       if (err) {
         window.alert(`An error occurred trying to settle the channel: ${err.message}`);
         return refreshAccounts();
@@ -218,7 +218,7 @@ function pageReady(json) {
     if (!window.confirm("Are you sure you want to forget this channel? Warning: channel will be left in an unsettled state.")) {
       return;
     }
-    rmpc.forgetStoredChannel();
+    uraiden.forgetStoredChannel();
     refreshAccounts();
   });
 
@@ -233,7 +233,7 @@ function pageReady(json) {
   $("#topup_start").click(() => {
     const deposit = +$("#topup_deposit").val();
     mainSwitch("#channel_opening");
-    rmpc.topUpChannel(deposit, (err, block) => {
+    uraiden.topUpChannel(deposit, (err, block) => {
       if (err) {
         refreshAccounts();
         console.error(err);

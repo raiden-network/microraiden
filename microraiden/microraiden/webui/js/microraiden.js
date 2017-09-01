@@ -9,7 +9,7 @@ if (typeof localStorage === 'undefined' && typeof require === 'function' ) {
 }
 
 
-class RaidenMicropaymentsClient {
+class MicroRaiden {
 
   constructor(
     web3url,
@@ -567,11 +567,11 @@ class RaidenMicropaymentsClient {
 }
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-  module.exports.RaidenMicropaymentsClient = RaidenMicropaymentsClient;
+  module.exports.MicroRaiden = MicroRaiden;
 } else if (typeof define === 'function' && define.amd) {
   define([], function() {
-    return RaidenMicropaymentsClient;
+    return MicroRaiden;
   });
 } else {
-  window.RaidenMicropaymentsClient = RaidenMicropaymentsClient;
+  window.MicroRaiden = MicroRaiden;
 }

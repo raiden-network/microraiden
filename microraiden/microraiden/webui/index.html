@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Raiden MPC Index</title>
+  <title>MicroRaiden</title>
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,20 +14,20 @@
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
 
   <script type="text/javascript" src="js/web3.js"></script>
-  <script type="text/javascript" src="js/rmp.js"></script>
+  <script type="text/javascript" src="js/microraiden.js"></script>
 </head>
 <body>
   <div class="box-container">
     <div class="panel panel-default">
       <div class="panel-heading">
         <img src="/js/raiden.png" class="logo" />
-        <h3>Payment Requested</h3>
+        <h3>Transfer Requested</h3>
       </div>
       <div class="panel-body">
         <h4>Read this article and support the
           <span id="publisher" data-toggle="tooltip" data-placement="top" title="" data-original-title="Tooltip on top">publisher</span> -
         </h4>
-        <h4>by paying <strong id="amount"></strong> <strong class="tkn-symbol">TKN</strong> tokens.</h4>
+        <h4>by transfering <strong id="amount"></strong> <strong class="tkn-symbol">TKN</strong> tokens.</h4>
         <div class="account-dropdown form-horizontal">
           <div class="row">
             <div class="col-xs-3 account-label"><strong>Account:</strong></div>
@@ -74,7 +74,7 @@
             </div>
           </div>
 
-          <h5 class="col-sm-12">Press the Sign button to authorize the payment or make another action</h5>
+          <h5 class="col-sm-12">Press the Sign button to authorize the transfer or make another action</h5>
 
           <div class="col-sm-12 btn-bar" style="display: none">
             <div class="col-sm-2"></div>
@@ -126,7 +126,7 @@
                 </div>
                 <div class="sign">
                   <li>
-                    For each payment, <strong>sign</strong> a message confirming the balance with the new payment
+                    For each transfer, <strong>sign</strong> a message confirming the balance with the new transferred amount
                   </li>
                 </div>
               </ol>
