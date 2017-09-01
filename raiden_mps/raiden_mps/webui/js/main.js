@@ -53,9 +53,9 @@ function pageReady(json) {
           console.error(err);
           info = { state: "error", deposit: 0 }
         } else if (Cookies.get('RDN-Nonexisting-Channel')) {
-          console.error("Server won't accept this channel. " +
+          window.alert("Server won't accept this channel.\n" +
             "Please, close+settle+forget, and open a new channel");
-          info.state = "invalid";
+          $('#channel_present .channel_present_sign').attr("disabled", true);
         }
 
         $(`#channel_present .on-state.on-state-${info.state}`).show();

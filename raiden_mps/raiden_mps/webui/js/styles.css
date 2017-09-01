@@ -193,14 +193,14 @@ li {
   padding-left: 90px;
 }
 
-.glyphicon.on-state-closed,
-.glyphicon.on-state-error {
+.glyphicon.on-state-closed {
   color: #cc0000;
   font-size: 60px;
   padding-left: 90px;
 }
 
-.glyphicon.on-state-settled {
+.glyphicon.on-state-settled,
+.glyphicon.on-state-error {
   color: #ff8800;
   font-size: 50px;
   padding-left: 90px;
