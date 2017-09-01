@@ -85,7 +85,6 @@ class DefaultHTTPClient(HTTPClient):
                         .format(balance, self.channel.balance)
                 )
                 self.channel.balance = balance
-                self.channel.balance_sig = balance_sig
             else:
                 log.error(
                     'Server could not prove higher channel balance (server/local): {}/{}'
@@ -101,7 +100,6 @@ class DefaultHTTPClient(HTTPClient):
                         .format(balance, self.channel.balance, self.retry_interval)
                 )
                 self.channel.balance = balance
-                self.channel.balance_sig = balance_sig
 
                 time.sleep(self.retry_interval)
                 self.retry = True
@@ -112,7 +110,6 @@ class DefaultHTTPClient(HTTPClient):
                     'balance (server/local): {}.'.format(balance, self.channel.balance)
                 )
                 self.channel.balance = balance
-                self.channel.create_transfer(0)
 
         return True
 

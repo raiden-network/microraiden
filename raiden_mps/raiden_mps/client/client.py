@@ -130,8 +130,8 @@ class Client:
                 self,
                 e['args']['_sender'],
                 e['args']['_receiver'],
-                e['args']['_deposit'],
-                e['blockNumber']
+                e['blockNumber'],
+                e['args']['_deposit']
             )
             assert c.sender == self.account
             channel_id_to_channel[(c.sender, c.receiver, c.block)] = c
@@ -141,7 +141,6 @@ class Client:
             if key in channel_id_to_channel:
                 c_synced = channel_id_to_channel[key]
                 c_synced.balance = c.balance
-                c_synced.balance_sig = c.balance_sig
             else:
                 channel_id_to_channel[key] = c
 
@@ -245,8 +244,8 @@ class Client:
                 self,
                 event['args']['_sender'],
                 event['args']['_receiver'],
-                event['args']['_deposit'],
-                event['blockNumber']
+                event['blockNumber'],
+                event['args']['_deposit']
             )
             self.channels.append(channel)
             self.store_channels()

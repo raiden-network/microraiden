@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from typing import List
 
 from eth_utils import encode_hex, decode_hex, is_same_address
 from raiden_mps.crypto import sign_balance_proof, verify_balance_proof
@@ -18,51 +19,62 @@ class Channel:
             client,
             sender: str,
             receiver: str,
-            deposit: int,
             block: int,
+            deposit=0,
             balance=0,
-            balance_sig=None,
             state=State.open
     ):
+        self._balance = 0
+        self._balance_sig = None
+
         self.client = client
         self.sender = sender.lower()
         self.receiver = receiver.lower()
         self.deposit = deposit
         self.block = block
         self.balance = balance
-        self.balance_sig = balance_sig
         self.state = state
 
         assert self.block is not None
-
-        if not self.balance_sig:
-            self.balance_sig = sign_balance_proof(
-                self.client.privkey, self.receiver, self.block, self.balance
-            )
+        assert self._balance_sig
 
     @staticmethod
-    def deserialize(client, channels_raw):
-        for channel_raw in channels_raw:
-            channel_raw['client'] = client
-            channel_raw['state'] = Channel.State[channel_raw['state']]
-            if channel_raw['balance_sig']:
-                channel_raw['balance_sig'] = decode_hex(channel_raw['balance_sig'])
-        return [Channel(**channel_raw) for channel_raw in channels_raw]
+    def deserialize(client, channels_raw: dict):
+        return [
+            Channel(client, craw['sender'], craw['receiver'], craw['block'], craw['balance'])
+            for craw in channels_raw
+        ]
 
     @staticmethod
     def serialize(channels):
-        channels_raw = []
-        for channel in channels:
-            channel_raw = channel.__dict__.copy()
-            channel_raw['state'] = channel.state.name
-            if channel.balance_sig:
-                channel_raw['balance_sig'] = encode_hex(channel.balance_sig)
-            else:
-                channel_raw['balance_sig'] = None
-            del channel_raw['client']
-            channels_raw.append(channel_raw)
+        return [
+            {
+                'sender': c.sender,
+                'receiver': c.receiver,
+                'block': c.block,
+                'balance': c.balance
 
-        return channels_raw
+            } for c in channels
+        ]
+
+    @property
+    def balance(self):
+        return self._balance
+
+    @balance.setter
+    def balance(self, value):
+        self._balance = value
+        self._balance_sig = self.sign()
+        self.client.store_channels()
+
+    @property
+    def balance_sig(self):
+        return self._balance_sig
+
+    def sign(self):
+        return sign_balance_proof(
+            self.client.privkey, self.receiver, self.block, self.balance
+        )
 
     def topup(self, deposit):
         """
@@ -124,7 +136,6 @@ class Channel:
 
         if balance is not None:
             self.balance = balance
-            self.create_transfer(0)
 
         tx = self.client.channel_manager_proxy.create_signed_transaction(
             'close', [self.receiver, self.block, self.balance, self.balance_sig]
@@ -254,13 +265,12 @@ class Channel:
 
         self.balance += value
 
-        self.balance_sig = sign_balance_proof(
-            self.client.privkey, self.receiver, self.block, self.balance
-        )
-
         self.client.store_channels()
 
         return self.balance_sig
+
+    def is_valid(self) -> bool:
+        return self.sign() == self.balance_sig and self.balance <= self.deposit
 
     def is_suitable(self, value: int):
         return self.deposit - self.balance >= value

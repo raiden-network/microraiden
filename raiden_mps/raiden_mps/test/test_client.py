@@ -35,3 +35,27 @@ def test_cooperative_close(client: Client, receiver_privkey, receiver_address, c
     sig = sign_balance_proof(receiver_privkey, c.receiver, c.block, c.balance)
     assert c.close_cooperatively(sig)
     assert c.state == Channel.State.closed
+
+
+def test_integrity(client: Client, clean_channels, receiver_address):
+    c = client.get_suitable_channel(receiver_address, 5)
+    assert c.balance == 0
+    assert c.balance_sig == sign_balance_proof(client.privkey, receiver_address, c.block, 0)
+    assert c.is_valid()
+
+    # Balance update without sig update.
+    c._balance = 2
+    assert not c.is_valid()
+
+    # Proper balance update with sig update.
+    c.balance = 2
+    assert c.is_valid()
+
+    # Random sig.
+    c._balance_sig = b'wrong'
+    assert not c.is_valid()
+
+    # Balance exceeds deposit.
+    c.balance = 100
+    assert not c.is_valid()
+

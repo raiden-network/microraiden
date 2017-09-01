@@ -14,7 +14,6 @@ def close_channel_cooperatively(
 ):
     if balance is not None:
         channel.balance = balance
-        channel.create_transfer(0)
     closing_sig = sign_balance_proof(
         privkey_receiver, channel.receiver, channel.block,
         channel.balance if balance is None else balance
