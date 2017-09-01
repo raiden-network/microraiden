@@ -1,8 +1,8 @@
 import os
 from raiden_mps.crypto import privkey_to_addr
 
-CHANNEL_MANAGER_ADDRESS = '0x770ba2be480504ccc703672e7053e857ba4c8f67'
-TOKEN_ADDRESS = '0xe2aece17096c95b97329e90205eab8673d1d72b7'
+CHANNEL_MANAGER_ADDRESS = '0xeb244b0502a2d3867e5cab2347c6e1cdeb5e1eef'
+TOKEN_ADDRESS = '0xc97c510f7d79057c8ae98e0ff8b3841e824cb4b5'
 API_PATH = "/api/1"
 GAS_LIMIT = 200000
 GAS_PRICE = 20 * 1000 * 1000 * 1000
@@ -13,7 +13,6 @@ JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 # Testing keys and addresses.
 
-# Ropsten
 #   0x0052d7b657553e7f47239d8c4431fef001a7f99c
 TEST_SENDER_PRIVKEY = '558ce5d09417f127c89097f8c41def07883cbec094da79f5dddfd4590607f7c2'
 #   0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38
