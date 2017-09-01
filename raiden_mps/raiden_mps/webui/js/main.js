@@ -174,7 +174,7 @@ function pageReady(json) {
         method: 'DELETE',
         contentType: 'application/json',
         dataType: 'json',
-        data: JSON.stringify({ 'signature': sign }),
+        data: JSON.stringify({ 'balance': rmpc.channel.balance }),
         success: (result) => {
           let closeSign = null;
           if (result && typeof result === 'object' && result['close_signature']) {
@@ -184,7 +184,7 @@ function pageReady(json) {
           }
           closeChannel(closeSign);
         },
-        error: (request, msg, error) {
+        error: (request, msg, error) => {
           console.warn('Error calling cooperative-close', request, msg, error);
           closeChannel(null);
         }
