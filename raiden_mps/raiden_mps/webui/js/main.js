@@ -156,9 +156,10 @@ function pageReady(json) {
   function closeChannel(closeSign) {
     rmpc.closeChannel(closeSign, (err, res) => {
       if (err) {
-        return window.alert(`An error occurred trying to close the channel: ${err.message}`);
+        window.alert(`An error occurred trying to close the channel: ${err.message}`);
+        return refreshAccounts();
       }
-      window.alert("CLOSED");
+      console.log("CLOSED", res);
       refreshAccounts();
     });
   }
@@ -167,10 +168,12 @@ function pageReady(json) {
     if (!window.confirm("Are you sure you want to close this channel?")) {
       return;
     }
+    mainSwitch("#channel_opening");
     // signBalance without balance, sign current balance only if needed
     rmpc.signBalance(null, (err, sign) => {
       if (err) {
-        return window.alert(`An error occurred trying to get balance signature: ${err.message}`);
+        window.alert(`An error occurred trying to get balance signature: ${err.message}`);
+        return refreshAccounts();
       }
       // call cooperative-close URL, and closeChannel with close_signature data
       $.ajax({
@@ -200,11 +203,13 @@ function pageReady(json) {
     if (!window.confirm("Are you sure you want to settle this channel?")) {
       return;
     }
+    mainSwitch("#channel_opening");
     rmpc.settleChannel((err, res) => {
       if (err) {
-        return window.alert(`An error occurred trying to settle the channel: ${err.message}`);
+        window.alert(`An error occurred trying to settle the channel: ${err.message}`);
+        return refreshAccounts();
       }
-      window.alert("SETTLED");
+      console.log("SETTLED", res);
       refreshAccounts();
     });
   });
