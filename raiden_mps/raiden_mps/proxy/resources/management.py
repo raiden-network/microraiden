@@ -141,16 +141,16 @@ class ChannelManagementChannelInfo(Resource):
 
     def delete(self, sender_address, opening_block):
         parser = reqparse.RequestParser()
-        parser.add_argument('signature', help='last balance proof signature')
+        parser.add_argument('balance', type=int, help='last balance proof balance')
         args = parser.parse_args()
-        if args.signature is None:
-            return "Bad signature format", 400
+        if args.balance is None:
+            return "Bad balance format", 400
 
         try:
             close_signature = self.channel_manager.sign_close(
                 sender_address,
                 opening_block,
-                args.signature)
+                args.balance)
         except NoOpenChannel as e:
             return str(e), 400
         except KeyError:

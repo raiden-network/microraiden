@@ -106,7 +106,7 @@ def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, clean_c
     check_response(default_http_client.run('doggo.jpg'))
 
     client = default_http_client.client
-    open_channels = [c for c in client.channels if c.state == Channel.State.open]
+    open_channels = client.get_open_channels()
     assert len(open_channels) == 1
 
     channel = open_channels[0]
@@ -116,7 +116,7 @@ def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, clean_c
     assert reply.status_code == 200
     json_reply = json.loads(reply.text)
 
-    request_data = {'signature': json_reply['last_signature']}
+    request_data = {'balance': json_reply['balance']}
     reply = requests.delete('http://localhost:5000/api/1/channels/%s/%s' %
                             (channel.sender, channel.block), data=request_data)
 

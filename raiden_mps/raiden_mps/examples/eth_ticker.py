@@ -3,6 +3,7 @@ from tkinter import ttk
 import tkinter
 import logging
 import time
+import gevent
 
 import click
 import os
@@ -58,7 +59,6 @@ class ETHTickerClient(ttk.Frame):
     def __init__(
             self,
             sender_privkey: str,
-            receiver_privkey: str = None,
             httpclient: DefaultHTTPClient = None
     ):
         self.root = tkinter.Tk()
@@ -69,11 +69,11 @@ class ETHTickerClient(ttk.Frame):
         self.pricevar = tkinter.StringVar(value='0.00 USD')
         ttk.Label(self, textvariable=self.pricevar, font=('Helvetica', '72')).pack()
 
-        self.client = Client(sender_privkey)
-
         if httpclient:
             self.httpclient = httpclient
+            self.client = httpclient.client
         else:
+            self.client = Client(sender_privkey)
             self.httpclient = DefaultHTTPClient(
                 self.client,
                 'localhost',
@@ -115,25 +115,24 @@ class ETHTickerClient(ttk.Frame):
         self.httpclient.stop()
         # Sloppy handling of thread joining but works for this small demo.
         while self.active_query:
-            time.sleep(1)
+            gevent.sleep(1)
 
         self.httpclient.close_active_channel()
 
 
 @click.command()
-@click.option(
-    '--start-proxy',
-    default=False
-)
+@click.option('--start-proxy/--no-proxy', default=False)
 def main(start_proxy):
     proxy = None
+    ticker = None
     try:
         if start_proxy:
             proxy = ETHTickerProxy(TEST_RECEIVER_PRIVKEY)
         ticker = ETHTickerClient(TEST_SENDER_PRIVKEY)
         ticker.run()
     except KeyboardInterrupt:
-        ticker.close()
+        if ticker:
+            ticker.close()
         if proxy is not None:
             proxy.stop()
 

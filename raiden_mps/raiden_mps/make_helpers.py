@@ -29,7 +29,7 @@ def make_channel_manager(private_key: str, state_filename: str, web3=None):
     if web3 is None:
         web3 = Web3(RPCProvider())
     contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
-    abi = json.load(open(contracts_abi_path))['RDNToken']['abi']
+    abi = json.load(open(contracts_abi_path))['ERC223Token']['abi']
     token_contract = web3.eth.contract(abi=abi, address=config.TOKEN_ADDRESS)
     try:
         return ChannelManager(

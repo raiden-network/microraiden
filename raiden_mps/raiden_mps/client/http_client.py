@@ -51,9 +51,7 @@ class HTTPClient(object):
             .format(channel.balance, channel.sender, channel.sender, channel.block)
         )
         url = self.make_url('api/1/channels/{}/{}'.format(channel.sender, channel.block))
-        if not channel.balance_sig:
-            channel.create_transfer(0)
-        response = requests.delete(url, data={'signature': encode_hex(channel.balance_sig)})
+        response = requests.delete(url, data={'balance': channel.balance})
         if response.status_code == requests.codes.OK:
             closing_sig = json.loads(response.content.decode())['close_signature']
             channel.close_cooperatively(decode_hex(closing_sig))

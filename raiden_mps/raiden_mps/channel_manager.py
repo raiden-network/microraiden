@@ -457,7 +457,7 @@ class ChannelManager(gevent.Greenlet):
         if c.last_signature is None:
             raise NoBalanceProofReceived('Payment has not been registered.')
         if balance != c.balance:
-            raise InvalidBalanceProof('Balance proof does not match latest one.')
+            raise InvalidBalanceProof('Requested closing balance does not match latest one.')
         c.is_closed = True  # FIXME block number
         c.mtime = time.time()
         receiver_sig = sign_balance_proof(
