@@ -11,7 +11,7 @@ function pageReady(json) {
   if (!window.RMPparams && Cookies.get("RDN-Price")) {
     window.RMPparams = {
       receiver: Cookies.get("RDN-Receiver-Address"),
-      amount: Cookies.get("RDN-Price"),
+      amount: +(Cookies.get("RDN-Price")),
       token: json["tokenAddr"],
     };
   } else if (!window.RMPparams) {
@@ -61,7 +61,11 @@ function pageReady(json) {
         $(`#channel_present .on-state.on-state-${info.state}`).show();
         $(`#channel_present .on-state:not(.on-state-${info.state})`).hide();
 
-        $("#channel_present #channel_present_balance").text(info.deposit - ((rmpc.channel && rmpc.channel.balance) || 0));
+        let remaining = 0;
+        if (info.deposit > 0 && rmpc.channel && !isNaN(rmpc.channel.balance)) {
+          remaining = info.deposit - rmpc.channel.balance;
+        }
+        $("#channel_present #channel_present_balance").text(balance);
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
         $(".btn-bar").show()
         if (info.state === 'opened') {
@@ -101,15 +105,15 @@ function pageReady(json) {
     rmpc.incrementBalanceAndSign(RMPparams.amount, (err, sign) => {
       if (err && err.message && err.message.includes('Insuficient funds')) {
         console.error(err);
-        const current = err.message.split('=')[1].split(',')[0]
-        const required = err.message.split('=')[2]
-        $('#deposited').text(current)
-        $('#required').text(required)
-        $('#remaining').text(current - (parseInt(current) + parseInt(required) - parseInt(RMPparams.amount)))
+        const current = +(err.message.match(/current ?= ?(\d+)/gi)[0]);
+        const required = +(err.message.match(/required ?= ?(\d+)/gi)[0]);
+        $('#deposited').text(current);
+        $('#required').text(required);
+        $('#remaining').text(current - rmpc.channel.balance);
         return mainSwitch("#topup");
       } else if (err && err.message && err.message.includes('User denied message signature')) {
         console.error(err);
-        $('.channel_present_sign').addClass('green-btn')
+        $('.channel_present_sign').addClass('green-btn');
         return window.alert('User denied message signature');
       } else if (err) {
         console.error(err);
@@ -220,7 +224,6 @@ function pageReady(json) {
       $("#topup_start").attr("disabled", true);
     }
   });
-  $("#topup_start").attr("disabled", false);
 
   $("#topup_start").click(() => {
     const deposit = +$("#topup_deposit").val();
