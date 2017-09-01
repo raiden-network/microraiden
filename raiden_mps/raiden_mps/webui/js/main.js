@@ -24,7 +24,7 @@ function pageReady(json) {
 
   rmpc.getTokenInfo((err, token) => {
     if (err) {
-      return console.log('Error getting token info', err);
+      return console.error('Error getting token info', err);
     }
     $('.tkn-name').text(token.name);
     $('.tkn-symbol').text(token.symbol);
@@ -65,7 +65,7 @@ function pageReady(json) {
         if (info.deposit > 0 && rmpc.channel && !isNaN(rmpc.channel.balance)) {
           remaining = info.deposit - rmpc.channel.balance;
         }
-        $("#channel_present #channel_present_balance").text(balance);
+        $("#channel_present #channel_present_balance").text(remaining);
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
         $(".btn-bar").show()
         if (info.state === 'opened') {
