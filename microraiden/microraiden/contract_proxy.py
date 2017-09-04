@@ -164,7 +164,8 @@ class ChannelContractProxy(ContractProxy):
 
     def get_settle_timeout(self, sender, receiver, open_block_number):
         try:
-            channel_info = self.contract.call().getChannelInfo(sender, receiver, open_block_number)
+            caller = self.contract.call({'from': self.caller_address})
+            channel_info = caller.getChannelInfo(sender, receiver, open_block_number)
         except BadFunctionCallOutput:
             # attempt to get info on a channel that doesn't exist
             return None
