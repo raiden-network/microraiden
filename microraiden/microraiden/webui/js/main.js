@@ -108,7 +108,7 @@ function pageReady(json) {
       if (err && err.message && err.message.includes('Insuficient funds')) {
         console.error(err);
         const current = +(err.message.match(/current ?= ?(\d+)/i)[1]);
-        const required = current - +(err.message.match(/required ?= ?(\d+)/i)[1]);
+        const required = +(err.message.match(/required ?= ?(\d+)/i)[1]) - current;
         $('#deposited').text(current);
         $('#required').text(required);
         $('#remaining').text(current - uraiden.channel.balance);
