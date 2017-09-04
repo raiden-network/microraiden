@@ -23,7 +23,7 @@ def start_proxy(receiver_privkey: str) -> PaywalledProxy:
     state_file_name = '{}_{}.pkl'.format(
         CHANNEL_MANAGER_ADDRESS, privkey_to_addr(TEST_RECEIVER_PRIVKEY)
     )
-    app_dir = click.get_app_dir('micro-raiden')
+    app_dir = click.get_app_dir('microraiden')
     if not os.path.exists(app_dir):
         os.makedirs(app_dir)
 

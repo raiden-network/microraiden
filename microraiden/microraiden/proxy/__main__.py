@@ -94,8 +94,8 @@ def main(
     channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
 
     if not state_file:
-        state_file_name = "%s_%s.pkl" % (channel_manager_address, receiver_address)
-        app_dir = click.get_app_dir('micro-raiden')
+        state_file_name = "%s_%s.pkl" % (channel_manager_address[:10], receiver_address[:10])
+        app_dir = click.get_app_dir('microraiden')
         if not os.path.exists(app_dir):
             os.makedirs(app_dir)
         state_file = os.path.join(app_dir, state_file_name)

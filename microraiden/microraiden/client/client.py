@@ -26,7 +26,7 @@ class Client:
             self,
             privkey: str = None,
             key_path: str = None,
-            datadir: str = click.get_app_dir('micro-raiden'),
+            datadir: str = click.get_app_dir('microraiden'),
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
             token_address: str = TOKEN_ADDRESS,
             rpc: RPCProvider = None,
