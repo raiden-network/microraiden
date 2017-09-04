@@ -34,12 +34,15 @@ class ChannelManagementStats(Resource):
                 pending_channels.append(v)
             else:
                 open_channels.append(v)
+        contract_address = self.channel_manager.contract_proxy.contract.address
         return {'balance_sum': self.channel_manager.get_locked_balance(),
                 'deposit_sum': deposit_sum,
                 'open_channels': len(open_channels),
                 'pending_channels': len(pending_channels),
                 'unique_senders': len(unique_senders),
-                'liquid_balance': self.channel_manager.get_liquid_balance()}
+                'liquid_balance': self.channel_manager.get_liquid_balance(),
+                'token_address': self.channel_manager.token_contract.address,
+                'contract_address': contract_address}
 
 
 class ChannelManagementListChannels(Resource):
