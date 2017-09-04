@@ -41,13 +41,16 @@ function pageReady(json) {
     $(".container").show();
   }
 
+  let autoSign = false;
   $select.change(($event) => {
     uraiden.loadStoredChannel($event.target.value, uRaidenParams.receiver);
 
     if (uraiden.isChannelValid() &&
         uraiden.channel.account === $event.target.value &&
         uraiden.channel.receiver === uRaidenParams.receiver) {
+
       mainSwitch("#channel_present");
+
       uraiden.getChannelInfo((err, info) => {
         if (err) {
           console.error(err);
@@ -69,7 +72,7 @@ function pageReady(json) {
         $("#channel_present #channel_present_balance").text(remaining);
         $("#channel_present #channel_present_deposit").attr("value", info.deposit);
         $(".btn-bar").show()
-        if (info.state === 'opened') {
+        if (info.state === 'opened' && autoSign) {
           signRetry();
         }
       });
@@ -78,10 +81,12 @@ function pageReady(json) {
     }
   });
 
-  function refreshAccounts() {
-    mainSwitch("#channel_present");
+  function refreshAccounts(_autoSign) {
     $(`#channel_present .on-state.on-state-opened`).show();
     $(`#channel_present .on-state:not(.on-state-opened)`).hide();
+    if (_autoSign) {
+      autoSign = true;
+    }
 
     $select.empty();
     uraiden.getAccounts((err, accounts) => {
@@ -101,9 +106,10 @@ function pageReady(json) {
     });
   }
 
-  refreshAccounts();
+  refreshAccounts(true);
 
   function signRetry() {
+    autoSign = false;
     uraiden.incrementBalanceAndSign(uRaidenParams.amount, (err, sign) => {
       if (err && err.message && err.message.includes('Insuficient funds')) {
         console.error(err);
@@ -116,10 +122,11 @@ function pageReady(json) {
       } else if (err && err.message && err.message.includes('User denied message signature')) {
         console.error(err);
         $('.channel_present_sign').addClass('green-btn');
-        return window.alert('User denied message signature');
+        return refreshAccounts();
       } else if (err) {
         console.error(err);
-        return window.alert(`An error occurred trying to sign the transfer: ${err.message}`);
+        window.alert(`An error occurred trying to sign the transfer: ${err.message}`);
+        return refreshAccounts();
       }
       $('.channel_present_sign').removeClass('green-btn')
       console.log("SIGNED!", sign);
