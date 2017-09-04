@@ -25,9 +25,7 @@ def make_contract_proxy(web3, private_key, contract_address):
     return ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9), 100000)
 
 
-def make_channel_manager(private_key: str, state_filename: str, web3=None):
-    if web3 is None:
-        web3 = Web3(RPCProvider())
+def make_channel_manager(private_key: str, state_filename: str, web3):
     contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
     abi = json.load(open(contracts_abi_path))['ERC223Token']['abi']
     token_contract = web3.eth.contract(abi=abi, address=config.TOKEN_ADDRESS)
@@ -54,6 +52,7 @@ def make_channel_manager(private_key: str, state_filename: str, web3=None):
 
 
 def make_paywalled_proxy(private_key: str, state_filename: str, flask_app=None, web3=None):
+    web3 = Web3(config.WEB3_PROVIDER)
     channel_manager = make_channel_manager(private_key, state_filename, web3)
     proxy = PaywalledProxy(channel_manager, flask_app, config.HTML_DIR, config.JSLIB_DIR)
     return proxy

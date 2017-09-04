@@ -59,7 +59,8 @@ class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
     poll_frequency = 2
 
-    def __init__(self, web3, contract_proxy, channel_manager, n_confirmations):
+    def __init__(self, web3, contract_proxy, channel_manager, n_confirmations,
+                 sync_chunk_size=100 * 1000):
         gevent.Greenlet.__init__(self)
         self.web3 = web3
         self.contract_proxy = contract_proxy
@@ -67,6 +68,7 @@ class Blockchain(gevent.Greenlet):
         self.n_confirmations = n_confirmations
         self.log = logging.getLogger('blockchain')
         self.wait_sync_event = gevent.event.Event()
+        self.sync_chunk_size = sync_chunk_size
         self.running = False
 
     def _run(self):
@@ -74,7 +76,8 @@ class Blockchain(gevent.Greenlet):
         self.log.info('starting blockchain polling (frequency %ss)', self.poll_frequency)
         while self.running:
             self._update()
-            gevent.sleep(self.poll_frequency)
+            if self.wait_sync_event.is_set():
+                gevent.sleep(self.poll_frequency)
         self.log.info('stopped blockchain polling')
 
     def stop(self):
@@ -109,8 +112,9 @@ class Blockchain(gevent.Greenlet):
         if self.cm.state.unconfirmed_head_number is None:
             self.cm.state.unconfirmed_head_number = -1
         current_block = self.web3.eth.blockNumber
-        new_unconfirmed_head_number = current_block
-        new_confirmed_head_number = max(current_block - self.n_confirmations, 0)
+        new_unconfirmed_head_number = self.cm.state.unconfirmed_head_number + self.sync_chunk_size
+        new_unconfirmed_head_number = min(new_unconfirmed_head_number, current_block)
+        new_confirmed_head_number = max(new_unconfirmed_head_number - self.n_confirmations, 0)
 
         # filter for events after block_number
         filters_confirmed = {
@@ -222,7 +226,9 @@ class Blockchain(gevent.Greenlet):
             new_confirmed_head_number,
             new_confirmed_head_hash
         )
-        self.wait_sync_event.set()
+        if not self.wait_sync_event.is_set() and new_unconfirmed_head_number == current_block:
+            self.log.info('initial sync finished')
+            self.wait_sync_event.set()
 
 
 class ChannelManagerState(object):
