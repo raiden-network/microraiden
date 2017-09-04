@@ -78,6 +78,7 @@ function pageReady(json) {
   });
 
   function refreshAccounts() {
+    mainSwitch("#channel_present");
     $(`#channel_present .on-state.on-state-opened`).show();
     $(`#channel_present .on-state:not(.on-state-opened)`).hide();
 
