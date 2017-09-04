@@ -107,7 +107,7 @@ class PaywalledProxyUrl(PaywalledContent):
             "//code.jquery.com/jquery-3.2.1.js",
             "//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js",
             "/js/web3.js",
-            "/js/rmp.js"]
+            "/js/microraiden.js"]
         for src in js_paths:
             js_tag = soup.new_tag('script', type="text/javascript", src=src)
             soup.head.insert(0, js_tag)
