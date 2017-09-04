@@ -52,7 +52,8 @@ function pageReady(json) {
         if (err) {
           console.error(err);
           info = { state: "error", deposit: 0 }
-        } else if (Cookies.get('RDN-Nonexisting-Channel')) {
+        } else if (Cookies.get("RDN-Nonexisting-Channel")) {
+          Cookies.remove("RDN-Nonexisting-Channel");
           window.alert("Server won't accept this channel.\n" +
             "Please, close+settle+forget, and open a new channel");
           $('#channel_present .channel_present_sign').attr("disabled", true);
@@ -78,6 +79,7 @@ function pageReady(json) {
   });
 
   function refreshAccounts() {
+    mainSwitch("#channel_present");
     $(`#channel_present .on-state.on-state-opened`).show();
     $(`#channel_present .on-state:not(.on-state-opened)`).hide();
 
@@ -252,6 +254,7 @@ $.getJSON("/js/parameters.json", (json) => {
   // wait up to 20*200ms for web3 and call ready()
   const pollingId = setInterval(() => {
     if (Cookies.get("RDN-Insufficient-Confirmations")) {
+      Cookies.remove("RDN-Insufficient-Confirmations");
       clearInterval(pollingId);
       $("body").html('<h1>Waiting confirmations...</h1>');
       setTimeout(() => location.reload(), 5000);
