@@ -242,11 +242,13 @@ class ChannelManagerState(object):
     def store(self):
         """Store the state in a file."""
         if self.filename:
+            oldmask = os.umask(0o77)
             tmp = tempfile.NamedTemporaryFile()
             pickle.dump(self, tmp)
             tmp.flush()
             shutil.copyfile(tmp.name, self.filename)
             shutil.copystat(tmp.name, self.filename)
+            os.umask(oldmask)
 
     @classmethod
     def load(cls, filename):
@@ -268,7 +270,7 @@ class ChannelManager(gevent.Greenlet):
     """Manages channels from the receiver's point of view."""
 
     def __init__(self, web3, contract_proxy, token_contract, private_key: str,
-                 state_filename=None, n_confirmations=5) -> None:
+                 state_filename=None, n_confirmations=1) -> None:
         gevent.Greenlet.__init__(self)
         self.blockchain = Blockchain(web3, contract_proxy, self, n_confirmations=n_confirmations)
         self.receiver = privkey_to_addr(private_key)
