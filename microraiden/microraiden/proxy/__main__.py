@@ -75,8 +75,6 @@ def get_doggo(_):
          'The directory shoud contain a index.html file with the payment info/webapp. '
          'Content of the directory (js files, images..) is available on the "js/" endpoint.'
 )
-
-
 def main(
     channel_manager_address,
     ssl_key,
@@ -109,8 +107,9 @@ def main(
         log.fatal('Another uRaiden process is already running (%s)!' % str(ex))
         sys.exit(1)
     except InsecureStateFile as ex:
-        msg = ('The permission bits of the state file are set incorrectly (others can read or '
-               'write) or you are not the owner. For reasons of security, startup is aborted.')
+        msg = ('The permission bits of the state file (%s) are set incorrectly (others can '
+               'read or write) or you are not the owner. For reasons of security, '
+               'startup is aborted.' % state_file)
         log.fatal(msg)
         sys.exit(1)
 
