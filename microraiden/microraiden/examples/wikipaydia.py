@@ -70,7 +70,7 @@ def main(
         state_file = os.path.join(app_dir, state_file_name)
 
     config.paywall_html_dir = paywall_info
-    app = make_paywalled_proxy(private_key, state_file_name)
+    app = make_paywalled_proxy(private_key, state_file)
 
     app.add_content(PaywalledProxyUrl(".*", 1, "http://en.wikipedia.org/", [r"wiki/.*"]))
     app.run(host=host, port=port, debug=True)
