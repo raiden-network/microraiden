@@ -352,6 +352,7 @@ class ChannelManager(gevent.Greenlet):
                           sender, open_block_number)
             c.settle_timeout = settle_timeout
             c.is_closed = True
+            c.mtime = time.time()
         self.state.store()
 
     def event_channel_settled(self, sender, open_block_number):
@@ -387,9 +388,9 @@ class ChannelManager(gevent.Greenlet):
             self.log.warn("Topup of an already closed channel (sender=%s open_block=%d)" %
                           (sender, open_block_number))
             return None
-        assert c.deposit + added_deposit == deposit
         c.deposit = deposit
         c.unconfirmed_event_channel_topups.pop(txhash, None)
+        c.mtime = time.time()
         self.state.store()
 
     # end events ####
@@ -413,6 +414,7 @@ class ChannelManager(gevent.Greenlet):
                       sender, open_block_number, txid)
         # update local state
         c.is_closed = True
+        c.mtime = time.time()
         self.state.store()
 
     def force_close_channel(self, sender, open_block_number):
@@ -438,7 +440,7 @@ class ChannelManager(gevent.Greenlet):
             raise NoBalanceProofReceived('Payment has not been registered.')
         if balance != c.balance:
             raise InvalidBalanceProof('Requested closing balance does not match latest one.')
-        c.is_closed = True  # FIXME block number
+        c.is_closed = True
         c.mtime = time.time()
         receiver_sig = sign_balance_proof(
             self.private_key, self.receiver, open_block_number, balance
