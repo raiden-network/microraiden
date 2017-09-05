@@ -41,7 +41,7 @@ def test_receiver_validation(channel_manager, clean_channels, client, wait_for_b
     channel = client.open_channel(channel_manager.state.receiver, n)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
+    assert (channel.sender, channel.block) in channel_manager.channels
 
     # prepare balance proofs
     t_start = time.time()

@@ -24,11 +24,11 @@ class ChannelManagementStats(Resource):
         self.channel_manager = channel_manager
 
     def get(self):
-        deposit_sum = sum([c.deposit for c in self.channel_manager.state.channels.values()])
+        deposit_sum = sum([c.deposit for c in self.channel_manager.channels.values()])
         unique_senders = {}
         open_channels = []
         pending_channels = []
-        for k, v in self.channel_manager.state.channels.items():
+        for k, v in self.channel_manager.channels.items():
             unique_senders[k[0]] = 1
             if v.is_closed is True:
                 pending_channels.append(v)
@@ -57,7 +57,7 @@ class ChannelManagementListChannels(Resource):
              'state': self.get_channel_status(v),
              'deposit': v.deposit,
              'balance': v.balance} for k, v in
-            self.channel_manager.state.channels.items()
+            self.channel_manager.channels.items()
             if (condition(k, v))]
 
     def get_channel_filter(self, channel_status='all'):
@@ -115,7 +115,7 @@ class ChannelManagementListChannels(Resource):
             return "Bad signature format", 400
         if args.block is None:
             return "No opening block specified", 400
-        channel = self.channel_manager.state.channels[sender_address, args.block]
+        channel = self.channel_manager.channels[sender_address, args.block]
         if channel.last_signature != args.signature:
             return "Invalid or outdated balance signature", 400
         ret = sign_balance_proof(
@@ -135,7 +135,7 @@ class ChannelManagementChannelInfo(Resource):
     def get(self, sender_address, opening_block):
         try:
             key = (sender_address.lower(), opening_block)
-            sender_channel = self.channel_manager.state.channels[key]
+            sender_channel = self.channel_manager.channels[key]
         except KeyError:
             return "Sender address not found", 404
 

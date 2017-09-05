@@ -13,7 +13,7 @@ def confirmed_open_channel(channel_manager, client, receiver_address, wait_for_b
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
+    assert (channel.sender, channel.block) in channel_manager.channels
     yield channel
 
 
@@ -26,17 +26,17 @@ def test_channel_opening(channel_managers, client, receiver_address,
     channel = client.open_channel(receiver_address, 10)
     # should be in unconfirmed channels
     wait_for_blocks(0)
-    assert (channel.sender, channel.block) not in channel_manager.state.channels
-    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
-    channel_rec = channel_manager.state.unconfirmed_channels[channel.sender, channel.block]
+    assert (channel.sender, channel.block) not in channel_manager.channels
+    assert (channel.sender, channel.block) in channel_manager.unconfirmed_channels
+    channel_rec = channel_manager.unconfirmed_channels[channel.sender, channel.block]
     assert is_same_address(channel_rec.receiver, receiver_address)
     assert is_same_address(channel_rec.sender, channel.sender)
 
     # should be confirmed after n blocks
     wait_for_blocks(blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
-    channel_rec = channel_manager.state.channels[channel.sender, channel.block]
+    assert (channel.sender, channel.block) in channel_manager.channels
+    channel_rec = channel_manager.channels[channel.sender, channel.block]
     assert is_same_address(channel_rec.receiver, receiver_address)
     assert is_same_address(channel_rec.sender, channel.sender)
     assert channel_rec.balance == 0
@@ -45,8 +45,8 @@ def test_channel_opening(channel_managers, client, receiver_address,
     assert channel_rec.settle_timeout == -1
 
     # should not appear in other channel manager
-    assert (channel.sender, channel.block) not in channel_manager2.state.channels
-    assert (channel.sender, channel.block) not in channel_manager2.state.unconfirmed_channels
+    assert (channel.sender, channel.block) not in channel_manager2.channels
+    assert (channel.sender, channel.block) not in channel_manager2.unconfirmed_channels
 
 
 def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait_for_blocks,
@@ -54,15 +54,15 @@ def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait
     # if unconfirmed channel is closed it should simply be forgotten
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(0)
-    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
-    assert (channel.sender, channel.block) not in channel_manager.state.channels
+    assert (channel.sender, channel.block) in channel_manager.unconfirmed_channels
+    assert (channel.sender, channel.block) not in channel_manager.channels
     channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)  # opening confirmed
-    assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
-    assert (channel.sender, channel.block) in channel_manager.state.channels
+    assert (channel.sender, channel.block) not in channel_manager.unconfirmed_channels
+    assert (channel.sender, channel.block) in channel_manager.channels
     wait_for_blocks(1)  # closing confirmed
-    assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
-    assert (channel.sender, channel.block) in channel_manager.state.channels
+    assert (channel.sender, channel.block) not in channel_manager.unconfirmed_channels
+    assert (channel.sender, channel.block) in channel_manager.channels
 
 
 def test_close_confirmed_event(channel_manager, clean_channels, confirmed_open_channel, web3,
@@ -71,7 +71,7 @@ def test_close_confirmed_event(channel_manager, clean_channels, confirmed_open_c
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    channel_rec = channel_manager.state.channels[channel_id]
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.is_closed is True
     settle_block = channel_manager.contract_proxy.get_settle_timeout(
         channel_rec.sender, channel_rec.receiver, channel_rec.open_block_number
@@ -85,22 +85,22 @@ def test_channel_settled_event(channel_manager, clean_channels, confirmed_open_c
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    channel_rec = channel_manager.state.channels[channel_id]
+    channel_rec = channel_manager.channels[channel_id]
     wait_for_blocks(channel_rec.settle_timeout - web3.eth.blockNumber)
     assert web3.eth.blockNumber == channel_rec.settle_timeout
-    assert channel_id in channel_manager.state.channels
+    assert channel_id in channel_manager.channels
     confirmed_open_channel.settle()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    assert channel_id not in channel_manager.state.channels
+    assert channel_id not in channel_manager.channels
 
 
 def test_topup(channel_manager, clean_channels, confirmed_open_channel, wait_for_blocks):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.topup(5)
     wait_for_blocks(0)
-    channel_rec = channel_manager.state.channels[channel_id]
-    topup_txs = channel_rec.unconfirmed_event_channel_topups
+    channel_rec = channel_manager.channels[channel_id]
+    topup_txs = channel_rec.unconfirmed_topups
     assert len(topup_txs) == 1 and list(topup_txs.values())[0] == 5
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     assert len(topup_txs) == 0
@@ -111,18 +111,18 @@ def test_unconfirmed_topup(channel_manager, client, receiver_address, wait_for_b
                            clean_channels):
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(0)
-    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
+    assert (channel.sender, channel.block) in channel_manager.unconfirmed_channels
     channel.topup(5)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
-    channel_rec = channel_manager.state.channels[channel.sender, channel.block]
+    assert (channel.sender, channel.block) in channel_manager.channels
+    channel_rec = channel_manager.channels[channel.sender, channel.block]
     assert channel_rec.deposit == 15
 
 
 def test_payment(channel_manager, clean_channels, confirmed_open_channel, receiver_address,
                  receiver_privkey, sender_privkey, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
-    channel_rec = channel_manager.state.channels[channel_id]
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.last_signature is None
     assert channel_rec.balance == 0
 
@@ -231,39 +231,39 @@ def test_challenge(channel_manager, clean_channels, confirmed_open_channel, rece
                 l['args']['_value'] == 5]) == 1
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    assert channel_id not in channel_manager.state.channels
+    assert channel_id not in channel_manager.channels
 
 
 def test_multiple_topups(channel_manager, clean_channels, confirmed_open_channel, wait_for_blocks):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
-    channel_rec = channel_manager.state.channels[channel_id]
+    channel_rec = channel_manager.channels[channel_id]
 
     # first unconfirmed topup
     assert channel_rec.deposit == 10
     confirmed_open_channel.topup(5)
     wait_for_blocks(0)
-    assert len(channel_rec.unconfirmed_event_channel_topups) == 1
-    assert list(channel_rec.unconfirmed_event_channel_topups.values()) == [5]
+    assert len(channel_rec.unconfirmed_topups) == 1
+    assert list(channel_rec.unconfirmed_topups.values()) == [5]
     assert channel_rec.deposit == 10
 
-    # second unconfirmed_event_channel_topups
+    # second unconfirmed_topups
     confirmed_open_channel.topup(10)
     wait_for_blocks(0)
-    assert len(channel_rec.unconfirmed_event_channel_topups) >= 1  # equality if first is confirmed
-    assert 10 in channel_rec.unconfirmed_event_channel_topups.values()
+    assert len(channel_rec.unconfirmed_topups) >= 1  # equality if first is confirmed
+    assert 10 in channel_rec.unconfirmed_topups.values()
     assert channel_rec.deposit in [10, 15]  # depends if first topup is confirmed or not
 
     # wait for confirmations
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    assert len(channel_rec.unconfirmed_event_channel_topups) == 0
+    assert len(channel_rec.unconfirmed_topups) == 0
     assert channel_rec.deposit == 25
 
 
 def test_settlement(channel_manager, clean_channels, confirmed_open_channel, receiver_address,
                     wait_for_blocks, web3, client_token_proxy, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
-    channel_rec = channel_manager.state.channels[channel_id]
+    channel_rec = channel_manager.channels[channel_id]
 
     sig = encode_hex(confirmed_open_channel.create_transfer(2))
     channel_manager.register_payment(sender_address, confirmed_open_channel.block, 2, sig)
@@ -285,13 +285,13 @@ def test_settlement(channel_manager, clean_channels, confirmed_open_channel, rec
 
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    assert channel_id not in channel_manager.state.channels
+    assert channel_id not in channel_manager.channels
 
 
 def test_cooperative(channel_manager, clean_channels, confirmed_open_channel, receiver_address,
                      web3, wait_for_blocks, client_token_proxy, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
-    channel_rec = channel_manager.state.channels[channel_id]
+    channel_rec = channel_manager.channels[channel_id]
 
     sig1 = encode_hex(confirmed_open_channel.create_transfer(5))
     channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig1)
@@ -311,14 +311,14 @@ def test_cooperative(channel_manager, clean_channels, confirmed_open_channel, re
                 l['args']['_value'] == 5]) == 1
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(channel_manager.blockchain.poll_interval)
-    assert channel_id not in channel_manager.state.channels
+    assert channel_id not in channel_manager.channels
 
 
 def test_cooperative_wrong_balance_proof(channel_manager, clean_channels, confirmed_open_channel,
                                          receiver_address, web3, wait_for_blocks,
                                          client_token_proxy, sender_address):
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
-    channel_rec = channel_manager.state.channels[channel_id]
+    channel_rec = channel_manager.channels[channel_id]
 
     sig1 = encode_hex(confirmed_open_channel.create_transfer(5))
     channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig1)
@@ -359,26 +359,26 @@ def test_different_receivers(web3, channel_managers,
     # unconfirmed open
     channel = client.open_channel(receiver1_address, 10)
     wait_for_blocks(0)
-    assert (sender_address, channel.block) in channel_manager1.state.unconfirmed_channels
-    assert (sender_address, channel.block) not in channel_manager2.state.unconfirmed_channels
+    assert (sender_address, channel.block) in channel_manager1.unconfirmed_channels
+    assert (sender_address, channel.block) not in channel_manager2.unconfirmed_channels
 
     # confirmed open
     wait_for_blocks(n_confirmations)
     gevent.sleep(channel_manager1.blockchain.poll_interval)
-    assert (sender_address, channel.block) in channel_manager1.state.channels
-    assert (sender_address, channel.block) not in channel_manager2.state.channels
-    channel_rec = channel_manager1.state.channels[sender_address, channel.block]
+    assert (sender_address, channel.block) in channel_manager1.channels
+    assert (sender_address, channel.block) not in channel_manager2.channels
+    channel_rec = channel_manager1.channels[sender_address, channel.block]
 
     # unconfirmed topup
     channel.topup(5)
     wait_for_blocks(0)
-    assert len(channel_rec.unconfirmed_event_channel_topups) == 1
+    assert len(channel_rec.unconfirmed_topups) == 1
     assert channel_rec.deposit == 10
 
     # confirmed topup
     wait_for_blocks(n_confirmations)
     gevent.sleep(channel_manager1.blockchain.poll_interval)
-    assert len(channel_rec.unconfirmed_event_channel_topups) == 0
+    assert len(channel_rec.unconfirmed_topups) == 0
     assert channel_rec.deposit == 15
 
     # closing
@@ -393,7 +393,7 @@ def test_different_receivers(web3, channel_managers,
     channel.settle()
     wait_for_blocks(n_confirmations)
     gevent.sleep(channel_manager1.blockchain.poll_interval)
-    assert (sender_address, channel.block) not in channel_manager1.state.channels
+    assert (sender_address, channel.block) not in channel_manager1.channels
 
 
 def test_reorg(web3, channel_manager, client, receiver_address, wait_for_blocks, clean_channels):
@@ -403,35 +403,35 @@ def test_reorg(web3, channel_manager, client, receiver_address, wait_for_blocks,
     snapshot_id = web3.testing.snapshot()
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(0)
-    assert (channel.sender, channel.block) in channel_manager.state.unconfirmed_channels
+    assert (channel.sender, channel.block) in channel_manager.unconfirmed_channels
 
     # remove unconfirmed channel opening with reorg
     web3.testing.revert(snapshot_id)
     wait_for_blocks(0)
-    assert (channel.sender, channel.block) not in channel_manager.state.unconfirmed_channels
+    assert (channel.sender, channel.block) not in channel_manager.unconfirmed_channels
     web3.testing.mine(channel_manager.n_confirmations)
-    assert (channel.sender, channel.block) not in channel_manager.state.channels
+    assert (channel.sender, channel.block) not in channel_manager.channels
 
     # leave confirmed channel opening
     web3.testing.revert(snapshot_id)
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.n_confirmations)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
+    assert (channel.sender, channel.block) in channel_manager.channels
     confirmed_snapshot_id = web3.testing.snapshot()
     wait_for_blocks(3)
     web3.testing.revert(confirmed_snapshot_id)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
+    assert (channel.sender, channel.block) in channel_manager.channels
 
     # remove unconfirmed topup
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.n_confirmations)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
-    channel_rec = channel_manager.state.channels[channel.sender, channel.block]
+    assert (channel.sender, channel.block) in channel_manager.channels
+    channel_rec = channel_manager.channels[channel.sender, channel.block]
     topup_snapshot_id = web3.testing.snapshot()
     channel.topup(5)
     wait_for_blocks(0)
-    assert len(channel_rec.unconfirmed_event_channel_topups) == 1
+    assert len(channel_rec.unconfirmed_topups) == 1
     web3.testing.revert(topup_snapshot_id)
     wait_for_blocks(0)
-    assert (channel.sender, channel.block) in channel_manager.state.channels
-    assert len(channel_rec.unconfirmed_event_channel_topups) == 0
+    assert (channel.sender, channel.block) in channel_manager.channels
+    assert len(channel_rec.unconfirmed_topups) == 0
