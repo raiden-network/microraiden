@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 def confirmed_open_channel(channel_manager, client, receiver_address, wait_for_blocks):
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     assert (channel.sender, channel.block) in channel_manager.state.channels
     yield channel
 
@@ -34,7 +34,7 @@ def test_channel_opening(channel_managers, client, receiver_address,
 
     # should be confirmed after n blocks
     wait_for_blocks(blockchain.n_confirmations)
-    gevent.sleep(blockchain.poll_frequency)
+    gevent.sleep(blockchain.poll_interval)
     assert (channel.sender, channel.block) in channel_manager.state.channels
     channel_rec = channel_manager.state.channels[channel.sender, channel.block]
     assert is_same_address(channel_rec.receiver, receiver_address)
@@ -70,7 +70,7 @@ def test_close_confirmed_event(channel_manager, clean_channels, confirmed_open_c
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     channel_rec = channel_manager.state.channels[channel_id]
     assert channel_rec.is_closed is True
     settle_block = channel_manager.contract_proxy.get_settle_timeout(
@@ -84,14 +84,14 @@ def test_channel_settled_event(channel_manager, clean_channels, confirmed_open_c
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     channel_rec = channel_manager.state.channels[channel_id]
     wait_for_blocks(channel_rec.settle_timeout - web3.eth.blockNumber)
     assert web3.eth.blockNumber == channel_rec.settle_timeout
     assert channel_id in channel_manager.state.channels
     confirmed_open_channel.settle()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     assert channel_id not in channel_manager.state.channels
 
 
@@ -220,7 +220,7 @@ def test_challenge(channel_manager, clean_channels, confirmed_open_channel, rece
     confirmed_open_channel.close()
     # should challenge and immediately settle
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     wait_for_blocks(1)
     logs = client_token_proxy.get_logs('Transfer', block_before - 1, 'pending')
     assert len([l for l in logs
@@ -230,7 +230,7 @@ def test_challenge(channel_manager, clean_channels, confirmed_open_channel, rece
                 if is_same_address(l['args']['_to'], sender_address) and
                 l['args']['_value'] == 5]) == 1
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     assert channel_id not in channel_manager.state.channels
 
 
@@ -255,7 +255,7 @@ def test_multiple_topups(channel_manager, clean_channels, confirmed_open_channel
 
     # wait for confirmations
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     assert len(channel_rec.unconfirmed_event_channel_topups) == 0
     assert channel_rec.deposit == 25
 
@@ -270,7 +270,7 @@ def test_settlement(channel_manager, clean_channels, confirmed_open_channel, rec
 
     confirmed_open_channel.close()
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     block_before = web3.eth.blockNumber
     wait_for_blocks(channel_rec.settle_timeout - block_before)
     confirmed_open_channel.settle()
@@ -284,7 +284,7 @@ def test_settlement(channel_manager, clean_channels, confirmed_open_channel, rec
                 l['args']['_value'] == 8]) == 1
 
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     assert channel_id not in channel_manager.state.channels
 
 
@@ -301,7 +301,7 @@ def test_cooperative(channel_manager, clean_channels, confirmed_open_channel, re
     block_before = web3.eth.blockNumber
     confirmed_open_channel.close_cooperatively(receiver_sig)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     logs = client_token_proxy.get_logs('Transfer', block_before - 1, 'pending')
     assert len([l for l in logs
                 if is_same_address(l['args']['_to'], receiver_address) and
@@ -310,7 +310,7 @@ def test_cooperative(channel_manager, clean_channels, confirmed_open_channel, re
                 if is_same_address(l['args']['_to'], sender_address) and
                 l['args']['_value'] == 5]) == 1
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
-    gevent.sleep(channel_manager.blockchain.poll_frequency)
+    gevent.sleep(channel_manager.blockchain.poll_interval)
     assert channel_id not in channel_manager.state.channels
 
 
@@ -364,7 +364,7 @@ def test_different_receivers(web3, channel_managers,
 
     # confirmed open
     wait_for_blocks(n_confirmations)
-    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    gevent.sleep(channel_manager1.blockchain.poll_interval)
     assert (sender_address, channel.block) in channel_manager1.state.channels
     assert (sender_address, channel.block) not in channel_manager2.state.channels
     channel_rec = channel_manager1.state.channels[sender_address, channel.block]
@@ -377,14 +377,14 @@ def test_different_receivers(web3, channel_managers,
 
     # confirmed topup
     wait_for_blocks(n_confirmations)
-    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    gevent.sleep(channel_manager1.blockchain.poll_interval)
     assert len(channel_rec.unconfirmed_event_channel_topups) == 0
     assert channel_rec.deposit == 15
 
     # closing
     channel.close()
     wait_for_blocks(n_confirmations)
-    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    gevent.sleep(channel_manager1.blockchain.poll_interval)
     assert channel_rec.is_closed is True
 
     # settlement
@@ -392,7 +392,7 @@ def test_different_receivers(web3, channel_managers,
     wait_for_blocks(channel_rec.settle_timeout - block_before)
     channel.settle()
     wait_for_blocks(n_confirmations)
-    gevent.sleep(channel_manager1.blockchain.poll_frequency)
+    gevent.sleep(channel_manager1.blockchain.poll_interval)
     assert (sender_address, channel.block) not in channel_manager1.state.channels
 
 

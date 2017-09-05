@@ -145,7 +145,7 @@ def start_channel_manager(channel_manager, use_tester, mine_sync_event):
 
         channel_manager.blockchain._update = types.MethodType(
             update_patched, channel_manager.blockchain)
-        channel_manager.blockchain.poll_frequency = 0
+        channel_manager.blockchain.poll_interval = 0
 
     def fail(greenlet):
         raise greenlet.exception

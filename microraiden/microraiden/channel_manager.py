@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 
 class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
-    poll_frequency = 2
+    poll_interval = 2
 
     def __init__(self, web3, contract_proxy, channel_manager, n_confirmations,
                  sync_chunk_size=100 * 1000):
@@ -49,11 +49,11 @@ class Blockchain(gevent.Greenlet):
 
     def _run(self):
         self.running = True
-        self.log.info('starting blockchain polling (frequency %ss)', self.poll_frequency)
+        self.log.info('starting blockchain polling (interval %ss)', self.poll_interval)
         while self.running:
             self._update()
             if self.wait_sync_event.is_set():
-                gevent.sleep(self.poll_frequency)
+                gevent.sleep(self.poll_interval)
         self.log.info('stopped blockchain polling')
 
     def stop(self):
