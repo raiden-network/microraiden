@@ -60,6 +60,7 @@ function pageReady(json) {
           window.alert("Server won't accept this channel.\n" +
             "Please, close+settle+forget, and open a new channel");
           $('#channel_present .channel_present_sign').attr("disabled", true);
+          autoSign = false;
         }
 
         $(`#channel_present .on-state.on-state-${info.state}`).show();

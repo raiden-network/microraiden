@@ -534,8 +534,10 @@ class MicroRaiden {
           return console.log('Waiting tx..', blockCounter);
         }
         // Tx is finished
-        filter.stopWatching();
-        filter = null;
+        if (filter) {
+          filter.stopWatching();
+          filter = null;
+        }
         return callback(null, receipt);
       });
     });
