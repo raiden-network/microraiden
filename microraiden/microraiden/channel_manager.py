@@ -2,7 +2,7 @@
 
 """
 import os
-import pickle
+import json
 import time
 import tempfile
 import shutil
@@ -10,6 +10,7 @@ import gevent
 import gevent.event
 import filelock
 import requests
+import copy
 from eth_utils import decode_hex, is_same_address
 
 import logging
@@ -243,8 +244,15 @@ class ChannelManagerState(object):
         """Store the state in a file."""
         if self.filename:
             oldmask = os.umask(0o77)
-            tmp = tempfile.NamedTemporaryFile()
-            pickle.dump(self, tmp)
+            tmp = tempfile.NamedTemporaryFile(mode='w')
+
+            serialized_state = copy.deepcopy(self.__dict__)
+            serialized_state['unconfirmed_channels'] = [
+                v.__dict__ for v in serialized_state['unconfirmed_channels'].values()]
+            serialized_state['channels'] = [
+                v.__dict__ for v in serialized_state['channels'].values()]
+
+            json.dump(serialized_state, tmp)
             tmp.flush()
             shutil.copyfile(tmp.name, self.filename)
             shutil.copystat(tmp.name, self.filename)
@@ -257,12 +265,27 @@ class ChannelManagerState(object):
         assert isinstance(filename, str)
         if not is_secure_statefile(filename):
             raise InsecureStateFile(filename)
-        ret = pickle.load(open(filename, 'rb'))
+        json_state = json.loads(open(filename, 'r').read())
+        ret = cls.from_dict(json_state)
         log.debug("loaded saved state. head_number=%d receiver=%s" %
                   (ret.confirmed_head_number, ret.receiver))
         for sender, block in ret.channels.keys():
             log.debug("loaded channel info from the saved state sender=%s open_block=%s" %
                       (sender, block))
+        return ret
+
+    @classmethod
+    def from_dict(cls, state: dict):
+        ret = cls(state['contract_address'], state['receiver'], state['network_id'])
+        ret.confirmed_head_number = state['confirmed_head_number']
+        ret.confirmed_head_hash = state['confirmed_head_hash']
+        ret.unconfirmed_head_number = state['unconfirmed_head_number']
+        ret.unconfirmed_head_hash = state['unconfirmed_head_hash']
+        ret.filename = state['filename']
+        for channel_dict in state['channels']:
+            new_channel = Channel.from_dict(channel_dict)
+            key = (new_channel.sender, new_channel.open_block_number)
+            ret.channels[key] = new_channel
         return ret
 
 
@@ -599,5 +622,14 @@ class Channel(object):
     def unconfirmed_deposit(self):
         return self.deposit + sum(self.unconfirmed_topups.values())
 
-    def toJSON(self):
+    def to_dict(self):
         return self.__dict__
+
+    @classmethod
+    def from_dict(cls, state: dict):
+        ret = cls(None, None, None, None)
+        assert (set(state) - set(ret.__dict__)) == set()
+        for k, v in state.items():
+            if k in ret.__dict__.keys():
+                setattr(ret, k, v)
+        return ret

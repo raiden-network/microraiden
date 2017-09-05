@@ -139,7 +139,7 @@ class ChannelManagementChannelInfo(Resource):
         except KeyError:
             return "Sender address not found", 404
 
-        return sender_channel.toJSON(), 200
+        return sender_channel.to_dict(), 200
 
     def delete(self, sender_address, opening_block):
         parser = reqparse.RequestParser()
