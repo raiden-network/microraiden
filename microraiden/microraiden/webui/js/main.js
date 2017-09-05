@@ -154,8 +154,9 @@ function pageReady(json) {
     mainSwitch("#channel_opening");
     uraiden.openChannel(account, uRaidenParams.receiver, deposit, (err, channel) => {
       if (err) {
-        refreshAccounts();
-        return window.alert(`An error ocurred trying to open a channel: ${err.message}`);
+        console.error(err);
+        window.alert(`An error ocurred trying to open a channel: ${err.message}`);
+        return refreshAccounts();
       }
       return signRetry();
     });

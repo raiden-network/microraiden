@@ -258,37 +258,52 @@ class MicroRaiden {
     }
 
     // send 'transfer' transaction
-    this.token.transfer["address,uint256,bytes"].sendTransaction(
-      this.contract.address,
-      deposit,
-      receiver, // receiver goes as 3rd param, hex encoded
+    this.token.balanceOf.call(
+      account,
       { from: account },
-      (err, transferTxHash) => {
+      (err, balance) => {
         if (err) {
           return callback(err);
+        } else if (!(balance > deposit)) {
+          return callback(new Error(`Not enough tokens.
+            Token balance = ${balance}, required = ${deposit}`));
         }
-        console.log('transferTxHash', transferTxHash);
-        // wait for 'transfer' transaction to be mined
-        return this.waitTx(transferTxHash, (err, receipt) => {
-          if (err) {
-            return callback(err);
-          }
-          // call getChannelInfo to be sure channel was created
-          return this.contract.getChannelInfo.call(
-            account,
-            receiver,
-            receipt.blockNumber,
-            { from: account },
-            (err, info) => {
-              if (err || !(info[1] > 0)) {
-                return callback(err || info);
+        console.log('Token balance', token.address, balance);
+        this.token.transfer["address,uint256,bytes"].sendTransaction(
+          this.contract.address,
+          deposit,
+          receiver, // receiver goes as 3rd param, hex encoded
+          { from: account },
+          (err, transferTxHash) => {
+            if (err) {
+              return callback(err);
+            }
+            console.log('transferTxHash', transferTxHash);
+            // wait for 'transfer' transaction to be mined
+            return this.waitTx(transferTxHash, (err, receipt) => {
+              if (err) {
+                return callback(err);
               }
-              this.setChannel({account, receiver, block: receipt.blockNumber, balance: 0});
-              // return channel
-              return callback(null, this.channel);
-            });
+              // call getChannelInfo to be sure channel was created
+              return this.contract.getChannelInfo.call(
+                account,
+                receiver,
+                receipt.blockNumber,
+                { from: account },
+                (err, info) => {
+                  if (err) {
+                    return callback(err);
+                  } else if (!(info[1] > 0)) {
+                    return callback(new Error("No deposit found!"));
+                  }
+                  this.setChannel({account, receiver, block: receipt.blockNumber, balance: 0});
+                  // return channel
+                  return callback(null, this.channel);
+                });
+              });
           });
-      });
+      }
+    );
   }
 
   topUpChannel_ERC20(deposit, callback) {
