@@ -201,7 +201,8 @@ class Expensive(Resource):
             header.GATEWAY_PATH: config.API_PATH,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
-            header.PRICE: price
+            header.PRICE: price,
+            header.TOKEN_ADDRESS: config.TOKEN_ADDRESS
         })
         if gen_ui is True:
             return self.get_webUI_reply(content, proxy_handle, price, headers)
@@ -216,9 +217,12 @@ class Expensive(Resource):
         data = proxy_handle.get_paywall(content, self.receiver_address,
                                         price, config.TOKEN_ADDRESS)
         reply = make_response(data, 402, headers)
-        for hdr in (header.GATEWAY_PATH, header.CONTRACT_ADDRESS,
-                    header.RECEIVER_ADDRESS, header.PRICE,
-                    header.NONEXISTING_CHANNEL):
+        for hdr in (header.GATEWAY_PATH,
+                    header.CONTRACT_ADDRESS,
+                    header.RECEIVER_ADDRESS,
+                    header.PRICE,
+                    header.NONEXISTING_CHANNEL,
+                    header.TOKEN_ADDRESS):
             if hdr in headers:
                 reply.set_cookie(hdr, str(headers[hdr]))
         return reply

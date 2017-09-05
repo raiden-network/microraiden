@@ -1,26 +1,28 @@
 function pageReady(json) {
-  window.uraiden = new MicroRaiden(
-    window.web3,
-    json["contractAddr"],
-    json["contractABI"],
-    json["tokenAddr"],
-    json["tokenABI"],
-  );
-
   // you can set this variable in a new 'script' tag, for example
   if (!window.uRaidenParams && Cookies.get("RDN-Price")) {
     window.uRaidenParams = {
+      contract: Cookies.get("RDN-Contract-Address"),
+      token: Cookies.get("RDN-Token-Address"),
       receiver: Cookies.get("RDN-Receiver-Address"),
       amount: +(Cookies.get("RDN-Price")),
-      token: json["tokenAddr"],
     };
   } else if (!window.uRaidenParams) {
     window.uRaidenParams = {
+      contract: json["contractAddr"],
+      token: json["tokenAddr"],
       receiver: json["receiver"],
       amount: json["amount"],
-      token: json["tokenAddr"],
     };
   }
+
+  window.uraiden = new MicroRaiden(
+    window.web3,
+    uRaidenParams.contract,
+    json["contractABI"],
+    uRaidenParams.token,
+    json["tokenABI"],
+  );
 
   uraiden.getTokenInfo((err, token) => {
     if (err) {

@@ -6,6 +6,7 @@ class HTTPHeaders(object):
     PRICE = 'RDN-Price'
     CONTRACT_ADDRESS = 'RDN-Contract-Address'
     RECEIVER_ADDRESS = 'RDN-Receiver-Address'
+    TOKEN_ADDRESS = 'RDN-Token-Address'
     PAYMENT = 'RDN-Payment'
     BALANCE = 'RDN-Balance'
     BALANCE_SIGNATURE = 'RDN-Balance-Signature'
