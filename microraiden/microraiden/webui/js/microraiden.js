@@ -184,28 +184,6 @@ class MicroRaiden {
     });
   }
 
-  signMessage(msg, callback) {
-    if (!this.isChannelValid()) {
-      return callback(new Error("No valid channelInfo"));
-    }
-    const hex = '0x' + this.encodeHex(msg);
-    console.log(`Signing "${msg}" => ${hex}, account: ${this.channel.account}`);
-    return this.catchCallback(this.web3.personal.sign,
-                              hex,
-                              this.channel.account,
-                              (err, sign) => {
-      if (err && err.message &&
-          (err.message.includes('Method not found') ||
-           err.message.includes('is not a function'))) {
-        return this.catchCallback(this.web3.eth.sign,
-                                  this.channel.account,
-                                  hex,
-                                  callback);
-      }
-      return callback(err, sign);
-    });
-  }
-
   openChannel_ERC20(account, receiver, deposit, callback) {
     if (this.isChannelValid()) {
       console.warn("Already valid channel will be forgotten:", this.channel);
@@ -268,7 +246,7 @@ class MicroRaiden {
           return callback(new Error(`Not enough tokens.
             Token balance = ${balance}, required = ${deposit}`));
         }
-        console.log('Token balance', token.address, balance);
+        console.log('Token balance', this.token.address, balance.toNumber());
         this.token.transfer["address,uint256,bytes"].sendTransaction(
           this.contract.address,
           deposit,
@@ -302,8 +280,7 @@ class MicroRaiden {
                 });
               });
           });
-      }
-    );
+      });
   }
 
   topUpChannel_ERC20(deposit, callback) {
@@ -394,6 +371,7 @@ class MicroRaiden {
       } else if (info.state !== "opened") {
         return callback(new Error("Tried closing already closed channel"));
       }
+      console.log(`Closing channel. Cooperative = ${receiverSig}`);
       let func;
       if (!this.channel.sign) {
         func = (cb) => this.signBalance(this.channel.balance, cb);
@@ -422,6 +400,7 @@ class MicroRaiden {
             if (err) {
               return callback(err);
             }
+            console.log('closeTxHash', txHash);
             return this.waitTx(txHash, (err, receipt) => {
               if (err) {
                 return callback(err);
@@ -451,6 +430,7 @@ class MicroRaiden {
           if (err) {
             return callback(err);
           }
+          console.log('settleTxHash', txHash);
           return this.waitTx(txHash, (err, receipt) => {
             if (err) {
               return callback(err);
@@ -459,6 +439,28 @@ class MicroRaiden {
           });
         }
       );
+    });
+  }
+
+  signMessage(msg, callback) {
+    if (!this.isChannelValid()) {
+      return callback(new Error("No valid channelInfo"));
+    }
+    const hex = '0x' + this.encodeHex(msg);
+    console.log(`Signing "${msg}" => ${hex}, account: ${this.channel.account}`);
+    return this.catchCallback(this.web3.personal.sign,
+                              hex,
+                              this.channel.account,
+                              (err, sign) => {
+      if (err && err.message &&
+          (err.message.includes('Method not found') ||
+           err.message.includes('is not a function'))) {
+        return this.catchCallback(this.web3.eth.sign,
+                                  this.channel.account,
+                                  hex,
+                                  callback);
+      }
+      return callback(err, sign);
     });
   }
 
