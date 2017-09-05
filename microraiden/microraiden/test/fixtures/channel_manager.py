@@ -161,7 +161,7 @@ def start_channel_manager(channel_manager, use_tester, mine_sync_event):
 def channel_managers(web3, channel_manager_contract_proxies, receiver_privkeys,
                      token_contract, use_tester, mine_sync_event):
 #    logging.getLogger('channel_manager').setLevel(logging.WARNING)
-    channel_managers = [ChannelManager(web3, proxy, token_contract, privkey)
+    channel_managers = [ChannelManager(web3, proxy, token_contract, privkey, n_confirmations=5)
                         for privkey, proxy in
                         zip(receiver_privkeys, channel_manager_contract_proxies)]
     for manager in channel_managers:

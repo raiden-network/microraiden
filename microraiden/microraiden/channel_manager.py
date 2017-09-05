@@ -316,7 +316,8 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_opened(self, sender, open_block_number, deposit):
         """Notify the channel manager of a new confirmed channel opening."""
-        assert (sender, open_block_number) not in self.state.channels
+        if (sender, open_block_number) in self.state.channels:
+            return  # ignore event if already provessed
         self.state.unconfirmed_channels.pop((sender, open_block_number), None)
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
         self.log.info('new channel opened (sender %s, block number %s)', sender, open_block_number)
@@ -325,8 +326,10 @@ class ChannelManager(gevent.Greenlet):
 
     def unconfirmed_event_channel_opened(self, sender, open_block_number, deposit):
         """Notify the channel manager of a new channel opening that has not been confirmed yet."""
-        assert (sender, open_block_number) not in self.state.channels
-        assert (sender, open_block_number) not in self.state.unconfirmed_channels
+        event_already_processed = (sender, open_block_number) in self.state.unconfirmed_channels
+        channel_already_confirmed = (sender, open_block_number) in self.state.channels
+        if event_already_processed or channel_already_confirmed:
+            return
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
         self.state.unconfirmed_channels[sender, open_block_number] = c
         self.log.info('unconfirmed channel event received (sender %s, block_number %s)',
@@ -355,7 +358,7 @@ class ChannelManager(gevent.Greenlet):
         """Notify the channel manager that a channel has been settled."""
         self.log.info('Forgetting settled channel (sender %s, block number %s)',
                       sender, open_block_number)
-        del self.state.channels[sender, open_block_number]
+        self.state.channels.pop((sender, open_block_number), None)
         self.state.store()
 
     def unconfirmed_event_channel_topup(self, sender, open_block_number, txhash, added_deposit,
