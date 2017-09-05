@@ -25,7 +25,7 @@ from microraiden.proxy.content import (
     PaywalledFile,
     PaywalledContent
 )
-from microraiden.channel_manager import StateFileLocked, InsecureStateFile
+from microraiden.exceptions import StateFileLocked, InsecureStateFile, NetworkIdMismatch
 
 
 def get_doggo(_):
@@ -64,6 +64,16 @@ def get_doggo(_):
     help='Cerfificate of the server (cert.pem or similar)'
 )
 @click.option(
+    '--host',
+    default='localhost',
+    help='Address of the proxy'
+)
+@click.option(
+    '--port',
+    default=5000,
+    help='Port of the proxy'
+)
+@click.option(
     '--ssl-key',
     default=None,
     help='SSL key of the server (key.pem or similar)'
@@ -81,7 +91,9 @@ def main(
     ssl_cert,
     state_file,
     private_key,
-    paywall_info
+    paywall_info,
+    host,
+    port
 ):
     if os.path.isfile(private_key):
         if utils.is_file_rwxu_only(private_key) is False:
@@ -112,13 +124,16 @@ def main(
                'startup is aborted.' % state_file)
         log.fatal(msg)
         sys.exit(1)
+    except NetworkIdMismatch as ex:
+        log.fatal(str(ex))
+        sys.exit(1)
 
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
     app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
     app.add_content(PaywalledContent("doggo.txt", 2, get_doggo))
     app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
     app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
-    app.run(debug=True, ssl_context=(ssl_key, ssl_cert))
+    app.run(host=host, port=port, debug=True, ssl_context=(ssl_key, ssl_cert))
     app.join()
 
 

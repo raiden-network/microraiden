@@ -15,44 +15,20 @@ import logging
 
 from microraiden.crypto import sign_balance_proof, verify_balance_proof, privkey_to_addr
 from microraiden.utils import is_secure_statefile
+from microraiden.exceptions import (
+    NetworkIdMismatch,
+    StateReceiverAddrMismatch,
+    StateContractAddrMismatch,
+    StateFileLocked,
+    NoOpenChannel,
+    InsufficientConfirmations,
+    InvalidBalanceProof,
+    InvalidBalanceAmount,
+    NoBalanceProofReceived,
+    InsecureStateFile
+)
 
 log = logging.getLogger(__name__)
-
-
-class InvalidBalanceAmount(Exception):
-    pass
-
-
-class InvalidBalanceProof(Exception):
-    pass
-
-
-class NoOpenChannel(Exception):
-    pass
-
-
-class InsufficientConfirmations(Exception):
-    pass
-
-
-class NoBalanceProofReceived(Exception):
-    pass
-
-
-class StateContractAddrMismatch(Exception):
-    pass
-
-
-class StateReceiverAddrMismatch(Exception):
-    pass
-
-
-class StateFileLocked(Exception):
-    pass
-
-
-class InsecureStateFile(Exception):
-    pass
 
 
 class Blockchain(gevent.Greenlet):
@@ -234,7 +210,7 @@ class Blockchain(gevent.Greenlet):
 class ChannelManagerState(object):
     """The part of the channel manager state that needs to persist."""
 
-    def __init__(self, contract_address, receiver, filename=None):
+    def __init__(self, contract_address, receiver, network_id, filename=None):
         self.contract_address = contract_address
         self.receiver = receiver.lower()
         self.confirmed_head_number = None
@@ -244,6 +220,7 @@ class ChannelManagerState(object):
         self.channels = dict()
         self.filename = filename
         self.unconfirmed_channels = dict()
+        self.network_id = network_id
 
     def store(self):
         """Store the state in a file."""
@@ -285,6 +262,7 @@ class ChannelManager(gevent.Greenlet):
         self.token_contract = token_contract
         self.n_confirmations = n_confirmations
         self.log = logging.getLogger('channel_manager')
+        network_id = web3.version.network
         assert privkey_to_addr(self.private_key) == self.receiver.lower()
 
         channel_contract_address = contract_proxy.contract.address
@@ -292,13 +270,19 @@ class ChannelManager(gevent.Greenlet):
             self.state = ChannelManagerState.load(state_filename)
         else:
             self.state = ChannelManagerState(channel_contract_address,
-                                             self.receiver, state_filename)
+                                             self.receiver, network_id,
+                                             filename=state_filename)
         if state_filename is not None:
             self.lock_state = filelock.FileLock(state_filename)
             try:
                 self.lock_state.acquire(timeout=0)
             except:
-                raise StateFileLocked("state file %s is locked by another process" % state_filename)
+                raise StateFileLocked("state file %s is locked by another process" %
+                                      state_filename)
+
+        if network_id != self.state.network_id:
+            raise NetworkIdMismatch("Network id mismatch: state=%d, backend=%d" % (
+                                    self.state.network_id, network_id))
 
         if not is_same_address(self.receiver, self.state.receiver):
             raise StateReceiverAddrMismatch('%s != %s' %
