@@ -102,7 +102,7 @@ class PaywalledProxy:
             content.light_client_proxy = self.light_client_proxy
         self.paywall_db.add_content(content)
 
-    def run(self, debug=False, ssl_context=None):
+    def run(self, host='localhost', port=5000, debug=False, ssl_context=None):
         assert ssl_context is None or len(ssl_context) == 2
         # register our custom error handler to ignore some exceptions and fail on others
         register_error_handler(self.gevent_error_handler)
@@ -111,11 +111,11 @@ class PaywalledProxy:
         if ((ssl_context is not None) and
            (len(ssl_context) > 2) and
            (ssl_context[0] and ssl_context[1])):
-            self.rest_server = WSGIServer(('localhost', 5000), self.app,
+            self.rest_server = WSGIServer((host, port), self.app,
                                           keyfile=ssl_context[0],
                                           certfile=ssl_context[1])
         else:
-            self.rest_server = WSGIServer(('localhost', 5000), self.app)
+            self.rest_server = WSGIServer((host, port), self.app)
         self.server_greenlet = gevent.spawn(self.rest_server.serve_forever)
 
     def stop(self):
