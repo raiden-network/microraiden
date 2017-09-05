@@ -137,6 +137,7 @@ function pageReady(json) {
       Cookies.set("RDN-Open-Block", uraiden.channel.block);
       Cookies.set("RDN-Sender-Balance", uraiden.channel.balance);
       Cookies.set("RDN-Balance-Signature", sign);
+      Cookies.remove("RDN-Nonexisting-Channel");
       location.reload();
     });
   }
