@@ -18,6 +18,7 @@ if __package__ is None:
     sys.path.insert(0, path)
     sys.path.insert(0, path + "/../")
 
+from web3 import HTTPProvider, Web3
 import microraiden.utils as utils
 from microraiden.make_helpers import make_paywalled_proxy
 from microraiden import config
@@ -64,6 +65,11 @@ def get_doggo(_):
     help='Cerfificate of the server (cert.pem or similar)'
 )
 @click.option(
+    '--rpc-provider',
+    default='http://localhost:8545',
+    help='Address of the Ethereum RPC provider'
+)
+@click.option(
     '--host',
     default='localhost',
     help='Address of the proxy'
@@ -92,6 +98,7 @@ def main(
     state_file,
     private_key,
     paywall_info,
+    rpc_provider,
     host,
     port
 ):
@@ -113,8 +120,9 @@ def main(
         state_file = os.path.join(app_dir, state_file_name)
 
     config.paywall_html_dir = paywall_info
+    web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     try:
-        app = make_paywalled_proxy(private_key, state_file)
+        app = make_paywalled_proxy(private_key, state_file, web3=web3)
     except StateFileLocked as ex:
         log.fatal('Another uRaiden process is already running (%s)!' % str(ex))
         sys.exit(1)

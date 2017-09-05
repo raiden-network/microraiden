@@ -4,7 +4,6 @@ import json
 
 from microraiden.contract_proxy import ChannelContractProxy
 from web3 import Web3
-from web3.providers.rpc import RPCProvider
 
 import logging
 
@@ -52,7 +51,8 @@ def make_channel_manager(private_key: str, state_filename: str, web3):
 
 
 def make_paywalled_proxy(private_key: str, state_filename: str, flask_app=None, web3=None):
-    web3 = Web3(config.WEB3_PROVIDER)
+    if web3 is None:
+        web3 = Web3(config.WEB3_PROVIDER)
     channel_manager = make_channel_manager(private_key, state_filename, web3)
     proxy = PaywalledProxy(channel_manager, flask_app, config.HTML_DIR, config.JSLIB_DIR)
     return proxy

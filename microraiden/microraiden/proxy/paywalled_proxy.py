@@ -105,7 +105,7 @@ class PaywalledProxy:
     def run(self, host='localhost', port=5000, debug=False, ssl_context=None):
         assert ssl_context is None or len(ssl_context) == 2
         # register our custom error handler to ignore some exceptions and fail on others
-        register_error_handler(self.gevent_error_handler)
+#        register_error_handler(self.gevent_error_handler)
         self.channel_manager.wait_sync()
         from gevent.pywsgi import WSGIServer
         if ((ssl_context is not None) and

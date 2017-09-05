@@ -7,6 +7,7 @@ if __package__ is None:
     sys.path.insert(0, path)
     sys.path.insert(0, path + "/../")
 
+from web3 import HTTPProvider, Web3
 from microraiden.make_helpers import make_paywalled_proxy
 from microraiden import config
 from microraiden.crypto import privkey_to_addr
@@ -37,6 +38,11 @@ from microraiden.proxy.content import (
     help='Port of the proxy'
 )
 @click.option(
+    '--rpc-provider',
+    default='http://localhost:8545',
+    help='Ethereum RPC provider address'
+)
+@click.option(
     '--state-file',
     default=None,
     help='Port of the proxy'
@@ -53,6 +59,7 @@ def main(
     private_key,
     paywall_info,
     state_file,
+    rpc_provider,
     host,
     port
 ):
@@ -70,7 +77,8 @@ def main(
         state_file = os.path.join(app_dir, state_file_name)
 
     config.paywall_html_dir = paywall_info
-    app = make_paywalled_proxy(private_key, state_file)
+    web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
+    app = make_paywalled_proxy(private_key, state_file, web3=web3)
 
     app.add_content(PaywalledProxyUrl(".*", 1, "http://en.wikipedia.org/", [r"wiki/.*"]))
     app.run(host=host, port=port, debug=True)
