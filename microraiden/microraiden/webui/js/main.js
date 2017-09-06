@@ -102,7 +102,7 @@ function pageReady(json) {
           const o = $("<option></option>").attr("value", v).text(v);
           $select.append(o);
           if (k === 0) {
-            o.change()
+			$select.change();
           };
         });
       }
@@ -182,7 +182,7 @@ function pageReady(json) {
     if (!window.confirm("Are you sure you want to close this channel?")) {
       return;
     }
-    mainSwitch("#channel_opening");
+	mainSwitch("#channel_opening");
     // signBalance without balance, sign current balance only if needed
     uraiden.signBalance(null, (err, sign) => {
       if (err) {
