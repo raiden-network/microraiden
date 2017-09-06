@@ -491,7 +491,7 @@ class ChannelManager(gevent.Greenlet):
             c = self.channels[sender, open_block_number]
         except KeyError:
             raise NoOpenChannel('Channel does not exist or has been closed'
-                                '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
+                                '(sender=%s, open_block_number=%s)' % (sender, open_block_number))
         if c.is_closed:
             raise NoOpenChannel('Channel closing has been requested already.')
 
