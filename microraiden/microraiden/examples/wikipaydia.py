@@ -87,6 +87,8 @@ def main(
 
 if __name__ == '__main__':
     import logging
+    from gevent import monkey
+    monkey.patch_all()
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("blockchain").setLevel(logging.DEBUG)
