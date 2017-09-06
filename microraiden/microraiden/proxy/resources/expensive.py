@@ -141,6 +141,9 @@ class Expensive(Resource):
             return self.reply_payment_required(content, proxy_handle,
                                                headers={header.NONEXISTING_CHANNEL: 1},
                                                gen_ui=accepts_html)
+        except InvalidBalanceAmount as e:
+            # balance sent to the proxy is less than in the previous proof
+            return self.reply_payment_required(content, proxy_handle, headers, gen_ui=accepts_html)
         except InvalidBalanceProof as e:
             return self.reply_payment_required(content, proxy_handle,
                                                headers={header.INVALID_PROOF: 1},
