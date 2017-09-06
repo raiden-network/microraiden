@@ -9,6 +9,7 @@ import shutil
 import gevent
 import gevent.event
 import filelock
+import requests
 from eth_utils import decode_hex, is_same_address
 
 import logging
@@ -44,6 +45,7 @@ class Blockchain(gevent.Greenlet):
         self.n_confirmations = n_confirmations
         self.log = logging.getLogger('blockchain')
         self.wait_sync_event = gevent.event.Event()
+        self.is_connected = gevent.event.Event()
         self.sync_chunk_size = sync_chunk_size
         self.running = False
 
@@ -51,9 +53,18 @@ class Blockchain(gevent.Greenlet):
         self.running = True
         self.log.info('starting blockchain polling (interval %ss)', self.poll_interval)
         while self.running:
-            self._update()
-            if self.wait_sync_event.is_set():
+            try:
+                self._update()
+                self.is_connected.set()
+                if self.wait_sync_event.is_set():
+                    gevent.sleep(self.poll_interval)
+            except requests.exceptions.ConnectionError as e:
+                endpoint = self.web3.currentProvider.endpoint_uri
+                self.log.warn("Ethereum node (%s) refused connection. Retrying in %d seconds." %
+                              (endpoint, self.poll_interval))
                 gevent.sleep(self.poll_interval)
+                self.is_connected.clear()
+
         self.log.info('stopped blockchain polling')
 
     def stop(self):
@@ -554,6 +565,9 @@ class ChannelManager(gevent.Greenlet):
 
     def wait_sync(self):
         self.blockchain.wait_sync()
+
+    def node_online(self):
+        return self.blockchain.is_connected.is_set()
 
 
 class Channel(object):

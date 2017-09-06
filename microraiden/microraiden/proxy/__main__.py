@@ -9,6 +9,7 @@ import sys
 from microraiden.crypto import privkey_to_addr
 from flask import make_response
 import logging
+import requests
 
 log = logging.getLogger(__name__)
 
@@ -134,6 +135,9 @@ def main(
         sys.exit(1)
     except NetworkIdMismatch as ex:
         log.fatal(str(ex))
+        sys.exit(1)
+    except requests.exceptions.ConnectionError as ex:
+        log.fatal("Ethereum node refused connection: %s" % str(ex))
         sys.exit(1)
 
     app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
