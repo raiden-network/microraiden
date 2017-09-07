@@ -137,9 +137,9 @@
 li {
   display: block;
   float: left;
-  padding-left: 37px;
-  padding-top: 20px;
+  padding: 20px 20px 0px 20px;
   font-size: 16px;
+  text-align: left;
 }
 
 .transfer li:before {
@@ -150,7 +150,7 @@ li {
   float: left;
   margin-top: -5px;
   margin-left: 10px;
-  padding-right: 10px;
+  padding-right: 20px;
 }
 
 .sign li:before {
@@ -161,7 +161,7 @@ li {
   float: left;
   margin-top: -5px;
   margin-left: 10px;
-  padding-right: 10px;
+  padding-right: 20px;
 }
 
 .deposit {
