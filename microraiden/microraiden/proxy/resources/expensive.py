@@ -111,7 +111,7 @@ class Expensive(Resource):
     def get(self, content):
         log.info(content)
         if self.channel_manager.node_online() is False:
-            return "Ethereum node is not responding", 500
+            return "Ethereum node is not responding", 502
         try:
             data = RequestData(request.headers, request.cookies)
         except ValueError as e:
