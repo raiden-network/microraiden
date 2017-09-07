@@ -1,6 +1,6 @@
 import gevent
 import rlp
-from eth_utils import decode_hex
+from eth_utils import decode_hex, encode_hex
 from ethereum.transactions import Transaction
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
@@ -9,7 +9,7 @@ from web3.utils.empty import empty as web3_empty
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 
-from microraiden.crypto import privkey_to_addr
+from microraiden.crypto import privkey_to_addr, sign, sha3
 
 DEFAULT_TIMEOUT = 60
 DEFAULT_RETRY_INTERVAL = 3
@@ -30,14 +30,23 @@ class ContractProxy:
         self.gas_limit = gas_limit
         self.tester_mode = tester_mode
 
-    def create_signed_transaction(self, func_name, args, nonce_offset=0):
-        tx = self.create_transaction(func_name, args, nonce_offset)
-        return self.web3.toHex(rlp.encode(tx.sign(self.privkey)))
+    def create_signed_transaction(self, func_name, args, nonce_offset=0, value=0):
+        # Implementing EIP 155.
+        tx = self.create_transaction(func_name, args, nonce_offset, value)
+        sig = sign(self.privkey, sha3(rlp.encode(tx)), v=35+2*self.web3.version.network)
+        v, r, s = sig[-1], sig[0:32], sig[32:-1]
+        tx.v = v
+        tx.r = int.from_bytes(r, byteorder='big')
+        tx.s = int.from_bytes(s, byteorder='big')
+        return encode_hex(rlp.encode(tx))
 
-    def create_transaction(self, func_name, args, nonce_offset=0):
+    def create_transaction(self, func_name, args, nonce_offset=0, value=0):
         data = self.create_transaction_data(func_name, args)
         nonce = self.web3.eth.getTransactionCount(self.caller_address, 'pending') + nonce_offset
-        tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, 0, data)
+        tx = Transaction(nonce, self.gas_price, self.gas_limit, self.address, value, data)
+        # v = CHAIN_ID according to EIP 155.
+        tx.v = self.web3.version.network
+        tx.sender = decode_hex(self.caller_address)
         return tx
 
     def create_transaction_data(self, func_name, args):

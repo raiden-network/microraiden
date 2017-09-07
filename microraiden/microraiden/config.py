@@ -12,7 +12,12 @@ NETWORK_NAMES = {
     2: 'morden',
     3: 'ropsten',
     4: 'rinkeby',
-    42: 'kovan'
+    30: 'rootstock-main',
+    31: 'rootstock-test',
+    42: 'kovan',
+    61: 'etc-main',
+    62: 'etc-test',
+    1337: 'geth'
 }
 
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
