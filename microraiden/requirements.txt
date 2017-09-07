@@ -6,7 +6,7 @@ flask_restful
 pytest
 ethereum<2.0.0,>=1.6.1
 ethereum-tester
-web3
+web3==3.11.1
 gevent
 click
 requests
