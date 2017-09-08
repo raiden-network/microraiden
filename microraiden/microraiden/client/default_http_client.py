@@ -20,7 +20,7 @@ class DefaultHTTPClient(HTTPClient):
             retry_interval: float = 5,
             initial_deposit: Callable[[int], int] = lambda price: 10 * price,
             topup_deposit: Callable[[int], int] = lambda price: 5 * price
-    ):
+    ) -> None:
         super().__init__(client, api_endpoint, api_port)
         self.retry_interval = retry_interval
         self.initial_deposit = initial_deposit
@@ -40,7 +40,7 @@ class DefaultHTTPClient(HTTPClient):
     def on_insufficient_confirmations(self):
         log.warning(
             'Newly created channel does not have enough confirmations yet. Retrying in {} seconds.'
-                .format(self.retry_interval)
+            .format(self.retry_interval)
         )
         time.sleep(self.retry_interval)
         self.retry = True
@@ -67,7 +67,7 @@ class DefaultHTTPClient(HTTPClient):
             # Server does know about the channel but cannot confirm its creation yet.
             log.info(
                 'Server could not confirm new channel yet. Waiting for {} seconds.'
-                    .format(self.retry_interval)
+                .format(self.retry_interval)
             )
             time.sleep(self.retry_interval)
             self.retry = True
@@ -82,13 +82,13 @@ class DefaultHTTPClient(HTTPClient):
             if verified:
                 log.info(
                     'Server proved a higher channel balance (server/local): {}/{}. Adopting.'
-                        .format(balance, self.channel.balance)
+                    .format(balance, self.channel.balance)
                 )
                 self.channel.balance = balance
             else:
                 log.error(
                     'Server could not prove higher channel balance (server/local): {}/{}'
-                        .format(balance, self.channel.balance)
+                    .format(balance, self.channel.balance)
                 )
                 return False
 
@@ -97,7 +97,7 @@ class DefaultHTTPClient(HTTPClient):
                 log.info(
                     'Server sent older balance proof or rejected the last one (server/local): '
                     '{}/{}. Possibly because of an unconfirmed topup. Retrying in {} seconds.'
-                        .format(balance, self.channel.balance, self.retry_interval)
+                    .format(balance, self.channel.balance, self.retry_interval)
                 )
                 self.channel.balance = balance
 
@@ -154,5 +154,5 @@ class DefaultHTTPClient(HTTPClient):
 
     @staticmethod
     def is_suitable_channel(channel: Channel, receiver: str, value: int):
-        return channel.deposit - channel.balance >= value and \
-               is_same_address(channel.receiver, receiver)
+        return (channel.deposit - channel.balance >= value and
+                is_same_address(channel.receiver, receiver))

@@ -1,4 +1,4 @@
-import pytest
+import pytest  # noqa: F401
 from coincurve import PublicKey
 from eth_utils import encode_hex, decode_hex
 
@@ -34,12 +34,12 @@ def test_sha3():
 
     assert sha3_hex('a') == '0x3ac225168df54212a25c1c01fd35bebfea408fdac2e31ddd6f80a4bbf9a5f1cb'
     assert sha3_hex('0x0a') == '0x0ef9d8f8804d174666011a394cab7901679a8944d24249fd148a6a36071151f8'
-    assert sha3_hex(addr1, (15, 32)) == \
-           '0x1e17ec1733a759ef0d988fd0195d0e2792dc6181c8953130d14f9a261c6260bb'
-    assert sha3_hex(addr1, (17, 32), addr2) == \
-           '0x00424f9e17d5fecf44d798962d27cd1d44ef37d3968b05a5ff078ff696c14ea8'
-    assert sha3_hex((23, 256)) == \
-           '0xc624b66cc0138b8fabc209247f72d758e1cf3343756d543badbf24212bed8c15'
+    assert (sha3_hex(addr1, (15, 32)) ==
+            '0x1e17ec1733a759ef0d988fd0195d0e2792dc6181c8953130d14f9a261c6260bb')
+    assert (sha3_hex(addr1, (17, 32), addr2) ==
+            '0x00424f9e17d5fecf44d798962d27cd1d44ef37d3968b05a5ff078ff696c14ea8')
+    assert (sha3_hex((23, 256)) ==
+            '0xc624b66cc0138b8fabc209247f72d758e1cf3343756d543badbf24212bed8c15')
     assert sha3_hex(19) == '0x66de8ffda797e3de9c05e8fc57b3bf0ec28a930d40b0d285d93c06501cf6a090'
     assert sha3_hex(-5) == '0x7234c58e51ab4abdf62492ac6faf025ebff2afd4f861cebfa33d3e76667716a9'
 

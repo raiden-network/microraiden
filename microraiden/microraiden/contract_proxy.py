@@ -33,7 +33,7 @@ class ContractProxy:
     def create_signed_transaction(self, func_name, args, nonce_offset=0, value=0):
         # Implementing EIP 155.
         tx = self.create_transaction(func_name, args, nonce_offset, value)
-        sig = sign(self.privkey, sha3(rlp.encode(tx)), v=35+2*self.web3.version.network)
+        sig = sign(self.privkey, sha3(rlp.encode(tx)), v=35 + 2 * self.web3.version.network)
         v, r, s = sig[-1], sig[0:32], sig[32:-1]
         tx.v = v
         tx.r = int.from_bytes(r, byteorder='big')
@@ -139,8 +139,8 @@ class ChannelContractProxy(ContractProxy):
         }
 
         def condition(event):
-            return event['args']['_deposit'] == deposit and \
-                   event['args']['_added_deposit'] == topup
+            return (event['args']['_deposit'] == deposit and
+                    event['args']['_added_deposit'] == topup)
 
         return self.get_event_blocking(
             'ChannelToppedUp', from_block, to_block, filters, condition, wait, timeout

@@ -38,7 +38,7 @@ class Client:
             contract_abi_path: str = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json'
             )
-    ):
+    ) -> None:
         assert privkey or key_path
         assert not privkey or isinstance(privkey, str)
 
@@ -60,7 +60,7 @@ class Client:
         assert os.path.isdir(datadir)
 
         self.account = privkey_to_addr(self.privkey)
-        self.channels = []
+        self.channels = []  # type: List[Channel]
 
         # Create web3 context if none is provided, either by using the proxies' context or creating
         # a new one.
@@ -237,7 +237,7 @@ class Client:
         if token_balance < deposit:
             log.error(
                 'Insufficient tokens available for the specified deposit ({}/{})'
-                    .format(token_balance, deposit)
+                .format(token_balance, deposit)
             )
 
         current_block = self.web3.eth.blockNumber
@@ -281,8 +281,8 @@ class Client:
         return [
             c for c in self.channels
             if is_same_address(c.sender, self.account.lower()) and
-               (not receiver or is_same_address(c.receiver, receiver)) and
-               c.state == Channel.State.open
+            (not receiver or is_same_address(c.receiver, receiver)) and
+            c.state == Channel.State.open
         ]
 
     def get_suitable_channel(
@@ -313,7 +313,7 @@ class Client:
                 log.warning(
                     'Warning: {} suitable channels found. '
                     'Choosing the one with the lowest remaining capacity.'
-                        .format(len(suitable_channels))
+                    .format(len(suitable_channels))
                 )
 
             capacity, channel = min(
@@ -332,7 +332,7 @@ class Client:
                 log.warning(
                     'Warning: {} open channels for topup found. '
                     'Choosing the one with the highest remaining capacity.'
-                        .format(len(open_channels))
+                    .format(len(open_channels))
                 )
 
             capacity, channel = max(

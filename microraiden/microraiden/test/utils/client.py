@@ -26,9 +26,7 @@ def close_all_channels_cooperatively(
 ):
     receiver_addr = privkey_to_addr(privkey_receiver)
     client.sync_channels()
-    channels = [
-        c for c in client.channels if c.state != Channel.State.closed and
-                                      c.receiver == receiver_addr
-    ]
+    channels = [c for c in client.channels
+                if c.state != Channel.State.closed and c.receiver == receiver_addr]
     for channel in channels:
         close_channel_cooperatively(channel, privkey_receiver, balance)

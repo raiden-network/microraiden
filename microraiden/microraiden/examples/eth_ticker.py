@@ -2,7 +2,6 @@ import json
 from tkinter import ttk
 import tkinter
 import logging
-import time
 import gevent
 
 import click

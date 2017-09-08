@@ -1,4 +1,4 @@
-import pytest
+import pytest  # noqa: F401
 
 from microraiden import HTTPHeaders
 from microraiden.test.config import TEST_RECEIVER_ADDR, TEST_SENDER_ADDR

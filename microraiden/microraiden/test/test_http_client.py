@@ -2,7 +2,6 @@ import logging
 import json
 
 from microraiden import DefaultHTTPClient
-from microraiden.client import Channel
 
 log = logging.getLogger(__name__)
 

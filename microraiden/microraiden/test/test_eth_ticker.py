@@ -1,6 +1,6 @@
 import logging
 
-import pytest
+import pytest  # noqa: F401
 
 from microraiden import DefaultHTTPClient
 from microraiden.examples.eth_ticker import ETHTickerClient, ETHTickerProxy

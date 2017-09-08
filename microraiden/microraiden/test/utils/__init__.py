@@ -2,5 +2,4 @@
 from .channel_manager import *
 
 __all__ = (
-    "BlockchainMock"
 )

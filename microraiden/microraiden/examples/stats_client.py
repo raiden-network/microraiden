@@ -3,6 +3,7 @@ import json
 import time
 import sys
 
+
 class bcolors:
     HEADER = '\033[95m'
     BLUE = '\033[94m'
@@ -13,6 +14,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def nice_print(key, val, val_prev):
     if val > val_prev:
         color = bcolors.GREEN
@@ -20,7 +22,8 @@ def nice_print(key, val, val_prev):
         color = bcolors.RED
     else:
         color = bcolors.ENDC
-    print(bcolors.BOLD+key+"\t\t"+color+str(val)+bcolors.ENDC)
+    print(bcolors.BOLD + key + "\t\t" + color + str(val) + bcolors.ENDC)
+
 
 def do_request():
     json_response = {
@@ -54,12 +57,12 @@ def do_request():
         json_prev = json_response
         time.sleep(2)
 
+
 def run():
     try:
         do_request()
     except KeyboardInterrupt:
         sys.exit(1)
-
 
 
 if __name__ == '__main__':

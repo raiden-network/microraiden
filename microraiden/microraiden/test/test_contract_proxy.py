@@ -1,4 +1,3 @@
-from eth_utils import encode_hex
 from web3.utils.empty import empty as web3_empty
 
 from microraiden.contract_proxy import ContractProxy

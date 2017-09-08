@@ -1,5 +1,3 @@
-import os
-
 import filelock
 import pytest
 
@@ -75,7 +73,7 @@ def test_filelock(
         'privkey': sender_privkey,
         'channel_manager_proxy': client_contract_proxy,
         'token_proxy': client_token_proxy,
-        'datadir':  datadir,
+        'datadir': datadir,
         'channel_manager_address': channel_manager_contract_address,
         'token_address': token_contract_address
     }

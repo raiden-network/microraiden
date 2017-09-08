@@ -27,7 +27,6 @@ from microraiden.proxy.resources import (
 from microraiden.proxy.content import PaywallDatabase, PaywalledContent
 from microraiden.proxy.resources.expensive import LightClientProxy
 from microraiden.config import API_PATH
-from microraiden.proxy.gevent_error_patch import register_error_handler
 
 
 import logging

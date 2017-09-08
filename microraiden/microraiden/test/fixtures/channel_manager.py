@@ -2,6 +2,7 @@ import pytest
 import types
 from microraiden.channel_manager import ChannelManager, Blockchain
 
+
 @pytest.fixture
 def channel_managers_count():
     return 2
@@ -9,7 +10,6 @@ def channel_managers_count():
 
 def start_channel_manager(channel_manager, use_tester, mine_sync_event):
     # disable logging during sync
-#    logging.getLogger('channel_manager').setLevel(logging.DEBUG)
     if use_tester:
         x = channel_manager.blockchain._update
 
@@ -27,14 +27,12 @@ def start_channel_manager(channel_manager, use_tester, mine_sync_event):
     channel_manager.link_exception(fail)
     channel_manager.start()
 #    channel_manager.wait_sync()
-#    logging.getLogger('channel_manager').setLevel(logging.DEBUG)
     return channel_manager
 
 
 @pytest.fixture
 def channel_managers(web3, channel_manager_contract_proxies, receiver_privkeys,
                      token_contract, use_tester, mine_sync_event):
-#    logging.getLogger('channel_manager').setLevel(logging.WARNING)
     channel_managers = [ChannelManager(web3, proxy, token_contract, privkey, n_confirmations=5)
                         for privkey, proxy in
                         zip(receiver_privkeys, channel_manager_contract_proxies)]
