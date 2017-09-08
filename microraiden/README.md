@@ -21,8 +21,14 @@ sudo pip3 install -e microraiden
 ## Execution
 
 ### HTTP Proxy
+There are several examples that demonstrate how to serve a custom content.
+By default, web server listens on 0.0.0.0:5000, and Ethereum node RPC interface is expected to respond on http://localhost:8545.
 ```bash
-python3 -m microraiden.proxy
+python3 -m microraiden.examples.demo_proxy start
+```
+or
+```bash
+python3 -m microraiden.examples.wikipaydia start
 ```
 
 ### M2M Client
