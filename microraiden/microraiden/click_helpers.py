@@ -7,7 +7,6 @@ import sys
 #  app with python -m microraiden.
 #
 from microraiden.crypto import privkey_to_addr
-from flask import make_response
 import logging
 import requests
 
@@ -23,28 +22,13 @@ from web3 import HTTPProvider, Web3
 import microraiden.utils as utils
 from microraiden.make_helpers import make_paywalled_proxy
 from microraiden import config
-from microraiden.proxy.content import (
-    PaywalledFile,
-    PaywalledContent
-)
 from microraiden.exceptions import StateFileLocked, InsecureStateFile, NetworkIdMismatch
+from microraiden.proxy.paywalled_proxy import PaywalledProxy
+
+pass_app = click.make_pass_decorator(PaywalledProxy)
 
 
-def get_doggo(_):
-    doggo_str = """
-         |\_/|
-         | @ @   Woof!
-         |   <>              _
-         |  _/\------____ ((| |))
-         |               `--' |
-     ____|_       ___|   |___.'
-    /_/_____/____/_______|
-    """
-    headers = {"Content-type": 'text/ascii'}
-    return make_response(doggo_str, 200, headers)
-
-
-@click.command()
+@click.group()
 @click.option(
     '--channel-manager-address',
     default=None,
@@ -71,16 +55,6 @@ def get_doggo(_):
     help='Address of the Ethereum RPC provider'
 )
 @click.option(
-    '--host',
-    default='localhost',
-    help='Address of the proxy'
-)
-@click.option(
-    '--port',
-    default=5000,
-    help='Port of the proxy'
-)
-@click.option(
     '--ssl-key',
     default=None,
     help='SSL key of the server (key.pem or similar)'
@@ -92,7 +66,9 @@ def get_doggo(_):
          'The directory shoud contain a index.html file with the payment info/webapp. '
          'Content of the directory (js files, images..) is available on the "js/" endpoint.'
 )
+@click.pass_context
 def main(
+    ctx,
     channel_manager_address,
     ssl_key,
     ssl_cert,
@@ -100,8 +76,6 @@ def main(
     private_key,
     paywall_info,
     rpc_provider,
-    host,
-    port
 ):
     if os.path.isfile(private_key):
         if utils.is_file_rwxu_only(private_key) is False:
@@ -139,21 +113,4 @@ def main(
     except requests.exceptions.ConnectionError as ex:
         log.fatal("Ethereum node refused connection: %s" % str(ex))
         sys.exit(1)
-
-    app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
-    app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
-    app.add_content(PaywalledContent("doggo.txt", 2, get_doggo))
-    app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
-    app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
-    app.run(host=host, port=port, debug=True, ssl_context=(ssl_key, ssl_cert))
-    app.join()
-
-
-if __name__ == '__main__':
-    from gevent import monkey
-    monkey.patch_all()
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-    logging.getLogger("blockchain").setLevel(logging.DEBUG)
-    logging.getLogger("channel_manager").setLevel(logging.DEBUG)
-    main()
+    ctx.obj = app
