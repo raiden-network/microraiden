@@ -10,9 +10,10 @@ services:
             - ./letsencrypt/etc:/etc/letsencrypt:ro
             - ./letsencrypt/html:/tmp/letsencrypt:ro
             - ./app/ng/dist:/app/ng/dist:ro
-            - ./app/flask_ged/web/html:/app/flask_ged/web/html:ro
-            - ./files:/app/flask_ged/files:ro
-            - ./files/tmp:/app/flask_ged/files/tmp
+            - ./app/microraiden/webui:/app/web/html:ro
+            - ./files:/app/files:ro
+            - ./files/tmp:/app/files/tmp
+            - ./files:/fileso
         links:
             - uwsgi
         logging:
@@ -26,7 +27,7 @@ services:
         build: .
         volumes:
             - ./app:/app:ro
-#             - ./files:/app/flask_ged/files
+            - ./files:/files
             - ./app.ini:/app.ini:ro
 #         links:
 #             - postgres
