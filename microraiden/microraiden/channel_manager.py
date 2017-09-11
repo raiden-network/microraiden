@@ -65,7 +65,6 @@ class Blockchain(gevent.Greenlet):
                               (endpoint, self.poll_interval))
                 gevent.sleep(self.poll_interval)
                 self.is_connected.clear()
-
         self.log.info('stopped blockchain polling')
 
     def stop(self):
@@ -336,12 +335,10 @@ class ChannelManager(gevent.Greenlet):
 
     def _run(self):
         self.blockchain.start()
-        self.blockchain.get()  # re-raises exception
 
     def stop(self):
         if self.blockchain.running:
             self.blockchain.stop()
-            self.blockchain.join()
 
     def set_head(self, unconfirmed_head_number, unconfirmed_head_hash,
                  confirmed_head_number, confirmed_head_hash):

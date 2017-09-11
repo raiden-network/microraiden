@@ -21,7 +21,8 @@ from microraiden.proxy.paywalled_proxy import PaywalledProxy
 def make_contract_proxy(web3, private_key, contract_address):
     contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
     abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
-    return ChannelContractProxy(web3, private_key, contract_address, abi, int(20e9), 100000)
+    return ChannelContractProxy(web3, private_key, contract_address, abi, config.GAS_PRICE,
+                                config.GAS_LIMIT)
 
 
 def make_channel_manager(private_key: str, state_filename: str, web3):

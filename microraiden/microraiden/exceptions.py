@@ -22,21 +22,25 @@ class NoBalanceProofReceived(MicroRaidenException):
     pass
 
 
-class StateContractAddrMismatch(MicroRaidenException):
+class StateFileException(MicroRaidenException):
     pass
 
 
-class StateReceiverAddrMismatch(MicroRaidenException):
+class StateContractAddrMismatch(StateFileException):
     pass
 
 
-class StateFileLocked(MicroRaidenException):
+class StateReceiverAddrMismatch(StateFileException):
     pass
 
 
-class InsecureStateFile(MicroRaidenException):
+class StateFileLocked(StateFileException):
     pass
 
 
-class NetworkIdMismatch(MicroRaidenException):
+class InsecureStateFile(StateFileException):
+    pass
+
+
+class NetworkIdMismatch(StateFileException):
     pass
