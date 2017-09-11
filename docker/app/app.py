@@ -2,7 +2,7 @@ from gevent import monkey
 monkey.patch_all()
 
 import logging
-#logging.basicConfig(filename="/app/mr.log",level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("blockchain").setLevel(logging.DEBUG)
 logging.getLogger("channel_manager").setLevel(logging.DEBUG)
