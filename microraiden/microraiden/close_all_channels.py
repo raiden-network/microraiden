@@ -25,7 +25,7 @@ from microraiden.crypto import privkey_to_addr
 from microraiden.exceptions import StateFileException
 
 
-log = logging.getLogger('bankrun')
+log = logging.getLogger('close_all_channels')
 
 
 @click.command()

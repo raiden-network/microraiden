@@ -6,10 +6,10 @@ from eth_utils import (
 from ethereum.tester import TransactionFailed
 from web3.exceptions import BadFunctionCallOutput
 
-from microraiden.bankrun import close_open_channels
+from microraiden.close_all_channels import close_open_channels
 
 
-def test_bankrun_simple(client, channel_manager, web3, wait_for_blocks):
+def test_close_simple(client, channel_manager, web3, wait_for_blocks):
     sender = client.account
     receiver = channel_manager.receiver
 
@@ -32,7 +32,7 @@ def test_bankrun_simple(client, channel_manager, web3, wait_for_blocks):
         contract_proxy.contract.call().getChannelInfo(*channel_id)
 
 
-def test_bankrun_topup(client, channel_manager, web3, wait_for_blocks):
+def test_close_topup(client, channel_manager, web3, wait_for_blocks):
     sender = client.account
     receiver = channel_manager.receiver
 
@@ -57,7 +57,7 @@ def test_bankrun_topup(client, channel_manager, web3, wait_for_blocks):
         contract_proxy.contract.call().getChannelInfo(*channel_id)
 
 
-def test_bankrun_valid_close(client, channel_manager, web3, wait_for_blocks):
+def test_close_valid_close(client, channel_manager, web3, wait_for_blocks):
     sender = client.account
     receiver = channel_manager.receiver
 
@@ -82,7 +82,7 @@ def test_bankrun_valid_close(client, channel_manager, web3, wait_for_blocks):
         contract_proxy.contract.call().getChannelInfo(*channel_id)
 
 
-def test_bankrun_invalid_close(client, channel_manager, web3, wait_for_blocks):
+def test_close_invalid_close(client, channel_manager, web3, wait_for_blocks):
     sender = client.account
     receiver = channel_manager.receiver
 
@@ -110,7 +110,7 @@ def test_bankrun_invalid_close(client, channel_manager, web3, wait_for_blocks):
         contract_proxy.contract.call().getChannelInfo(*channel_id)
 
 
-def test_bankrun_settled(client, channel_manager, web3, wait_for_blocks):
+def test_close_settled(client, channel_manager, web3, wait_for_blocks):
     sender = client.account
     receiver = channel_manager.receiver
 
