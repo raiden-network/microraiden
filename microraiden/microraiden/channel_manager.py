@@ -104,10 +104,9 @@ class Blockchain(gevent.Greenlet):
         new_unconfirmed_head_number = min(new_unconfirmed_head_number, current_block)
         new_confirmed_head_number = max(new_unconfirmed_head_number - self.n_confirmations, 0)
 
-        # return if null interval
-        if self.cm.state.confirmed_head_number >= new_confirmed_head_number:
-            return
-        elif self.cm.state.unconfirmed_head_number >= new_unconfirmed_head_number:
+        # return if blocks have already been processed
+        if (self.cm.state.confirmed_head_number >= new_confirmed_head_number and
+            self.cm.state.unconfirmed_head_number >= new_unconfirmed_head_number):
             return
 
         # filter for events after block_number
