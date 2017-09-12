@@ -2,6 +2,7 @@
 
 """
 import os
+import sys
 import json
 import time
 import tempfile
@@ -211,8 +212,15 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
 
         # update head hash and number
-        new_unconfirmed_head_hash = self.web3.eth.getBlock(new_unconfirmed_head_number).hash
-        new_confirmed_head_hash = self.web3.eth.getBlock(new_confirmed_head_number).hash
+        try:
+            new_unconfirmed_head_hash = self.web3.eth.getBlock(new_unconfirmed_head_number).hash
+            new_confirmed_head_hash = self.web3.eth.getBlock(new_confirmed_head_number).hash
+        except AttributeError:
+            self.log.critical("RPC endpoint didn't return proper info for an existing block "
+                              "(%d,%d)" % (new_unconfirmed_head_number, new_confirmed_head_number))
+            self.log.critical("It is possible that the blockchain isn't fully synced.")
+            self.log.critical("Can't continue - check status of the ethereum node.")
+            sys.exit(1)
         self.cm.set_head(
             new_unconfirmed_head_number,
             new_unconfirmed_head_hash,
