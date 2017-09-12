@@ -1,11 +1,9 @@
 import pytest
 
 from eth_utils import (
-    denoms,
     encode_hex,
 )
 from ethereum.tester import TransactionFailed
-import gevent
 from web3.exceptions import BadFunctionCallOutput
 
 from microraiden.bankrun import close_open_channels

@@ -91,7 +91,7 @@ def web3(use_tester, deployer_address, mine_sync_event):
         def mine_patched(self, count):
             x(count)
             mine_sync_event.set()
-            gevent.sleep(0)
+            gevent.sleep(0)  # switch context
             mine_sync_event.clear()
 
         web3.testing.mine = types.MethodType(

@@ -339,6 +339,7 @@ class ChannelManager(gevent.Greenlet):
     def stop(self):
         if self.blockchain.running:
             self.blockchain.stop()
+            self.blockchain.join()
 
     def set_head(self, unconfirmed_head_number, unconfirmed_head_hash,
                  confirmed_head_number, confirmed_head_hash):
