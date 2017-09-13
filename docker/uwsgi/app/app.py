@@ -15,11 +15,14 @@ from microraiden.proxy.content import (
     PaywalledContent,
     PaywalledProxyUrl
 )
+from requests.exceptions import ConnectionError
 
 from web3 import HTTPProvider, Web3
 from flask import Flask
 import config
 import sys
+import uwsgi
+import gevent
 
 #
 # This is an example of a simple uwsgi/Flask app using Microraiden to pay for the content.
@@ -35,7 +38,15 @@ if config.RPC_PROVIDER is None:
     sys.exit(1)
 
 # create a custom web3 provider - parity/geth runs in another container/on another host
-web3 = Web3(HTTPProvider(config.RPC_PROVIDER, request_kwargs={'timeout': 60}))
+
+try:
+    web3 = Web3(HTTPProvider(config.RPC_PROVIDER, request_kwargs={'timeout': 60}))
+    network_id = web3.version.network
+except ConnectionError:
+    log.critical("Ethereum node isn't responding. Restarting after %d seconds."
+                 % (config.SLEEP_RELOAD))
+    gevent.sleep(config.SLEEP_RELOAD)
+    uwsgi.reload()
 
 # create flask app
 app = Flask(__name__)
