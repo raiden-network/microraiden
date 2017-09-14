@@ -1,8 +1,8 @@
 # Introduction
 
 In this tutorial we will create a simple paywalled server that will serve some
-static files as well as dynamically generated responses, payable with the
-Raiden Network Token. You can find example code for this tutorial in
+static files as well as dynamically generated responses, payable with a
+custom token. You can find example code for this tutorial in
 `raiden_mps/examples/echo_server.py`.
 
 # Requirements
