@@ -1,0 +1,54 @@
+version: '2'
+services:
+    parity:
+        image: parity/parity:nightly
+        volumes:
+            - ~/.local/share/io.parity.ethereum:/mnt
+        ports:
+            - "127.0.0.1:8080:8080"
+            - "127.0.0.1:8180:8180"
+            - "127.0.0.1:8545:8545"
+            - "127.0.0.1:8546:8546"
+            - "172.17.0.1:8545:8545"
+            - "172.17.0.1:8180:8180"
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+        command: --base-path /mnt --unsafe-expose --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --rpcaddr 0.0.0.0  
+
+    nginx:
+        build: ./nginx
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./letsencrypt/etc:/etc/letsencrypt:ro
+            - ./letsencrypt/html:/tmp/letsencrypt:ro
+            - ../microraiden/microraiden/webui:/app/web/html:ro
+            - ./files:/app/files:ro
+            - ./files/tmp:/app/files/tmp
+        links:
+            - uwsgi
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+        environment:
+            - LE_RENEW_HOOK=docker kill -s HUP @CONTAINER_NAME@
+
+    uwsgi:
+        build: ./uwsgi
+        depends_on:
+            - parity
+        volumes:
+            - ./uwsgi/app:/app:ro
+            - ./files:/files
+            - ./uwsgi/app.ini:/app.ini:ro
+            - ../microraiden/microraiden/:/app/microraiden:ro
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+
