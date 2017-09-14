@@ -109,7 +109,7 @@ class MicroRaiden {
     return true;
   }
 
-  getTokenInfo(callback) {
+  getTokenInfo(account, callback) {
     return this.token.name.call((err, name) => {
       if (err) {
         return callback(err);
@@ -118,7 +118,19 @@ class MicroRaiden {
         if (err) {
           return callback(err);
         }
-        return callback(null, { name, symbol });
+        if (account) {
+          return this.catchCallback(
+            this.token.balanceOf.call,
+            account,
+            { from: account },
+            (err, balance) => {
+              // don't catch error here, balance will be undefined/null
+              return callback(null, { name, symbol, balance });
+            }
+          )
+        } else {
+          return callback(null, { name, symbol });
+        }
       });
     });
   }
@@ -581,6 +593,18 @@ class MicroRaiden {
       });
     });
     return filter;
+  }
+
+  /**
+   * Mock buy, just mint the amount
+   */
+  buyToken(amount, account, callback) {
+    return this.catchCallback(
+      this.token.mint && this.token.mint.sendTransaction,
+      amount,
+      { from: account },
+      callback
+    );
   }
 
 }

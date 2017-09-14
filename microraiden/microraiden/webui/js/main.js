@@ -105,10 +105,23 @@ function pageReady(json) {
     });
   }
 
+  function updateTokenInfo(account) {
+    uraiden.getTokenInfo(account, (err, token) => {
+      if (err) {
+        return console.error('Error getting token info', err);
+      }
+      $('.tkn-name').text(token.name);
+      $('.tkn-symbol').text(token.symbol);
+      $('.tkn-balance').attr("value", `${token.balance || 0} ${token.symbol}`);
+    });
+  }
+
   // ==== BINDINGS ====
 
   $select.change(($event) => {
     uraiden.loadStoredChannel($event.target.value, uRaidenParams.receiver);
+
+    updateTokenInfo($event.target.value);
 
     if (uraiden.isChannelValid() &&
         uraiden.channel.account === $event.target.value &&
@@ -259,18 +272,30 @@ function pageReady(json) {
     });
   });
 
-  // ==== FINAL SETUP ====
-
-  uraiden.getTokenInfo((err, token) => {
-    if (err) {
-      return console.error('Error getting token info', err);
+  $(".token_buy").click(() => {
+    const symbol = $($('.tkn-symbol')[0]).text();
+    const account = $select.val();
+    const amount = window.prompt(`How much ${symbol} do you want to buy?`);
+    if (!amount || amount != +amount) {
+      return console.log("Invalid amount", amount);
     }
-    $('.tkn-name').text(token.name);
-    $('.tkn-symbol').text(token.symbol);
+    mainSwitch("#channel_opening");
+    return uraiden.buyToken(
+      amount,
+      account,
+      (err, res) => {
+        if (err) {
+          console.error(err);
+          window.alert(`An error ocurred trying to buy tokens: ${err.message}`);
+        }
+        return refreshAccounts();
+      }
+    );
   });
 
-  $("#amount").text(uRaidenParams["amount"]);
+  // ==== FINAL SETUP ====
 
+  $("#amount").text(uRaidenParams["amount"]);
   refreshAccounts(true);
 
 };

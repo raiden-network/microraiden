@@ -146,8 +146,7 @@
             </span>
           </div>
           <div class="row deposit">
-            <div class="col-xs-1 col-md-3"></div>
-            <div class="col-xs-10 col-md-6">
+            <div class="col-xs-offset-1 col-xs-5 col-md-offset-2 col-md-4">
               <div class="input-group">
                 <input type="number" class="form-control" id="channel_missing_deposit" placeholder="Amount to deposit"
                 style="font-size: 16px; text-align:right; height: 40px;" min="1" value="2"/>
@@ -156,7 +155,15 @@
                 </span>
               </div>
             </div>
-            <div class="col-xs-1 col-md-3"></div>
+            <div class="col-xs-5 col-md-4">
+              <div class="input-group">
+                <input type="text" class="form-control tkn-balance" id="token_balance" placeholder="Buy Tokens"
+                style="font-size: 16px; text-align:right; height: 40px;" readonly />
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default token_buy">Buy</button>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
