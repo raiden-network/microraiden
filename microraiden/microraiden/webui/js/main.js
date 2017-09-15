@@ -40,6 +40,15 @@ function pageReady(json) {
 
   // ==== FUNCTIONS ====
 
+  function errorDialog(text, err) {
+    const msg = err && err.message ?
+      err.message.split(/\r?\n/)[0] :
+      typeof err === "string" ?
+        err.split(/\r?\n/)[0] :
+        JSON.stringify(err);
+    return window.alert(`${text}:\n${msg}`);
+  }
+
   function refreshAccounts(_autoSign) {
 
     autoSign = !!_autoSign;
@@ -80,7 +89,7 @@ function pageReady(json) {
         return;
       } else if (err) {
         console.error(err);
-        window.alert(`An error occurred trying to sign the transfer: ${err.message}`);
+        errorDialog("An error occurred trying to sign the transfer", err);
         return refreshAccounts();
       }
       $('.channel_present_sign').removeClass('green-btn')
@@ -97,7 +106,7 @@ function pageReady(json) {
   function closeChannel(closeSign) {
     uraiden.closeChannel(closeSign, (err, res) => {
       if (err) {
-        window.alert(`An error occurred trying to close the channel: ${err.message}`);
+        errorDialog("An error occurred trying to close the channel", err);
         return refreshAccounts();
       }
       console.log("CLOSED", res);
@@ -176,7 +185,7 @@ function pageReady(json) {
     uraiden.openChannel(account, uRaidenParams.receiver, deposit, (err, channel) => {
       if (err) {
         console.error(err);
-        window.alert(`An error ocurred trying to open a channel: ${err.message}`);
+        errorDialog("An error ocurred trying to open a channel", err);
         return refreshAccounts();
       }
       Cookies.remove("RDN-Nonexisting-Channel");
@@ -194,7 +203,7 @@ function pageReady(json) {
     // signBalance without balance, sign current balance only if needed
     uraiden.signBalance(null, (err, sign) => {
       if (err) {
-        window.alert(`An error occurred trying to get balance signature: ${err.message}`);
+        errorDialog("An error occurred trying to get balance signature", err);
         return refreshAccounts();
       }
       // call cooperative-close URL, and closeChannel with close_signature data
@@ -228,7 +237,7 @@ function pageReady(json) {
     mainSwitch("#channel_opening");
     uraiden.settleChannel((err, res) => {
       if (err) {
-        window.alert(`An error occurred trying to settle the channel: ${err.message}`);
+        errorDialog("An error occurred trying to settle the channel", err);
         return refreshAccounts();
       }
       console.log("SETTLED", res);
@@ -266,7 +275,7 @@ function pageReady(json) {
       if (err) {
         refreshAccounts();
         console.error(err);
-        return window.alert(`An error ocurred trying to deposit to channel: ${err.message}`);
+        return errorDialog("An error ocurred trying to deposit to channel", err);
       }
       return refreshAccounts(true);
     });
@@ -286,7 +295,7 @@ function pageReady(json) {
       (err, res) => {
         if (err) {
           console.error(err);
-          window.alert(`An error ocurred trying to buy tokens: ${err.message}`);
+          errorDialog("An error ocurred trying to buy tokens", err);
         }
         return refreshAccounts();
       }
