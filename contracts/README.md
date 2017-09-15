@@ -24,8 +24,8 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-ERC223Token  address is 0xc97c510f7d79057c8ae98e0ff8b3841e824cb4b5
-RaidenMicroTransferChannels address is 0xeb244b0502a2d3867e5cab2347c6e1cdeb5e1eef
+ERC223Token  address is 0xefa17deefde69542c8def9cd6f3840ad51a986ce
+RaidenMicroTransferChannels address is 0xa9b370c05016cf99a2f4760e837b932a4cc648f5
 
 ```
 
@@ -133,7 +133,7 @@ python deploy/deploy_testnet.py \
     --challenge-period 30 \
     --supply 10000000 \
     --token-name ERC223Token \
-    --token-decimals 6 \
+    --token-decimals 18 \
     --token-symbol TKN \
     --senders 5 \
     --sender-addresses \ '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'

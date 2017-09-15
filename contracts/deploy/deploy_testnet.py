@@ -67,7 +67,7 @@ def wait(transfer_filter, timeout=30):
 )
 @click.option(
     '--token-decimals',
-    default=6,
+    default=18,
     help='Token contract number of decimals.'
 )
 @click.option(

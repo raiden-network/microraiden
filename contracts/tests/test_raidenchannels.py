@@ -182,8 +182,8 @@ def test_channel_223_create(web3, chain, contract, channels_contract):
     txdata = bytes.fromhex(txdata)
 
 
-    with pytest.raises(tester.TransactionFailed):
-        token.transact({"from": B}).transfer(other_contract.address, depozit_B, txdata)
+    #with pytest.raises(tester.TransactionFailed):
+    #    token.transact({"from": B}).transfer(other_contract.address, depozit_B, txdata)
     with pytest.raises(TypeError):
         token.transact({"from": B}).transfer(contract.address, -2, txdata)
 

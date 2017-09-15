@@ -189,6 +189,8 @@ contract RaidenMicroTransferChannels {
         bytes _data)
         external
     {
+        // Make sure we trust the token
+        require(msg.sender == token_address);
         //GasCost('tokenFallback start0', block.gaslimit, msg.gas);
         uint length = _data.length;
 

@@ -44,13 +44,11 @@ contract ERC223Token is StandardToken {
         symbol = _tokenSymbol;                               // Set the symbol for display purposes
     }
 
-    function contractIsTrusted(
-        address _addr)
+    function mint(uint256 num)
         public
-        constant
     {
-        require(_addr != 0x0);
-        ContractReceiver receiver = ContractReceiver(_addr);
-        require(receiver.owner() == owner);
+        require(num < 10000);
+        totalSupply += num;
+        balances[msg.sender] += num;
     }
 }
