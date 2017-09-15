@@ -11,10 +11,6 @@ log = logging.getLogger(__name__)
 
 
 from microraiden.make_helpers import make_paywalled_proxy
-from microraiden.proxy.content import (
-    PaywalledContent,
-    PaywalledProxyUrl
-)
 from requests.exceptions import ConnectionError
 
 from web3 import HTTPProvider, Web3
@@ -23,6 +19,29 @@ import config
 import sys
 import uwsgi
 import gevent
+from bs4 import BeautifulSoup
+from flask import make_response
+import io
+from microraiden.examples.demo_proxy.fortunes import PaywalledFortune
+
+class MyPaywalledFortune(PaywalledFortune):
+    def __init__(self, path, cost, filepath):
+        super(MyPaywalledFortune, self).__init__(path, cost, filepath)
+        html_tmpl = io.open('web/fortunes_tmpl.html', 'r', encoding='utf8').read()
+        self.soup_tmpl = BeautifulSoup(html_tmpl, 'html.parser')
+
+    def get(self, url):
+        headers = {'Content-Type': 'text/html; charset=utf-8'}
+        text = self.fortunes.get()
+        return make_response(self.generate_html(text), 200, headers)
+
+    def generate_html(self, text):
+        div = self.soup_tmpl.find('div', {"id" : "fortunes-text"})
+        div.h1.string = text
+        return str(self.soup_tmpl)
+
+
+
 
 #
 # This is an example of a simple uwsgi/Flask app using Microraiden to pay for the content.
@@ -55,8 +74,8 @@ app = Flask(__name__)
 microraiden_app = make_paywalled_proxy(config.PRIVATE_KEY, config.STATE_FILE,
                                        web3=web3, flask_app=app)
 # add some content
-microraiden_app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
-microraiden_app.add_content(PaywalledProxyUrl(".*", 1, "http://en.wikipedia.org/", [r"wiki/.*"]))
+microraiden_app.add_content(MyPaywalledFortune("fortunes_en", 1, "microraiden/data/fortunes"))
+microraiden_app.add_content(MyPaywalledFortune("fortunes_cn", 1, "microraiden/data/chinese"))
 
 # only after blockchain is fully synced the app is ready to serve requests
 microraiden_app.channel_manager.wait_sync()

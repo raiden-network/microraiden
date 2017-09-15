@@ -1,11 +1,15 @@
 import random
 from microraiden.proxy.content import PaywalledContent
 from flask import make_response
+import io
+
+import logging
+log = logging.getLogger(__name__)
 
 
 class Fortunes:
     def __init__(self, fortunes_file):
-        fp = open(fortunes_file, 'r')
+        fp = io.open(fortunes_file, 'r', encoding='utf8')
         self.quotes = Fortunes.load(fp)
 
     @staticmethod
@@ -21,6 +25,7 @@ class Fortunes:
         return ret
 
     def get(self):
+        log.error("%d" % len(self.quotes))
         return random.choice(self.quotes)
 
 

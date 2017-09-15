@@ -27,6 +27,7 @@ services:
             - ./letsencrypt/etc:/etc/letsencrypt:ro
             - ./letsencrypt/html:/tmp/letsencrypt:ro
             - ../microraiden/microraiden/webui:/app/web/html:ro
+            - ./uwsgi/app/web/:/app/web/landing:ro
             - ./files:/app/files:ro
             - ./files/tmp:/app/files/tmp
         links:
