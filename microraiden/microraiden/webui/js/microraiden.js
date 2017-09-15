@@ -545,21 +545,25 @@ class MicroRaiden {
     let filter = this.web3.eth.filter('latest');
     filter.watch((err, blockHash) => {
       if (blockCounter<=0) {
-        filter.stopWatching();
-        filter = null;
-        console.warn('!! Tx expired !!');
-        return callback(new Error("Tx expired"));
+        if (filter) {
+          filter.stopWatching();
+          filter = null;
+        }
+        console.warn('!! Tx expired !!', txHash);
+        return callback(new Error("Tx expired: " + txhash));
       }
       // Get info about latest Ethereum block
       return this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
-        --blockCounter;
         if (err) {
+          if (filter) {
+            filter.stopWatching();
+            filter = null;
+          }
           return callback(err);
         } else if (!receipt || !receipt.blockNumber) {
-          return console.log('Waiting tx..', blockCounter);
+          return console.log('Waiting tx..', --blockCounter);
         } else if (confirmations > 0) {
           console.log('Waiting confirmations...', confirmations);
-          ++blockCounter;
           return --confirmations;
         }
         // Tx is finished
