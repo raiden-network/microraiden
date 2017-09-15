@@ -219,7 +219,7 @@ class MicroRaiden {
               return callback(err);
             }
             // wait for 'createChannel' transaction to be mined
-            this.waitTx(createChannelTxHash, (err, receipt) => {
+            this.waitTx(createChannelTxHash, 1, (err, receipt) => {
               if (err) {
                 return callback(err);
               }
@@ -270,7 +270,7 @@ class MicroRaiden {
             }
             console.log('transferTxHash', transferTxHash);
             // wait for 'transfer' transaction to be mined
-            return this.waitTx(transferTxHash, (err, receipt) => {
+            return this.waitTx(transferTxHash, 1, (err, receipt) => {
               if (err) {
                 return callback(err);
               }
@@ -319,7 +319,7 @@ class MicroRaiden {
               return callback(err);
             }
             // wait for 'topUp' transaction to be mined
-            this.waitTx(topUpTxHash, (err, receipt) => {
+            this.waitTx(topUpTxHash, 1, (err, receipt) => {
               if (err) {
                 return callback(err);
               }
@@ -353,22 +353,17 @@ class MicroRaiden {
         }
         console.log('transferTxHash', transferTxHash);
         // wait for 'transfer' transaction to be mined
-        return this.waitTx(transferTxHash, (err, receipt) => {
+        return this.waitTx(transferTxHash, 1, (err, receipt) => {
           if (err) {
             return callback(err);
           }
-          return this.waitForConfirmations(transferTxHash, 1, (err, confirmations) => {
+          // return current deposit
+          return this.getChannelInfo((err, info) => {
             if (err) {
               return callback(err);
             }
-            // return current deposit
-            return this.getChannelInfo((err, info) => {
-              if (err) {
-                return callback(err);
-              }
-              return callback(null, info.deposit);
-            });
-          })
+            return callback(null, info.deposit);
+          });
         });
       });
   }
@@ -413,7 +408,7 @@ class MicroRaiden {
               return callback(err);
             }
             console.log('closeTxHash', txHash);
-            return this.waitTx(txHash, (err, receipt) => {
+            return this.waitTx(txHash, 0, (err, receipt) => {
               if (err) {
                 return callback(err);
               }
@@ -443,7 +438,7 @@ class MicroRaiden {
             return callback(err);
           }
           console.log('settleTxHash', txHash);
-          return this.waitTx(txHash, (err, receipt) => {
+          return this.waitTx(txHash, 0, (err, receipt) => {
             if (err) {
               return callback(err);
             }
@@ -539,12 +534,13 @@ class MicroRaiden {
     });
   }
 
-  waitTx(txHash, callback) {
+  waitTx(txHash, confirmations, callback) {
     /*
      * Watch for a particular transaction hash and call the awaiting function when done;
      * Got it from: https://github.com/ethereum/web3.js/issues/393
      */
     let blockCounter = 15;
+    confirmations = +confirmations || 0;
     // Wait for tx to be finished
     let filter = this.web3.eth.filter('latest');
     filter.watch((err, blockHash) => {
@@ -561,6 +557,10 @@ class MicroRaiden {
           return callback(err);
         } else if (!receipt || !receipt.blockNumber) {
           return console.log('Waiting tx..', blockCounter);
+        } else if (confirmations > 0) {
+          console.log('Waiting confirmations...', confirmations);
+          ++blockCounter;
+          return --confirmations;
         }
         // Tx is finished
         if (filter) {
@@ -574,28 +574,6 @@ class MicroRaiden {
   }
 
   /**
-   * Wait for a given number of confirmations before executing callback
-   */
-  waitForConfirmations(txHash, confirmations, callback) {
-    let filter = this.web3.eth.filter('latest');
-    filter.watch((err, log) => {
-      // Get info about latest Ethereum block
-      return this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
-        if (err) {
-          return callback(err);
-        } else if ((log.blockNumber - receipt.blockNumber) <= confirmations) {
-          return console.log('actual confirmations: ', (log.blockNumber - receipt.blockNumber), 'given confirmations: ', confirmations);
-        }
-        // Tx is finished
-        filter.stopWatching();
-        filter = null;
-        return callback(null, (log.blockNumber - receipt.blockNumber));
-      });
-    });
-    return filter;
-  }
-
-  /**
    * Mock buy, just mint the amount
    */
   buyToken(amount, account, callback) {
@@ -603,7 +581,13 @@ class MicroRaiden {
       this.token.mint && this.token.mint.sendTransaction,
       amount,
       { from: account },
-      callback
+      (err, txHash) => {
+        if (err) {
+          return callback(err);
+        }
+        console.log('mintTxHash', txHash);
+        return this.waitTx(txHash, 1, callback);
+      }
     );
   }
 
