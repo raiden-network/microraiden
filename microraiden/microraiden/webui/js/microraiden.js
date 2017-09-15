@@ -254,7 +254,7 @@ class MicroRaiden {
       (err, balance) => {
         if (err) {
           return callback(err);
-        } else if (!(balance > deposit)) {
+        } else if (!(balance >= deposit)) {
           return callback(new Error(`Not enough tokens.
             Token balance = ${balance}, required = ${deposit}`));
         }
