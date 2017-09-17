@@ -5,6 +5,8 @@ hex-encoded values, such as hashes and private keys, come without a 0x prefix.
 
 from coincurve import PrivateKey, PublicKey
 from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak, is_0x_prefixed
+from ethereum.transactions import Transaction
+import rlp
 
 
 def generate_privkey() -> bytes:
@@ -93,6 +95,16 @@ def sign(privkey: str, msg: bytes, v=0) -> bytes:
     sig = sig[:-1] + bytes([sig[-1] + v])
 
     return sig
+
+
+def sign_transaction(tx: Transaction, privkey: str, network_id: int):
+    # Implementing EIP 155.
+    tx.v = network_id
+    sig = sign(privkey, sha3(rlp.encode(tx)), v=35 + 2 * network_id)
+    v, r, s = sig[-1], sig[0:32], sig[32:-1]
+    tx.v = v
+    tx.r = int.from_bytes(r, byteorder='big')
+    tx.s = int.from_bytes(s, byteorder='big')
 
 
 def eth_message_hash(msg: str) -> bytes:

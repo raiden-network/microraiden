@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.skip(reason="it takes too long")
-def test_resource_request(doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels):
+def test_resource_request(doggo_proxy, default_http_client: DefaultHTTPClient):
     logging.basicConfig(level=logging.DEBUG)
 #    logging.getLogger('testrpc.rpc').setLevel(logging.WARNING)
 
@@ -35,8 +35,8 @@ def test_resource_request(doggo_proxy, default_http_client: DefaultHTTPClient, c
     )
 
 
-def test_receiver_validation(channel_manager, clean_channels, client, wait_for_blocks):
-    n = 1000
+def test_receiver_validation(channel_manager, client, wait_for_blocks):
+    n = 100
     # open channel
     channel = client.open_channel(channel_manager.state.receiver, n)
     wait_for_blocks(channel_manager.blockchain.n_confirmations)

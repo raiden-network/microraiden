@@ -1,9 +1,10 @@
 import os
+from eth_utils import denoms
 from web3 import HTTPProvider
 
 API_PATH = "/api/1"
 GAS_LIMIT = 250000
-GAS_PRICE = 20 * 1000 * 1000 * 1000
+GAS_PRICE = 20 * denoms.gwei
 
 NETWORK_NAMES = {
     1: 'mainnet',

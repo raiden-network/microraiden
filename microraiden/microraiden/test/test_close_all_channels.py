@@ -30,6 +30,7 @@ def test_close_simple(client, channel_manager, web3, wait_for_blocks):
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
         contract_proxy.contract.call().getChannelInfo(*channel_id)
+    wait_for_blocks(1)
 
 
 def test_close_topup(client, channel_manager, web3, wait_for_blocks):
@@ -55,6 +56,7 @@ def test_close_topup(client, channel_manager, web3, wait_for_blocks):
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
         contract_proxy.contract.call().getChannelInfo(*channel_id)
+    wait_for_blocks(1)
 
 
 def test_close_valid_close(client, channel_manager, web3, wait_for_blocks):
@@ -80,6 +82,7 @@ def test_close_valid_close(client, channel_manager, web3, wait_for_blocks):
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
         contract_proxy.contract.call().getChannelInfo(*channel_id)
+    wait_for_blocks(1)
 
 
 def test_close_invalid_close(client, channel_manager, web3, wait_for_blocks):
@@ -108,6 +111,7 @@ def test_close_invalid_close(client, channel_manager, web3, wait_for_blocks):
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
         contract_proxy.contract.call().getChannelInfo(*channel_id)
+    wait_for_blocks(1)
 
 
 def test_close_settled(client, channel_manager, web3, wait_for_blocks):
@@ -131,3 +135,4 @@ def test_close_settled(client, channel_manager, web3, wait_for_blocks):
     close_open_channels(state, contract_proxy, 10, wait=lambda: wait_for_blocks(1))
     tx_count_after = web3.eth.getTransactionCount(receiver)
     assert tx_count_after == tx_count_before
+    wait_for_blocks(1)

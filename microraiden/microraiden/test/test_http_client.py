@@ -2,6 +2,8 @@ import logging
 import json
 
 from microraiden import DefaultHTTPClient
+from microraiden.test.utils.client import close_channel_cooperatively
+
 
 log = logging.getLogger(__name__)
 
@@ -13,8 +15,8 @@ def check_response(response: bytes):
 def test_default_http_client(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
-        clean_channels,
         sender_address,
+        receiver_privkey,
         receiver_address
 ):
     logging.basicConfig(level=logging.INFO)
@@ -31,10 +33,11 @@ def test_default_http_client(
     assert channel.balance < channel.deposit
     assert channel.sender == sender_address
     assert channel.receiver == receiver_address
+    close_channel_cooperatively(channel, receiver_privkey)
 
 
 def test_default_http_client_topup(
-        doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels
+        doggo_proxy, default_http_client: DefaultHTTPClient, receiver_privkey
 ):
     logging.basicConfig(level=logging.INFO)
 
@@ -59,10 +62,11 @@ def test_default_http_client_topup(
     assert channel2.balance_sig
     assert channel2.balance < channel2.deposit
     assert channel1 == channel2
+    close_channel_cooperatively(channel1, receiver_privkey)
 
 
 def test_default_http_client_close(
-    doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels
+    doggo_proxy, default_http_client: DefaultHTTPClient
 ):
     logging.basicConfig(level=logging.INFO)
 
@@ -74,7 +78,7 @@ def test_default_http_client_close(
 
 
 def test_default_http_client_existing_channel(
-        doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels, receiver_address
+        doggo_proxy, default_http_client: DefaultHTTPClient, receiver_privkey, receiver_address
 ):
     logging.basicConfig(level=logging.INFO)
 
@@ -83,10 +87,11 @@ def test_default_http_client_existing_channel(
     check_response(default_http_client.run('doggo.jpg'))
     assert channel.balance == 2
     assert channel.deposit == 50
+    close_channel_cooperatively(channel, receiver_privkey)
 
 
 def test_default_http_client_existing_channel_topup(
-        doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels, receiver_address
+    doggo_proxy, default_http_client: DefaultHTTPClient, receiver_privkey, receiver_address
 ):
     logging.basicConfig(level=logging.INFO)
 
@@ -96,10 +101,11 @@ def test_default_http_client_existing_channel_topup(
     check_response(default_http_client.run('doggo.jpg'))
     assert channel.balance == 2
     assert channel.deposit == 13
+    close_channel_cooperatively(channel, receiver_privkey)
 
 
-def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, clean_channels,
-                    sender_address, receiver_address):
+def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, sender_address,
+                    receiver_privkey, receiver_address):
     logging.basicConfig(level=logging.INFO)
 
     check_response(default_http_client.run('doggo.jpg'))
@@ -120,3 +126,4 @@ def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, clean_c
                             (channel.sender, channel.block), data=request_data)
 
     assert reply.status_code == 200
+    close_channel_cooperatively(channel, receiver_privkey)

@@ -4,9 +4,10 @@ import pytest
 from microraiden import Client
 from microraiden.client import Channel
 from microraiden.crypto import sign_balance_proof
+from microraiden.test.utils.client import close_channel_cooperatively
 
 
-def test_client(client: Client, receiver_address, clean_channels):
+def test_client(client: Client, receiver_privkey, receiver_address):
     """test if contract calls go through"""
 
     import logging
@@ -25,8 +26,10 @@ def test_client(client: Client, receiver_address, clean_channels):
     ev = c.close()
     assert ev is not None
 
+    close_channel_cooperatively(c, receiver_privkey)
 
-def test_cooperative_close(client: Client, receiver_privkey, receiver_address, clean_channels):
+
+def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
     c = client.get_suitable_channel(receiver_address, 3)
     c.create_transfer(3)
 
@@ -38,7 +41,7 @@ def test_cooperative_close(client: Client, receiver_privkey, receiver_address, c
     assert c.state == Channel.State.closed
 
 
-def test_integrity(client: Client, clean_channels, receiver_address):
+def test_integrity(client: Client, receiver_address):
     c = client.get_suitable_channel(receiver_address, 5)
     assert c.balance == 0
     assert c.balance_sig == sign_balance_proof(client.privkey, receiver_address, c.block, 0)

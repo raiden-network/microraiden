@@ -5,11 +5,6 @@ from ethereum.tester import keys
 import os
 import json
 from microraiden.client.client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
-from microraiden.test.config import (
-    TEST_SENDER_PRIVKEY,
-    TEST_RECEIVER_PRIVKEY,
-    TEST_SECONDARY_RECEIVER_PRIVKEY
-)
 from microraiden.crypto import privkey_to_addr
 
 
@@ -31,6 +26,11 @@ def compiled_contracts(compiled_contracts_path):
 @pytest.fixture
 def test_dir():
     return os.path.dirname(os.path.dirname(__file__)) + "/../"
+
+
+@pytest.fixture(scope='session')
+def use_tester(request):
+    return request.config.getoption('use_tester')
 
 
 @pytest.fixture
@@ -60,84 +60,47 @@ def manager_state_path():
     return '/tmp/rmp-state.pkl'
 
 
-@pytest.fixture
-def sender_address(sender_privkey):
-    return privkey_to_addr(sender_privkey)
-
-
-@pytest.fixture
-def receiver_address(receiver_addresses):
-    return receiver_addresses[0]
-
-
-@pytest.fixture
-def receiver_privkey(receiver_privkeys):
-    return receiver_privkeys[0]
-
-
-@pytest.fixture
-def sender_privkey(use_tester):
-    if use_tester:
-        return remove_0x_prefix(encode_hex(keys[0]))
-    else:
-        return TEST_SENDER_PRIVKEY
-
-
-@pytest.fixture
-def receiver_privkeys(use_tester, channel_managers_count):
-    if use_tester:
-        return [remove_0x_prefix(encode_hex(k))
-                for k in keys[1:(channel_managers_count + 1)]]
-    else:
-        return [TEST_RECEIVER_PRIVKEY, TEST_SECONDARY_RECEIVER_PRIVKEY]
-
-
-@pytest.fixture
-def receiver_addresses(receiver_privkeys):
-    return [privkey_to_addr(k) for k in receiver_privkeys]
-
-
-@pytest.fixture
+@pytest.fixture(scope='session')
 def deployer_privkey():
     return remove_0x_prefix(encode_hex(keys[3]))
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def deployer_address(deployer_privkey):
     return privkey_to_addr(deployer_privkey)
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def contract_abi_path():
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), '../data/contracts.json')
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def contract_abis(contract_abi_path):
     abi_file = open(contract_abi_path, 'r')
     return json.load(abi_file)
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def channel_manager_abi(contract_abis):
     return contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def channel_manager_bytecode(contract_abis):
     return contract_abis[CHANNEL_MANAGER_ABI_NAME]['bytecode']
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def token_abi(contract_abis):
     return contract_abis[TOKEN_ABI_NAME]['abi']
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def token_bytecode(contract_abis):
     return contract_abis[TOKEN_ABI_NAME]['bytecode']
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def kovan_block_time():
     return 4
