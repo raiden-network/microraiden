@@ -243,6 +243,7 @@ class ChannelManagerState(object):
         self.unconfirmed_head_hash = None
         self.channels = dict()
         self.filename = filename
+        self.tmp_filename = None if self.filename is None else filename + '.tmp'
         self.unconfirmed_channels = dict()
         self.network_id = network_id
 
@@ -250,18 +251,16 @@ class ChannelManagerState(object):
         """Store the state in a file."""
         if self.filename:
             oldmask = os.umask(0o77)
-            tmp = tempfile.NamedTemporaryFile(mode='w')
-
             serialized_state = copy.deepcopy(self.__dict__)
             serialized_state['unconfirmed_channels'] = [
                 v.__dict__ for v in serialized_state['unconfirmed_channels'].values()]
             serialized_state['channels'] = [
                 v.__dict__ for v in serialized_state['channels'].values()]
-
-            json.dump(serialized_state, tmp)
-            tmp.flush()
-            shutil.copyfile(tmp.name, self.filename)
-            shutil.copystat(tmp.name, self.filename)
+            with open(self.tmp_filename, 'w') as f:
+                json.dump(serialized_state, f)
+                f.flush()
+            shutil.copyfile(self.tmp_filename, self.filename)
+            shutil.copystat(self.tmp_filename, self.filename)
             os.umask(oldmask)
 
     @classmethod
@@ -288,6 +287,7 @@ class ChannelManagerState(object):
         ret.unconfirmed_head_number = state['unconfirmed_head_number']
         ret.unconfirmed_head_hash = state['unconfirmed_head_hash']
         ret.filename = state['filename']
+        ret.tmp_filename = state['tmp_filename']
         for channel_dict in state['channels']:
             new_channel = Channel.from_dict(channel_dict)
             key = (new_channel.sender, new_channel.open_block_number)
