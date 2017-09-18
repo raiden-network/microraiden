@@ -1,4 +1,4 @@
-# Raiden Micropayment Service
+# µRaiden
 
 ## Installation
 
@@ -21,27 +21,25 @@ sudo pip3 install -e microraiden
 ## Execution
 
 ### HTTP Proxy
-There are several examples that demonstrate how to serve a custom content.
-By default, web server listens on 0.0.0.0:5000, and Ethereum node RPC interface is expected to respond on http://localhost:8545.
+There are several examples that demonstrate how to serve custom content. To try them, run one of the following commands from the `microraiden` directory:
 ```bash
-python3 -m microraiden.examples.demo_proxy start
+python3 -m microraiden.examples.demo_proxy --private-key <private_key_file> start
 ```
 or
 ```bash
-python3 -m microraiden.examples.wikipaydia start
+python3 -m microraiden.examples.wikipaydia --private-key <private_key_file> start
 ```
+By default, the web server listens on `0.0.0.0:5000`, and an Ethereum node RPC interface is expected to respond on http://localhost:8545. The private key file should contain the hex encoded private key and must be readable and writable only by the owner to be accepted (`-rw-------`).
 
 ### M2M Client
 ```bash
 python3 -m microraiden.examples.m2m_client --key-path <path to private key file>
 ```
 
-The private key file should contain a valid (and preferably sufficiently funded) private key in hex format, with or without a leading `0x` prefix.
-
-## Library use
+## Library usage
 
 ### Client
-The Raiden client backend used by the M2M sample client can be used as a standalone library. After installation, import the following class:
+The µRaiden client backend used by the M2M sample client can be used as a standalone library. After installation, import the following class:
 ```python
 from microraiden import Client
 

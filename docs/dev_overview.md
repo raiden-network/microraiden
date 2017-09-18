@@ -1,6 +1,6 @@
-# MicroRaiden
+# µRaiden
 
-MicroRaiden components overview.
+µRaiden components overview.
 
  * [HTTP Request and Response Headers](#http-request-and-response-headers)
  * [Exceptions](#exceptions)

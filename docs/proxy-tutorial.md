@@ -3,12 +3,12 @@
 In this tutorial we will create a simple paywalled server that will serve some
 static files as well as dynamically generated responses, payable with a
 custom token. You can find example code for this tutorial in
-`raiden_mps/examples/echo_server.py`.
+`microraiden/examples/echo_server.py`.
 
 # Requirements
 
 Please refer to README.md to install all required dependencies.
-You will also need a Chrome browser with MetaMask plugin.
+You will also need a Chrome browser with the [MetaMask plugin](https://metamask.io/).
 
 
 # Setting up the proxy
@@ -23,7 +23,7 @@ For initialization you will have to supply the following parameters:
   path writable by the user that starts the server.
 
 ```python
-from raiden_mps.proxy.paywalled_proxy import PaywalledProxy
+from microraiden.proxy.paywalled_proxy import PaywalledProxy
 app = PaywalledProxy(channel_manager_address, private_key, state_file)
 ```
 The channel manager will start syncing with the blockchain immediately.
@@ -35,7 +35,7 @@ The channel manager will start syncing with the blockchain immediately.
 Now you will have to add some resources. To serve a single static file from
 the filesystem, you can use:
 ```python
-from raiden_mps.proxy.content import PaywalledFile
+from microraiden.proxy.content import PaywalledFile
 app.add_content(PaywalledFile("file.txt", 10, "/srv/paywall/content/test.txt"))
 ```
 The file will then be available at the URI `/file.txt`. Only after a payment
@@ -45,7 +45,7 @@ responds with `402 Payment Required`.
 
 For dynamic resources, you can use the `PaywalledContent` class:
 ```python
-from raiden_mps.proxy.content import PaywalledContent
+from microraiden.proxy.content import PaywalledContent
 app.add_content(PaywalledContent("teapot.txt", 1, lambda _: ("HI I AM A TEAPOT", 418)))
 app.add_content(PaywalledContent("temperature", 2, lambda _: (thermo.get_temp(), 200)))
 app.add_content(PaywalledContent("sqrt/^[0-9]+(\.[0-9]+)?$", 3, lambda uri:
@@ -61,7 +61,7 @@ created by, e.g., a `make_response()` call.
 Another possible content type is a URL. This is useful to fetch content
 from a remote CDN:
 ```python
-from raiden_mps.proxy.content import PaywalledProxyUrl
+from microraiden.proxy.content import PaywalledProxyUrl
 app.add_content(PaywalledProxyUrl("cdn\/.*", 1, "lambda _: 'http://cdn.myhost.com:8000/resource42'"))
 ```
 The constructor arguments are, in order of appearance, a regex defining the
@@ -111,7 +111,7 @@ automatically.
 
 If you would like to get the resource using your own application, you can use
 m2m_client class. Please refer to the M2M client documentation and to the client
-example (`raiden_mps/examples/echo_client.py`).
+example (`microraiden/examples/echo_client.py`).
 
 
 # Side notes

@@ -8,8 +8,8 @@ API_PATH = "/api/1"
 GAS_LIMIT = 200000
 GAS_PRICE = 5 * denoms.gwei
 
-RAIDEN_MPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-HTML_DIR = os.path.join(RAIDEN_MPS_DIR, 'microraiden', 'webui')
+MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+HTML_DIR = os.path.join(MICRORAIDEN_DIR, 'microraiden', 'webui')
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 # 0x0052d7b657553e7f47239d8c4431fef001a7f99c

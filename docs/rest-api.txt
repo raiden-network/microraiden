@@ -1,10 +1,10 @@
-Raiden microtransfer service API Documentation
-##########################
+µRaiden service API Documentation
+#################################
 
 
 Introduction
 *************
-Raiden Microtransfer Service (RMS) exposes a Restful API to provide insight into a channel state, balances, and it
+µRaiden exposes a Restful API to provide insight into a channel state, balances, and it
 allows proxy operator to close and settle the channels.
 
 
@@ -15,10 +15,10 @@ Endpoints
 Following are the available API endpoints with which you can interact with RMS.
 
 Querying Information About The Channels
-===============================================
+=======================================
 
 Getting all open channels
----------------------
+-------------------------
 This will return a list of all open channels.
 
 
@@ -71,7 +71,7 @@ Example Response
     ]
 
 Getting a single channel info
----------------------
+-----------------------------
 Return an info about the channel, identified by sender and open block id.
 
 
@@ -96,7 +96,7 @@ Example Response
 
 
 Cooperatively closing a channel
----------------------
+-------------------------------
 Returns a receiver's signature that can be used to settle the channel
 immediately.
 
@@ -139,8 +139,8 @@ Possible Responses
 +------------------+----------------------------+
 
 
-Getting status of the proxy
----------------------
+Getting the status of the proxy
+-------------------------------
 This will return a status of balances, open channels etc.
 
 deposit_sum - sum of all open channel deposits
@@ -162,11 +162,11 @@ Example Response
 
 ::
 
-    { 
+    {
       "deposit_sum": 268,
       "open_channels": 33,
       "pending_channels": 15,
-      "balance_sum": 12, 
-      "unique_senders": 6, 
+      "balance_sum": 12,
+      "unique_senders": 6,
       "liquid_balance": 334
     }
