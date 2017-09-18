@@ -8,7 +8,7 @@ import traceback
 import click
 from eth_utils import (
     decode_hex,
-    denoms,
+    is_hex,
     is_same_address,
 )
 from ethereum.tester import TransactionFailed
@@ -31,8 +31,8 @@ log = logging.getLogger('close_all_channels')
 @click.command()
 @click.option(
     '--private-key',
-    default='b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946',
-    help='Private key of the proxy'
+    help='Path to private key file of the proxy',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
 )
 @click.option(
     '--state-file',
@@ -45,12 +45,18 @@ log = logging.getLogger('close_all_channels')
     help='Ethereum address of the channel manager contract'
 )
 def main(private_key, state_file, channel_manager_address):
-    if os.path.isfile(private_key):
-        if utils.is_file_rwxu_only(private_key) is False:
-            click.echo('Private key file {} must be readable only by its owner.')
-            sys.exit(1)
-        with open(private_key) as keyfile:
-            private_key = keyfile.readline()[:-1]
+    if private_key is None:
+        log.fatal("No private key provided")
+        sys.exit(1)
+    if utils.check_permission_safety(private_key) is False:
+        log.fatal("Private key file %s must be readable only by its owner." % (private_key))
+        sys.exit(1)
+    with open(private_key) as keyfile:
+        private_key = keyfile.readline()[:-1]
+    print(len(decode_hex(private_key)), is_hex(private_key))
+    if not is_hex(private_key) or len(decode_hex(private_key)) != 32:
+        log.fatal("Private key must be specified as 32 hex encoded bytes")
+        sys.exit(1)
 
     receiver_address = privkey_to_addr(private_key)
     channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS

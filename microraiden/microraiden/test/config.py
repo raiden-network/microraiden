@@ -12,8 +12,7 @@ RAIDEN_MPS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'
 HTML_DIR = os.path.join(RAIDEN_MPS_DIR, 'microraiden', 'webui')
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
-# 0x0052d7b657553e7f47239d8c4431fef001a7f99c
-FAUCET_PRIVKEY = '558ce5d09417f127c89097f8c41def07883cbec094da79f5dddfd4590607f7c2'
+FAUCET_PRIVKEY = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 FAUCET_ADDRESS = privkey_to_addr(FAUCET_PRIVKEY)
 SENDER_ETH_ALLOWANCE = int(0.02 * denoms.ether)
 SENDER_TOKEN_ALLOWANCE = 100

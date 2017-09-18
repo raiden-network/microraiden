@@ -11,7 +11,7 @@ from microraiden.proxy.content import (
 )
 
 if __name__ == '__main__':
-    private_key = 'b6b2c38265a298a5dd24aced04a4879e36b5cc1a4000f61279e188712656e946'
+    private_key = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     tempfile = os.path.join(os.path.expanduser('~'), '.raiden/echo_server.pkl')
     # set up a paywalled proxy
     # arguments are:
