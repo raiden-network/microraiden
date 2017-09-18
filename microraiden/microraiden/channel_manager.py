@@ -259,8 +259,7 @@ class ChannelManagerState(object):
             with open(self.tmp_filename, 'w') as f:
                 json.dump(serialized_state, f)
                 f.flush()
-            shutil.copyfile(self.tmp_filename, self.filename)
-            shutil.copystat(self.tmp_filename, self.filename)
+            shutil.copy2(self.tmp_filename, self.filename)
             os.umask(oldmask)
 
     @classmethod
