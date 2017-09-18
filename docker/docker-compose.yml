@@ -53,3 +53,17 @@ services:
                 max-file: "1"
                 max-size: "1g"
 
+    letsencrypt:
+        image: kvaps/letsencrypt-webroot
+        volumes:
+            - ./letsencrypt/etc:/etc/letsencrypt
+            - ./letsencrypt/html:/tmp/letsencrypt
+            - /var/run/docker.sock:/var/run/docker.sock
+        links:
+            - nginx
+        environment:
+            - DOMAINS=microraiden.brainbot.com
+            - EMAIL=info@brainbot.com
+            - WEBROOT_PATH=/tmp/letsencrypt
+            - EXP_LIMIT=30
+            - CHECK_FREQ=1
