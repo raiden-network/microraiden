@@ -309,6 +309,7 @@ function pageReady(json) {
 
 };
 
+
 mainSwitch("#channel_loading");
 
 $.getJSON("/js/parameters.json", (json) => {
