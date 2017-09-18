@@ -64,7 +64,7 @@ python -m microraiden.examples.demo_proxy --private-key <private_key_file> start
 
 You can use the configuration for the above default example for creating your own payment channel service.
 
- * MicroRaiden Paywall Tutorial:
+ * µRaiden Paywall Tutorial:
    - Proxy: [/docs/proxy-tutorial.md](/docs/proxy-tutorial.md)
    - Web Interface: [/microraiden/microraiden/webui/README.md](/microraiden/microraiden/webui/README.md)
  * Various paywall [examples](/microraiden/microraiden/examples)
