@@ -62,7 +62,7 @@ services:
         links:
             - nginx
         environment:
-            - DOMAINS=microraiden.brainbot.com
+            - DOMAINS=demo.micro.raiden.network
             - EMAIL=info@brainbot.com
             - WEBROOT_PATH=/tmp/letsencrypt
             - EXP_LIMIT=30
