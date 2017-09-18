@@ -217,7 +217,8 @@ class Blockchain(gevent.Greenlet):
         except AttributeError:
             self.log.critical("RPC endpoint didn't return proper info for an existing block "
                               "(%d,%d)" % (new_unconfirmed_head_number, new_confirmed_head_number))
-            self.log.critical("It is possible that the blockchain isn't fully synced.")
+            self.log.critical("It is possible that the blockchain isn't fully synced. "
+                              "This often happens when Parity is run with --fast or --warp sync.")
             self.log.critical("Can't continue - check status of the ethereum node.")
             sys.exit(1)
         self.cm.set_head(
