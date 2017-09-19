@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 def start_proxy(receiver_privkey: str) -> PaywalledProxy:
-    state_file_name = '{}_{}.pkl'.format(
+    state_file_name = '{}_{}.json'.format(
         CHANNEL_MANAGER_ADDRESS, privkey_to_addr(receiver_privkey)
     )
     app_dir = click.get_app_dir('microraiden')
@@ -139,5 +139,7 @@ def main(start_proxy):
 
 
 if __name__ == '__main__':
+    from gevent import monkey
+    monkey.patch_all()
     logging.basicConfig(level=logging.INFO)
     main()
