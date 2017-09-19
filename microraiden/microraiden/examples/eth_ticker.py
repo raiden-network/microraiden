@@ -125,7 +125,7 @@ def main(start_proxy):
     proxy = None
     ticker = None
     receiver_privkey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    sender_privkey = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+    sender_privkey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
     try:
         if start_proxy:
             proxy = ETHTickerProxy(receiver_privkey)
