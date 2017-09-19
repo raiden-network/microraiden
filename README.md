@@ -6,11 +6,11 @@
 
 ## Brief Overview
 
-µRaiden is not part of [Raiden](https://github.com/raiden-network/raiden). However, it was built using the same state channel idea and implements it in a less general fashion focusing on the concrete application of micropayments for paywalled content.
+µRaiden is not part of the [Raiden Network](https://github.com/raiden-network/raiden). However, it was built using the same state channel idea and implements it in a less general fashion focusing on the concrete application of micropayments for paywalled content.
 
-The main differences between Raiden and µRaiden are:
- * µRaiden is a many-to-one unidirectional state channel protocol, while Raiden is a many-to-many bidirectional solution and implies a more complex design of channel networks. This allows Raiden to efficiently send transfers without being forced to pay for opening new channels with people who are already in the network.
- * µRaiden off-chain transactions do not cost anything, as they are only exchanged between sender and receiver. Raiden has a more complicated incentive-based off-chain transport of transaction information, from one user to another (following the channel network path used to connect the sender and the receiver).
+The main differences between the Raiden Network and µRaiden are:
+ * µRaiden is a many-to-one unidirectional state channel protocol, while the Raiden Network is a many-to-many bidirectional solution and implies a more complex design of channel networks. This allows the Raiden Network to efficiently send transfers without being forced to pay for opening new channels with people who are already in the network.
+ * µRaiden off-chain transactions do not cost anything, as they are only exchanged between sender and receiver. The Raiden Network has a more complicated incentive-based off-chain transport of transaction information, from one user to another (following the channel network path used to connect the sender and the receiver).
 
 
 ### Tokens and Channel Manager Contract
