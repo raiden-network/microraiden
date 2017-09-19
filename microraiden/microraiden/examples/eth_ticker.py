@@ -9,8 +9,7 @@ import os
 
 from microraiden import Client, DefaultHTTPClient
 from microraiden.crypto import privkey_to_addr
-from microraiden.test.config import TEST_SENDER_PRIVKEY, TEST_RECEIVER_PRIVKEY, \
-    CHANNEL_MANAGER_ADDRESS
+from microraiden.config import CHANNEL_MANAGER_ADDRESS
 from microraiden.proxy.content import PaywalledProxyUrl
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 from microraiden.make_helpers import make_paywalled_proxy
@@ -19,8 +18,8 @@ log = logging.getLogger(__name__)
 
 
 def start_proxy(receiver_privkey: str) -> PaywalledProxy:
-    state_file_name = '{}_{}.json'.format(
-        CHANNEL_MANAGER_ADDRESS, privkey_to_addr(TEST_RECEIVER_PRIVKEY)
+    state_file_name = '{}_{}.pkl'.format(
+        CHANNEL_MANAGER_ADDRESS, privkey_to_addr(receiver_privkey)
     )
     app_dir = click.get_app_dir('microraiden')
     if not os.path.exists(app_dir):
@@ -125,10 +124,12 @@ class ETHTickerClient(ttk.Frame):
 def main(start_proxy):
     proxy = None
     ticker = None
+    receiver_privkey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    sender_privkey = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
     try:
         if start_proxy:
-            proxy = ETHTickerProxy(TEST_RECEIVER_PRIVKEY)
-        ticker = ETHTickerClient(TEST_SENDER_PRIVKEY)
+            proxy = ETHTickerProxy(receiver_privkey)
+        ticker = ETHTickerClient(sender_privkey)
         ticker.run()
     except KeyboardInterrupt:
         if ticker:

@@ -12,7 +12,6 @@ def test_eth_ticker(
         default_http_client: DefaultHTTPClient,
         sender_privkey: str,
         receiver_privkey: str,
-        clean_channels
 ):
     logging.basicConfig(level=logging.INFO)
 
