@@ -1,5 +1,5 @@
 {
-  "contractAddr": "0xa9b370c05016cf99a2f4760e837b932a4cc648f5",
+  "contractAddr": "0x00ef252b7cefa53b729f064d40ba9373643f73cc",
   "contractABI": [
     {
       "constant": true,
@@ -537,7 +537,7 @@
       "type": "event"
     }
   ],
-  "tokenAddr": "0xefa17deefde69542c8def9cd6f3840ad51a986ce",
+  "tokenAddr": "0xadd159c1ed9b0619f31aff09ef34f508a0d44108",
   "tokenABI": [
     {
       "constant": true,
