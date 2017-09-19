@@ -91,8 +91,7 @@ class Blockchain(gevent.Greenlet):
                 self.web3.eth.getBlock(self.cm.state.confirmed_head_hash)
             except ValueError:
                 self.log.critical('events considered confirmed have been reorganized')
-                assert False
-                # TODO: store balance proofs, resync, apply balance proofs
+                assert False  # unreachable as long as confirmation level is set high enough
 
         if self.cm.state.confirmed_head_number is None:
             self.cm.state.confirmed_head_number = -1
