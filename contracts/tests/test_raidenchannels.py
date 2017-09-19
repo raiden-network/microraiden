@@ -16,7 +16,8 @@ from fixtures import (
     print_logs,
     get_gas_used,
     print_gas_used,
-    get_balance_message
+    get_balance_message,
+    decimals
 )
 
 import json
@@ -107,13 +108,14 @@ def channel_pre_close_tests(contract, channel):
 
 
 @pytest.fixture
-def contract(chain, web3, token_contract, channels_contract):
+def contract(chain, web3, token_contract, channels_contract, decimals):
     global token
     global logs
     global challenge_period
     challenge_period = 5
     logs = {}
-    token = token_contract([10000, "ERC223Token", 2, "TKN"])
+    supply = 10000 * 10**(decimals)
+    token = token_contract([supply, "ERC223Token", decimals, "TKN"])
     contract = channels_contract([token.address, challenge_period])
     return contract
 

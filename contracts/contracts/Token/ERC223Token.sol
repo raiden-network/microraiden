@@ -42,7 +42,7 @@ contract ERC223Token is StandardToken {
     {
         owner = msg.sender;
         multiplier = 10**(uint256(_decimalUnits));
-        _initialAmount = _initialAmount * multiplier;
+        _initialAmount = _initialAmount;                // Number of tokens * multiplier
         balances[owner] = _initialAmount;               // Give the creator all initial tokens
         totalSupply = _initialAmount;                        // Update total supply
         name = _tokenName;                                   // Set the name for display purposes

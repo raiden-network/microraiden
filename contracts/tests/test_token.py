@@ -3,13 +3,14 @@ from ethereum import tester
 from fixtures import (
     create_contract,
     token_contract,
+    decimals
 )
 
 
-def test_token_mint(web3, token_contract):
-    decimals = 18
+def test_token_mint(web3, token_contract, decimals):
     multiplier = 10**(decimals)
-    token = token_contract([10000, "ERC223Token", decimals, "TKN"])
+    supply = 10000 * multiplier
+    token = token_contract([supply, "ERC223Token", decimals, "TKN"])
     (A, B) = web3.eth.accounts[1:3]
 
     supply = token.call().totalSupply()

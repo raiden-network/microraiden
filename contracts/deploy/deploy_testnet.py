@@ -103,6 +103,8 @@ def getTokens(**kwargs):
     token_decimals = kwargs['token_decimals']
     token_symbol = kwargs['token_symbol']
     token_address = kwargs['token_address']
+
+    supply *= 10**(token_decimals)
     token_assign = int(supply / (len(sender_addresses) + senders))
 
     txn_wait = 250

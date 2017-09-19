@@ -4,6 +4,16 @@ global token
 global logs
 global challenge_period
 
+decimals_params = [
+    18,
+    2,
+    0
+]
+
+@pytest.fixture(params=decimals_params)
+def decimals(request):
+    return request.param
+
 
 @pytest.fixture
 def create_contract(chain):
@@ -48,13 +58,14 @@ def channels_contract(chain, create_contract):
 
 
 @pytest.fixture
-def contract(chain, web3, token_contract, channels_contract):
+def contract(chain, web3, token_contract, channels_contract, decimals):
     global token
     global logs
     global challenge_period
     challenge_period = 5
     logs = {}
-    token = token_contract([10000, "ERC223Token", 2, "TKN"])
+    supply = 10000 * 10**(decimals)
+    token = token_contract([supply, "ERC223Token", decimals, "TKN"])
     contract = channels_contract([token.address, challenge_period])
     return contract
 
