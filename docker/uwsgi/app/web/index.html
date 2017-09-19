@@ -1,5 +1,6 @@
 <head>
-<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
+<script type="text/javascript" src="js/microraiden.js"></script>
 <link rel="stylesheet" href="css/spectre.min.css">
 <link rel="stylesheet" href="css/spectre-exp.min.css">
 <link rel="stylesheet" href="css/spectre-icons.min.css">
@@ -7,12 +8,10 @@
 
 <script>
 $(function(){
-$("#fortunes_en").click(() => {
-		location.href='/fortunes_en';
-		});
-$("#fortunes_cn").click(() => {
-		location.href='/fortunes_cn';
-		});
+
+$("#fortunes_en").click(() => { location.href='/fortunes_en';});
+$("#fortunes_cn").click(() => {	location.href='/fortunes_cn';});
+
 });
 </script>
 
@@ -21,41 +20,39 @@ $("#fortunes_cn").click(() => {
 
 <div class="container" id="content">
 	<div class="columns">
-		<div class="column col-12">
-			<div class="text-center">
-				<h1>MicroRaiden demo web page</h1>
-			</div>
+		<div class="column col-6 col-mx-auto">
+				<h1>MicroRaiden demo</h1>
 		</div>
 	</div>
 
-	<div class="column col-8 col-mx-auto" id="description">
+	<div class="columns">
+	<div class="column col-6 col-mx-auto" id="description">
 		<h5>1. Install Web3 browser extension</h5>
 		<p>This allows you to access the Ethereum networks. Use <a href="https://metamask.io/">Metamask</a> or <a href="https://chrome.google.com/webstore/detail/parity-ethereum-integrati/himekenlppkgeaoeddcliojfddemadig">Parity</a> - works in Chrome and Firefox</p>
 		<h5>2. Get some Kovan Testnet Ether (For free! Just ask politely)</h5>
 		<p>Ask for it in <a href="https://gitter.im/kovan-testnet/faucet">Kovan gitter chat</a>. Or try <a href="https://github.com/kovan-testnet/faucet">other faucets</a></p>
-		<h5>3. Buy uRaiden demo tokens with your ether</h5>
+		<h5>3. Buy µRaiden demo tokens with your ether</h5>
 		<p>You can buy some when you first access the resource.</p>
 		<h5>4. Access the content</h5>
-		<p>And thanks for coming.</p>
+		<p>And thanks for coming!</p>
+	</div>
 	</div>
 
 
-
-
 	<div class="columns">
-		<div class="column col-4">
+		<div class="column col-3 col-ml-auto">
 			<div class="empty">
 				<div class="empty-icon">
 					<i class="icon icon-people"></i>
 				</div>
 				<p class="empty-title h5">Buy fortune cookie</p>
-				<p class="empty-subtitle">(words of wisdom, english)</p>
+				<p class="empty-subtitle">(words of wisdom, English)</p>
 				<div class="empty-action">
 					<button class="btn btn-primary" id="fortunes_en">Buy (1 TKN)</button>
 				</div>
 			</div>
 		</div>
-		<div class="column col-4">
+		<div class="column col-4 col-mr-auto">
 			<div class="empty">
 				<div class="empty-icon">
 					<i class="icon icon-emoji"></i>
@@ -67,7 +64,7 @@ $("#fortunes_cn").click(() => {
 				</div>
 			</div>
 		</div>
-		<div class="column col-4">
+		<!-- div class="column col-4">
 
 			<div class="empty">
 				<div class="empty-icon">
@@ -79,7 +76,7 @@ $("#fortunes_cn").click(() => {
 					<button class="btn btn-primary">Buy (2 TKN)</button>
 				</div>
 			</div>
-		</div>
+		</div-->
 	</div>
 </div>
 
