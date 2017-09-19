@@ -10,6 +10,15 @@ from .http_client import HTTPClient
 
 log = logging.getLogger(__name__)
 
+class bcolors:
+    DEFAULT = '\033[0m'
+    RAIDENBLUE = '\033[38;5;24m'
+    BOLD = '\033[1m'
+
+    BALANCE = RAIDENBLUE
+    BALANCEVALUE = BOLD + RAIDENBLUE
+
+
 
 class DefaultHTTPClient(HTTPClient):
     def __init__(
@@ -147,8 +156,8 @@ class DefaultHTTPClient(HTTPClient):
 
         self.channel.create_transfer(price)
         log.info(
-            'Sending new balance proof. New channel balance: {}/{}'
-            .format(self.channel.balance, self.channel.deposit)
+            '{}Sending new balance proof. New channel balance: {}{}/{}{}'
+            .format(bcolors.BALANCE, bcolors.BALANCEVALUE, self.channel.balance, self.channel.deposit, bcolors.DEFAULT)
         )
         self.retry = True
 

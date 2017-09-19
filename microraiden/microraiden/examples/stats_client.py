@@ -10,8 +10,10 @@ class bcolors:
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
+    #ENDC = '\033[0m'
+    ENDC = '\033[97m'
+    # BOLD = '\033[1m'
+    BOLD = '\033[1;97m'
     UNDERLINE = '\033[4m'
 
 
@@ -48,12 +50,12 @@ def do_request():
             json_prev = json_response
         print('\033[H\033[J')
         print('connected' if connected else 'disconnected')
-        nice_print("balance", json_response['balance_sum'], json_prev['balance_sum'])
-        nice_print("open", json_response['open_channels'], json_prev['open_channels'])
-        nice_print("pending", json_response['pending_channels'], json_prev['pending_channels'])
-        nice_print("senders", json_response['unique_senders'], json_prev['unique_senders'])
-        nice_print("liquid", json_response['liquid_balance'], json_prev['liquid_balance'])
-        nice_print("deposit", json_response['deposit_sum'], json_prev['deposit_sum'])
+        nice_print("Total balances", json_response['balance_sum'], json_prev['balance_sum'])
+        nice_print("Open channels", json_response['open_channels'], json_prev['open_channels'])
+        nice_print("Pending settle", json_response['pending_channels'], json_prev['pending_channels'])
+        nice_print("Senders/Clients", json_response['unique_senders'], json_prev['unique_senders'])
+        nice_print("Received tokens", json_response['liquid_balance'], json_prev['liquid_balance'])
+        nice_print("Total deposits", json_response['deposit_sum'], json_prev['deposit_sum'])
         json_prev = json_response
         time.sleep(2)
 

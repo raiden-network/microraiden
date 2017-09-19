@@ -17,6 +17,15 @@ from microraiden.make_helpers import make_paywalled_proxy
 
 log = logging.getLogger(__name__)
 
+class bcolors:
+    DEFAULT = '\033[0m'
+    BOLD = '\033[1m'
+    ITALIC = '\033[3m'
+    RAIDENBLUE = '\033[38;5;24m'
+
+    VALUE = BOLD + RAIDENBLUE
+    GREY2 = '\033[38;5;238m'
+
 
 def start_proxy(receiver_privkey: str) -> PaywalledProxy:
     state_file_name = '{}_{}.pkl'.format(
@@ -61,12 +70,16 @@ class ETHTickerClient(ttk.Frame):
             httpclient: DefaultHTTPClient = None
     ):
         self.root = tkinter.Tk()
+        # self.root.geometry('395x98+1273+96')
+        self.root.geometry('395x90+1400+515')
         ttk.Frame.__init__(self, self.root)
         self.root.title('µRaiden ETH Ticker')
         self.root.protocol('WM_DELETE_WINDOW', self.close)
+        
         self.pack()
         self.pricevar = tkinter.StringVar(value='0.00 USD')
         ttk.Label(self, textvariable=self.pricevar, font=('Helvetica', '72')).pack()
+        # label.place(x=500,y=200)
 
         if httpclient:
             self.httpclient = httpclient
@@ -98,7 +111,7 @@ class ETHTickerClient(ttk.Frame):
         if response:
             ticker = json.loads(response.decode())
             price = float(ticker['last_price'])
-            log.info('New price received: {:.2f} USD'.format(price))
+            log.info('New price received: {}{:.2f} USD{}'.format(bcolors.VALUE, price, bcolors.DEFAULT))
             self.pricevar.set('{:.2f} USD'.format(price))
         else:
             log.warning('No response.')

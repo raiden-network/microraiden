@@ -33,6 +33,55 @@ from microraiden.exceptions import (
 
 log = logging.getLogger(__name__)
 
+class bcolors:
+    DEFAULT = '\033[0m'
+
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[38;5;136m'
+    RED = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    ITALIC = '\033[3m'
+    GREY = '\033[38;5;238m'
+    GREY2 = '\033[38;5;238m'
+    RAIDENBLUE = '\033[38;5;24m'
+    DULLGREEN = '\033[38;5;30m'
+    DARKBLUE = '\033[38;5;17m'
+
+    VALUE = BOLD
+    BALANCE = RAIDENBLUE
+    BALANCEVALUE = BOLD + RAIDENBLUE
+
+    CREATE = BOLD + DULLGREEN
+    TOPUP = BOLD + DARKBLUE
+    CLOSE = BOLD + DULLGREEN
+    CCLOSE = BOLD + ITALIC + DULLGREEN
+    SETTLE = BOLD + YELLOW
+    FORGET = SETTLE
+
+    SIGN = ITALIC
+    CCLOSESIGN = BOLD
+
+    RCREATE = DULLGREEN
+    RTOPUP = BOLD
+    RCLOSE = BOLD
+    RCCLOSE = BOLD
+    RSETTLE = BOLD
+
+    ECREATE = ITALIC + DULLGREEN
+    ETOPUP = ITALIC + DARKBLUE
+    ECLOSE = ITALIC + DULLGREEN
+    ESETTLE = ITALIC + YELLOW
+
+
+    UCREATE = ITALIC + DULLGREEN
+    UTOPUP = ITALIC + DARKBLUE
+    UCLOSE = ITALIC + DULLGREEN
+    USETTLE = ITALIC + YELLOW
+
 
 class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
@@ -365,7 +414,7 @@ class ChannelManager(gevent.Greenlet):
             return  # ignore event if already provessed
         self.unconfirmed_channels.pop((sender, open_block_number), None)
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
-        self.log.info('new channel opened (sender %s, block number %s)', sender, open_block_number)
+        self.log.info('%snew channel opened (sender %s, block number %s)%s', bcolors.CREATE, sender, open_block_number, bcolors.DEFAULT)
         self.channels[sender, open_block_number] = c
         self.state.store()
 
@@ -377,8 +426,8 @@ class ChannelManager(gevent.Greenlet):
             return
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
         self.unconfirmed_channels[sender, open_block_number] = c
-        self.log.info('unconfirmed channel event received (sender %s, block_number %s)',
-                      sender, open_block_number)
+        self.log.info('%sunconfirmed open channel event received (sender %s, block_number %s)%s', bcolors.UCREATE,
+                      sender, open_block_number, bcolors.DEFAULT)
         self.state.store()
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
@@ -393,8 +442,8 @@ class ChannelManager(gevent.Greenlet):
                           sender, open_block_number)
             self.close_channel(sender, open_block_number)  # dispute by closing the channel
         else:
-            self.log.info('valid channel close request received (sender %s, block number %s)',
-                          sender, open_block_number)
+            self.log.info('%svalid channel close request received (sender %s, block number %s)%s', bcolors.RCLOSE,
+                          sender, open_block_number, bcolors.DEFAULT)
             c.settle_timeout = settle_timeout
             c.is_closed = True
             c.mtime = time.time()
@@ -402,8 +451,10 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_settled(self, sender, open_block_number):
         """Notify the channel manager that a channel has been settled."""
-        self.log.info('Forgetting settled channel (sender %s, block number %s)',
-                      sender, open_block_number)
+        self.log.info('%sSuccessfully settled channel (sender %s, block number %s)%s',
+                      bcolors.SETTLE, sender, open_block_number, bcolors.DEFAULT)
+        self.log.info('%sForgetting closed and settled channel (sender %s, block number %s)%s',
+                      bcolors.CLOSE, sender, open_block_number, bcolors.DEFAULT)
         self.channels.pop((sender, open_block_number), None)
         self.state.store()
 
@@ -416,17 +467,17 @@ class ChannelManager(gevent.Greenlet):
                           '(sender %s, block number %s, aded %s)',
                           sender, open_block_number, added_deposit)
             return
-        self.log.info('Registering unconfirmed deposit top up '
-                      '(sender %s, block number %s, aded %s)',
-                      sender, open_block_number, added_deposit)
+        self.log.info('%sRegistering unconfirmed deposit top up '
+                      '(sender %s, block number %s, aded %s)%s',
+                      bcolors.UTOPUP, sender, open_block_number, added_deposit, bcolors.DEFAULT)
         c = self.channels[sender, open_block_number]
         c.unconfirmed_topups[txhash] = added_deposit
         self.state.store()
 
     def event_channel_topup(self, sender, open_block_number, txhash, added_deposit, deposit):
         """Notify the channel manager that the deposit of a channel has been topped up."""
-        self.log.info('Registering deposit top up (sender %s, block number %s, new deposit %s)',
-                      sender, open_block_number, deposit)
+        self.log.info('%sRegistering deposit top up (sender %s, block number %s, new deposit %s)%s',
+                      bcolors.TOPUP, sender, open_block_number, deposit, bcolors.DEFAULT)
         assert (sender, open_block_number) in self.channels
         c = self.channels[sender, open_block_number]
         if c.is_closed is True:
@@ -455,8 +506,8 @@ class ChannelManager(gevent.Greenlet):
         raw_tx = self.contract_proxy.create_signed_transaction('close', tx_params)
 
         txid = self.blockchain.web3.eth.sendRawTransaction(raw_tx)
-        self.log.info('sent channel close(sender %s, block number %s, tx %s)',
-                      sender, open_block_number, txid)
+        self.log.info('%ssent channel close(sender %s, block number %s, tx %s)%s', bcolors.RCLOSE,
+                      sender, open_block_number, txid, bcolors.DEFAULT)
         # update local state
         c.is_closed = True
         c.mtime = time.time()
@@ -491,8 +542,8 @@ class ChannelManager(gevent.Greenlet):
             self.private_key, self.receiver, open_block_number, balance
         )
         self.state.store()
-        self.log.info('signed cooperative closing message (sender %s, block number %s)',
-                      sender, open_block_number)
+        self.log.info('%ssigned cooperative closing message (sender %s, block number %s)%s', bcolors.CCLOSESIGN,
+                      sender, open_block_number, bcolors.DEFAULT)
         return receiver_sig
 
     def get_locked_balance(self):

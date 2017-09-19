@@ -20,6 +20,19 @@ TOKEN_ABI_NAME = 'ERC223Token'
 
 log = logging.getLogger(__name__)
 
+class bcolors:
+    DEFAULT = '\033[0m'
+    BOLD = '\033[1m'
+    ITALIC = '\033[3m'
+
+    VALUE = BOLD
+    GREY2 = '\033[38;5;238m'
+    DULLGREEN = '\033[38;5;30m'
+
+    CREATE = BOLD + DULLGREEN
+    RCREATE = BOLD
+    ECREATE = ITALIC + DULLGREEN
+
 
 class Client:
     def __init__(
@@ -241,8 +254,8 @@ class Client:
             )
 
         current_block = self.web3.eth.blockNumber
-        log.info('Creating channel to {} with an initial deposit of {} @{}'.format(
-            receiver_address, deposit, current_block
+        log.info('{}Creating channel to {} with an initial deposit of {}{} @{}{}'.format(
+            bcolors.RCREATE, receiver_address, bcolors.VALUE, deposit, current_block, bcolors.DEFAULT
         ))
 
         data = decode_hex(receiver_address)
@@ -251,13 +264,13 @@ class Client:
         )
         self.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for channel creation event on the blockchain...')
+        log.info('{}Waiting for channel creation event on the blockchain...{}'.format(bcolors.ECREATE, bcolors.DEFAULT))
         event = self.channel_manager_proxy.get_channel_created_event_blocking(
             self.account, receiver_address, current_block + 1
         )
 
         if event:
-            log.info('Event received. Channel created in block {}.'.format(event['blockNumber']))
+            log.info('{}Event received. Channel created in block {}.{}'.format(bcolors.CREATE, event['blockNumber'], bcolors.DEFAULT))
             channel = Channel(
                 self,
                 event['args']['_sender'],

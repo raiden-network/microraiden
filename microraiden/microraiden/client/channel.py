@@ -6,6 +6,55 @@ from microraiden.crypto import sign_balance_proof, verify_balance_proof
 
 log = logging.getLogger(__name__)
 
+class bcolors:
+    DEFAULT = '\033[0m'
+
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[38;5;136m'
+    RED = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    ITALIC = '\033[3m'
+    GREY = '\033[38;5;238m'
+    GREY2 = '\033[38;5;238m'
+    RAIDENBLUE = '\033[38;5;24m'
+    DULLGREEN = '\033[38;5;30m'
+    DARKBLUE = '\033[38;5;17m'
+
+    VALUE = BOLD
+    BALANCE = RAIDENBLUE
+    BALANCEVALUE = BOLD + RAIDENBLUE
+
+    CREATE = BOLD + DULLGREEN
+    TOPUP = BOLD + DARKBLUE
+    CLOSE = BOLD + DULLGREEN
+    SETTLE = BOLD + YELLOW
+
+    SIGN = ITALIC
+
+    RCREATE = BOLD
+    RTOPUP = BOLD
+    RCLOSE = BOLD
+    RCCLOSE = BOLD
+    RSETTLE = BOLD
+
+    ECREATE = ITALIC + DULLGREEN
+    ETOPUP = ITALIC + DARKBLUE
+    ECLOSE = ITALIC + DULLGREEN
+    ESETTLE = ITALIC + YELLOW
+
+    UCREATE = ITALIC + BOLD + DULLGREEN
+    UTOPUP = ITALIC + BOLD + DARKBLUE
+    UCLOSE = ITALIC + BOLD + DULLGREEN
+    USETTLE = ITALIC + BOLD + YELLOW
+
+
+    RED = '\033[38;5;1m'
+    BOLD = '\033[1;97m'
+    UNDERLINE = '\033[4m'
 
 class Channel:
     class State(Enum):
@@ -90,8 +139,8 @@ class Channel:
                 .format(token_balance, deposit)
             )
 
-        log.info('Topping up channel to {} created at block #{} by {} tokens.'.format(
-            self.receiver, self.block, deposit
+        log.info('{}Topping up channel to {} created at block #{} by {}{} tokens.{}'.format(
+            bcolors.RTOPUP, self.receiver, self.block, bcolors.VALUE, deposit, bcolors.DEFAULT
         ))
         current_block = self.client.web3.eth.blockNumber
 
@@ -101,7 +150,7 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for topup confirmation event...')
+        log.info('{}Waiting for topup confirmation event...{}'.format(bcolors.ETOPUP, bcolors.DEFAULT))
         event = self.client.channel_manager_proxy.get_channel_topped_up_event_blocking(
             self.sender,
             self.receiver,
@@ -112,7 +161,7 @@ class Channel:
         )
 
         if event:
-            log.info('Successfully topped up channel in block {}.'.format(event['blockNumber']))
+            log.info('{}Successfully topped up channel in block {}.{}'.format(bcolors.TOPUP, event['blockNumber'], bcolors.DEFAULT))
             self.deposit += deposit
             self.client.store_channels()
             return event
@@ -128,8 +177,8 @@ class Channel:
         if self.state != Channel.State.open:
             log.error('Channel must be open to request a close.')
             return
-        log.info('Requesting close of channel to {} created at block #{}.'.format(
-            self.receiver, self.block
+        log.info('{}Requesting close of channel to {} created at block #{}.{}'.format(
+            bcolors.RCLOSE, self.receiver, self.block, bcolors.DEFAULT
         ))
         current_block = self.client.web3.eth.blockNumber
 
@@ -141,14 +190,14 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for close confirmation event...')
+        log.info('{}Waiting for close confirmation event...{}'.format(bcolors.ECLOSE, bcolors.DEFAULT))
         event = self.client.channel_manager_proxy.get_channel_close_requested_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully sent channel close request in block {}.'.format(
-                event['blockNumber']
+            log.info('{}Successfully sent channel close request in block {}.{}'.format(
+                bcolors.CLOSE, event['blockNumber'], bcolors.DEFAULT
             ))
             self.state = Channel.State.settling
             self.client.store_channels()
@@ -166,8 +215,8 @@ class Channel:
         if self.state == Channel.State.closed:
             log.error('Channel must not be closed already to be closed cooperatively.')
             return None
-        log.info('Attempting to cooperatively close channel to {} created at block #{}.'.format(
-            self.receiver, self.block
+        log.info('{}Attempting to cooperatively close channel to {} created at block #{}.{}'.format(
+            bcolors.RCCLOSE, self.receiver, self.block, bcolors.DEFAULT
         ))
         current_block = self.client.web3.eth.blockNumber
         if not is_same_address(
@@ -182,13 +231,13 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for settle confirmation event...')
+        log.info('{}Waiting for settle confirmation event...{}'.format(bcolors.ESETTLE, bcolors.DEFAULT))
         event = self.client.channel_manager_proxy.get_channel_settle_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully closed channel in block {}.'.format(event['blockNumber']))
+            log.info('{}Successfully closed channel in block {}.{}'.format(bcolors.CLOSE, event['blockNumber'], bcolors.DEFAULT))
             self.state = Channel.State.closed
             self.client.store_channels()
             return event
@@ -205,8 +254,8 @@ class Channel:
         if self.state != Channel.State.settling:
             log.error('Channel must be in the settlement period to settle.')
             return None
-        log.info('Attempting to settle channel to {} created at block #{}.'.format(
-            self.receiver, self.block
+        log.info('{}Attempting to settle channel to {} created at block #{}.{}'.format(
+            bcolors.RSETTLE, self.receiver, self.block, bcolors.DEFAULT
         ))
 
         _, _, settle_block, _ = self.client.channel_manager_proxy.contract.call().getChannelInfo(
@@ -226,13 +275,13 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for settle confirmation event...')
+        log.info('{}Waiting for settle confirmation event...{}'.format(bcolors.ESETTLE, bcolors.DEFAULT))
         event = self.client.channel_manager_proxy.get_channel_settle_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully settled channel in block {}.'.format(event['blockNumber']))
+            log.info('{}Successfully settled channel in block {}.{}'.format(bcolors.SETTLE, event['blockNumber'], bcolors.DEFAULT))
             self.state = Channel.State.closed
             self.client.channels.remove(self)
             self.client.store_channels()
@@ -254,8 +303,8 @@ class Channel:
             )
             return None
 
-        log.info('Signing new transfer of value {} on channel to {} created at block #{}.'.format(
-            value, self.receiver, self.block
+        log.info('{}Signing new transfer of value {} on channel to {} created at block #{}.{}'.format(
+            bcolors.SIGN, value, self.receiver, self.block, bcolors.DEFAULT
         ))
 
         if self.state == Channel.State.closed:

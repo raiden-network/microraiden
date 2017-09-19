@@ -196,9 +196,9 @@ function pageReady(json) {
   $(".channel_present_sign").click(signRetry);
 
   $(".channel_present_close").click(() => {
-    if (!window.confirm("Are you sure you want to close this channel?")) {
+    /*if (!window.confirm("Are you sure you want to close this channel?")) {
       return;
-    }
+    }*/
     mainSwitch("#channel_opening");
     // signBalance without balance, sign current balance only if needed
     uraiden.signBalance(null, (err, sign) => {
@@ -231,9 +231,9 @@ function pageReady(json) {
   });
 
   $(".channel_present_settle").click(() => {
-    if (!window.confirm("Are you sure you want to settle this channel?")) {
+    /*if (!window.confirm("Are you sure you want to settle this channel?")) {
       return;
-    }
+    }*/
     mainSwitch("#channel_opening");
     uraiden.settleChannel((err, res) => {
       if (err) {
@@ -246,11 +246,11 @@ function pageReady(json) {
   });
 
   $(".channel_present_forget").click(() => {
-    if (!window.confirm("Are you sure you want to forget this channel?" +
+    /*if (!window.confirm("Are you sure you want to forget this channel?" +
         ($('.on-state-settled').is(':visible') ? "" :
          "\nWarning: channel will be left in an unsettled state."))) {
       return;
-    }
+    }*/
     Cookies.remove("RDN-Sender-Address");
     Cookies.remove("RDN-Open-Block");
     Cookies.remove("RDN-Sender-Balance");
