@@ -5,7 +5,6 @@ import os
 import sys
 import json
 import time
-import tempfile
 import shutil
 import gevent
 import gevent.event
@@ -17,7 +16,7 @@ from eth_utils import decode_hex, is_same_address
 import logging
 
 from microraiden.crypto import sign_balance_proof, verify_balance_proof, privkey_to_addr
-from microraiden.utils import is_secure_statefile
+from microraiden.utils import check_permission_safety
 from microraiden.exceptions import (
     NetworkIdMismatch,
     StateReceiverAddrMismatch,
@@ -270,7 +269,7 @@ class ChannelManagerState(object):
         """Load a previously stored state."""
         assert filename is not None
         assert isinstance(filename, str)
-        if not is_secure_statefile(filename):
+        if not check_permission_safety(filename):
             raise InsecureStateFile(filename)
         json_state = json.loads(open(filename, 'r').read())
         ret = cls.from_dict(json_state)
