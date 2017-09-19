@@ -105,7 +105,7 @@ class Blockchain(gevent.Greenlet):
 
         # return if blocks have already been processed
         if (self.cm.state.confirmed_head_number >= new_confirmed_head_number and
-            self.cm.state.unconfirmed_head_number >= new_unconfirmed_head_number):
+                self.cm.state.unconfirmed_head_number >= new_unconfirmed_head_number):
             return
 
         # filter for events after block_number
