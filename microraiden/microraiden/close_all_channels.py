@@ -62,7 +62,7 @@ def main(private_key, state_file, channel_manager_address):
     channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
 
     if not state_file:
-        state_file_name = "%s_%s.pkl" % (channel_manager_address[:10], receiver_address[:10])
+        state_file_name = "%s_%s.json" % (channel_manager_address[:10], receiver_address[:10])
         app_dir = click.get_app_dir('microraiden')
         state_file = os.path.join(app_dir, state_file_name)
 
