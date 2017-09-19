@@ -282,15 +282,9 @@ function pageReady(json) {
   });
 
   $(".token_buy").click(() => {
-    const symbol = $($('.tkn-symbol')[0]).text();
     const account = $select.val();
-    const amount = window.prompt(`How much ${symbol} do you want to buy?`);
-    if (!amount || amount != +amount) {
-      return console.log("Invalid amount", amount);
-    }
     mainSwitch("#channel_opening");
     return uraiden.buyToken(
-      amount,
       account,
       (err, res) => {
         if (err) {

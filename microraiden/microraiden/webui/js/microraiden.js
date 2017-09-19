@@ -580,11 +580,10 @@ class MicroRaiden {
   /**
    * Mock buy, just mint the amount
    */
-  buyToken(amount, account, callback) {
+  buyToken(account, callback) {
     return this.catchCallback(
       this.token.mint && this.token.mint.sendTransaction,
-      amount,
-      { from: account },
+      { from: account, value: this.web3.toWei(0.1, "ether") },
       (err, txHash) => {
         if (err) {
           return callback(err);
