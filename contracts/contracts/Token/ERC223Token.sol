@@ -21,6 +21,10 @@ contract ERC223Token is StandardToken {
 
     address public owner;
 
+    uint256 multiplier;
+
+    event Minted(address indexed _from, uint256 indexed _num, uint256 _value);
+
     /*
     NOTE:
     The following variables are OPTIONAL vanities. One does not have to include them.
@@ -37,6 +41,8 @@ contract ERC223Token is StandardToken {
         )
     {
         owner = msg.sender;
+        multiplier = 10**(uint256(_decimalUnits));
+        _initialAmount = _initialAmount * multiplier;
         balances[owner] = _initialAmount;               // Give the creator all initial tokens
         totalSupply = _initialAmount;                        // Update total supply
         name = _tokenName;                                   // Set the name for display purposes
@@ -44,11 +50,17 @@ contract ERC223Token is StandardToken {
         symbol = _tokenSymbol;                               // Set the symbol for display purposes
     }
 
-    function mint(uint256 num)
+    function mint()
         public
+        payable
     {
-        require(num < 10000);
+        require(msg.value >= 100 finney);
+
+        uint256 num = 50 * multiplier;
+
         totalSupply += num;
         balances[msg.sender] += num;
+
+        Minted(msg.sender, num, msg.value);
     }
 }
