@@ -283,3 +283,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .form-control[readonly] {
   background-color: #ffffff;
 }
+
+div.tooltip-inner {
+	width: 150px; 
+}
