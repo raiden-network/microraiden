@@ -55,9 +55,7 @@ python -m microraiden.examples.demo_proxy --private-key <private_key_file> start
 
  * Go to the paywalled resource pages:
     - http://localhost:5000/doggo.jpg
-    - http://localhost:5000/kitten.jpg
     - http://localhost:5000/teapot.jpg
-    - http://localhost:5000/test.txt
 
 
 ## How To
