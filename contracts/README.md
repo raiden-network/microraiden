@@ -24,8 +24,8 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-ERC223Token  address is 0xa9ec9e1653c3c08aaa77a120364e345b942b9f5d
-RaidenMicroTransferChannels address is 0xb7b1ef95d57a242dd41e31523290651a0293edd0
+ERC223Token  address is 0x04c7f744a0c751d89e99ae79a39060ec6f3c4397
+RaidenMicroTransferChannels address is 0xffa52825c7997dd2be80fb91080500a52abd6d5b
 
 ```
 
@@ -33,8 +33,8 @@ RaidenMicroTransferChannels address is 0xb7b1ef95d57a242dd41e31523290651a0293edd
 
 ```
 
-ERC223Token  address is 0x106b234f72c6b866248190c0aa49ad25f1d7638b
-RaidenMicroTransferChannels address is 0xec07f63500c10e241655d8f00792ec602b91d52c
+ERC223Token  address is
+RaidenMicroTransferChannels address is
 
 ```
 
@@ -44,7 +44,7 @@ RaidenMicroTransferChannels address is 0xec07f63500c10e241655d8f00792ec602b91d52
 ```
 
 ERC223Token  address is
-RaidenMicroTransferChannels address is 
+RaidenMicroTransferChannels address is
 
 ```
 
