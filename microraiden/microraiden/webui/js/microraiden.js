@@ -196,59 +196,49 @@ class MicroRaiden {
     });
   }
 
-  openChannel_ERC20(account, receiver, deposit, callback) {
-    if (this.isChannelValid()) {
-      console.warn("Already valid channel will be forgotten:", this.channel);
-    }
-    // send 'approve' transaction
-    this.token.approve.sendTransaction(
-      this.contract.address,
-      deposit,
-      { from: account },
-      (err, approveTxHash) => {
-        if (err) {
-          return callback(err);
-        }
-        // send 'createChannel' transaction
-        return this.contract.createChannel.sendTransaction(
-          receiver,
-          deposit,
-          { from: account },
-          (err, createChannelTxHash) => {
-            if (err) {
-              return callback(err);
-            }
-            // wait for 'createChannel' transaction to be mined
-            this.waitTx(createChannelTxHash, 1, (err, receipt) => {
-              if (err) {
-                return callback(err);
-              }
-              // call getChannelInfo to be sure channel was created
-              return this.contract.getChannelInfo.call(
-                account,
-                receiver,
-                receipt.blockNumber,
-                { from: account },
-                (err, info) => {
-                  if (err || !(info[1] > 0)) {
-                    return callback(err || info);
-                  }
-                  this.setChannel({account, receiver, block: receipt.blockNumber, balance: 0});
-                  // return channel
-                  return callback(null, this.channel);
-                });
-              });
-          });
-      });
-  }
-
   openChannel(account, receiver, deposit, callback) {
     if (this.isChannelValid()) {
       console.warn("Already valid channel will be forgotten:", this.channel);
     }
 
-    // send 'transfer' transaction
-    this.token.balanceOf.call(
+    // automatically support both ERC20 and ERC223 tokens
+    let transfer;
+    if (typeof this.token.transfer["address,uint256,bytes"] === "function") {
+      // ERC223
+      transfer = (_deposit, _receiver, cb) =>
+        // transfer tokens directly to the channel manager contract
+        this.token.transfer["address,uint256,bytes"].sendTransaction(
+          this.contract.address,
+          _deposit,
+          _receiver, // bytes _data (3rd param) is the receiver
+          { from: account },
+          cb
+        );
+    } else {
+      // ERC20
+      transfer = (_deposit, _receiver, cb) =>
+        // send 'approve' transaction to token contract
+        this.token.approve.sendTransaction(
+          this.contract.address,
+          _deposit,
+          { from: account },
+          (err, approveTxHash) => {
+            if (err) {
+              return cb(err);
+            }
+            // send 'createChannel' transaction to channel manager contract
+            return this.contract.createChannelERC20.sendTransaction(
+              _receiver,
+              _deposit,
+              { from: account },
+              cb
+            );
+          }
+        );
+    }
+
+    // first, check if there's enough balance
+    return this.token.balanceOf.call(
       account,
       { from: account },
       (err, balance) => {
@@ -259,11 +249,10 @@ class MicroRaiden {
             Token balance = ${balance}, required = ${deposit}`));
         }
         console.log('Token balance', this.token.address, balance.toNumber());
-        this.token.transfer["address,uint256,bytes"].sendTransaction(
-          this.contract.address,
+        // call transfer to make the deposit, automatic support for ERC20/223 token
+        return transfer(
           deposit,
-          receiver, // receiver goes as 3rd param, hex encoded
-          { from: account },
+          receiver,
           (err, transferTxHash) => {
             if (err) {
               return callback(err);
@@ -295,31 +284,74 @@ class MicroRaiden {
       });
   }
 
-  topUpChannel_ERC20(deposit, callback) {
+  topUpChannel(deposit, callback) {
     if (!this.isChannelValid()) {
       return callback(new Error("No valid channelInfo"));
     }
-    // send 'approve' transaction
-    this.token.approve.sendTransaction(
-      this.contract.address,
-      deposit,
+
+    const account = this.channel.account;
+    // automatically support both ERC20 and ERC223 tokens
+    let transfer;
+    if (typeof this.token.transfer["address,uint256,bytes"] === "function") {
+      // ERC223, just send token.transfer transaction
+      transfer = (_deposit, _receiver, _blockNumber, cb) =>
+        // transfer tokens directly to the channel manager contract
+        this.token.transfer["address,uint256,bytes"].sendTransaction(
+          this.contract.address,
+          _deposit,
+          // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
+          _receiver + this.encodeHex(_blockNumber, 8),
+          { from: account },
+          cb
+        );
+    } else {
+      // ERC20, approve channel manager contract to handle our tokens, then topUp
+      transfer = (_deposit, _receiver, _blockNumber, cb) =>
+        // send 'approve' transaction to token contract
+        this.token.approve.sendTransaction(
+          this.contract.address,
+          _deposit,
+          { from: account },
+          (err, approveTxHash) => {
+            if (err) {
+              return cb(err);
+            }
+            // send 'topUp' transaction to channel manager contract
+            return this.contract.topUpERC20.sendTransaction(
+              _receiver,
+              _blockNumber,
+              _deposit,
+              { from: account },
+              cb
+            );
+          }
+        );
+    }
+
+    // first, check if there's enough balance
+    return this.token.balanceOf.call(
+      account,
       { from: account },
-      (err, approveTxHash) => {
+      (err, balance) => {
         if (err) {
           return callback(err);
+        } else if (!(balance >= deposit)) {
+          return callback(new Error(`Not enough tokens.
+            Token balance = ${balance}, required = ${deposit}`));
         }
-        // send 'createChannel' transaction
-        return this.contract.topUp.sendTransaction(
+        console.log('Token balance', this.token.address, balance.toNumber());
+        // send 'transfer' transaction
+        return transfer(
+          deposit,
           this.channel.receiver,
           this.channel.block,
-          deposit,
-          { from: account },
-          (err, topUpTxHash) => {
+          (err, transferTxHash) => {
             if (err) {
               return callback(err);
             }
-            // wait for 'topUp' transaction to be mined
-            this.waitTx(topUpTxHash, 1, (err, receipt) => {
+            console.log('transferTxHash', transferTxHash);
+            // wait for 'transfer' transaction to be mined
+            return this.waitTx(transferTxHash, 1, (err, receipt) => {
               if (err) {
                 return callback(err);
               }
@@ -332,39 +364,6 @@ class MicroRaiden {
               });
             });
           });
-      });
-  }
-
-  topUpChannel(deposit, callback) {
-    if (!this.isChannelValid()) {
-      return callback(new Error("No valid channelInfo"));
-    }
-
-    // send 'transfer' transaction
-    this.token.transfer["address,uint256,bytes"].sendTransaction(
-      this.contract.address,
-      deposit,
-      // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
-      this.channel.receiver + this.encodeHex(this.channel.block, 8),
-      { from: this.channel.account },
-      (err, transferTxHash) => {
-        if (err) {
-          return callback(err);
-        }
-        console.log('transferTxHash', transferTxHash);
-        // wait for 'transfer' transaction to be mined
-        return this.waitTx(transferTxHash, 1, (err, receipt) => {
-          if (err) {
-            return callback(err);
-          }
-          // return current deposit
-          return this.getChannelInfo((err, info) => {
-            if (err) {
-              return callback(err);
-            }
-            return callback(null, info.deposit);
-          });
-        });
       });
   }
 
