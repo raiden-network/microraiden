@@ -10,11 +10,22 @@ import requests
 
 
 @click.command()
-@click.option('--key-path', required=True, help='Path to private key file.')
+@click.option(
+    '--key-path',
+    required=True,
+    help='Path to private key file.',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
+@click.option(
+    '--key-password-path',
+    default=None,
+    help='Path to file containing password for private key.',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
 @click.option('--resource', required=True, help='Get this resource.')
-def run(key_path, resource):
+def run(key_path, key_password_path, resource):
     # create the client
-    with Client(key_path=key_path) as client:
+    with Client(key_path=key_path, key_password_path=key_password_path) as client:
         m2mclient = DefaultHTTPClient(
             client,
             'localhost',

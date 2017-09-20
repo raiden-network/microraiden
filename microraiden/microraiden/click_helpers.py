@@ -18,11 +18,9 @@ if __package__ is None:
     sys.path.insert(0, path)
     sys.path.insert(0, path + "/../")
 
-from eth_utils import decode_hex, is_hex
 from web3 import HTTPProvider, Web3
-import microraiden.utils as utils
 from microraiden.make_helpers import make_paywalled_proxy
-from microraiden import config
+from microraiden import utils, config
 from microraiden.exceptions import StateFileLocked, InsecureStateFile, NetworkIdMismatch
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
@@ -43,6 +41,12 @@ pass_app = click.make_pass_decorator(PaywalledProxy)
 @click.option(
     '--private-key',
     help='Path to private key file of the proxy',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
+@click.option(
+    '--private-key-password-file',
+    default=None,
+    help='Path to file containing password for the JSON-encoded private key',
     type=click.Path(exists=True, dir_okay=False, resolve_path=True)
 )
 @click.option(
@@ -75,19 +79,12 @@ def main(
     ssl_cert,
     state_file,
     private_key,
+    private_key_password_file,
     paywall_info,
     rpc_provider,
 ):
+    private_key = utils.get_private_key(private_key, private_key_password_file)
     if private_key is None:
-        log.fatal("No private key provided")
-        sys.exit(1)
-    if utils.check_permission_safety(private_key) is False:
-        log.fatal("Private key file %s must be readable only by its owner." % (private_key))
-        sys.exit(1)
-    with open(private_key) as keyfile:
-        private_key = keyfile.readline()[:-1]
-    if not is_hex(private_key) or len(decode_hex(private_key)) != 32:
-        log.fatal("Private key must be specified as 32 hex encoded bytes")
         sys.exit(1)
 
     receiver_address = privkey_to_addr(private_key)
