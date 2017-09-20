@@ -3,7 +3,14 @@ import bitcoin
 from ethereum import utils
 from ethereum.utils import sha3
 from secp256k1 import PrivateKey
-from eth_utils import keccak, is_0x_prefixed, decode_hex
+from eth_utils import (
+    keccak,
+    is_0x_prefixed,
+    remove_0x_prefix,
+    add_0x_prefix,
+    decode_hex,
+    pad_left
+)
 
 
 eth_prefix = "\x19Ethereum Signed Message:\n"
@@ -59,7 +66,8 @@ def pack(*args) -> bytes:
             msg += arg
         elif isinstance(arg, str):
             if is_0x_prefixed(arg):
-                msg += decode_hex(arg)
+                arg = pad_left(remove_0x_prefix(arg), 64, '0')
+                msg += decode_hex(add_0x_prefix(arg))
             else:
                 msg += arg.encode()
         elif isinstance(arg, int):
