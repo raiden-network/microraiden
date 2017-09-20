@@ -7,6 +7,7 @@ from microraiden.examples.eth_ticker import ETHTickerClient, ETHTickerProxy
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
 
+@pytest.mark.needs_xorg
 def test_eth_ticker(
         doggo_proxy: PaywalledProxy,
         default_http_client: DefaultHTTPClient,
