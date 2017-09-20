@@ -27,13 +27,13 @@ python3 -m microraiden.examples.demo_proxy --private-key <private_key_file> star
 ```
 or
 ```bash
-python3 -m microraiden.examples.wikipaydia --private-key <private_key_file> start
+python3 -m microraiden.examples.wikipaydia --private-key <private_key_file> --private-key-password-file <password_file> start
 ```
-By default, the web server listens on `0.0.0.0:5000`, and an Ethereum node RPC interface is expected to respond on http://localhost:8545. The private key file should contain the hex encoded private key and must be readable and writable only by the owner to be accepted (`-rw-------`).
+By default, the web server listens on `0.0.0.0:5000`, and an Ethereum node RPC interface is expected to respond on http://localhost:8545. The private key file should be in the JSON format produced by Geth/Parity and must be readable and writable only by the owner to be accepted (`-rw-------`). A ``--private-key-password-file`` option can be specified, containing the password for the private key in the first line of the file. If it's not provided, the password will be prompted interactively.
 
 ### M2M Client
 ```bash
-python3 -m microraiden.examples.m2m_client --key-path <path to private key file>
+python3 -m microraiden.examples.m2m_client --key-path <path to private key file> --key-password-path <password file>
 ```
 
 ## Library usage
@@ -46,9 +46,9 @@ from microraiden import Client
 client = Client('<hex-encoded private key>')
 ```
 
-Alternatively you can specify a path to a file containing the private key, again in a hex-encoded format, with or without a leading `0x` prefix.
+Alternatively you can specify a path to a JSON private key, optionally specifying a file containing the password. If it's not provided, it'll be prompted interactively.
 ```python
-client = Client(key_path='<path to private key file>'
+client = Client(key_path='<path to private key file>', key_password_file='<path to password file>')
 ```
 
 This client object allows interaction with the blockchain and offline-signing of transactions and Raiden balance proofs.
