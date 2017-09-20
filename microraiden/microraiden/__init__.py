@@ -3,7 +3,7 @@
 # the bug occurs with Python3.6, requests=2.8.14 and gevent==1.2.2
 from gevent import monkey
 monkey.patch_ssl()
-import requests
+import requests # noqa
 
 from .client import (
     Client,
@@ -14,3 +14,10 @@ from .client import (
 from .header import (
     HTTPHeaders
 )
+
+__all__ = [
+    Client,
+    HTTPClient,
+    DefaultHTTPClient,
+    HTTPHeaders
+]
