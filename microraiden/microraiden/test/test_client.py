@@ -64,6 +64,30 @@ def test_integrity(client: Client, receiver_address):
     assert not c.is_valid()
 
 
+def test_sync(client: Client, receiver_address, receiver_privkey):
+    c = client.get_suitable_channel(receiver_address, 5)
+    assert c in client.channels
+    assert len(client.channels) == 1
+
+    # Check if channel is still valid after sync.
+    client.sync_channels()
+    assert c in client.channels
+    assert len(client.channels) == 1
+
+    # Check if channel can be resynced after data loss.
+    client.channels = []
+    client.store_channels()
+    client.sync_channels()
+
+    # Check if channel is forgotten on resync after closure.
+    assert len(client.channels) == 1
+    c = client.channels[0]
+    close_channel_cooperatively(c, receiver_privkey)
+
+    client.sync_channels()
+    assert c not in client.channels
+
+
 def test_filelock(
         sender_privkey,
         client_contract_proxy,

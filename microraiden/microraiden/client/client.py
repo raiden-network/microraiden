@@ -133,34 +133,32 @@ class Client:
         settle = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
         topup = self.channel_manager_proxy.get_channel_topped_up_logs(filters=filters)
 
-        channel_id_to_channel = {}
+        channel_key_to_channel = {}
 
         def get_channel(event):
             sender = event['args']['_sender']
             receiver = event['args']['_receiver']
-            block = event['args']['_open_block_number']
+            block = event['args'].get('_open_block_number', event['blockNumber'])
             assert sender == self.account
-            assert (sender, receiver, block) in channel_id_to_channel
-            return channel_id_to_channel[(sender, receiver, block)]
-
-        for e in create:
-            c = Channel(
-                self,
-                e['args']['_sender'],
-                e['args']['_receiver'],
-                e['blockNumber'],
-                e['args']['_deposit']
-            )
-            assert c.sender == self.account
-            channel_id_to_channel[(c.sender, c.receiver, c.block)] = c
+            return channel_key_to_channel.get((sender, receiver, block), None)
 
         for c in self.channels:
-            key = (c.sender, c.receiver, c.block)
-            if key in channel_id_to_channel:
-                c_synced = channel_id_to_channel[key]
-                c_synced.balance = c.balance
+            channel_key_to_channel[(c.sender, c.receiver, c.block)] = c
+
+        for e in create:
+            c = get_channel(e)
+            if c:
+                c.deposit = e['args']['_deposit']
             else:
-                channel_id_to_channel[key] = c
+                c = Channel(
+                    self,
+                    e['args']['_sender'],
+                    e['args']['_receiver'],
+                    e['blockNumber'],
+                    e['args']['_deposit']
+                )
+                assert c.sender == self.account
+                channel_key_to_channel[(c.sender, c.receiver, c.block)] = c
 
         for e in topup:
             c = get_channel(e)
@@ -177,8 +175,9 @@ class Client:
             c = get_channel(e)
             c.state = Channel.State.closed
 
+        # Forget closed channels.
         self.channels = [
-            c for c in channel_id_to_channel.values() if c.state != Channel.State.closed
+            c for c in channel_key_to_channel.values() if c.state != Channel.State.closed
         ]
         self.store_channels()
 
