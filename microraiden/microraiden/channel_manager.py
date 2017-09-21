@@ -226,7 +226,6 @@ class Blockchain(gevent.Greenlet):
             new_confirmed_head_hash
         )
         if not self.wait_sync_event.is_set() and new_unconfirmed_head_number == current_block:
-            self.log.info('initial sync finished')
             self.wait_sync_event.set()
 
 

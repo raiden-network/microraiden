@@ -4,7 +4,8 @@ from eth_utils import is_same_address, encode_hex
 from microraiden.channel_manager import InvalidBalanceProof, NoOpenChannel, InvalidBalanceAmount
 from microraiden.crypto import sign_balance_proof, privkey_to_addr
 from microraiden.test.utils.client import close_channel_cooperatively
-from microraiden.test.fixtures.channel_manager import channel_manager, start_channel_manager
+from microraiden.test.fixtures.channel_manager import start_channel_manager
+from microraiden.channel_manager import ChannelManager
 from microraiden.test.config import (
     RECEIVER_ETH_ALLOWANCE,
     RECEIVER_TOKEN_ALLOWANCE
@@ -34,11 +35,14 @@ def test_channel_opening(client, web3, make_account, make_channel_manager_proxy,
     receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver2_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver_address = privkey_to_addr(receiver1_privkey)
-    channel_manager1 = channel_manager(web3, receiver1_privkey, make_channel_manager_proxy,
-                                       token_contract, use_tester, mine_sync_event)
-    channel_manager2 = channel_manager(web3, receiver2_privkey, make_channel_manager_proxy,
-                                       token_contract, use_tester, mine_sync_event)
+    channel_manager1 = ChannelManager(web3, make_channel_manager_proxy(receiver1_privkey),
+                                      token_contract, receiver1_privkey,
+                                      n_confirmations=5)
     start_channel_manager(channel_manager1, use_tester, mine_sync_event)
+
+    channel_manager2 = ChannelManager(web3, make_channel_manager_proxy(receiver2_privkey),
+                                      token_contract, receiver2_privkey,
+                                      n_confirmations=5)
     start_channel_manager(channel_manager2, use_tester, mine_sync_event)
     channel_manager1.wait_sync()
     channel_manager2.wait_sync()
@@ -418,11 +422,14 @@ def test_different_receivers(web3, make_account, make_channel_manager_proxy, tok
     receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver2_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver1_address = privkey_to_addr(receiver1_privkey)
-    channel_manager1 = channel_manager(web3, receiver1_privkey, make_channel_manager_proxy,
-                                       token_contract, use_tester, mine_sync_event)
-    channel_manager2 = channel_manager(web3, receiver2_privkey, make_channel_manager_proxy,
-                                       token_contract, use_tester, mine_sync_event)
+    channel_manager1 = ChannelManager(web3, make_channel_manager_proxy(receiver1_privkey),
+                                      token_contract, receiver1_privkey,
+                                      n_confirmations=5)
     start_channel_manager(channel_manager1, use_tester, mine_sync_event)
+
+    channel_manager2 = ChannelManager(web3, make_channel_manager_proxy(receiver2_privkey),
+                                      token_contract, receiver2_privkey,
+                                      n_confirmations=5)
     start_channel_manager(channel_manager2, use_tester, mine_sync_event)
     channel_manager1.wait_sync()
     channel_manager2.wait_sync()
@@ -486,6 +493,7 @@ def test_reorg(web3, channel_manager, client, receiver_address, wait_for_blocks,
 
     # remove unconfirmed channel opening with reorg
     web3.testing.revert(snapshot_id)
+    snapshot_id = web3.testing.snapshot()
     wait_for_blocks(0)
     assert (channel.sender, channel.block) not in channel_manager.unconfirmed_channels
     web3.testing.mine(channel_manager.n_confirmations)

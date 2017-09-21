@@ -2,7 +2,7 @@ import logging
 from itertools import count
 import os
 import sys
-from time import sleep
+import gevent
 import traceback
 
 import click
@@ -86,7 +86,7 @@ def main(private_key, private_key_password_file, state_file, channel_manager_add
     close_open_channels(state, contract_proxy)
 
 
-def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: sleep(1)):
+def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: gevent.sleep(1)):
     contract = contract_proxy.contract
     web3 = contract_proxy.web3
 

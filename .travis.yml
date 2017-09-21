@@ -1,0 +1,33 @@
+dist: trusty
+sudo: true
+
+language: python
+python:
+  - '3.5'
+
+env:
+  global:
+  matrix:
+    - TEST_TYPE=''
+
+cache:
+  pip: true
+  directories:
+    - $HOME/.cache/pip
+
+install:
+  - cd microraiden/
+  - pip install -U pip wheel coveralls "coverage<4.4"
+  - pip install pytest-travis-fold
+  - pip install flake8
+  - pip install -r requirements.txt
+
+before_script:
+  - flake8 microraiden/
+
+script:
+  - coverage run --source microraiden/ --omit 'microraiden/test/*,microraiden/examples/*' -m py.test -k-needs_xorg --travis-fold=always -vvvvvv ./microraiden/test/$TEST_TYPE
+
+after_success:
+  - coveralls
+
