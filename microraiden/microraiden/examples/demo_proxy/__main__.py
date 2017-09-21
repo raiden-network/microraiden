@@ -41,7 +41,7 @@ def start(app, host, port):
     app.add_content(PaywalledContent("doggo", 2, get_doggo))
     app.add_content(PaywalledFortune("wisdom", 1, fortunes_path))
     app.add_content(PaywalledContent("teapot", 3, lambda _: ("HI I AM A TEAPOT", 418)))
-    app.run(host=host, port=port, debug=True)
+    app.run(host=host, port=port, debug=True)  # nosec
     app.join()
 
 

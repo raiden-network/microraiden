@@ -55,11 +55,6 @@ def init_contract_address():
     return "0x" + "a" * 40
 
 
-@pytest.fixture
-def manager_state_path():
-    return '/tmp/rmp-state.pkl'
-
-
 @pytest.fixture(scope='session')
 def deployer_privkey():
     return remove_0x_prefix(encode_hex(keys[3]))

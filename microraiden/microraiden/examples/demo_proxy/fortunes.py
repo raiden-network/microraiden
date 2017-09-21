@@ -26,7 +26,7 @@ class Fortunes:
 
     def get(self):
         log.error("%d" % len(self.quotes))
-        return random.choice(self.quotes)
+        return random.choice(self.quotes)  # nosec
 
 
 class PaywalledFortune(PaywalledContent):
