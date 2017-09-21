@@ -28,7 +28,7 @@ from microraiden.test.config import (
 
 def random_private_key(bound):
     """Randomly gnerate a private key smaller than a certain bound."""
-    n = random.randint(1, bound)
+    n = random.randint(1, bound)  # nosec
     private_key = encode_hex(pad_left(int_to_big_endian(n), 32, '\0'))
     return private_key
 
