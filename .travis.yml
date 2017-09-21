@@ -26,7 +26,7 @@ before_script:
   - flake8 microraiden/
 
 script:
-  - coverage run --source microraiden/ --omit 'microraiden/test/*' -m py.test -k-needs_xorg --travis-fold=always -vvvvvv ./microraiden/test/$TEST_TYPE
+  - coverage run --source microraiden/ --omit 'microraiden/test/*,microraiden/examples/*' -m py.test -k-needs_xorg --travis-fold=always -vvvvvv ./microraiden/test/$TEST_TYPE
 
 after_success:
   - coveralls
