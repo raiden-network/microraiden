@@ -17,7 +17,18 @@ log = logging.getLogger(__name__)
 @click.option('--datadir', help='Raiden data directory.')
 @click.option('--rpc-endpoint', help='Address of the Ethereum RPC server.')
 @click.option('--rpc-port', help='Ethereum RPC port.')
-@click.option('--key-path', required=True, help='Path to private key file.')
+@click.option(
+    '--key-path',
+    required=True,
+    help='Path to private key file.',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
+@click.option(
+    '--key-password-path',
+    default=None,
+    help='Path to file containing password for private key.',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
 @click.option('--close-channels', default=False, is_flag=True, type=bool,
               help='Close all open channels before exiting.')
 @click.option(

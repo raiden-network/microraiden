@@ -9,6 +9,7 @@ from eth_utils import decode_hex, is_same_address
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
+from microraiden.utils import get_private_key
 from microraiden.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE, \
     NETWORK_NAMES
 from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
@@ -26,6 +27,7 @@ class Client:
             self,
             privkey: str = None,
             key_path: str = None,
+            key_password_path: str = None,
             datadir: str = click.get_app_dir('microraiden'),
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
             token_address: str = TOKEN_ADDRESS,
@@ -53,8 +55,8 @@ class Client:
 
         # Load private key from file if none is specified on command line.
         if not privkey:
-            with open(key_path) as keyfile:
-                self.privkey = keyfile.readline()[:-1]
+            self.privkey = get_private_key(key_path, key_password_path)
+            assert self.privkey is not None
 
         os.makedirs(datadir, exist_ok=True)
         assert os.path.isdir(datadir)
