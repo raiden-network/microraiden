@@ -29,12 +29,23 @@ def check_permission_safety(path):
 
 
 def get_private_key(key_path, password_path=None):
-    if key_path is None or not os.path.exists(key_path):
-        log.fatal("No private key file found")
+    """Open a JSON-encoded private key and return it
+
+    If a password file is provided, uses it to decrypt the key. If not, the
+    password is asked interactively. Raw hex-encoded private keys are supported,
+    but deprecated."""
+
+    assert key_path, key_path
+    if not os.path.exists(key_path):
+        log.fatal("%s: no such file", key_path)
         return None
 
     if not check_permission_safety(key_path):
         log.fatal("Private key file %s must be readable only by its owner.", key_path)
+        return None
+
+    if password_path and not check_permission_safety(password_path):
+        log.fatal("Password file %s must be readable only by its owner.", password_path)
         return None
 
     with open(key_path) as keyfile:

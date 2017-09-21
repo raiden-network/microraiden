@@ -30,6 +30,7 @@ log = logging.getLogger('close_all_channels')
 @click.command()
 @click.option(
     '--private-key',
+    required=True,
     help='Path to private key file of the proxy',
     type=click.Path(exists=True, dir_okay=False, resolve_path=True)
 )

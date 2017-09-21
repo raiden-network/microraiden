@@ -40,6 +40,7 @@ pass_app = click.make_pass_decorator(PaywalledProxy)
 )
 @click.option(
     '--private-key',
+    required=True,
     help='Path to private key file of the proxy',
     type=click.Path(exists=True, dir_okay=False, resolve_path=True)
 )
