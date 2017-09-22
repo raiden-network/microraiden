@@ -39,6 +39,8 @@ class MicroRaiden {
     tokenAddr = tokenAddr || window["RDNtokenAddr"];
     tokenABI = tokenABI || window["RDNtokenABI"];
     this.token = this.web3.eth.contract(tokenABI).at(tokenAddr);
+
+    this.decimals = 0;
   }
 
   // "static" methods/utils
@@ -68,6 +70,16 @@ class MicroRaiden {
     } catch (e) {
       return callback(e);
     }
+  }
+
+  num2bal(value) {
+    return Math.floor(value * Math.pow(10, this.decimals));
+  }
+
+  bal2num(bal) {
+    return bal && bal.div ?
+      bal.div(Math.pow(10, this.decimals)) :
+      bal / Math.pow(10, this.decimals);
   }
 
   // instance methods
@@ -126,11 +138,13 @@ class MicroRaiden {
     this.token.decimals.call((err, decimals) =>
       err ? decimalsDefer.reject(err) : decimalsDefer.resolve(decimals.toNumber()));
     this.token.balanceOf.call(account, (err, balance) =>
-      err ? balanceDefer.reject(err) : balanceDefer.resolve(balance.toNumber()));
+      err ? balanceDefer.reject(err) : balanceDefer.resolve(balance));
 
     return $.when(nameDefer, symbolDefer, decimalsDefer, balanceDefer)
-      .then((name, symbol, decimals, balance) =>
-        callback(null, { name, symbol, decimals, balance }),
+      .then((name, symbol, decimals, balance) => {
+        this.decimals = decimals;
+        callback(null, { name, symbol, decimals, balance: this.bal2num(balance) });
+      },
       (err) => callback(err));
   }
 
@@ -188,7 +202,7 @@ class MicroRaiden {
             return callback(null, {
               "state": closed ? "closed" : "opened",
               "block": closed || this.channel.block,
-              "deposit": info[1].toNumber(),
+              "deposit": this.bal2num(info[1]),
             });
           });
       });
@@ -200,6 +214,8 @@ class MicroRaiden {
       console.warn("Already valid channel will be forgotten:", this.channel);
     }
 
+    // in this method, deposit is already multiplied by decimals
+    deposit = this.num2bal(deposit);
     // automatically support both ERC20 and ERC223 tokens
     let transfer;
     if (typeof this.token.transfer["address,uint256,bytes"] === "function") {
@@ -245,9 +261,9 @@ class MicroRaiden {
           return callback(err);
         } else if (!(balance >= deposit)) {
           return callback(new Error(`Not enough tokens.
-            Token balance = ${balance}, required = ${deposit}`));
+            Token balance = ${this.bal2num(balance)}, required = ${this.bal2num(deposit)}`));
         }
-        console.log('Token balance', this.token.address, balance.toNumber());
+        console.log('Token balance', this.token.address, this.bal2num(balance));
         // call transfer to make the deposit, automatic support for ERC20/223 token
         return transfer(
           deposit,
@@ -288,6 +304,8 @@ class MicroRaiden {
       return callback(new Error("No valid channelInfo"));
     }
 
+    // in this method, deposit is already multiplied by decimals
+    deposit = this.num2bal(deposit);
     const account = this.channel.account;
     // automatically support both ERC20 and ERC223 tokens
     let transfer;
@@ -336,9 +354,9 @@ class MicroRaiden {
           return callback(err);
         } else if (!(balance >= deposit)) {
           return callback(new Error(`Not enough tokens.
-            Token balance = ${balance}, required = ${deposit}`));
+            Token balance = ${this.bal2num(balance)}, required = ${this.bal2num(deposit)}`));
         }
-        console.log('Token balance', this.token.address, balance.toNumber());
+        console.log('Token balance', this.token.address, this.bal2num(balance));
         // send 'transfer' transaction
         return transfer(
           deposit,
@@ -390,7 +408,7 @@ class MicroRaiden {
         let params = [
           this.channel.receiver,
           this.channel.block,
-          this.channel.balance,
+          this.num2bal(this.channel.balance),
           sign
         ];
         let paramsTypes = "address,uint32,uint192,bytes";
@@ -483,7 +501,7 @@ class MicroRaiden {
     return this.contract.getBalanceMessage.call(
       this.channel.receiver,
       this.channel.block,
-      newBalance,
+      this.num2bal(newBalance),
       { from: this.channel.account },
       (err, msg) => {
         if (err) {
@@ -515,7 +533,7 @@ class MicroRaiden {
       } else if (info.state !== "opened") {
         return callback(new Error("Tried signing on closed channel"));
       } else if (newBalance > info.deposit) {
-        return callback(new Error(`Insuficient funds: current = ${info.deposit}, required = ${newBalance}`));
+        return callback(new Error(`Insuficient funds: current = ${info.deposit} , required = ${newBalance}`));
       }
       // get hash for new balance proof
       return this.signBalance(newBalance, (err, sign) => {
@@ -537,7 +555,7 @@ class MicroRaiden {
      * Watch for a particular transaction hash and call the awaiting function when done;
      * Got it from: https://github.com/ethereum/web3.js/issues/393
      */
-    let blockCounter = 15;
+    let blockCounter = 30;
     confirmations = +confirmations || 0;
     // Wait for tx to be finished
     let filter = this.web3.eth.filter('latest');
@@ -548,7 +566,7 @@ class MicroRaiden {
           filter = null;
         }
         console.warn('!! Tx expired !!', txHash);
-        return callback(new Error("Tx expired: " + txhash));
+        return callback(new Error("Tx expired: " + txHash));
       }
       // Get info about latest Ethereum block
       return this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
