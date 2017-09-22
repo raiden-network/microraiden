@@ -29,8 +29,8 @@ or
 ```bash
 python3 -m microraiden.examples.wikipaydia --private-key <private_key_file> --private-key-password-file <password_file> start
 ```
-By default, the web server listens on `0.0.0.0:5000`, and an Ethereum node RPC interface is expected to respond on http://localhost:8545. The private key file should be in the JSON format produced by Geth/Parity and must be readable and writable only by the owner to be accepted (`-rw-------`). A ``--private-key-password-file`` option can be specified, containing the password for the private key in the first line of the file. If it's not provided, the password will be prompted interactively.
-
+By default, the web server listens on `0.0.0.0:5000`. The private key file should be in the JSON format produced by Geth/Parity and must be readable and writable only by the owner to be accepted (`-rw-------`). A ``--private-key-password-file`` option can be specified, containing the password for the private key in the first line of the file. If it's not provided, the password will be prompted interactively.
+An Ethereum node RPC interface is expected to respond on http://localhost:8545. Alternatively, you can use [Infura infrastructure](https://infura.io/) as a RPC provider.
 ### M2M Client
 ```bash
 python3 -m microraiden.examples.m2m_client --key-path <path to private key file> --key-password-path <password file>
