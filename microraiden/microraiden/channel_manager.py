@@ -261,12 +261,19 @@ class ChannelManagerState(object):
             os.umask(oldmask)
 
     @classmethod
-    def load(cls, filename):
+    def load(cls, filename: str):
         """Load a previously stored state."""
         assert filename is not None
         assert isinstance(filename, str)
+        if os.path.isfile(filename) is False:
+            log.error("State file  %s doesn't exist" % filename)
+            return None
         if not check_permission_safety(filename):
             raise InsecureStateFile(filename)
+        if os.path.getsize(filename) == 0:
+            recover_filename = filename + ".tmp"
+            log.warning("Empty state file. Trying to recover from %s" % recover_filename)
+            return ChannelManagerState.load(recover_filename)
         json_state = json.loads(open(filename, 'r').read())
         ret = cls.from_dict(json_state)
         log.debug("loaded saved state. head_number=%d receiver=%s" %
@@ -315,6 +322,8 @@ class ChannelManager(gevent.Greenlet):
             self.state = ChannelManagerState(channel_contract_address,
                                              self.receiver, network_id,
                                              filename=state_filename)
+
+        assert self.state is not None
         if state_filename is not None:
             self.lock_state = filelock.FileLock(state_filename)
             try:
