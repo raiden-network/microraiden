@@ -1,11 +1,15 @@
 "use strict";
-if (typeof Web3 === 'undefined' && typeof require === 'function' ) {
+if (typeof Web3 === 'undefined' && typeof require === 'function') {
   var Web3 = require("web3");
 }
 
-if (typeof localStorage === 'undefined' && typeof require === 'function' ) {
+if (typeof localStorage === 'undefined' && typeof require === 'function') {
   const LocalStorage = require('node-localstorage').LocalStorage;
   var localStorage = new LocalStorage('./local_storage');
+}
+
+if (typeof $ == 'undefined' && typeof require === 'function') {
+  var $ = require('jQuery');
 }
 
 
@@ -110,29 +114,24 @@ class MicroRaiden {
   }
 
   getTokenInfo(account, callback) {
-    return this.token.name.call((err, name) => {
-      if (err) {
-        return callback(err);
-      }
-      return this.token.symbol.call((err, symbol) => {
-        if (err) {
-          return callback(err);
-        }
-        if (account) {
-          return this.catchCallback(
-            this.token.balanceOf.call,
-            account,
-            { from: account },
-            (err, balance) => {
-              // don't catch error here, balance will be undefined/null
-              return callback(null, { name, symbol, balance });
-            }
-          )
-        } else {
-          return callback(null, { name, symbol });
-        }
-      });
-    });
+    const nameDefer = $.Deferred();
+    const symbolDefer = $.Deferred();
+    const decimalsDefer = $.Deferred();
+    const balanceDefer = $.Deferred();
+
+    this.token.name.call((err, name) =>
+      err ? nameDefer.reject(err) : nameDefer.resolve(name));
+    this.token.symbol.call((err, symbol) =>
+      err ? symbolDefer.reject(err) : symbolDefer.resolve(symbol));
+    this.token.decimals.call((err, decimals) =>
+      err ? decimalsDefer.reject(err) : decimalsDefer.resolve(decimals.toNumber()));
+    this.token.balanceOf.call(account, (err, balance) =>
+      err ? balanceDefer.reject(err) : balanceDefer.resolve(balance.toNumber()));
+
+    return $.when(nameDefer, symbolDefer, decimalsDefer, balanceDefer)
+      .then((name, symbol, decimals, balance) =>
+        callback(null, { name, symbol, decimals, balance }),
+      (err) => callback(err));
   }
 
   getChannelInfo(callback) {

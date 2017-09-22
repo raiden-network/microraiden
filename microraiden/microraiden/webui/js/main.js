@@ -121,7 +121,11 @@ function pageReady(json) {
       }
       $('.tkn-name').text(token.name);
       $('.tkn-symbol').text(token.symbol);
-      $('.tkn-balance').attr("value", `${token.balance || 0} ${token.symbol}`);
+      const bal = parseFloat(token.balance || 0).toFixed(token.decimals || 0);
+      $('.tkn-balance').attr("value", `${bal} ${token.symbol}`);
+      $('.tkn-decimals')
+        .attr("step", Math.pow(10, -token.decimals))
+        .attr("min", Math.pow(10, -token.decimals));
     });
   }
 
