@@ -207,7 +207,7 @@ class Expensive(Resource):
             header.CONTRACT_ADDRESS: self.contract_address,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.PRICE: price,
-            header.TOKEN_ADDRESS: config.TOKEN_ADDRESS
+            header.TOKEN_ADDRESS: self.channel_manager.get_token_address()
         })
         if gen_ui is True:
             return self.get_webUI_reply(content, proxy_handle, price, headers)
@@ -219,8 +219,12 @@ class Expensive(Resource):
         headers.update({
             "Content-Type": "text/html",
         })
-        data = proxy_handle.get_paywall(content, self.receiver_address,
-                                        price, config.TOKEN_ADDRESS)
+        data = proxy_handle.get_paywall(
+            content,
+            self.receiver_address,
+            price,
+            self.channel_manager.get_token_address()
+        )
         reply = make_response(data, 402, headers)
         for hdr in (header.GATEWAY_PATH,
                     header.CONTRACT_ADDRESS,

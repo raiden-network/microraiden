@@ -609,6 +609,9 @@ class ChannelManager(gevent.Greenlet):
     def node_online(self):
         return self.blockchain.is_connected.is_set()
 
+    def get_token_address(self):
+        return self.token_contract.address
+
 
 class Channel(object):
     """A channel between two parties."""
