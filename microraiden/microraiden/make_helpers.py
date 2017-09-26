@@ -1,6 +1,4 @@
-import os
 import sys
-import json
 
 from microraiden.contract_proxy import ChannelContractProxy
 from web3 import Web3
