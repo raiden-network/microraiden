@@ -19,15 +19,22 @@ from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
 
 def make_contract_proxy(web3, private_key, contract_address):
-    contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
-    abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
-    return ChannelContractProxy(web3, private_key, contract_address, abi, config.GAS_PRICE,
-                                config.GAS_LIMIT)
+    metadata = config.CONTRACT_METADATA['RaidenMicroTransferChannels']
+    bytecode = web3.eth.getCode(contract_address)
+    if bytecode == '0x':
+        raise ValueError('No contract deployed at address {}'.format(contract_address))
+    return ChannelContractProxy(
+        web3,
+        private_key,
+        contract_address,
+        metadata['abi'],
+        config.GAS_PRICE,
+        config.GAS_LIMIT
+    )
 
 
 def make_channel_manager(private_key: str, state_filename: str, web3):
-    contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
-    abi = json.load(open(contracts_abi_path))['ERC223Token']['abi']
+    abi = config.CONTRACT_METADATA['RaidenMicroTransferChannels']['abi']
     token_contract = web3.eth.contract(abi=abi, address=config.TOKEN_ADDRESS)
     try:
         return ChannelManager(

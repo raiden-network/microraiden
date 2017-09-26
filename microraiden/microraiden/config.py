@@ -1,3 +1,4 @@
+import json
 import os
 from eth_utils import denoms
 from web3 import HTTPProvider
@@ -26,3 +27,6 @@ HTML_DIR = os.path.join(MICRORAIDEN_DIR, 'microraiden', 'webui')
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 WEB3_PROVIDER = HTTPProvider("http://127.0.0.1:8545", request_kwargs={'timeout': 60})
+
+with open(os.path.join(MICRORAIDEN_DIR, 'microraiden/data/contracts.json')) as metadata_file:
+    CONTRACT_METADATA = json.load(metadata_file)
