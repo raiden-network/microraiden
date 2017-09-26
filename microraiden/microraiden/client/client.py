@@ -10,7 +10,8 @@ from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
 from microraiden.utils import get_private_key
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, GAS_LIMIT, GAS_PRICE, NETWORK_NAMES
+from microraiden.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE, \
+    NETWORK_NAMES, CONTRACT_METADATA
 from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
 from microraiden.crypto import privkey_to_addr
 from .channel import Channel
@@ -38,6 +39,7 @@ class Client:
             contract_abi_path: str = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), CONTRACTS_ABI_JSON
             )
+            contract_metadata: dict = CONTRACT_METADATA
     ) -> None:
         assert privkey or key_path
         assert not privkey or isinstance(privkey, str)
@@ -75,11 +77,8 @@ class Client:
 
         # Create missing contract proxies.
         if not channel_manager_proxy or not token_proxy:
-            with open(contract_abi_path) as abi_file:
-                contract_abis = json.load(abi_file)
-
             if not channel_manager_proxy:
-                channel_manager_abi = contract_abis[CHANNEL_MANAGER_ABI_NAME]['abi']
+                channel_manager_abi = contract_metadata[CHANNEL_MANAGER_ABI_NAME]['abi']
                 self.channel_manager_proxy = ChannelContractProxy(
                     self.web3,
                     self.privkey,
@@ -91,7 +90,7 @@ class Client:
 
             token_address = self.channel_manager_proxy.contract.call().token_address()
             if not token_proxy:
-                token_abi = contract_abis[TOKEN_ABI_NAME]['abi']
+                token_abi = contract_metadata[TOKEN_ABI_NAME]['abi']
                 self.token_proxy = ContractProxy(
                     self.web3, self.privkey, token_address, token_abi, GAS_PRICE, GAS_LIMIT
                 )
