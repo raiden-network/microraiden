@@ -1,3 +1,5 @@
+pragma solidity ^0.4.17;
+
 /*
 You should inherit from StandardToken or, for a token like you would want to
 deploy in something like Mist, see HumanStandardToken.sol.
@@ -6,7 +8,6 @@ If you deploy this, you won't have anything useful.)
 
 Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
 .*/
-pragma solidity ^0.4.8;
 
 import "./Token.sol";
 import "./ContractReceiver.sol";

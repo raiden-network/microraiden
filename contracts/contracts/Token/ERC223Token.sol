@@ -1,3 +1,5 @@
+pragma solidity ^0.4.17;
+
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20), the ERC223 functionality (https://github.com/ethereum/EIPs/issues/223) as well as the following OPTIONAL extras intended for use by humans.
 
@@ -12,8 +14,6 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 import "./StandardToken.sol";
 import "./ContractReceiver.sol";
-
-pragma solidity ^0.4.8;
 
 contract ERC223Token is StandardToken {
 
