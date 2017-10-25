@@ -13,54 +13,79 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 .*/
 
 import "./StandardToken.sol";
-import "./ContractReceiver.sol";
 
+/// @title ERC223Token
 contract ERC223Token is StandardToken {
 
-    /* Public variables of the token */
-
-    address public owner;
-
+    /*
+     *  Token metadata
+     */
+    string public version = 'H0.1';       //human 0.1 standard. Just an arbitrary versioning scheme.
+    string public name;
+    string public symbol;
+    uint8 public decimals;
     uint256 multiplier;
 
-    event Minted(address indexed _from, uint256 indexed _num, uint256 _value);
+    address public owner_address;
 
     /*
-    NOTE:
-    The following variables are OPTIONAL vanities. One does not have to include them.
-    They allow one to customise the token contract & in no way influences the core functionality.
-    Some wallets/interfaces might not even bother to look at this information.
-    */
-    string public version = 'H0.1';       //human 0.1 standard. Just an arbitrary versioning scheme.
+     * Events
+     */
+    event Minted(address indexed _to, uint256 indexed _num);
 
+    /*
+     *  Public functions
+     */
+    /// @dev Contract constructor function.
+    /// @param initial_supply Initial supply of tokens.
+    /// @param token_name Token name for display.
+    /// @param decimal_units Number of token decimals.
+    /// @param token_symbol Token symbol.
     function ERC223Token (
-        uint256 _initialAmount,
-        string _tokenName,
-        uint8 _decimalUnits,
-        string _tokenSymbol
-        )
+        uint256 initial_supply,
+        string token_name,
+        uint8 decimal_units,
+        string token_symbol)
+        public
     {
-        owner = msg.sender;
-        multiplier = 10**(uint256(_decimalUnits));
-        _initialAmount = _initialAmount;                // Number of tokens * multiplier
-        balances[owner] = _initialAmount;               // Give the creator all initial tokens
-        totalSupply = _initialAmount;                        // Update total supply
-        name = _tokenName;                                   // Set the name for display purposes
-        decimals = _decimalUnits;                            // Amount of decimals for display purposes
-        symbol = _tokenSymbol;                               // Set the symbol for display purposes
+        // Set the name for display purposes
+        name = token_name;
+
+        // Amount of decimals for display purposes
+        decimals = decimal_units;
+        multiplier = 10**(uint256(decimal_units));
+
+        // Set the symbol for display purposes
+        symbol = token_symbol;
+
+        // Initial supply is assigned to the owner
+        owner_address = msg.sender;
+        balances[owner_address] = initial_supply;
+        totalSupply = initial_supply;
     }
 
-    function mint()
-        public
-        payable
-    {
+    /// @notice Allows tokens to be minted and assigned to `msg.sender`
+    /// For `msg.value >= 100 finney`, the sender receives 50 tokens
+    function mint() public payable {
         require(msg.value >= 100 finney);
 
+        // Assign 50 tokens to msg.sender
         uint256 num = 50 * multiplier;
-
-        totalSupply += num;
         balances[msg.sender] += num;
+        totalSupply += num;
 
-        Minted(msg.sender, num, msg.value);
+        Minted(msg.sender, num);
+
+        assert(balances[msg.sender] >= num);
+        assert(totalSupply >= num);
+    }
+
+    /// @notice Transfers the collected ETH to the contract owner.
+    function transferFunds() public {
+        require(msg.sender == owner_address);
+        require(this.balance > 0);
+
+        owner_address.transfer(this.balance);
+        assert(this.balance == 0);
     }
 }
