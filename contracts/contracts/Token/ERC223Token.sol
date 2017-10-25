@@ -24,7 +24,7 @@ contract ERC223Token is StandardToken {
     string public name;
     string public symbol;
     uint8 public decimals;
-    uint256 multiplier;
+    uint256 public multiplier;
 
     address public owner_address;
 
@@ -39,13 +39,13 @@ contract ERC223Token is StandardToken {
     /// @dev Contract constructor function.
     /// @param initial_supply Initial supply of tokens.
     /// @param token_name Token name for display.
-    /// @param decimal_units Number of token decimals.
     /// @param token_symbol Token symbol.
+    /// @param decimal_units Number of token decimals.
     function ERC223Token (
         uint256 initial_supply,
         string token_name,
-        uint8 decimal_units,
-        string token_symbol)
+        string token_symbol,
+        uint8 decimal_units)
         public
     {
         // Set the name for display purposes
