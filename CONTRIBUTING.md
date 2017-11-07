@@ -28,7 +28,7 @@ If you experience a problem while using µRaiden or want to request a feature th
 **For Bugs:**
 - A short description of the problem
 - Detailed description of your system, µRaiden version, geth version, solidity version e.t.c.
-- What was the exact unexpected thing that occured
+- What was the exact unexpected thing that occurred
 - What you were expecting to happen instead
 
 ### Creating a Pull Request
@@ -63,7 +63,7 @@ In this section we are going to describe the coding rules for contributing to th
 
 ### Commiting Rules
 
-For an exchaustive guide read [this](http://chris.beams.io/posts/git-commit/) guide. It's all really good advice. Some rules that
+For an exhaustive guide read [this](http://chris.beams.io/posts/git-commit/) guide. It's all really good advice. Some rules that
 you should always follow though are:
 
 - A commit title not exceeding 50 characters
@@ -78,7 +78,7 @@ Even Github itself does this. And the git history looks really nice and neat if 
 #### Python
 
 µRaiden is written in Python and we follow the official Python style guide [PEP8](https://www.python.org/dev/peps/pep-0008/). It is highly
-recommended to use the [flake8](https://pypi.python.org/pypi/flake8) tool in order to automatically determine any and all style violations. The customizeable part of flake can be seen in the [configuration file](setup.cfg). For all the rest which are not
+recommended to use the [flake8](https://pypi.python.org/pypi/flake8) tool in order to automatically determine any and all style violations. The customizable part of flake can be seen in the [configuration file](setup.cfg). For all the rest which are not
 configurable here is some general guidelines.
 
 **Line Length**
