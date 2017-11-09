@@ -56,6 +56,7 @@ def test_channel_opening(client, web3, make_account, make_channel_manager_proxy,
     channel_rec = channel_manager1.unconfirmed_channels[channel.sender, channel.block]
     assert is_same_address(channel_rec.receiver, receiver_address)
     assert is_same_address(channel_rec.sender, channel.sender)
+    assert channel_rec.mtime == channel_rec.ctime
 
     # should be confirmed after n blocks
     wait_for_blocks(blockchain.n_confirmations)
