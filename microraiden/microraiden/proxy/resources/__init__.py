@@ -6,6 +6,7 @@ from .management import (
     ChannelManagementListChannels,
     ChannelManagementStats,
     ChannelManagementChannelInfo,
+    ChannelManagementRegisterPayment
 )
 from .login import (
     ChannelManagementLogin,
@@ -18,6 +19,7 @@ __all__ = (
     'ChannelManagementRoot',
     'ChannelManagementListChannels',
     'ChannelManagementChannelInfo',
+    'ChannelManagementRegisterPayment',
     'ChannelManagementAdmin',
     'ChannelManagementAdminChannels',
     'ChannelManagementStats',
