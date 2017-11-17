@@ -24,13 +24,10 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
 
 ```
 
-ERC223Token  address is 0xdff9c783d77b90678c82526bbbce56f39ff033d1
-RaidenMicroTransferChannels address is 0x86d394aa925f2a0c8c4f103f3f83711c68307038
+ERC223Token  address is 0x04c7f744a0c751d89e99ae79a39060ec6f3c4397
+RaidenMicroTransferChannels address is 0xffa52825c7997dd2be80fb91080500a52abd6d5b
 
 ```
-
-Verified:
-https://kovan.etherscan.io/address/0x86d394aa925f2a0c8c4f103f3f83711c68307038
 
 ### Ropsten Revival
 
