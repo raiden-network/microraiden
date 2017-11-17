@@ -13,6 +13,8 @@ import sha3
 import sign
 import binascii
 from ethereum.utils import encode_hex
+from sign import pack
+from eth_utils import pad_left, remove_0x_prefix
 
 
 def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
@@ -129,6 +131,10 @@ def getTokens(**kwargs):
 
         channel_factory = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
         txhash = channel_factory.deploy(args=[token_address, challenge_period])
+
+        print('RaidenMicroTransferChannels arguments', token_address, challenge_period)
+        padded_token_address = pad_left(remove_0x_prefix(token_address), 64, '0')
+        print('RaidenMicroTransferChannels abi encoded arguments:', encode_hex(pack(padded_token_address, challenge_period)))
         receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
         cf_address = receipt['contractAddress']
         print('RaidenMicroTransferChannels address is', cf_address)

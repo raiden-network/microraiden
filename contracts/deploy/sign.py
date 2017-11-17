@@ -3,7 +3,11 @@ import bitcoin
 from ethereum import utils
 from ethereum.utils import sha3
 from secp256k1 import PrivateKey
-from eth_utils import keccak, is_0x_prefixed, decode_hex
+from eth_utils import (
+    keccak,
+    is_0x_prefixed,
+    decode_hex
+)
 
 
 eth_prefix = "\x19Ethereum Signed Message:\n"

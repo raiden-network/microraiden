@@ -231,7 +231,7 @@
       "SolcAutoBackend": {
         "class": "populus.compilation.backends.SolcAutoBackend",
         "settings": {
-          "optimize": true,
+          "optimize": false,
           "output_values": [
             "abi",
             "bin",
@@ -243,7 +243,7 @@
       "SolcCombinedJSON": {
         "class": "populus.compilation.backends.SolcCombinedJSONBackend",
         "settings": {
-          "optimize": true,
+          "optimize": false,
           "output_values": [
             "abi",
             "bin",
@@ -255,7 +255,7 @@
       "SolcStandardJSON": {
         "class": "populus.compilation.backends.SolcStandardJSONBackend",
         "settings": {
-          "optimize": true,
+          "optimize": false,
           "output_values": [
             "abi",
             "bin",
