@@ -328,7 +328,7 @@ class ChannelManager(gevent.Greenlet):
             self.lock_state = filelock.FileLock(state_filename)
             try:
                 self.lock_state.acquire(timeout=0)
-            except:
+            except filelock.Timeout:
                 raise StateFileLocked("state file %s is locked by another process" %
                                       state_filename)
 
