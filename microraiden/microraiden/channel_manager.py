@@ -254,6 +254,8 @@ class ChannelManagerState(object):
                 v.__dict__ for v in serialized_state['unconfirmed_channels'].values()]
             serialized_state['channels'] = [
                 v.__dict__ for v in serialized_state['channels'].values()]
+            serialized_state.pop('filename')
+            serialized_state.pop('tmp_filename')
             with open(self.tmp_filename, 'w') as f:
                 json.dump(serialized_state, f)
                 f.flush()
