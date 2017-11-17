@@ -627,8 +627,9 @@ class Channel(object):
         self.last_signature = None
         # if set, this is the absolut block_number where it can be settled
         self.settle_timeout = -1
-        self.mtime = time.time()
-        self.ctime = time.time()  # channel creation time
+        t = time.time()
+        self.mtime = t
+        self.ctime = t  # channel creation time
 
         self.unconfirmed_topups = {}  # txhash to added deposit
 
