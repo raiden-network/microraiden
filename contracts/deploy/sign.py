@@ -6,10 +6,7 @@ from secp256k1 import PrivateKey
 from eth_utils import (
     keccak,
     is_0x_prefixed,
-    remove_0x_prefix,
-    add_0x_prefix,
-    decode_hex,
-    pad_left
+    decode_hex
 )
 
 
@@ -66,8 +63,7 @@ def pack(*args) -> bytes:
             msg += arg
         elif isinstance(arg, str):
             if is_0x_prefixed(arg):
-                arg = pad_left(remove_0x_prefix(arg), 64, '0')
-                msg += decode_hex(add_0x_prefix(arg))
+                msg += decode_hex(arg)
             else:
                 msg += arg.encode()
         elif isinstance(arg, int):
