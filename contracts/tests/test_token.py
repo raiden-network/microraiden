@@ -10,7 +10,7 @@ from fixtures import (
 def test_token_mint(web3, token_contract, decimals):
     multiplier = 10**(decimals)
     supply = 10000 * multiplier
-    token = token_contract([supply, "ERC223Token", decimals, "TKN"])
+    token = token_contract([supply, "CustomToken", "TKN", decimals])
     (A, B) = web3.eth.accounts[1:3]
 
     supply = token.call().totalSupply()

@@ -115,7 +115,7 @@ def contract(chain, web3, token_contract, channels_contract, decimals):
     challenge_period = 5
     logs = {}
     supply = 10000 * 10**(decimals)
-    token = token_contract([supply, "ERC223Token", decimals, "TKN"])
+    token = token_contract([supply, "CustomToken", "TKN", decimals])
     contract = channels_contract([token.address, challenge_period])
     return contract
 
