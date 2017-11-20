@@ -444,8 +444,11 @@ contract RaidenMicroTransferChannels {
         constant
         returns (uint)
     {
-        if (a > b) return a;
-        else return b;
+        if (a > b) {
+            return a;
+        } else {
+            return b;
+        }
     }
 
     /// @dev Internal function for getting the minimum between two numbers.
@@ -457,8 +460,11 @@ contract RaidenMicroTransferChannels {
         constant
         returns (uint)
     {
-        if (a < b) return a;
-        else return b;
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
     }
 
     /// @dev Internal function for getting an address from tokenFallback data bytes.
@@ -573,8 +579,7 @@ contract RaidenMicroTransferChannels {
         bytes32 ret;
         if (v == 0) {
             ret = '0';
-        }
-        else {
+        } else {
              while (v > 0) {
                 ret = bytes32(uint(ret) / (2 ** 8));
                 ret |= bytes32(((v % 10) + 48) * 2 ** (8 * 31));
@@ -621,7 +626,10 @@ contract RaidenMicroTransferChannels {
         constant
         returns (byte c)
     {
-        if (b < 10) return byte(uint8(b) + 0x30);
-        else return byte(uint8(b) + 0x57);
+        if (b < 10) {
+            return byte(uint8(b) + 0x30);
+        } else {
+            return byte(uint8(b) + 0x57);
+        }
     }
 }
