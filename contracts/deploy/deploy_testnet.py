@@ -10,7 +10,7 @@ from web3.utils.compat import (
 )
 from ecdsa import SigningKey, SECP256k1
 import sha3
-import sign
+from utils import sign
 import binascii
 from ethereum.utils import encode_hex
 

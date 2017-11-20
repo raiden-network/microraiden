@@ -1,38 +1,4 @@
-import binascii
-import bitcoin
-from ethereum import utils
-from ethereum.utils import sha3
-from secp256k1 import PrivateKey
-from eth_utils import keccak, is_0x_prefixed, decode_hex
-
-
-eth_prefix = "\x19Ethereum Signed Message:\n"
-
-def eth_privtoaddr(priv) -> str:
-    pub = bitcoin.encode_pubkey(bitcoin.privtopub(priv), 'bin_electrum')
-    return "0x" + binascii.hexlify(sha3(pub)[12:]).decode("ascii")
-
-
-def eth_message_hex(msg: str) -> bytes:
-    msg = eth_prefix + str(len(msg)) + msg
-    print("--eth_message_hex msg", msg)
-    msg_hex = "0x" + "".join("{:02x}".format(ord(c)) for c in msg)
-    print("---eth_message_hex hex", msg_hex)
-    return sha3(msg_hex)
-
-
-def sign(data: str, private_key_seed_ascii: str):
-    data = eth_message_hex(data)
-    print("--eth_message_hex hash", data)
-    priv = private_key_seed_ascii
-    pk = PrivateKey(priv, raw=True)
-    signature = pk.ecdsa_recoverable_serialize(pk.ecdsa_sign_recoverable(data, raw=True))
-    signature = signature[0] + utils.bytearray_to_bytestr([signature[1]])
-    return signature, eth_privtoaddr(priv)
-
-
-def check(data: bytes, pk: bytes):
-    return sign(data, pk)
+from eth_utils import keccak, is_0x_prefixed, decode_hex, encode_hex
 
 
 def pack(*args) -> bytes:

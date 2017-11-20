@@ -1,6 +1,6 @@
 import pytest
 from ethereum import tester
-from fixtures import (
+from tests.fixtures import (
     create_contract,
     token_contract,
     decimals

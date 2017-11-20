@@ -5,9 +5,9 @@ from web3.utils.compat import (
 )
 
 from ethereum import tester
-import sign
+from utils import sign
 
-from fixtures import (
+from tests.fixtures import (
     create_contract,
     contract,
     token_contract,
@@ -285,7 +285,7 @@ def test_close_by_receiver(web3, chain, contract, channel):
 
     balance_msg = get_balance_message(receiver, open_block_number, balance)
     balance_msg_sig, addr = sign.check(balance_msg, tester.k1)
-    balance_msg_sig_false, addr = sign.check(balance_msg, tester.k2)
+    balance_msg_sig_false, addr = sign.check(balance_msg, tester.k3)
 
 
     with pytest.raises(tester.TransactionFailed):
@@ -589,6 +589,7 @@ def test_channel_topup_20(web3, chain, contract, channel_20):
     print('----------------------------------')
     print('GAS USED test_channel_topup_20', gas_used_approve + get_gas_used(chain, trxid))
     print('----------------------------------')
+
 
 def test_last_test_event_timeout():
     with Timeout(20) as timeout:

@@ -5,9 +5,10 @@ from web3.utils.compat import (
     Timeout,
 )
 from ethereum import tester
-import sign
+from utils import sign
 
-from fixtures import (
+
+from tests.fixtures import (
     create_contract,
     token_contract,
     #contract,
