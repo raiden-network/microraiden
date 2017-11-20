@@ -28,11 +28,13 @@ def make_contract_proxy(web3, private_key, contract_address):
 def make_channel_manager(private_key: str, state_filename: str, web3):
     contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
     abi = json.load(open(contracts_abi_path))['ERC223Token']['abi']
-    token_contract = web3.eth.contract(abi=abi, address=config.TOKEN_ADDRESS)
+    channel_manager_proxy = make_contract_proxy(web3, private_key, config.CHANNEL_MANAGER_ADDRESS)
+    token_address = channel_manager_proxy.contract.call().token_address()
+    token_contract = web3.eth.contract(abi=abi, address=token_address)
     try:
         return ChannelManager(
             web3,
-            make_contract_proxy(web3, private_key, config.CHANNEL_MANAGER_ADDRESS),
+            channel_manager_proxy,
             token_contract,
             private_key,
             state_filename=state_filename

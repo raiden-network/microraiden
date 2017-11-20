@@ -77,8 +77,8 @@ function pageReady(json) {
     uraiden.incrementBalanceAndSign(uRaidenParams.amount, (err, sign) => {
       if (err && err.message && err.message.includes('Insuficient funds')) {
         console.error(err);
-        const current = +(err.message.match(/current ?= ?(\d+)/i)[1]);
-        const required = +(err.message.match(/required ?= ?(\d+)/i)[1]) - current;
+        const current = +(err.message.match(/current ?= ?([\d.,]+)/i)[1]);
+        const required = +(err.message.match(/required ?= ?([\d.,]+)/i)[1]) - current;
         $('#deposited').text(current);
         $('#required').text(required);
         $('#remaining').text(current - uraiden.channel.balance);
@@ -114,59 +114,60 @@ function pageReady(json) {
     });
   }
 
-  function updateTokenInfo(account) {
-    uraiden.getTokenInfo(account, (err, token) => {
-      if (err) {
-        return console.error('Error getting token info', err);
-      }
-      $('.tkn-name').text(token.name);
-      $('.tkn-symbol').text(token.symbol);
-      $('.tkn-balance').attr("value", `${token.balance || 0} ${token.symbol}`);
-    });
-  }
-
   // ==== BINDINGS ====
 
   $select.change(($event) => {
-    uraiden.loadStoredChannel($event.target.value, uRaidenParams.receiver);
+    const account = $event.target.value;
 
-    updateTokenInfo($event.target.value);
+    uraiden.loadStoredChannel(account, uRaidenParams.receiver);
 
-    if (uraiden.isChannelValid() &&
-        uraiden.channel.account === $event.target.value &&
-        uraiden.channel.receiver === uRaidenParams.receiver) {
+    uraiden.getTokenInfo(account, (err, token) => {
+      if (err) {
+         console.error('Error getting token info', err);
+      } else {
+        $('.tkn-name').text(token.name);
+        $('.tkn-symbol').text(token.symbol);
+        $('.tkn-balance').attr("value", `${token.balance || 0} ${token.symbol}`);
+        $('.tkn-decimals')
+          .attr("min", Math.pow(10, -token.decimals).toFixed(token.decimals));
+      }
 
-      uraiden.getChannelInfo((err, info) => {
-        if (err) {
-          console.error(err);
-          info = { state: "error", deposit: 0 }
-        } else if (Cookies.get("RDN-Nonexisting-Channel")) {
-          Cookies.remove("RDN-Nonexisting-Channel");
-          window.alert("Server won't accept this channel.\n" +
-            "Please, close+settle+forget, and open a new channel");
-          $('#channel_present .channel_present_sign').attr("disabled", true);
-          autoSign = false;
-        }
+      if (uraiden.isChannelValid() &&
+          uraiden.channel.account === $event.target.value &&
+          uraiden.channel.receiver === uRaidenParams.receiver) {
 
-        $(`#channel_present .on-state.on-state-${info.state}`).show();
-        $(`#channel_present .on-state:not(.on-state-${info.state})`).hide();
+        uraiden.getChannelInfo((err, info) => {
+          if (err) {
+            console.error(err);
+            info = { state: "error", deposit: 0 }
+          } else if (Cookies.get("RDN-Nonexisting-Channel")) {
+            Cookies.remove("RDN-Nonexisting-Channel");
+            window.alert("Server won't accept this channel.\n" +
+              "Please, close+settle+forget, and open a new channel");
+            $('#channel_present .channel_present_sign').attr("disabled", true);
+            autoSign = false;
+          }
 
-        let remaining = 0;
-        if (info.deposit > 0 && uraiden.channel && !isNaN(uraiden.channel.balance)) {
-          remaining = info.deposit - uraiden.channel.balance;
-        }
-        $("#channel_present #channel_present_balance").text(remaining);
-        $("#channel_present #channel_present_deposit").attr("value", info.deposit);
-        $(".btn-bar").show()
-        if (info.state === 'opened' && autoSign) {
-          signRetry();
-        }
+          $(`#channel_present .on-state.on-state-${info.state}`).show();
+          $(`#channel_present .on-state:not(.on-state-${info.state})`).hide();
 
-        mainSwitch("#channel_present");
-      });
-    } else {
-      mainSwitch("#channel_missing");
-    }
+          let remaining = 0;
+          if (info.deposit > 0 && uraiden.channel && !isNaN(uraiden.channel.balance)) {
+            remaining = info.deposit - uraiden.channel.balance;
+          }
+          $("#channel_present #channel_present_balance").text(remaining);
+          $("#channel_present #channel_present_deposit").attr("value", info.deposit);
+          $(".btn-bar").show()
+          if (info.state === 'opened' && autoSign) {
+            signRetry();
+          }
+
+          mainSwitch("#channel_present");
+        });
+      } else {
+        mainSwitch("#channel_missing");
+      }
+    });
   });
 
   $("#channel_missing_deposit").bind("input", ($event) => {
@@ -299,16 +300,13 @@ function pageReady(json) {
   // ==== FINAL SETUP ====
 
   $("#amount").text(uRaidenParams["amount"]);
+  $('[data-toggle="tooltip"]').tooltip();
   refreshAccounts(true);
 
 };
 
 
 mainSwitch("#channel_loading");
-
-$(document).ready(function(){
-           $('[data-toggle="tooltip"]').tooltip();   
-});
 
 $.getJSON("/js/parameters.json", (json) => {
   let cnt = 20;

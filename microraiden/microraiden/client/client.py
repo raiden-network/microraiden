@@ -10,8 +10,7 @@ from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
 from microraiden.utils import get_private_key
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE, \
-    NETWORK_NAMES
+from microraiden.config import CHANNEL_MANAGER_ADDRESS, GAS_LIMIT, GAS_PRICE, NETWORK_NAMES
 from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
 from microraiden.crypto import privkey_to_addr
 from .channel import Channel
@@ -30,7 +29,6 @@ class Client:
             key_password_path: str = None,
             datadir: str = click.get_app_dir('microraiden'),
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
-            token_address: str = TOKEN_ADDRESS,
             rpc: RPCProvider = None,
             web3: Web3 = None,
             channel_manager_proxy: ChannelContractProxy = None,
@@ -48,7 +46,6 @@ class Client:
         self.privkey = privkey
         self.datadir = datadir
         self.channel_manager_address = channel_manager_address
-        self.token_address = token_address
         self.web3 = web3
         self.channel_manager_proxy = channel_manager_proxy
         self.token_proxy = token_proxy
@@ -92,11 +89,14 @@ class Client:
                     GAS_LIMIT
                 )
 
+            token_address = self.channel_manager_proxy.contract.call().token_address()
             if not token_proxy:
                 token_abi = contract_abis[TOKEN_ABI_NAME]['abi']
                 self.token_proxy = ContractProxy(
                     self.web3, self.privkey, token_address, token_abi, GAS_PRICE, GAS_LIMIT
                 )
+            else:
+                assert is_same_address(self.token_proxy.address, token_address)
 
         assert self.web3
         assert self.channel_manager_proxy

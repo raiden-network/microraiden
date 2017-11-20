@@ -2,25 +2,26 @@
 This is dummy code showing how the minimal app could look like.
 In his case we don't use a proxy, but directly a server
 """
-from microraiden.proxy.paywalled_proxy import PaywalledProxy
-from microraiden.config import CHANNEL_MANAGER_ADDRESS
 import os
+import click
 from microraiden.proxy.content import (
     PaywalledContent,
     PaywalledProxyUrl
 )
+from microraiden.make_helpers import make_paywalled_proxy
 
 if __name__ == '__main__':
     private_key = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    tempfile = os.path.join(os.path.expanduser('~'), '.raiden/echo_server.pkl')
+    state_file_name = 'echo_server.json'
+    app_dir = click.get_app_dir('microraiden')
+    if not os.path.exists(app_dir):
+        os.makedirs(app_dir)
+    state_file_name = os.path.join(app_dir, state_file_name)
     # set up a paywalled proxy
     # arguments are:
-    #  - channel manager contract
     #  - private key to use for receiving funds
-    #  - temporary file for storing state information (balance proofs)
-    app = PaywalledProxy(CHANNEL_MANAGER_ADDRESS,
-                         private_key,
-                         tempfile)
+    #  - file for storing state information (balance proofs)
+    app = make_paywalled_proxy(private_key, state_file_name)
 
     # Add resource defined by regex and with a fixed price of 1 token
     # We setup the resource to return whatever is supplied as a second argument

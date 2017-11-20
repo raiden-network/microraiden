@@ -55,8 +55,6 @@ class PaywalledFile(PaywalledContent):
             return make_response(data, 200, headers)
         except FileNotFoundError:
             return 404, "NOT FOUND"
-        except:
-            return 500, ""
 
 
 class PaywalledProxyUrl(PaywalledContent):

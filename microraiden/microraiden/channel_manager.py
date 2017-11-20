@@ -254,6 +254,8 @@ class ChannelManagerState(object):
                 v.__dict__ for v in serialized_state['unconfirmed_channels'].values()]
             serialized_state['channels'] = [
                 v.__dict__ for v in serialized_state['channels'].values()]
+            serialized_state.pop('filename')
+            serialized_state.pop('tmp_filename')
             with open(self.tmp_filename, 'w') as f:
                 json.dump(serialized_state, f)
                 f.flush()
@@ -328,7 +330,7 @@ class ChannelManager(gevent.Greenlet):
             self.lock_state = filelock.FileLock(state_filename)
             try:
                 self.lock_state.acquire(timeout=0)
-            except:
+            except filelock.Timeout:
                 raise StateFileLocked("state file %s is locked by another process" %
                                       state_filename)
 
@@ -542,9 +544,9 @@ class ChannelManager(gevent.Greenlet):
         """Register a payment."""
         c = self.verify_balance_proof(sender, open_block_number, balance, signature)
         if balance <= c.balance:
-            raise InvalidBalanceAmount('The balance must not decrease.')
+            raise InvalidBalanceAmount('The balance must increase.')
         if balance > c.deposit:
-            raise InvalidBalanceProof('Balance must not be greater than deposit')
+            raise InvalidBalanceProof('Balance must not be greater than deposit.')
         received = balance - c.balance
         c.balance = balance
         c.last_signature = signature
@@ -609,6 +611,9 @@ class ChannelManager(gevent.Greenlet):
     def node_online(self):
         return self.blockchain.is_connected.is_set()
 
+    def get_token_address(self):
+        return self.token_contract.address
+
 
 class Channel(object):
     """A channel between two parties."""
@@ -624,8 +629,9 @@ class Channel(object):
         self.last_signature = None
         # if set, this is the absolut block_number where it can be settled
         self.settle_timeout = -1
-        self.mtime = time.time()
-        self.ctime = time.time()  # channel creation time
+        t = time.time()
+        self.mtime = t
+        self.ctime = t  # channel creation time
 
         self.unconfirmed_topups = {}  # txhash to added deposit
 

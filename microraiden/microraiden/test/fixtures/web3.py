@@ -22,7 +22,6 @@ from microraiden.crypto import (
 )
 from microraiden.test.config import (
     CHANNEL_MANAGER_ADDRESS,
-    TOKEN_ADDRESS,
     FAUCET_ADDRESS,
     FAUCET_PRIVKEY,
     GAS_PRICE,
@@ -62,12 +61,17 @@ def deploy_channel_manager_contract(web3, deployer_address, channel_manager_abi,
 
 
 @pytest.fixture(scope='session')
-def token_contract_address(use_tester, web3, deployer_address, token_abi, token_bytecode):
+def token_contract_address(use_tester, web3, deployer_address, token_abi, token_bytecode,
+                           channel_manager_abi):
     if use_tester:
         contract = deploy_token_contract(web3, deployer_address, token_abi, token_bytecode)
         return contract.address
     else:
-        return TOKEN_ADDRESS
+        channel_manager_contract = web3.eth.contract(
+            abi=channel_manager_abi,
+            address=CHANNEL_MANAGER_ADDRESS
+        )
+        return channel_manager_contract.call().token_address()
 
 
 @pytest.fixture(scope='session')

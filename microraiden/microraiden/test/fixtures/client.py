@@ -64,7 +64,6 @@ def client(
         client_token_proxy,
         datadir,
         channel_manager_contract_address,
-        token_contract_address
 ):
     client = Client(
         privkey=sender_privkey,
@@ -72,7 +71,6 @@ def client(
         token_proxy=client_token_proxy,
         datadir=datadir,
         channel_manager_address=channel_manager_contract_address,
-        token_address=token_contract_address
     )
     yield client
     client.close()

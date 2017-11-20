@@ -63,7 +63,7 @@ def get_private_key(key_path, password_path=None):
                 else:
                     password = getpass.getpass("Enter the private key password: ")
                 private_key = encode_hex(keys.decode_keystore_json(json_data, password))
-            except:
+            except ValueError:
                 log.fatal("Invalid private key format or password!")
                 return None
 
