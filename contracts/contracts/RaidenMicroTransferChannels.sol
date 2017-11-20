@@ -13,6 +13,8 @@ contract RaidenMicroTransferChannels {
     address public owner;
     address public token_address;
     uint8 public challenge_period;
+    string public constant version = '1.0.0';
+    address public latest_version_address;
     string constant prefix = "\x19Ethereum Signed Message:\n";
 
     Token token;
@@ -37,6 +39,11 @@ contract RaidenMicroTransferChannels {
 
     modifier isToken() {
         require(msg.sender == token_address);
+        _;
+    }
+
+    modifier isOwner() {
+        require(msg.sender == owner);
         _;
     }
 
@@ -88,9 +95,21 @@ contract RaidenMicroTransferChannels {
         challenge_period = _challenge_period;
     }
 
+    /// @dev Sets the address for the latest contract version
+    /// @param _latest_version_address The address for the latest contract version.
+    function setLatestVersionAddress(address _latest_version_address) public isOwner {
+        require(addressHasCode(_latest_version_address));
+        latest_version_address = _latest_version_address;
+    }
+
     /*
      *  Public helper functions (constant)
      */
+
+    /// @dev Returns the address for the latest contract version.
+    function getLatestVersionAddress() public view returns(address) {
+        return latest_version_address;
+    }
 
     /// @dev Returns the unique channel identifier used in the contract.
     /// @param _sender The address that sends tokens.
