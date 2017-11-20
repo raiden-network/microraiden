@@ -12,7 +12,8 @@
     "lib": ["es2015", "es2017", "dom"]
   },
   "include": [
-    "./src"
+    "./src",
+    "./node_modules/web3-typescript-typings/index.d.ts"
   ],
   "exclude": [
     "./node_modules"
