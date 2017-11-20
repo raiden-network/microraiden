@@ -78,6 +78,7 @@ contract RaidenMicroTransferChannels {
     /// @param _challenge_period A fixed number of blocks representing the challenge period after a sender requests the closing of the channel without the receiver's signature.
     function RaidenMicroTransferChannels(address _token, uint8 _challenge_period) {
         require(_token != 0x0);
+        require(addressHasCode(_token));
         require(_challenge_period > 0);
 
         owner = msg.sender;
@@ -494,6 +495,18 @@ contract RaidenMicroTransferChannels {
             block_number := mload(add(b, 0x34))
         }
         return uint32(block_number);
+    }
+
+    /// @notice Check if a contract exists
+    /// @param _contract The address of the contract to check for.
+    /// @return True if a contract exists, false otherwise
+    function addressHasCode(address _contract) internal constant returns (bool) {
+        uint size;
+        assembly {
+            size := extcodesize(_contract)
+        }
+
+        return size > 0;
     }
 
     /*
