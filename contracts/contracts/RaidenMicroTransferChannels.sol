@@ -403,7 +403,7 @@ contract RaidenMicroTransferChannels {
         private
     {
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
-        Channel channel = channels[key];
+        Channel memory channel = channels[key];
 
         require(channel.open_block_number != 0);
         require(_balance <= channel.deposit);
