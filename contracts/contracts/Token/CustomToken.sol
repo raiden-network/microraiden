@@ -14,8 +14,8 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 import "./StandardToken.sol";
 
-/// @title ERC223Token
-contract ERC223Token is StandardToken {
+/// @title CustomToken
+contract CustomToken is StandardToken {
 
     /*
      *  Token metadata
@@ -41,7 +41,7 @@ contract ERC223Token is StandardToken {
     /// @param token_name Token name for display.
     /// @param token_symbol Token symbol.
     /// @param decimal_units Number of token decimals.
-    function ERC223Token (
+    function CustomToken (
         uint256 initial_supply,
         string token_name,
         string token_symbol,
