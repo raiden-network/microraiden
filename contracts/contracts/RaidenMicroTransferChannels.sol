@@ -195,8 +195,7 @@ contract RaidenMicroTransferChannels {
 
         if(length == 20) {
             createChannelPrivate(_sender, receiver, uint192(_deposit));
-        }
-        else {
+        } else {
             uint32 open_block_number = blockNumberFromData(_data);
             topUpPrivate(_sender, receiver, open_block_number, uint192(_deposit));
         }
@@ -250,8 +249,7 @@ contract RaidenMicroTransferChannels {
 
         if(msg.sender == _receiver) {
             settleChannel(sender, _receiver, _open_block_number, _balance);
-        }
-        else {
+        } else {
             require(msg.sender == sender);
             initChallengePeriod(_receiver, _open_block_number, _balance);
         }
