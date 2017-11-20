@@ -10,11 +10,9 @@ from web3.utils.compat import (
 )
 from ecdsa import SigningKey, SECP256k1
 import sha3
-import sign
+from utils import sign
 import binascii
 from ethereum.utils import encode_hex
-from sign import pack
-from eth_utils import pad_left, remove_0x_prefix
 
 
 def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:

@@ -7,8 +7,8 @@ python:
 
 env:
   global:
-    - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.13/solc-static-linux'
-    - SOLC_VERSION='v0.4.13'
+    - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.17/solc-static-linux'
+    - SOLC_VERSION='v0.4.17'
   matrix:
     - TEST_TYPE='microraiden'
     - TEST_TYPE='contracts'
@@ -37,4 +37,3 @@ script:
 
 after_success:
   - coveralls
-

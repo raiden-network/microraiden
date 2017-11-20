@@ -28,12 +28,12 @@ def create_contract(chain):
 @pytest.fixture()
 def token_contract(chain, create_contract):
     def get(arguments, transaction=None):
-        ERC223Token = chain.provider.get_contract_factory('ERC223Token')
-        token_contract = create_contract(ERC223Token, arguments, transaction)
+        CustomToken = chain.provider.get_contract_factory('CustomToken')
+        token_contract = create_contract(CustomToken, arguments, transaction)
 
-        print_logs(token_contract, 'Approval', 'ERC223Token')
-        print_logs(token_contract, 'Transfer', 'ERC223Token')
-        # print_logs(token_contract, 'GasCost', 'ERC223Token')
+        print_logs(token_contract, 'Approval', 'CustomToken')
+        print_logs(token_contract, 'Transfer', 'CustomToken')
+        # print_logs(token_contract, 'GasCost', 'CustomToken')
 
         return token_contract
     return get
@@ -65,7 +65,7 @@ def contract(chain, web3, token_contract, channels_contract, decimals):
     challenge_period = 5
     logs = {}
     supply = 10000 * 10**(decimals)
-    token = token_contract([supply, "ERC223Token", decimals, "TKN"])
+    token = token_contract([supply, "CustomToken", decimals, "TKN"])
     contract = channels_contract([token.address, challenge_period])
     return contract
 

@@ -1,41 +1,41 @@
-/*
-You should inherit from StandardToken or, for a token like you would want to
-deploy in something like Mist, see HumanStandardToken.sol.
-(This implements ONLY the standard functions and NOTHING else.
-If you deploy this, you won't have anything useful.)
-
-Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
-.*/
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.17;
 
 import "./Token.sol";
-import "./ContractReceiver.sol";
+import "./ERC223ReceivingContract.sol";
 
 /// @title Standard token contract - Standard token implementation.
 contract StandardToken is Token {
 
     /*
-     *  Data structures
+     * Data structures
      */
     mapping (address => uint256) balances;
     mapping (address => mapping (address => uint256)) allowed;
 
     /*
-     *  Public functions
+     * Public functions
      */
-
-    /// @dev Transfers sender's tokens to a given address, added due to backwards compatibility reasons with ERC20
+    /// @notice Send `_value` tokens to `_to` from `msg.sender`.
+    /// @dev Transfers sender's tokens to a given address. Returns success.
     /// @param _to Address of token receiver.
     /// @param _value Number of tokens to transfer.
     /// @return Returns success of function call.
-    function transfer(address _to, uint256 _value)
-        public
-        returns (bool)
-    {
-        bytes memory empty;
-        return transfer(_to, _value, empty);
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        require(_to != 0x0);
+        require(_to != address(this));
+        require(balances[msg.sender] >= _value);
+        require(balances[_to] + _value >= balances[_to]);
+
+        balances[msg.sender] -= _value;
+        balances[_to] += _value;
+
+        Transfer(msg.sender, _to, _value);
+
+        return true;
     }
 
+    /// @notice Send `_value` tokens to `_to` from `msg.sender` and trigger
+    /// tokenFallback if sender is a contract.
     /// @dev Function that is called when a user or another contract wants to transfer funds.
     /// @param _to Address of token receiver.
     /// @param _value Number of tokens to transfer.
@@ -48,36 +48,26 @@ contract StandardToken is Token {
         public
         returns (bool)
     {
-        require(_to != 0x0);
-        require(_value > 0);
-        require(balances[msg.sender] >= _value);
+        require(transfer(_to, _value));
 
-        balances[msg.sender] -= _value;
-        balances[_to] += _value;
+        uint codeLength;
 
-        if(isContract(_to)) {
-            ContractReceiver receiver = ContractReceiver(_to);
+        assembly {
+            // Retrieve the size of the code on target address, this needs assembly.
+            codeLength := extcodesize(_to)
+        }
+
+        if (codeLength > 0) {
+            ERC223ReceivingContract receiver = ERC223ReceivingContract(_to);
             receiver.tokenFallback(msg.sender, _value, _data);
         }
-        Transfer(msg.sender, _to, _value, _data);
+
         return true;
     }
 
-    //assemble the given address bytecode. If bytecode exists then the _addr is a contract.
-    function isContract(
-        address _addr)
-        private
-        returns (bool)
-    {
-        uint length;
-        assembly {
-            //retrieve the size of the code on target address, this needs assembly
-            length := extcodesize(_addr)
-        }
-        return (length > 0);
-    }
-
-    /// @dev Allows allowed third party to transfer tokens from one address to another. Returns success.
+    /// @notice Transfer `_value` tokens from `_from` to `_to` if `msg.sender` is allowed.
+    /// @dev Allows for an approved third party to transfer tokens from one
+    /// address to another. Returns success.
     /// @param _from Address from where tokens are withdrawn.
     /// @param _to Address to where tokens are sent.
     /// @param _value Number of tokens to transfer.
@@ -88,40 +78,33 @@ contract StandardToken is Token {
     {
         require(_from != 0x0);
         require(_to != 0x0);
-        require(_value > 0);
+        require(_to != address(this));
         require(balances[_from] >= _value);
-        require(allowed[_from][_to] >= _value);
-        require(balances[_to] + _value > balances[_to]);
+        require(allowed[_from][msg.sender] >= _value);
+        require(balances[_to] + _value >= balances[_to]);
 
         balances[_to] += _value;
         balances[_from] -= _value;
-        allowed[_from][_to] -= _value;
-        bytes memory empty;
-        Transfer(_from, _to, _value, empty);
+        allowed[_from][msg.sender] -= _value;
+
+        Transfer(_from, _to, _value);
+
         return true;
     }
 
-    /// @dev Returns number of tokens owned by given address.
-    /// @param _owner Address of token owner.
-    /// @return Returns balance of owner.
-    function balanceOf(address _owner)
-        constant
-        public
-        returns (uint256)
-    {
-        return balances[_owner];
-    }
-
+    /// @notice Allows `_spender` to transfer `_value` tokens from `msg.sender` to any address.
     /// @dev Sets approved amount of tokens for spender. Returns success.
     /// @param _spender Address of allowed account.
     /// @param _value Number of approved tokens.
     /// @return Returns success of function call.
-    function approve(address _spender, uint256 _value)
-        public
-        returns (bool)
-    {
+    function approve(address _spender, uint256 _value) public returns (bool) {
         require(_spender != 0x0);
-        require(_value > 0);
+
+        // To change the approve amount you first have to reduce the addresses`
+        // allowance to zero by calling `approve(_spender, 0)` if it is not
+        // already 0 to mitigate the race condition described here:
+        // https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+        require(_value == 0 || allowed[msg.sender][_spender] == 0);
 
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
@@ -131,7 +114,8 @@ contract StandardToken is Token {
     /*
      * Read functions
      */
-    /// @dev Returns number of allowed tokens for given address.
+    /// @dev Returns number of allowed tokens that a spender can transfer on
+    /// behalf of a token owner.
     /// @param _owner Address of token owner.
     /// @param _spender Address of token spender.
     /// @return Returns remaining allowance for spender.
@@ -141,5 +125,12 @@ contract StandardToken is Token {
         returns (uint256)
     {
         return allowed[_owner][_spender];
+    }
+
+    /// @dev Returns number of tokens owned by the given address.
+    /// @param _owner Address of token owner.
+    /// @return Returns balance of owner.
+    function balanceOf(address _owner) constant public returns (uint256) {
+        return balances[_owner];
     }
 }

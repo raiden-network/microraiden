@@ -5,9 +5,10 @@ from web3.utils.compat import (
     Timeout,
 )
 from ethereum import tester
-import sign
+from utils import sign
 
-from fixtures import (
+
+from tests.fixtures import (
     create_contract,
     token_contract,
     #contract,
@@ -41,7 +42,7 @@ def contract(chain, web3, token_contract, channels_contract):
     global challenge_period
     challenge_period = 5
     logs = {}
-    token = token_contract([10000, "ERC223Token", 2, "TKN"])
+    token = token_contract([10000, "CustomToken", "TKN", 2])
     contract = channels_contract([token.address, challenge_period])
     return contract
 
