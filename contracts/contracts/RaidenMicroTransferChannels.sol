@@ -13,8 +13,15 @@ contract RaidenMicroTransferChannels {
     address public owner;
     address public token_address;
     uint8 public challenge_period;
+
+    // Contract semantic version
     string public constant version = '1.0.0';
+
+    // Address of the latest deployed version of the contract. This is set
+    // by the owner during a new contract deployment for all outdated contracts.
+    // Outdated contracts can still be used.
     address public latest_version_address;
+
     string constant prefix = "\x19Ethereum Signed Message:\n";
 
     Token token;
