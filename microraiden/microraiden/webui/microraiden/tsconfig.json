@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "umd",
-    "moduleResolution": "node",
-    "declaration": true,
-    "outDir": "./dist",
+    "module": "commonjs",
+    "outDir": "./dist/lib",
     "strict": true,
     "sourceMap": true,
+    "declaration": true,
     "noImplicitAny": false,
     "strictNullChecks": false,
     "lib": ["es2015", "es2017", "dom"]
