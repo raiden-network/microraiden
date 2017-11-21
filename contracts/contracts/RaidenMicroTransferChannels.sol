@@ -405,6 +405,7 @@ contract RaidenMicroTransferChannels {
         require(closing_requests[key].settle_block_number == 0);
 
         channels[key].deposit += _added_deposit;
+        assert(channels[key].deposit > _added_deposit);
         ChannelToppedUp(_sender, _receiver, _open_block_number, _added_deposit, channels[key].deposit);
     }
 
