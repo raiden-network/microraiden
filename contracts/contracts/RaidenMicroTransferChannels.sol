@@ -203,12 +203,7 @@ contract RaidenMicroTransferChannels {
     /// @param _sender The address that sends the tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     /// @param _data Receiver address in bytes.
-    function tokenFallback(
-        address _sender,
-        uint256 _deposit,
-        bytes _data)
-        external
-    {
+    function tokenFallback(address _sender, uint256 _deposit, bytes _data) external {
         // Make sure we trust the token
         require(msg.sender == token_address);
         uint length = _data.length;
@@ -231,11 +226,7 @@ contract RaidenMicroTransferChannels {
     /// the sender's token deposit to this contract, compatibility with ERC20 tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
-    function createChannelERC20(
-        address _receiver,
-        uint192 _deposit)
-        external
-    {
+    function createChannelERC20(address _receiver, uint192 _deposit) external {
         createChannelPrivate(msg.sender, _receiver, _deposit);
 
         // transferFrom deposit from _sender to contract
@@ -342,11 +333,7 @@ contract RaidenMicroTransferChannels {
     /// @param _receiver The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between
     /// the sender and receiver was created.
-    function settle(
-        address _receiver,
-        uint32 _open_block_number)
-        external
-    {
+    function settle(address _receiver, uint32 _open_block_number) external {
         bytes32 key = getKey(msg.sender, _receiver, _open_block_number);
 
         // Make sure an uncooperativeClose has been initiated
@@ -369,12 +356,7 @@ contract RaidenMicroTransferChannels {
     /// @param _sender The address that sends tokens.
     /// @param _receiver The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
-    function createChannelPrivate(
-        address _sender,
-        address _receiver,
-        uint192 _deposit)
-        private
-    {
+    function createChannelPrivate(address _sender, address _receiver, uint192 _deposit) private {
         uint32 open_block_number = uint32(block.number);
 
         // Create unique identifier from sender, receiver and current block number
@@ -478,12 +460,7 @@ contract RaidenMicroTransferChannels {
     /// @dev Internal function for getting an address from tokenFallback data bytes.
     /// @param b Bytes received.
     /// @return Address resulted.
-    function addressFromData (
-        bytes b)
-        internal
-        pure
-        returns (address)
-    {
+    function addressFromData (bytes b) internal pure returns (address) {
         bytes20 addr;
         assembly {
             // Read address bytes
@@ -496,12 +473,7 @@ contract RaidenMicroTransferChannels {
     /// @dev Internal function for getting the block number from tokenFallback data bytes.
     /// @param b Bytes received.
     /// @return Block number.
-    function blockNumberFromData(
-        bytes b)
-        internal
-        pure
-        returns (uint32)
-    {
+    function blockNumberFromData(bytes b) internal pure returns (uint32) {
         bytes4 block_number;
         assembly {
             // Read block number bytes
@@ -529,13 +501,7 @@ contract RaidenMicroTransferChannels {
      *  We use these for verifyBalanceProof.
      */
 
-    function memcpy(
-        uint dest,
-        uint src,
-        uint len)
-        private
-        pure
-    {
+    function memcpy(uint dest, uint src, uint len) private pure {
         // Copy word-length chunks while possible
         for(; len >= 32; len -= 32) {
             assembly {
@@ -554,12 +520,7 @@ contract RaidenMicroTransferChannels {
         }
     }
 
-    function concat(
-        string _self,
-        string _other)
-        internal
-        pure
-        returns (string)
+    function concat(string _self, string _other) internal pure returns (string)
     {
         uint self_len = bytes(_self).length;
         uint other_len = bytes(_other).length;
@@ -579,12 +540,7 @@ contract RaidenMicroTransferChannels {
         return ret;
     }
 
-    function uintToString(
-        uint v)
-        internal
-        pure
-        returns (string)
-    {
+    function uintToString(uint v) internal pure returns (string) {
         bytes32 ret;
         if (v == 0) {
             ret = '0';
@@ -613,11 +569,7 @@ contract RaidenMicroTransferChannels {
         return string(bytesStringTrimmed);
     }
 
-    function addressToString(address x)
-        internal
-        pure
-        returns (string)
-    {
+    function addressToString(address x) internal pure returns (string) {
         bytes memory str = new bytes(40);
         for (uint i = 0; i < 20; i++) {
             byte b = byte(uint8(uint(x) / (2**(8*(19 - i)))));
@@ -629,11 +581,7 @@ contract RaidenMicroTransferChannels {
         return string(str);
     }
 
-    function char(byte b)
-        internal
-        pure
-        returns (byte c)
-    {
+    function char(byte b) internal pure returns (byte c) {
         if (b < 10) {
             return byte(uint8(b) + 0x30);
         } else {
