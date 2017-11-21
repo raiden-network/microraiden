@@ -2,51 +2,36 @@ pragma solidity ^0.4.17;
 
 library ECVerify {
 
-    function safer_ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) internal returns (bool, address) {
-        bool ret;
-        address addr;
+    function ecverify(bytes32 hash, bytes signature) internal pure returns (address) {
+        require(signature.length == 65);
 
-        assembly {
-            let size := mload(0x40)
-            mstore(size, hash)
-            mstore(add(size, 32), v)
-            mstore(add(size, 64), r)
-            mstore(add(size, 96), s)
-
-            ret := call(3000, 1, 0, size, 128, size, 32)
-            addr := mload(size)
-        }
-
-        return (ret, addr);
-    }
-
-    function ecrecovery(bytes32 hash, bytes sig) internal returns (bool, address) {
         bytes32 r;
         bytes32 s;
         uint8 v;
 
-        if (sig.length != 65)
-          return (false, 0);
-
+        // The signature format is a compact form of:
+        //   {bytes32 r}{bytes32 s}{uint8 v}
+        // Compact means, uint8 is not padded to 32 bytes.
         assembly {
-            r := mload(add(sig, 32))
-            s := mload(add(sig, 64))
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
 
-            v := byte(0, mload(add(sig, 96)))
+            // Here we are loading the last 32 bytes, including 31 bytes of 's'.
+            v := byte(0, mload(add(signature, 96)))
         }
 
-        if (v < 27)
-          v += 27;
+        // Version of signature should be 27 or 28, but 0 and 1 are also possible
+        if (v < 27) {
+            v += 27;
+        }
 
-        if (v != 27 && v != 28)
-            return (false, 0);
+        require(v == 27 || v == 28);
 
-        return safer_ecrecover(hash, v, r, s);
+        var addr = ecrecover(hash, v, r, s);
+
+        // ecrecover returns zero on error
+        require(addr != 0x0);
+
+        return addr;
     }
-
-    function ecverify(bytes32 hash, bytes sig) internal returns (address addr) {
-        bool ret;
-        (ret, addr) = ecrecovery(hash, sig);
-    }
-
 }
