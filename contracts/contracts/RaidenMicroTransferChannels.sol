@@ -10,7 +10,7 @@ contract RaidenMicroTransferChannels {
      *  Data structures
      */
 
-    address public owner;
+    address public owner_address;
     address public token_address;
     uint8 public challenge_period;
 
@@ -87,17 +87,18 @@ contract RaidenMicroTransferChannels {
      *  Constructor
      */
 
-    /// @dev Constructor for creating the Raiden microtransfer channels contract.
-    /// @param _token The address of the Token used by the channels.
-    /// @param _challenge_period A fixed number of blocks representing the challenge period after a sender requests the closing of the channel without the receiver's signature.
-    function RaidenMicroTransferChannels(address _token, uint8 _challenge_period) public {
-        require(_token != 0x0);
-        require(addressHasCode(_token));
+    /// @dev Constructor for creating the uRaiden microtransfer channels contract.
+    /// @param _token_address The address of the Token used by the uRaiden contract.
+    /// @param _challenge_period A fixed number of blocks representing the challenge
+    /// period after a sender requests the closing of the channel without the receiver's signature.
+    function RaidenMicroTransferChannels(address _token_address, uint8 _challenge_period) public {
+        require(_token_address != 0x0);
+        require(addressHasCode(_token_address));
         require(_challenge_period > 0);
 
-        owner = msg.sender;
-        token_address = _token;
-        token = Token(_token);
+        owner_address = msg.sender;
+        token_address = _token_address;
+        token = Token(_token_address);
 
         challenge_period = _challenge_period;
     }
