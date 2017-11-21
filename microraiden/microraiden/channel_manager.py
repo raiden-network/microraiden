@@ -1,21 +1,26 @@
-"""
-
-"""
-import os
-import sys
 import json
-import time
+import logging
+import os
 import shutil
+import sqlite3
+import sys
+import time
+
 import gevent
 import gevent.event
 import filelock
 import requests
 import copy
-from eth_utils import decode_hex, is_same_address
+from eth_utils import (
+    decode_hex,
+    is_same_address
+)
 
-import logging
-
-from microraiden.crypto import sign_balance_proof, verify_balance_proof, privkey_to_addr
+from microraiden.crypto import (
+    sign_balance_proof,
+    verify_balance_proof,
+    privkey_to_addr
+)
 from microraiden.utils import check_permission_safety
 from microraiden.exceptions import (
     NetworkIdMismatch,
@@ -229,58 +234,279 @@ class Blockchain(gevent.Greenlet):
             self.wait_sync_event.set()
 
 
+DB_CREATION_SQL = """
+CREATE TABLE `metadata` (
+    `network_id`       INTEGER,
+    `contract_address` CHAR(42),
+    `receiver`         CHAR(42)
+);
+CREATE TABLE `syncstate` (
+    `confirmed_head_number`   INTEGER,
+    `confirmed_head_hash`     CHAR(66),
+    `unconfirmed_head_number` INTEGER,
+    `unconfirmed_head_hash`   CHAR(66)
+);
+CREATE TABLE `channels` (
+    `sender`            CHAR(42),
+    `open_block_number` INTEGER,
+    `deposit`           INTEGER,
+    `balance`           INTEGER,
+    `last_signature`    CHAR(132),
+    `settle_timeout`    INTEGER,
+    `mtime`             INTEGER,
+    `ctime`             INTEGER,
+    `is_closed`         BOOL,
+    PRIMARY KEY (`sender`, `open_block_number`)
+);
+CREATE TABLE `unconfirmed_channels` (
+    `sender` CHAR(42),
+    `open_block_number` INTEGER,
+    `deposit` INTEGER,
+    PRIMARY KEY (`sender`, `open_block_number`)
+);
+
+INSERT INTO `metadata` VALUES (
+    NULL,
+    NULL,
+    NULL
+);
+INSERT INTO `syncstate` VALUES (
+    NULL,
+    NULL,
+    NULL,
+    NULL
+);
+"""
+
+UPDATE_METADATA_SQL = """
+UPDATE `metadata` SET
+    `network_id` = ?,
+    `contract_address` = ?,
+    `receiver` = ?;
+"""
+
+UPDATE_SYNCSTATE_SQL = {
+    'confirmed_head_number': 'UPDATE `syncstate` SET `confirmed_head_number` = ?;',
+    'confirmed_head_hash': 'UPDATE `syncstate` SET `confirmed_head_hash` = ?;',
+    'unconfirmed_head_number': 'UPDATE `syncstate` SET `unconfirmed_head_number` = ?;',
+    'unconfirmed_head_hash': 'UPDATE `syncstate` SET `unconfirmed_head_hash` = ?;'
+}
+
+ADD_CHANNEL_SQL = """
+INSERT INTO `channels` VALUES (
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?
+)
+"""
+
+UPDATE_CHANNEL_SQL = """
+UPDATE `channels` SET
+    `deposit` = ?,
+    `balance` = ?,
+    `last_signature` = ?,
+    `settle_timeout` = ?,
+    `mtime` = ?,
+    `is_closed` = ?
+WHERE `sender` = ? AND `open_block_number` = ?;
+"""
+
+
 class ChannelManagerState(object):
     """The part of the channel manager state that needs to persist."""
 
-    def __init__(self, contract_address, receiver, network_id, filename=None):
-        self.contract_address = contract_address
-        self.receiver = receiver.lower()
-        self.confirmed_head_number = None
-        self.confirmed_head_hash = None
-        self.unconfirmed_head_number = None
-        self.unconfirmed_head_hash = None
-        self.channels = dict()
+    def __init__(self, filename):
+        self.unconfirmed_channels = dict()  # TODO
         self.filename = filename
-        self.tmp_filename = None if self.filename is None else filename + '.tmp'
-        self.unconfirmed_channels = dict()
-        self.network_id = network_id
-
-    def store(self):
-        """Store the state in a file."""
-        if self.filename:
-            oldmask = os.umask(0o77)
-            serialized_state = copy.deepcopy(self.__dict__)
-            serialized_state['unconfirmed_channels'] = [
-                v.__dict__ for v in serialized_state['unconfirmed_channels'].values()]
-            serialized_state['channels'] = [
-                v.__dict__ for v in serialized_state['channels'].values()]
-            with open(self.tmp_filename, 'w') as f:
-                json.dump(serialized_state, f)
-                f.flush()
-            shutil.copy2(self.tmp_filename, self.filename)
-            os.umask(oldmask)
 
     @classmethod
-    def load(cls, filename: str):
+    def setup_db(cls, filename, network_id, contract_address, receiver):
+        assert not os.path.isfile(filename)
+        with sqlite3.connect(filename) as conn:
+            conn.executescript(DB_CREATION_SQL)
+            conn.execute(UPDATE_METADATA_SQL, [network_id, contract_address, receiver])
+        return cls(filename)
+
+    @property
+    def contract_address(self):
+        """The address of the channel manager contract."""
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            c.execute('SELECT `contract_address` FROM `metadata`;')
+            contract_address = c.fetchone()[0]
+            assert c.fetchone() is None
+        return contract_address
+
+    @property
+    def receiver(self):
+        """The receiver address."""
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            c.execute('SELECT `receiver` FROM `metadata`;')
+            receiver = c.fetchone()[0]
+            assert c.fetchone() is None
+        return receiver
+
+    @property
+    def network_id(self):
+        """The receiver address."""
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            c.execute('SELECT `network_id` FROM `metadata`;')
+            network_id = c.fetchone()[0]
+            assert c.fetchone() is None
+        return network_id
+
+    @property
+    def _sync_state(self):
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            c.execute('SELECT * FROM `syncstate`;')
+            state = c.fetchone()
+            assert c.fetchone() is None
+        assert len(state) == 4
+        return state
+
+    @property
+    def confirmed_head_number(self):
+        """The number of the highest processed block considered to be final."""
+        return self._sync_state[0]
+
+    @property
+    def confirmed_head_hash(self):
+        """The hash of the highest processed block considered to be final."""
+        return self._sync_state[1]
+
+    @property
+    def unconfirmed_head_number(self):
+        """The number of the highest processed block considered to be not yet final."""
+        return self._sync_state[2]
+
+    @property
+    def unconfirmed_head_hash(self):
+        """The hash of the highest processed block considered to be not yet final."""
+        return self._sync_state[3]
+
+    def update_sync_state(
+        self,
+        confirmed_head_number=None,
+        confirmed_head_hash=None,
+        unconfirmed_head_number=None,
+        unconfirmed_head_hash=None
+    ):
+        """Update block numbers and hashes of confirmed and unconfirmed head."""
+        with sqlite3.connect(self.filename) as conn:
+            if confirmed_head_number is not None:
+                sql = UPDATE_SYNCSTATE_SQL['confirmed_head_number']
+                conn.execute(sql, [confirmed_head_number])
+            if confirmed_head_hash is not None:
+                sql = UPDATE_SYNCSTATE_SQL['confirmed_head_hash']
+                conn.execute(sql, [confirmed_head_hash])
+            if unconfirmed_head_number is not None:
+                sql = UPDATE_SYNCSTATE_SQL['unconfirmed_head_number']
+                conn.execute(sql, [unconfirmed_head_number])
+            if unconfirmed_head_hash is not None:
+                sql = UPDATE_SYNCSTATE_SQL['unconfirmed_head_hash']
+                conn.execute(sql, [unconfirmed_head_hash])
+
+    @property
+    def n_channels(self):
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            c.execute('SELECT COUNT(*) FROM `channels`')
+            return c.fetchone()[0]
+
+    @property
+    def n_open_channels(self):
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            c.execute('SELECT COUNT(*) FROM `channels` WHERE `is_closed` = 0')
+            return c.fetchone()[0]
+
+    def channel_exists(self, sender, open_block_number):
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            sql = 'SELECT 1 FROM `channels` WHERE `sender` = ? AND `open_block_number` == ?'
+            c.execute(sql, [sender.lower(), open_block_number])
+            result = c.fetchone()
+        if result is None:
+            return False
+        elif result == (1,):
+            return True
+        else:
+            assert False
+
+    def add_channel(self, channel):
+        # TODO unconfirmed topups
+        assert not self.channel_exists(channel.sender, channel.open_block_number)
+        with sqlite3.connect(self.filename) as conn:
+            params = [
+                channel.sender.lower(),
+                channel.open_block_number,
+                channel.deposit,
+                channel.balance,
+                channel.last_signature,
+                channel.settle_timeout,
+                channel.mtime,
+                channel.ctime,
+                channel.is_closed
+            ]
+            conn.execute(ADD_CHANNEL_SQL, params)
+
+    def update_channel(self, channel):
+        # TODO unconfirmed topups
+        assert self.channel_exists(channel.sender, channel.open_block_number)
+        with sqlite3.connect(self.filename) as conn:
+            params = [
+                channel.deposit,
+                channel.balance,
+                channel.last_signature,
+                channel.settle_timeout,
+                channel.mtime,
+                channel.is_closed,
+                channel.sender.lower(),
+                channel.open_block_number
+            ]
+            conn.execute(UPDATE_CHANNEL_SQL, params)
+
+    def get_channel(self, sender, open_block_number):
+        # TODO unconfirmed topups
+        with sqlite3.connect(self.filename) as conn:
+            c = conn.cursor()
+            sql = 'SELECT * FROM `channels` WHERE `sender` = ? AND `open_block_number` == ?'
+            c.execute(sql, [sender.lower(), open_block_number])
+            result = c.fetchone()
+            assert c.fetchone() is None
+        channel = Channel(self.receiver, result[0], result[2], result[1])
+        channel.balance = result[3]
+        channel.is_closed = bool(result[8])
+        channel.last_signature = result[4]
+        channel.settle_timeout = result[5]
+        channel.mtime = result[6]
+        channel.ctime = result[7]
+        return channel
+
+    @classmethod
+    def load(cls, filename: str, check_permissions=True):
         """Load a previously stored state."""
         assert filename is not None
-        assert isinstance(filename, str)
         if os.path.isfile(filename) is False:
             log.error("State file  %s doesn't exist" % filename)
             return None
-        if not check_permission_safety(filename):
+        if check_permissions and not check_permission_safety(filename):
             raise InsecureStateFile(filename)
-        if os.path.getsize(filename) == 0:
-            recover_filename = filename + ".tmp"
-            log.warning("Empty state file. Trying to recover from %s" % recover_filename)
-            return ChannelManagerState.load(recover_filename)
-        json_state = json.loads(open(filename, 'r').read())
-        ret = cls.from_dict(json_state)
-        log.debug("loaded saved state. head_number=%d receiver=%s" %
+        ret = cls(filename)
+        log.debug("loaded saved state. head_number=%s receiver=%s" %
                   (ret.confirmed_head_number, ret.receiver))
-        for sender, block in ret.channels.keys():
-            log.debug("loaded channel info from the saved state sender=%s open_block=%s" %
-                      (sender, block))
+        # for sender, block in ret.channels.keys():
+        #     log.debug("loaded channel info from the saved state sender=%s open_block=%s" %
+        #               (sender, block))
         return ret
 
     @classmethod
