@@ -61,8 +61,8 @@ from utils.utils import (
 )
 @click.option(
     '--sender-addresses',
-    default='0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c',
-    help='Sender addresses for assigning tokens.'
+    default=None,
+    help='Sender addresses for assigning tokens, separated by a comma.'
 )
 def getTokens(**kwargs):
     project = Project()
@@ -73,11 +73,16 @@ def getTokens(**kwargs):
     challenge_period = kwargs['challenge_period']
     supply = kwargs['supply']
     senders = kwargs['senders']
-    sender_addresses = kwargs['sender_addresses'].split(',')
+    sender_addresses = kwargs['sender_addresses']
     token_name = kwargs['token_name']
     token_decimals = kwargs['token_decimals']
     token_symbol = kwargs['token_symbol']
     token_address = kwargs['token_address']
+
+    if sender_addresses:
+        sender_addresses = sender_addresses.split(',')
+    else:
+        sender_addresses = []
 
     supply *= 10**(token_decimals)
     token_assign = int(supply / (len(sender_addresses) + senders))
@@ -88,7 +93,8 @@ def getTokens(**kwargs):
         txn_wait = 500
         event_wait = 500
 
-    print("Make sure {} chain is running, you can connect to it and it is synced, or you'll get timeout".format(chain_name))
+    print('''Make sure {} chain is running, you can connect to it and it is synced,
+          or you'll get timeout'''.format(chain_name))
 
     with project.get_chain(chain_name) as chain:
         web3 = chain.web3
@@ -97,7 +103,8 @@ def getTokens(**kwargs):
 
         if not token_address:
             token = chain.provider.get_contract_factory('CustomToken')
-            txhash = token.deploy(args=[supply, token_name, token_symbol, token_decimals], transaction={'from': owner})
+            txhash = token.deploy(args=[supply, token_name, token_symbol, token_decimals],
+                                  transaction={'from': owner})
             receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
             token_address = receipt['contractAddress']
             print(token_name, ' address is', token_address)
@@ -107,7 +114,8 @@ def getTokens(**kwargs):
 
         print('RaidenMicroTransferChannels arguments', token_address, challenge_period)
         padded_token_address = pad_left(remove_0x_prefix(token_address), 64, '0')
-        print('RaidenMicroTransferChannels abi encoded arguments:', encode_hex(pack(padded_token_address, challenge_period)))
+        print('RaidenMicroTransferChannels abi encoded arguments:',
+              encode_hex(pack(padded_token_address, challenge_period)))
         receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
         cf_address = receipt['contractAddress']
         print('RaidenMicroTransferChannels address is', cf_address)
@@ -117,7 +125,7 @@ def getTokens(**kwargs):
         # we cannot retrieve private keys from configured chains
         # therefore: create 5 wallets (sample addresses with private keys)
         # store in separate arrays
-        for i in range(senders-1):
+        for i in range(senders - 1):
             priv_key, address = createWallet()
             priv_keys.append(priv_key)
             addresses.append('0x' + address)
@@ -135,9 +143,12 @@ def getTokens(**kwargs):
         # 1. get message balance hash for address[0]
         balance_msg = "Receiver: " + addresses[0] + ", Balance: 10000, Channel ID: 100"
         # 2. sign the hash with private key corresponding to address[0]
-        balance_msg_sig, addr = sign.check(balance_msg, binascii.unhexlify(remove_0x_prefix(priv_keys[0])))
+        balance_msg_sig, addr = sign.check(balance_msg,
+                                           binascii.unhexlify(remove_0x_prefix(priv_keys[0])))
         # 3. check if ECVerify and ec_recovered address are equal
-        ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0], 100, 10000, balance_msg_sig)
+        ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0],
+                                                                                  100, 10000,
+                                                                                  balance_msg_sig)
         print('EC_RECOVERED_ADDR:', ec_recovered_addr)
         print('FIRST WALLET ADDR:', addresses[0])
         assert ec_recovered_addr == addresses[0]
@@ -150,8 +161,10 @@ def getTokens(**kwargs):
         print('BALANCE:', token(token_address).call().balanceOf(addresses[0]))
         assert token(token_address).call().balanceOf(addresses[0]) > 0
 
-    # return arrays with generated wallets (private keys first, then addresses, so that priv_key[0] <-> address[0]
+    # return arrays with generated wallets
+    # (private keys first, then addresses, so that priv_key[0] <-> address[0]
     return (priv_keys, addresses, token(token_address))
+
 
 if __name__ == '__main__':
     print(getTokens())
