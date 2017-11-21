@@ -330,7 +330,11 @@ contract RaidenMicroTransferChannels {
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
         require(channels[key].open_block_number != 0);
 
-        return (key, channels[key].deposit, closing_requests[key].settle_block_number, closing_requests[key].closing_balance);
+        return (
+            key, channels[key].deposit,
+            closing_requests[key].settle_block_number,
+            closing_requests[key].closing_balance
+        );
     }
 
     /// @dev Function called by the sender after the challenge period has ended,
@@ -351,7 +355,9 @@ contract RaidenMicroTransferChannels {
         // Make sure the challenge_period has ended
 	    require(block.number > closing_requests[key].settle_block_number);
 
-        settleChannel(msg.sender, _receiver, _open_block_number, closing_requests[key].closing_balance);
+        settleChannel(msg.sender, _receiver, _open_block_number,
+            closing_requests[key].closing_balance
+        );
     }
 
     /*
@@ -396,12 +402,12 @@ contract RaidenMicroTransferChannels {
         uint192 _added_deposit)
         private
     {
-        require(_added_deposit != 0);
-        require(_open_block_number != 0);
+        require(_added_deposit > 0);
+        require(_open_block_number > 0);
 
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
 
-        require(channels[key].deposit != 0);
+        require(channels[key].deposit > 0);
         require(closing_requests[key].settle_block_number == 0);
 
         channels[key].deposit += _added_deposit;
