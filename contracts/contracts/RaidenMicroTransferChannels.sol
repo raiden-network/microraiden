@@ -448,22 +448,14 @@ contract RaidenMicroTransferChannels {
         bytes32 key = getKey(_sender, _receiver, _open_block_number);
         Channel memory channel = channels[key];
 
-        require(channel.open_block_number != 0);
+        require(channel.open_block_number > 0);
         require(_balance <= channel.deposit);
 
-        // send minimum of _balance and deposit to receiver
-        uint send_to_receiver = min(_balance, channel.deposit);
-        if(send_to_receiver > 0) {
-            require(token.transfer(_receiver, send_to_receiver));
-        }
+        // Send _balance to the receiver, as it is always <= deposit
+        require(token.transfer(_receiver, _balance));
 
-        // send maximum of deposit - balance and 0 to sender
-        uint send_to_sender = max(channel.deposit - _balance, 0);
-        if(send_to_sender > 0) {
-            require(token.transfer(_sender, send_to_sender));
-        }
-
-        assert(channel.deposit >= _balance);
+        // Send deposit - balance back to sender
+        require(token.transfer(_sender, channel.deposit - _balance));
 
         // remove closed channel structures
         delete channels[key];
@@ -475,38 +467,6 @@ contract RaidenMicroTransferChannels {
     /*
      *  Internal functions
      */
-
-    /// @dev Internal function for getting the maximum between two numbers.
-    /// @param a First number to compare.
-    /// @param b Second number to compare.
-    /// @return The maximum between the two provided numbers.
-    function max(uint192 a, uint192 b)
-        internal
-        pure
-        returns (uint)
-    {
-        if (a > b) {
-            return a;
-        } else {
-            return b;
-        }
-    }
-
-    /// @dev Internal function for getting the minimum between two numbers.
-    /// @param a First number to compare.
-    /// @param b Second number to compare.
-    /// @return The minimum between the two provided numbers.
-    function min(uint192 a, uint192 b)
-        internal
-        pure
-        returns (uint)
-    {
-        if (a < b) {
-            return a;
-        } else {
-            return b;
-        }
-    }
 
     /// @dev Internal function for getting an address from tokenFallback data bytes.
     /// @param b Bytes received.
