@@ -183,7 +183,7 @@ def test_version(web3, contract, channels_contract):
         contract.transact({'from': A}).setLatestVersionAddress(other_contract.address)
 
     contract.transact({'from': Owner}).setLatestVersionAddress(other_contract.address)
-    assert contract.call().getLatestVersionAddress() == other_contract.address
+    assert contract.call().latest_version_address() == other_contract.address
 
 
 def test_channel_223_create(web3, chain, contract, channels_contract):
