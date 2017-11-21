@@ -267,7 +267,7 @@ contract RaidenMicroTransferChannels {
     /// sender and receiver was created.
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @param _balance_msg_sig The balance message signed by the sender.
-    function close(
+    function uncooperativeClose(
         address _receiver,
         uint32 _open_block_number,
         uint192 _balance,
@@ -293,7 +293,7 @@ contract RaidenMicroTransferChannels {
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @param _balance_msg_sig The balance message signed by the sender.
     /// @param _closing_sig The hash of the signed balance message, signed by the receiver.
-    function close(
+    function cooperativeClose(
         address _receiver,
         uint32 _open_block_number,
         uint192 _balance,
