@@ -14,8 +14,12 @@ def eth_privtoaddr(priv) -> str:
     return "0x" + binascii.hexlify(sha3(pub)[12:]).decode("ascii")
 
 
+def eth_message_prefixed(msg: str) -> bytes:
+    return eth_prefix + str(len(msg)) + msg
+
+
 def eth_message_hex(msg: str) -> bytes:
-    msg = eth_prefix + str(len(msg)) + msg
+    msg = eth_message_prefixed(msg)
     msg_hex = encode_hex(msg)
     return sha3(msg_hex)
 
