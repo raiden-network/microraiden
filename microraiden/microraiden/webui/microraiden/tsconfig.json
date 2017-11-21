@@ -1,20 +1,28 @@
 {
   "compilerOptions": {
-    "target": "es5",
     "module": "commonjs",
-    "outDir": "./dist/lib",
+    "target": "es5",
+    "lib": ["es2015", "es2017", "dom"],
+    "moduleResolution": "node",
     "strict": true,
     "sourceMap": true,
     "declaration": true,
     "noImplicitAny": false,
     "strictNullChecks": false,
-    "lib": ["es2015", "es2017", "dom"]
+    "pretty": true
   },
+  "files": [
+    "src/index.ts"
+  ],
   "include": [
-    "./src",
-    "./node_modules/web3-typescript-typings/index.d.ts"
+    "node_modules/web3-typescript-typings/index.d.ts"
   ],
   "exclude": [
-    "./node_modules"
+    "node_modules",
+    "dist"
+  ],
+  "types": [
+    "core-js",
+    "node"
   ]
 }

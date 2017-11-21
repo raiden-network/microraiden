@@ -2,20 +2,29 @@
   "name": "microraiden",
   "version": "0.1.0",
   "description": "Javascript/Typescript client libraries for µRaiden",
-  "main": "dist/lib/index.js",
-  "scripts": {
-    "build": "tsc && webpack"
-  },
   "author": "André Vitor de Lima Matos <andre@brainbot.com>",
   "license": "ISC",
+  "main": "dist/cjs/index.js",
+  "jsnext:main": "dist/esnext/index.js",
+  "types": "dist/esnext/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist/",
+    "build": "npm run clean && npm run build:esnext && npm run build:esm && npm run build:cjs && npm run build:umd && npm run build:umd:min",
+    "build:esnext": "tsc --module esnext --target esnext --outDir dist/esnext",
+    "build:esm": "tsc --module es2015 --target es5 --outDir dist/esm",
+    "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
+    "build:umd": "rollup dist/esm/index.js -f umd --name microraiden --sourceMap -e web3 -g Web3 -o dist/umd/microraiden.js",
+    "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 --comments -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz"
+  },
   "devDependencies": {
-    "awesome-typescript-loader": "^3.4.0",
+    "@types/core-js": "^0.9.43",
+    "@types/node": "^8.0.53",
+    "rollup": "^0.51.8",
     "typescript": "^2.6.1",
-    "web3-typescript-typings": "^0.7.2",
-    "webpack": "^3.8.1"
+    "uglify-js": "^3.1.10",
+    "web3-typescript-typings": "^0.7.2"
   },
   "dependencies": {
-    "node-localstorage": "^1.3.0",
     "web3": "<0.99"
   }
 }
