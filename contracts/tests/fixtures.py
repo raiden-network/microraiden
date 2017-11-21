@@ -4,11 +4,14 @@ global token
 global logs
 global challenge_period
 
+
+uraiden_contract_version = '1.0.0'
 decimals_params = [
     18,
     2,
     0
 ]
+
 
 @pytest.fixture(params=decimals_params)
 def decimals(request):

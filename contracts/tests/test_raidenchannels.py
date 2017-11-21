@@ -8,6 +8,7 @@ from ethereum import tester
 from utils import sign
 
 from tests.fixtures import (
+    uraiden_contract_version,
     create_contract,
     contract,
     token_contract,
@@ -163,6 +164,26 @@ def channel(contract, web3):
     open_block_number = get_last_open_block_number(contract)
 
     return (A, B, open_block_number)
+
+
+def test_version(web3, contract, channels_contract):
+    (Owner, A) = web3.eth.accounts[:2]
+    other_contract = channels_contract([token.address, 10], {'from': A})
+
+    assert contract.call().version() == uraiden_contract_version
+    assert contract.call().latest_version_address() == '0x0000000000000000000000000000000000000000'
+
+    with pytest.raises(TypeError):
+        contract.transact({'from': Owner}).setLatestVersionAddress('0x')
+    with pytest.raises(TypeError):
+        contract.transact({'from': Owner}).setLatestVersionAddress(123)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': Owner}).setLatestVersionAddress(A)
+    with pytest.raises(tester.TransactionFailed):
+        contract.transact({'from': A}).setLatestVersionAddress(other_contract.address)
+
+    contract.transact({'from': Owner}).setLatestVersionAddress(other_contract.address)
+    assert contract.call().latest_version_address() == other_contract.address
 
 
 def test_channel_223_create(web3, chain, contract, channels_contract):
