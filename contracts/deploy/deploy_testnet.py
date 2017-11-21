@@ -3,41 +3,16 @@ A simple Python script to deploy contracts and then do a smoke test for them.
 '''
 import click
 from populus import Project
-from populus.utils.wait import wait_for_transaction_receipt
-from web3 import Web3
-from web3.utils.compat import (
-    Timeout,
-)
-from ecdsa import SigningKey, SECP256k1
-import sha3
-from utils import sign
 import binascii
 from ethereum.utils import encode_hex
-
-
-def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
-    '''See if transaction went through (Solidity code did not throw).
-    :return: Transaction receipt
-    '''
-    receipt = wait_for_transaction_receipt(web3, txid, timeout=timeout)
-    txinfo = web3.eth.getTransaction(txid)
-    assert txinfo['gas'] != receipt['gasUsed']
-    return receipt
-
-
-def createWallet():
-    keccak = sha3.keccak_256()
-    priv = SigningKey.generate(curve=SECP256k1)
-    pub = priv.get_verifying_key().to_string()
-    keccak.update(pub)
-    address = keccak.hexdigest()[24:]
-    return (encode_hex(priv.to_string()), address)
-
-
-def wait(transfer_filter, timeout=30):
-    with Timeout(timeout) as timeout:
-        while not transfer_filter.get(False):
-            timeout.sleep(2)
+from eth_utils import pad_left, remove_0x_prefix
+from utils import sign
+from utils.utils import (
+    check_succesful_tx,
+    createWallet,
+    wait,
+    pack
+)
 
 
 @click.command()
@@ -62,7 +37,7 @@ def wait(transfer_filter, timeout=30):
 )
 @click.option(
     '--token-name',
-    default='ERC223Token',
+    default='CustomToken',
     help='Token contract name.'
 )
 @click.option(
@@ -121,8 +96,8 @@ def getTokens(**kwargs):
         print('Web3 provider is', web3.currentProvider)
 
         if not token_address:
-            token = chain.provider.get_contract_factory('ERC223Token')
-            txhash = token.deploy(args=[supply, token_name, token_decimals, token_symbol], transaction={'from': owner})
+            token = chain.provider.get_contract_factory('CustomToken')
+            txhash = token.deploy(args=[supply, token_name, token_symbol, token_decimals], transaction={'from': owner})
             receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
             token_address = receipt['contractAddress']
             print(token_name, ' address is', token_address)
@@ -159,9 +134,8 @@ def getTokens(**kwargs):
         # check if it works:
         # 1. get message balance hash for address[0]
         balance_msg = "Receiver: " + addresses[0] + ", Balance: 10000, Channel ID: 100"
-
         # 2. sign the hash with private key corresponding to address[0]
-        balance_msg_sig, addr = sign.check(balance_msg, binascii.unhexlify(priv_keys[0]))
+        balance_msg_sig, addr = sign.check(balance_msg, binascii.unhexlify(remove_0x_prefix(priv_keys[0])))
         # 3. check if ECVerify and ec_recovered address are equal
         ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0], 100, 10000, balance_msg_sig)
         print('EC_RECOVERED_ADDR:', ec_recovered_addr)
