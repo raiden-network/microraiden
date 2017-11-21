@@ -105,12 +105,6 @@ contract RaidenMicroTransferChannels {
     /*
      *  Public helper functions (constant)
      */
-
-    /// @dev Returns the address for the latest contract version.
-    function getLatestVersionAddress() public view returns(address) {
-        return latest_version_address;
-    }
-
     /// @dev Returns the unique channel identifier used in the contract.
     /// @param _sender The address that sends tokens.
     /// @param _receiver The address that receives tokens.
