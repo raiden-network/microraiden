@@ -14,6 +14,38 @@ def ecverify_test_contract(chain, create_contract):
     return ecverify_test_contract
 
 
+def test_ecrecover_output(web3, ecverify_test_contract):
+    (A, B) = web3.eth.accounts[:2]
+    message = "daddydaddycool"
+    prefixed_message = sign.eth_message_prefixed(message)
+    hash_prefixed_message = sign.eth_message_hex(message)
+    signed_message, addr = sign.check(message, tester.k0)
+
+    # r = signed_message[:32];
+    # s = signed_message[32:64];
+    # v = int(binascii.hexlify(signed_message[64:65]), 16) # int(signed_message[64:65]);
+
+    r = bytes.fromhex('12d99ba7bd20ac17bac65bfd646146c1ddbeb607519db6e7935684334d891ed6')
+    s = bytes.fromhex('5d4ea3a13697c1d506f7bdb8cd672b944e2053d6d6bd87d4aa512fdc29ed9ae4')
+    v = 28
+    address = '0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb'
+
+    with pytest.raises(tester.TransactionFailed):
+        ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, r, s, 0)
+
+    web3.testing.mine(30)
+    with pytest.raises(tester.TransactionFailed):
+        ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, r, bytearray(), v)
+
+    web3.testing.mine(30)
+    with pytest.raises(tester.TransactionFailed):
+        ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, bytearray(), s, v)
+
+    web3.testing.mine(30)
+    verified_address = ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, r, s, v)
+    # assert address == verified_address
+
+
 def test_sign(web3, ecverify_test_contract):
     (A, B) = web3.eth.accounts[:2]
     message = "daddydaddycool"

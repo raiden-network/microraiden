@@ -2,7 +2,7 @@ pragma solidity ^0.4.17;
 
 library ECVerify {
 
-    function ecverify(bytes32 hash, bytes signature) internal pure returns (address) {
+    function ecverify(bytes32 hash, bytes signature) internal pure returns (address signature_address) {
         require(signature.length == 65);
 
         bytes32 r;
@@ -27,11 +27,11 @@ library ECVerify {
 
         require(v == 27 || v == 28);
 
-        var addr = ecrecover(hash, v, r, s);
+        signature_address = ecrecover(hash, v, r, s);
 
         // ecrecover returns zero on error
-        require(addr != 0x0);
+        require(signature_address != 0x0);
 
-        return addr;
+        return signature_address;
     }
 }
