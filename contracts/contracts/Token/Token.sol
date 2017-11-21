@@ -24,10 +24,10 @@ contract Token {
     uint256 public totalSupply;
 
     /*
-    NOTE:
-    The following variables were optional. Now, they are included in ERC 223 interface.
-    They allow one to customise the token contract & in no way influences the core functionality.
-    */
+     * NOTE:
+     * The following variables were optional. Now, they are included in ERC 223 interface.
+     * They allow one to customise the token contract & in no way influences the core functionality.
+     */
     string public name;                   //fancy name: eg Simon Bucks
     uint8 public decimals;                //How many decimals to show. ie. There could 1000 base units with 3 decimals. Meaning 0.980 SBX = 980 base units. It's like comparing 1 wei to 1 ether.
     string public symbol;                 //An identifier: eg SBX
