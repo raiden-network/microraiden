@@ -101,8 +101,9 @@ def getTokens(**kwargs):
         owner = owner or web3.eth.accounts[0]
         print('Web3 provider is', web3.currentProvider)
 
+        token = chain.provider.get_contract_factory('CustomToken')
+
         if not token_address:
-            token = chain.provider.get_contract_factory('CustomToken')
             txhash = token.deploy(args=[supply, token_name, token_symbol, token_decimals],
                                   transaction={'from': owner})
             receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
