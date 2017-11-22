@@ -56,7 +56,7 @@ from utils.utils import (
 )
 @click.option(
     '--senders',
-    default=5,
+    default=0,
     help='Number of generated new address with assigned tokens.'
 )
 @click.option(
@@ -85,7 +85,6 @@ def getTokens(**kwargs):
         sender_addresses = []
 
     supply *= 10**(token_decimals)
-    token_assign = int(supply / (len(sender_addresses) + senders))
 
     txn_wait = 250
     event_wait = 50
@@ -101,8 +100,9 @@ def getTokens(**kwargs):
         owner = owner or web3.eth.accounts[0]
         print('Web3 provider is', web3.currentProvider)
 
+        token = chain.provider.get_contract_factory('CustomToken')
+
         if not token_address:
-            token = chain.provider.get_contract_factory('CustomToken')
             txhash = token.deploy(args=[supply, token_name, token_symbol, token_decimals],
                                   transaction={'from': owner})
             receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
@@ -120,50 +120,53 @@ def getTokens(**kwargs):
         cf_address = receipt['contractAddress']
         print('RaidenMicroTransferChannels address is', cf_address)
 
-        priv_keys = []
-        addresses = []
-        # we cannot retrieve private keys from configured chains
-        # therefore: create 5 wallets (sample addresses with private keys)
-        # store in separate arrays
-        for i in range(senders - 1):
-            priv_key, address = createWallet()
-            priv_keys.append(priv_key)
-            addresses.append('0x' + address)
+        if senders > 0 or len(sender_addresses) > 0:
+            priv_keys = []
+            addresses = []
+            token_assign = int(supply / (len(sender_addresses) + senders))
 
-        # send tokens to each new wallet
-        for sender in addresses:
-            token(token_address).transact({'from': owner}).transfer(sender, token_assign)
-        # also send tokens to sender addresses
-        for sender in sender_addresses:
-            token(token_address).transact({'from': owner}).transfer(sender, token_assign)
+            # we cannot retrieve private keys from configured chains
+            # therefore: create 5 wallets (sample addresses with private keys)
+            # store in separate arrays
+            for i in range(senders - 1):
+                priv_key, address = createWallet()
+                priv_keys.append(priv_key)
+                addresses.append('0x' + address)
 
-        print('Senders have each been issued', token_assign, ' tokens')
+            # send tokens to each new wallet
+            for sender in addresses:
+                token(token_address).transact({'from': owner}).transfer(sender, token_assign)
+            # also send tokens to sender addresses
+            for sender in sender_addresses:
+                token(token_address).transact({'from': owner}).transfer(sender, token_assign)
 
-        # check if it works:
-        # 1. get message balance hash for address[0]
-        balance_msg = "Receiver: " + addresses[0] + ", Balance: 10000, Channel ID: 100"
-        # 2. sign the hash with private key corresponding to address[0]
-        balance_msg_sig, addr = sign.check(balance_msg,
-                                           binascii.unhexlify(remove_0x_prefix(priv_keys[0])))
-        # 3. check if ECVerify and ec_recovered address are equal
-        ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0],
-                                                                                  100, 10000,
-                                                                                  balance_msg_sig)
-        print('EC_RECOVERED_ADDR:', ec_recovered_addr)
-        print('FIRST WALLET ADDR:', addresses[0])
-        assert ec_recovered_addr == addresses[0]
+                print('Senders have each been issued', token_assign, ' tokens')
 
-        print('Wait for confirmation...')
+            # check if it works:
+            # 1. get message balance hash for address[0]
+            balance_msg = "Receiver: " + addresses[0] + ", Balance: 10000, Channel ID: 100"
+            # 2. sign the hash with private key corresponding to address[0]
+            balance_msg_sig, addr = sign.check(balance_msg,
+                                               binascii.unhexlify(remove_0x_prefix(priv_keys[0])))
+            # 3. check if ECVerify and ec_recovered address are equal
+            ec_recovered_addr = channel_factory(cf_address).call().verifyBalanceProof(addresses[0],
+                                                                                      100, 10000,
+                                                                                      balance_msg_sig)
+            print('EC_RECOVERED_ADDR:', ec_recovered_addr)
+            print('FIRST WALLET ADDR:', addresses[0])
+            assert ec_recovered_addr == addresses[0]
 
-        transfer_filter = token.on('Transfer')
-        wait(transfer_filter, event_wait)
+            print('Wait for confirmation...')
 
-        print('BALANCE:', token(token_address).call().balanceOf(addresses[0]))
-        assert token(token_address).call().balanceOf(addresses[0]) > 0
+            transfer_filter = token.on('Transfer')
+            wait(transfer_filter, event_wait)
 
-    # return arrays with generated wallets
-    # (private keys first, then addresses, so that priv_key[0] <-> address[0]
-    return (priv_keys, addresses, token(token_address))
+            print('BALANCE:', token(token_address).call().balanceOf(addresses[0]))
+            assert token(token_address).call().balanceOf(addresses[0]) > 0
+
+            # return arrays with generated wallets
+            # (private keys first, then addresses, so that priv_key[0] <-> address[0]
+            return (priv_keys, addresses, token(token_address))
 
 
 if __name__ == '__main__':
