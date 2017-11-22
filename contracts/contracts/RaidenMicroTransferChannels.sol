@@ -53,7 +53,7 @@ contract RaidenMicroTransferChannels {
     }
 
     modifier isOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner_address);
         _;
     }
 
