@@ -1,6 +1,6 @@
 pragma solidity ^0.4.17;
 
-import "./Token.sol";
+import "../Token.sol";
 import "./ERC223ReceivingContract.sol";
 
 /// @title Standard token contract - Standard token implementation.
