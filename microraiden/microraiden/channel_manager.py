@@ -267,16 +267,21 @@ class ChannelManagerState(object):
         """Load a previously stored state."""
         assert filename is not None
         assert isinstance(filename, str)
+
+        recover_filename = filename + '.tmp'
+
         if os.path.isfile(filename) is False:
             log.error("State file  %s doesn't exist" % filename)
             return None
         if not check_permission_safety(filename):
             raise InsecureStateFile(filename)
         if os.path.getsize(filename) == 0:
-            recover_filename = filename + ".tmp"
             log.warning("Empty state file. Trying to recover from %s" % recover_filename)
             return ChannelManagerState.load(recover_filename)
         json_state = json.loads(open(filename, 'r').read())
+        json_state['filename'] = filename
+        json_state['tmp_filename'] = recover_filename
+
         ret = cls.from_dict(json_state)
         log.debug("loaded saved state. head_number=%d receiver=%s" %
                   (ret.confirmed_head_number, ret.receiver))
