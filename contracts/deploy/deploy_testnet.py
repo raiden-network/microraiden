@@ -6,10 +6,10 @@ from populus import Project
 import binascii
 from ethereum.utils import encode_hex
 from eth_utils import pad_left, remove_0x_prefix
+from deploy.utils import createWallet
 from utils import sign
 from utils.utils import (
     check_succesful_tx,
-    createWallet,
     wait,
     pack
 )

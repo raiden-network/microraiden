@@ -1,8 +1,6 @@
 from web3 import Web3
-import sha3
-from ecdsa import SigningKey, SECP256k1
 from populus.utils.wait import wait_for_transaction_receipt
-from eth_utils import keccak, is_0x_prefixed, decode_hex, encode_hex
+from eth_utils import keccak, is_0x_prefixed, decode_hex
 from web3.utils.compat import (
     Timeout,
 )
@@ -57,15 +55,6 @@ def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
     txinfo = web3.eth.getTransaction(txid)
     assert txinfo['gas'] != receipt['gasUsed']
     return receipt
-
-
-def createWallet():
-    keccak = sha3.keccak_256()
-    priv = SigningKey.generate(curve=SECP256k1)
-    pub = priv.get_verifying_key().to_string()
-    keccak.update(pub)
-    address = keccak.hexdigest()[24:]
-    return (encode_hex(priv.to_string()), address)
 
 
 def wait(transfer_filter, timeout=30):
