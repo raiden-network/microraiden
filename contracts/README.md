@@ -33,7 +33,7 @@ RaidenMicroTransferChannels address is 0xffa52825c7997dd2be80fb91080500a52abd6d5
 
 ```
 
-ERC223Token  address is
+CustomToken  address is
 RaidenMicroTransferChannels address is
 
 ```
@@ -43,7 +43,7 @@ RaidenMicroTransferChannels address is
 
 ```
 
-ERC223Token  address is
+CustomToken  address is
 RaidenMicroTransferChannels address is
 
 ```
@@ -128,20 +128,20 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
 # Fast deploy on kovan | ropsten | rinkeby | tester | privtest
 
 # Following two calls are quivalent
-python deploy/deploy_testnet.py
-python deploy/deploy_testnet.py \
+python -m deploy.deploy_testnet
+python -m deploy.deploy_testnet \
     --chain kovan \
     --owner 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb  \  # web3.eth.accounts[0]
     --challenge-period 30 \
     --supply 10000000 \
-    --token-name ERC223Token \
+    --token-name CustomToken \
     --token-decimals 18 \
     --token-symbol TKN \
     --senders 5 \
     --sender-addresses \ '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
 
 # Provide a custom deployed token
-python deploy/deploy_testnet.py --token-address address
+python -m deploy.deploy_testnet --token-address address
 
 
 ```
@@ -166,7 +166,7 @@ npm install -g solidity-doc
 - _Sender_ = token sender
 - _Receiver_ = token receiver
 - _Contract_ = Raiden MicroTransferChannels Smart Contract
-- _Token_ = ERC223Token
+- _Token_ = Token
 
 ![ContractClass](/contracts/docs/diagrams/ContractClass.png)
 
