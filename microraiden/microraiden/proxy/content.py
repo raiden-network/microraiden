@@ -108,7 +108,7 @@ class PaywalledProxyUrl(PaywalledContent):
             "/js/microraiden.js"]
         for src in js_paths:
             js_tag = soup.new_tag('script', type="text/javascript", src=src)
-            soup.head.insert(0, js_tag)
+            soup.head.append(js_tag)
         # generate css
         bs_tag = soup.new_tag('link', rel="stylesheet",
                               type="text/css", href="/js/dark-bootstrap.min.css")
