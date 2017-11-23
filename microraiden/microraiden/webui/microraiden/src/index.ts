@@ -10,6 +10,15 @@ function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> 
       obj[method](...params, (err, res) => err ? reject(err) : resolve(res)));
 }
 
+class Deferred<T> {
+  resolve: (res: T) => void;
+  reject: (err: Error) => void;
+  promise = new Promise<T>((resolve, reject) => {
+    this.resolve = resolve;
+    this.reject = reject;
+  });
+}
+
 export interface MicroChannel {
   /* MicroRaiden.channel data structure */
   account: string;
@@ -96,46 +105,55 @@ export class MicroRaiden {
      * Return promise to mined receipt of transaction */
     let blockCounter = 30;
     confirmations = +confirmations || 0;
+
+    const defer = new Deferred<Web3.TransactionReceipt>();
+    let filter = this.web3.eth.filter('latest');
+    const firstBlockTimeout = setTimeout(() => {
+      if (filter) {
+        filter.stopWatching(null);
+        filter = null;
+      }
+      defer.reject(new Error('No blocks seen in 30s. '+
+        'You may need to restart your browser or check '+
+        'if your node is synced!'));
+    }, 30e3);
+
     // Wait for tx to be finished
-    return new Promise((resolve, reject) => {
-      let filter = this.web3.eth.filter('latest');
-      filter.watch(async (err, blockHash) => {
-        if (err) {
-          return reject(err);
-        }
-        if (blockCounter<=0) {
-          if (filter) {
-            filter.stopWatching(null);
-            filter = null;
-          }
-          console.warn('!! Tx expired !!', txHash);
-          return reject(new Error('Tx expired: ' + txHash));
-        }
-        // Get info about latest Ethereum block
-        let receipt;
-        try {
-          receipt = await promisify(this.web3.eth, 'getTransactionReceipt')(txHash);
-        } catch (err) {
-          if (filter) {
-            filter.stopWatching(null);
-            filter = null;
-          }
-          throw err;
-        }
-        if (!receipt || !receipt.blockNumber) {
-          return console.log('Waiting tx..', blockCounter--);
-        } else if (confirmations > 0) {
-          console.log('Waiting confirmations...', confirmations--);
-          return;
-        }
-        // Tx is finished
+    filter.watch(async (err, blockHash) => {
+      if (err) {
+        return defer.reject(err);
+      }
+      // on first block, stop timeout
+      clearTimeout(firstBlockTimeout);
+
+      if (blockCounter<=0) {
         if (filter) {
           filter.stopWatching(null);
           filter = null;
         }
-        return resolve(receipt);
-      });
+        console.warn('!! Tx expired !!', txHash);
+        return defer.reject(new Error('Tx expired: ' + txHash));
+      }
+
+      // Get info about latest Ethereum block
+      const receipt = await promisify<Web3.TransactionReceipt>(this.web3.eth, 'getTransactionReceipt')(txHash);
+      if (!receipt || !receipt.blockNumber) {
+        console.log('Waiting tx..', blockCounter--);
+        return;
+      } else if (confirmations > 0) {
+        console.log('Waiting confirmations...', confirmations--);
+        return;
+      }
+
+      // Tx is finished
+      if (filter) {
+        filter.stopWatching(null);
+        filter = null;
+      }
+      return defer.resolve(receipt);
     });
+
+    return defer.promise;
   }
 
   // instance methods
@@ -249,7 +267,7 @@ export class MicroRaiden {
       return {'state': 'settled', 'block': settled, 'deposit': 0};
     }
 
-    const info = await promisify(this.contract.getChannelInfo, 'call')(
+    const info = await promisify<BigNumber[]>(this.contract.getChannelInfo, 'call')(
       this.channel.account,
       this.channel.receiver,
       this.channel.block,
@@ -277,7 +295,7 @@ export class MicroRaiden {
     const tkn_deposit = this.num2tkn(deposit);
 
     // first, check if there's enough balance
-    const balance = await promisify(this.token.balanceOf, 'call')(account, { from: account });
+    const balance = await promisify<BigNumber>(this.token.balanceOf, 'call')(account, { from: account });
     if (!(balance >= tkn_deposit)) {
       throw new Error(`Not enough tokens.
         Token balance = ${this.tkn2num(balance)}, required = ${deposit}`);
@@ -313,7 +331,7 @@ export class MicroRaiden {
     const receipt = await this.waitTx(transferTxHash, 1);
 
     // call getChannelInfo to be sure channel was created
-    const info = await promisify(this.contract.getChannelInfo, 'call')(
+    const info = await promisify<BigNumber[]>(this.contract.getChannelInfo, 'call')(
       account,
       receiver,
       receipt.blockNumber,
@@ -341,7 +359,7 @@ export class MicroRaiden {
     const tkn_deposit = this.num2tkn(deposit);
 
     // first, check if there's enough balance
-    const balance = await promisify(this.token.balanceOf, 'call')(account, { from: account });
+    const balance = await promisify<BigNumber>(this.token.balanceOf, 'call')(account, { from: account });
     if (!(balance >= tkn_deposit)) {
       throw new Error(`Not enough tokens.
         Token balance = ${this.tkn2num(balance)}, required = ${deposit}`);
@@ -392,7 +410,7 @@ export class MicroRaiden {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
-    const info = await  this.getChannelInfo();
+    const info = await this.getChannelInfo();
     if (info.state !== 'opened') {
       throw new Error('Tried closing already closed channel');
     }
