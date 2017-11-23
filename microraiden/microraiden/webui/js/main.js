@@ -139,7 +139,7 @@ function pageReady(json) {
             uraiden.channel.account === $event.target.value &&
             uraiden.channel.receiver === uRaidenParams.receiver) {
 
-          uraiden.getChannelInfo()
+          return uraiden.getChannelInfo()
             .then(function(info) {
               if (Cookies.get("RDN-Nonexisting-Channel")) {
                 Cookies.remove("RDN-Nonexisting-Channel");
@@ -309,8 +309,8 @@ function pageReady(json) {
   // ==== FINAL SETUP ====
 
   $("#amount").text(uRaidenParams["amount"]);
-  $('[data-toggle="tooltip"]').tooltip();
   refreshAccounts(true);
+  $('[data-toggle="tooltip"]').tooltip();
 
 };
 
