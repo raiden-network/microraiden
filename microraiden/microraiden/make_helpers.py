@@ -9,8 +9,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from microraiden.channel_manager import (
-    ChannelManager,
+from microraiden.channel_manager import ChannelManager
+from microraiden.exceptions import (
     StateReceiverAddrMismatch,
     StateContractAddrMismatch
 )

@@ -90,7 +90,7 @@ def test_updating_channel(state):
     channel.last_signature = SIG
     channel.is_closed = True
     channel.mtime = channel.mtime + 1
-    state.update_channel(channel)
+    state.set_channel(channel)
     channel_retrieved = state.get_channel(channel.sender, channel.open_block_number)
     assert channel_retrieved.sender == SENDER_ADDRESS
     assert channel_retrieved.receiver == RECEIVER_ADDRESS

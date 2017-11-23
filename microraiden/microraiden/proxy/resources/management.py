@@ -6,10 +6,8 @@ from microraiden.crypto import sign_balance_proof
 from microraiden.proxy.resources.login import auth
 from eth_utils import encode_hex
 
-from microraiden.channel_manager import (
-    NoOpenChannel,
-    Channel
-)
+from microraiden.channel_manager import Channel
+from microraiden.exceptions import NoOpenChannel
 
 
 class ChannelManagementRoot(Resource):

@@ -1,7 +1,7 @@
 import logging
 from itertools import count
 from eth_utils import is_same_address, encode_hex
-from microraiden.channel_manager import InvalidBalanceProof, NoOpenChannel, InvalidBalanceAmount
+from microraiden.exceptions import InvalidBalanceProof, NoOpenChannel, InvalidBalanceAmount
 from microraiden.crypto import sign_balance_proof, privkey_to_addr
 from microraiden.test.utils.client import close_channel_cooperatively
 from microraiden.test.fixtures.channel_manager import start_channel_manager
@@ -31,18 +31,18 @@ def confirmed_open_channel(channel_manager, client, receiver_address, receiver_p
 
 
 def test_channel_opening(client, web3, make_account, make_channel_manager_proxy, token_contract,
-                         mine_sync_event, wait_for_blocks, use_tester):
+                         mine_sync_event, wait_for_blocks, use_tester, state_db_path):
     receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver2_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver_address = privkey_to_addr(receiver1_privkey)
     channel_manager1 = ChannelManager(web3, make_channel_manager_proxy(receiver1_privkey),
                                       token_contract, receiver1_privkey,
-                                      n_confirmations=5)
+                                      n_confirmations=5, state_filename=state_db_path + "1")
     start_channel_manager(channel_manager1, use_tester, mine_sync_event)
 
     channel_manager2 = ChannelManager(web3, make_channel_manager_proxy(receiver2_privkey),
                                       token_contract, receiver2_privkey,
-                                      n_confirmations=5)
+                                      n_confirmations=5, state_filename=state_db_path + "2")
     start_channel_manager(channel_manager2, use_tester, mine_sync_event)
     channel_manager1.wait_sync()
     channel_manager2.wait_sync()
@@ -99,12 +99,15 @@ def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait
 def test_close_confirmed_event(channel_manager, confirmed_open_channel, web3, wait_for_blocks):
     blockchain = channel_manager.blockchain
     channel_manager.wait_sync()
-    channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
+
     confirmed_open_channel.close()
     wait_for_blocks(blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
+
+    channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.is_closed is True
+
     settle_block = channel_manager.contract_proxy.get_settle_timeout(
         channel_rec.sender, channel_rec.receiver, channel_rec.open_block_number
     )
@@ -132,15 +135,22 @@ def test_channel_settled_event(channel_manager, confirmed_open_channel, wait_for
 def test_topup(channel_manager, confirmed_open_channel, wait_for_blocks):
     blockchain = channel_manager.blockchain
     channel_manager.wait_sync()
+
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
     confirmed_open_channel.topup(5)
+
     wait_for_blocks(1)
     gevent.sleep(blockchain.poll_interval)
+
     channel_rec = channel_manager.channels[channel_id]
     topup_txs = channel_rec.unconfirmed_topups
     assert len(topup_txs) == 1 and list(topup_txs.values())[0] == 5
+
     wait_for_blocks(channel_manager.blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
+
+    channel_rec = channel_manager.channels[channel_id]
+    topup_txs = channel_rec.unconfirmed_topups
     assert len(topup_txs) == 0
     assert channel_rec.deposit == 15
 
@@ -172,6 +182,7 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
     # valid transfer
     sig1 = encode_hex(confirmed_open_channel.create_transfer(2))
     channel_manager.register_payment(sender_address, channel_rec.open_block_number, 2, sig1)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
 
@@ -185,6 +196,7 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
     with pytest.raises(InvalidBalanceProof):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4,
                                          invalid_sig)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
 
@@ -198,6 +210,7 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
     with pytest.raises(InvalidBalanceProof):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4,
                                          invalid_sig)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
 
@@ -211,6 +224,7 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
     with pytest.raises(InvalidBalanceAmount):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number, 1,
                                          invalid_sig)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
 
@@ -225,15 +239,18 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
     with pytest.raises(InvalidBalanceProof):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number,
                                          5, sig2)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.balance == 2
     assert channel_rec.last_signature == sig1
     channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4, sig2)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.balance == 4
     assert channel_rec.last_signature == sig2
 
     # should transfer up to deposit
     sig3 = encode_hex(confirmed_open_channel.create_transfer(6))
     channel_manager.register_payment(sender_address, channel_rec.open_block_number, 10, sig3)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.balance == 10
     assert channel_rec.last_signature == sig3
 
@@ -304,6 +321,8 @@ def test_multiple_topups(channel_manager, confirmed_open_channel, wait_for_block
     confirmed_open_channel.topup(5)
     wait_for_blocks(1)
     gevent.sleep(blockchain.poll_interval)
+
+    channel_rec = channel_manager.channels[channel_id]
     assert len(channel_rec.unconfirmed_topups) == 1
     assert list(channel_rec.unconfirmed_topups.values()) == [5]
     assert channel_rec.deposit == 10
@@ -312,6 +331,7 @@ def test_multiple_topups(channel_manager, confirmed_open_channel, wait_for_block
     confirmed_open_channel.topup(10)
     wait_for_blocks(1)
     gevent.sleep(blockchain.poll_interval)
+    channel_rec = channel_manager.channels[channel_id]
     assert len(channel_rec.unconfirmed_topups) >= 1  # equality if first is confirmed
     assert 10 in channel_rec.unconfirmed_topups.values()
     assert channel_rec.deposit in [10, 15]  # depends if first topup is confirmed or not
@@ -319,6 +339,7 @@ def test_multiple_topups(channel_manager, confirmed_open_channel, wait_for_block
     # wait for confirmations
     wait_for_blocks(blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
+    channel_rec = channel_manager.channels[channel_id]
     assert len(channel_rec.unconfirmed_topups) == 0
     assert channel_rec.deposit == 25
 
@@ -327,7 +348,6 @@ def test_settlement(channel_manager, confirmed_open_channel, receiver_address, w
                     web3, client_token_proxy, sender_address):
     blockchain = channel_manager.blockchain
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
-    channel_rec = channel_manager.channels[channel_id]
 
     sig = encode_hex(confirmed_open_channel.create_transfer(2))
     channel_manager.register_payment(sender_address, confirmed_open_channel.block, 2, sig)
@@ -336,6 +356,7 @@ def test_settlement(channel_manager, confirmed_open_channel, receiver_address, w
     wait_for_blocks(blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
     block_before = web3.eth.blockNumber
+    channel_rec = channel_manager.channels[channel_id]
     wait_for_blocks(channel_rec.settle_timeout - block_before)
     confirmed_open_channel.settle()
 
@@ -356,12 +377,12 @@ def test_cooperative(channel_manager, confirmed_open_channel, receiver_address, 
                      wait_for_blocks, client_token_proxy, sender_address):
     blockchain = channel_manager.blockchain
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
-    channel_rec = channel_manager.channels[channel_id]
 
     sig1 = encode_hex(confirmed_open_channel.create_transfer(5))
     channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig1)
 
     receiver_sig = channel_manager.sign_close(sender_address, confirmed_open_channel.block, 5)
+    channel_rec = channel_manager.channels[channel_id]
     assert channel_rec.is_closed is True
     block_before = web3.eth.blockNumber
     confirmed_open_channel.close_cooperatively(receiver_sig)
@@ -419,18 +440,19 @@ def test_balances(channel_manager, client, confirmed_open_channel, receiver_addr
 
 
 def test_different_receivers(web3, make_account, make_channel_manager_proxy, token_contract,
-                             mine_sync_event, client, sender_address, wait_for_blocks, use_tester):
+                             mine_sync_event, client, sender_address, wait_for_blocks, use_tester,
+                             state_db_path):
     receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver2_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver1_address = privkey_to_addr(receiver1_privkey)
     channel_manager1 = ChannelManager(web3, make_channel_manager_proxy(receiver1_privkey),
                                       token_contract, receiver1_privkey,
-                                      n_confirmations=5)
+                                      n_confirmations=5, state_filename=state_db_path + ".1")
     start_channel_manager(channel_manager1, use_tester, mine_sync_event)
 
     channel_manager2 = ChannelManager(web3, make_channel_manager_proxy(receiver2_privkey),
                                       token_contract, receiver2_privkey,
-                                      n_confirmations=5)
+                                      n_confirmations=5, state_filename=state_db_path + ".2")
     start_channel_manager(channel_manager2, use_tester, mine_sync_event)
     channel_manager1.wait_sync()
     channel_manager2.wait_sync()
@@ -451,18 +473,19 @@ def test_different_receivers(web3, make_account, make_channel_manager_proxy, tok
     gevent.sleep(blockchain.poll_interval)
     assert (sender_address, channel.block) in channel_manager1.channels
     assert (sender_address, channel.block) not in channel_manager2.channels
-    channel_rec = channel_manager1.channels[sender_address, channel.block]
 
     # unconfirmed topup
     channel.topup(5)
     wait_for_blocks(1)
     gevent.sleep(blockchain.poll_interval)
+    channel_rec = channel_manager1.channels[sender_address, channel.block]
     assert len(channel_rec.unconfirmed_topups) == 1
     assert channel_rec.deposit == 10
 
     # confirmed topup
     wait_for_blocks(blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
+    channel_rec = channel_manager1.channels[sender_address, channel.block]
     assert len(channel_rec.unconfirmed_topups) == 0
     assert channel_rec.deposit == 15
 
@@ -470,6 +493,7 @@ def test_different_receivers(web3, make_account, make_channel_manager_proxy, tok
     channel.close()
     wait_for_blocks(blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
+    channel_rec = channel_manager1.channels[sender_address, channel.block]
     assert channel_rec.is_closed is True
 
     # settlement
@@ -514,12 +538,13 @@ def test_reorg(web3, channel_manager, client, receiver_address, wait_for_blocks,
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.n_confirmations)
     assert (channel.sender, channel.block) in channel_manager.channels
-    channel_rec = channel_manager.channels[channel.sender, channel.block]
     topup_snapshot_id = web3.testing.snapshot()
     channel.topup(5)
     wait_for_blocks(0)
+    channel_rec = channel_manager.channels[channel.sender, channel.block]
     assert len(channel_rec.unconfirmed_topups) == 1
     web3.testing.revert(topup_snapshot_id)
     wait_for_blocks(0)
     assert (channel.sender, channel.block) in channel_manager.channels
+    channel_rec = channel_manager.channels[channel.sender, channel.block]
     assert len(channel_rec.unconfirmed_topups) == 0
