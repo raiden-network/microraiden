@@ -13,26 +13,21 @@ log = logging.getLogger(__name__)
 
 
 class HTTPClient(object):
-    def __init__(self, client: Client, api_endpoint, api_port):
+    def __init__(self, client: Client, api_endpoint: str, api_port: int) -> None:
         self.client = client
         self.api_endpoint = api_endpoint
         self.api_port = api_port
 
-        self.channel = None
-        self.requested_resource = None
-        self.retry = False
+        self.channel = None  # type: Channel
         self.running = False
 
     def run(self, requested_resource=None):
-        if requested_resource:
-            self.requested_resource = requested_resource
-        self.on_init()
+        self.on_init(requested_resource)
         resource = None
         self.running = True
-        self.retry = True
-        while self.running and self.retry and self.requested_resource:
-            self.retry = False
-            resource = self._request_resource()
+        retry = True
+        while self.running and retry:
+            resource, retry = self._request_resource(requested_resource)
 
         self.on_exit()
         return resource
@@ -63,7 +58,7 @@ class HTTPClient(object):
         if self.channel:
             self.close_channel(self.channel)
 
-    def _request_resource(self):
+    def _request_resource(self, requested_resource: str):
         """
         Performs a simple GET request to the HTTP server with headers representing the given
         channel state.
@@ -77,18 +72,22 @@ class HTTPClient(object):
             headers.receiver_address = self.channel.receiver
             headers.open_block = str(self.channel.block)
 
-        url = self.make_url(self.requested_resource)
+        url = self.make_url(requested_resource)
         response = requests.get(url, headers=HTTPHeaders.serialize(headers))
         headers = HTTPHeaders.deserialize(response.headers)
 
         if response.status_code == requests.codes.OK:
             self.on_success(response.content, headers.get('cost'))
-            return response.content
+            return response.content, False
         elif response.status_code == requests.codes.PAYMENT_REQUIRED:
             if 'insuf_confs' in headers:
                 self.on_insufficient_confirmations()
             elif 'insuf_funds' in headers:
                 self.on_insufficient_funds()
+            elif 'invalid_amount' in headers:
+                self.on_invalid_amount()
+                self.channel.balance = int(headers.sender_balance)
+                return None, False
             else:
                 balance = int(headers.sender_balance) if 'sender_balance' in headers else None
                 balance_sig = decode_hex(headers.balance_signature) \
@@ -100,6 +99,7 @@ class HTTPClient(object):
                     balance_sig,
                     headers.get('contract_address')
                 )
+            return None, True
 
     def on_init(self):
         pass
@@ -114,6 +114,9 @@ class HTTPClient(object):
         pass
 
     def on_insufficient_confirmations(self):
+        pass
+
+    def on_invalid_amount(self):
         pass
 
     def on_payment_requested(

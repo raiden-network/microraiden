@@ -21,6 +21,7 @@ class HTTPHeaders(object):
     INSUF_CONFS = 'RDN-Insufficient-Confirmations'
     NONEXISTING_CHANNEL = 'RDN-Nonexisting-Channel'
     INVALID_PROOF = 'RDN-Invalid-Balance-Proof'
+    INVALID_AMOUNT = 'RDN-Invalid-Amount'
 
     DESERIALIZE_DICT = None
     SERIALIZE_DICT = None

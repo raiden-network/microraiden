@@ -149,8 +149,16 @@ class Expensive(Resource):
                                                headers={header.INVALID_PROOF: 1},
                                                gen_ui=accepts_html)
 
-        # set the headers to reflect actual state of a channel
         headers = self.generate_headers(channel, proxy_handle)
+        amount_sent = data.balance - channel.balance
+        if amount_sent != 0 and amount_sent != proxy_handle.price:
+            headers[header.INVALID_AMOUNT] = 1
+            #  if difference is 0, it will be handled by channel manager
+            return self.reply_payment_required(content, proxy_handle,
+                                               headers=headers,
+                                               gen_ui=accepts_html)
+
+        # set the headers to reflect actual state of a channel
         try:
             self.channel_manager.register_payment(
                 channel.sender,
@@ -179,8 +187,6 @@ class Expensive(Resource):
         }
         if channel.last_signature is not None:
             headers.update({header.BALANCE_SIGNATURE: channel.last_signature})
-        return headers
-
         return headers
 
     def reply_premium(self, content, proxy_handle, headers):

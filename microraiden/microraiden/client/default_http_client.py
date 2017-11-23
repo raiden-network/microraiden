@@ -25,10 +25,11 @@ class DefaultHTTPClient(HTTPClient):
         self.retry_interval = retry_interval
         self.initial_deposit = initial_deposit
         self.topup_deposit = topup_deposit
+        self.channel = None  # type: Channel
 
-    def on_init(self):
-        if self.requested_resource:
-            log.info('Starting request loop for resource at {}.'.format(self.requested_resource))
+    def on_init(self, requested_resource):
+        if requested_resource:
+            log.info('Starting request loop for resource at {}.'.format(requested_resource))
         else:
             log.info('No resource specified.')
 
@@ -43,12 +44,17 @@ class DefaultHTTPClient(HTTPClient):
             .format(self.retry_interval)
         )
         time.sleep(self.retry_interval)
-        self.retry = True
 
     def on_insufficient_funds(self):
-        log.error('Server was unable to verify the transfer.')
+        log.error('Server was unable to verify the transfer - '
+                  'Insufficient funds of the balance proof.')
+
+    def on_invalid_amount(self):
+        log.error('Server was unable to verify the transfer - '
+                  'Invalid amount sent by the client.')
 
     def _approve_payment(self, balance: int, balance_sig: bytes, channel_manager_address: str):
+        assert isinstance(balance, (int, type(None)))
         if not channel_manager_address:
             log.warning('Server did not specify a contract address.')
         elif not is_same_address(channel_manager_address, self.client.channel_manager_address):
@@ -63,14 +69,14 @@ class DefaultHTTPClient(HTTPClient):
         if not self.channel:
             # Nothing to verify or sync. Server does not know about a channel yet.
             return True
-        elif not balance:
+        elif balance is None:
             # Server does know about the channel but cannot confirm its creation yet.
             log.info(
                 'Server could not confirm new channel yet. Waiting for {} seconds.'
                 .format(self.retry_interval)
             )
             time.sleep(self.retry_interval)
-            self.retry = True
+#            self.retry = True
             return False
 
         verified = balance_sig and is_same_address(
@@ -102,7 +108,7 @@ class DefaultHTTPClient(HTTPClient):
                 self.channel.balance = balance
 
                 time.sleep(self.retry_interval)
-                self.retry = True
+#                self.retry = True
                 return False
             else:
                 log.info(
@@ -121,7 +127,7 @@ class DefaultHTTPClient(HTTPClient):
             balance_sig: bytes,
             channel_manager_address: str
     ):
-        if not self._approve_payment(balance, balance_sig, channel_manager_address):
+        if self._approve_payment(balance, balance_sig, channel_manager_address) is False:
             return
 
         assert price > 0
@@ -150,7 +156,6 @@ class DefaultHTTPClient(HTTPClient):
             'Sending new balance proof. New channel balance: {}/{}'
             .format(self.channel.balance, self.channel.deposit)
         )
-        self.retry = True
 
     @staticmethod
     def is_suitable_channel(channel: Channel, receiver: str, value: int):
