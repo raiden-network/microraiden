@@ -3,11 +3,11 @@ import * as BigNumber from 'bignumber.js';
 
 declare const localStorage; // possibly missing
 
-function promisify(func: Function): (...args: any[]) => Promise<any> {
+function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> {
   /* Convert a callback-based func to return a promise */
   return (...params) =>
     new Promise((resolve, reject) =>
-      func(...params, (err, res) => err ? reject(err) : resolve(res)));
+      obj[method](...params, (err, res) => err ? reject(err) : resolve(res)));
 }
 
 export interface MicroChannel {
@@ -114,7 +114,7 @@ export class MicroRaiden {
         // Get info about latest Ethereum block
         let receipt;
         try {
-          receipt = await promisify(this.web3.eth.getTransactionReceipt)(txHash);
+          receipt = await promisify(this.web3.eth, 'getTransactionReceipt')(txHash);
         } catch (err) {
           if (filter) {
             filter.stopWatching(null);
@@ -146,7 +146,7 @@ export class MicroRaiden {
       this.channel = undefined;
       return;
     }
-    const key = account + '|' + receiver;
+    const key = [account, receiver].join('|');
     const value = localStorage.getItem(key);
     if (value) {
       this.channel = JSON.parse(value);
@@ -161,7 +161,7 @@ export class MicroRaiden {
       return;
     }
     if (localStorage) {
-      const key = this.channel.account + '|' + this.channel.receiver;
+      const key = [this.channel.account, this.channel.receiver].join('|');
       localStorage.removeItem(key);
     }
     this.channel = undefined;
@@ -171,7 +171,7 @@ export class MicroRaiden {
     /* Set channel info. Can be used to externally [re]store channel info */
     this.channel = channel;
     if (localStorage) {
-      const key = channel.account + '|' + channel.receiver;
+      const key = [this.channel.account, this.channel.receiver].join('|');
       localStorage.setItem(key, JSON.stringify(this.channel));
     }
   }
@@ -188,7 +188,7 @@ export class MicroRaiden {
   async getAccounts(): Promise<string[]> {
     /* Get available accounts from web3 providers.
      * Returns promise to accounts addresses array */
-    return await promisify(this.web3.eth.getAccounts)();
+    return await promisify<string[]>(this.web3.eth, 'getAccounts')();
   }
 
   async getTokenInfo(account?: string): Promise<MicroTokenInfo> {
@@ -196,10 +196,10 @@ export class MicroRaiden {
      * If account is provided, returns also account balance for this token.
      * Returns promise to MicroTokenInfo object */
     const [name, symbol, decimals, balance] = await Promise.all([
-      promisify(this.token.name.call)(),
-      promisify(this.token.symbol.call)(),
-      promisify(this.token.decimals.call)().then((d) => d.toNumber()),
-      account ? promisify(this.token.balanceOf.call)(account) : null
+      promisify<string>(this.token.name, 'call')(),
+      promisify<string>(this.token.symbol, 'call')(),
+      promisify<BigNumber>(this.token.decimals, 'call')().then((d) => d.toNumber()),
+      account ? promisify<BigNumber>(this.token.balanceOf, 'call')(account) : null
     ]);
     this.decimals = decimals;
     return { name, symbol, decimals, balance: this.tkn2num(balance) };
@@ -213,14 +213,14 @@ export class MicroRaiden {
       throw new Error('No valid channelInfo');
     }
 
-    const closeEvents: any[] = await promisify(this.contract.ChannelCloseRequested({
+    const closeEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelCloseRequested({
       _sender: this.channel.account,
       _receiver: this.channel.receiver,
       _open_block_number: this.channel.block,
     }, {
       fromBlock: this.channel.block,
       toBlock: 'latest'
-    }).get)();
+    }), 'get')();
 
     let closed: number;
     if (!closeEvents || closeEvents.length === 0) {
@@ -229,14 +229,14 @@ export class MicroRaiden {
       closed = closeEvents[0].blockNumber;
     }
 
-    const settleEvents: any[] = await promisify(this.contract.ChannelSettled({
+    const settleEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
       _sender: this.channel.account,
       _receiver: this.channel.receiver,
       _open_block_number: this.channel.block,
     }, {
       fromBlock: closed || this.channel.block,
       toBlock: 'latest'
-    }).get)();
+    }), 'get')();
 
     let settled: number;
     if (!settleEvents || settleEvents.length === 0) {
@@ -249,7 +249,7 @@ export class MicroRaiden {
       return {'state': 'settled', 'block': settled, 'deposit': 0};
     }
 
-    const info = await promisify(this.contract.getChannelInfo.call)(
+    const info = await promisify(this.contract.getChannelInfo, 'call')(
       this.channel.account,
       this.channel.receiver,
       this.channel.block,
@@ -277,7 +277,7 @@ export class MicroRaiden {
     const tkn_deposit = this.num2tkn(deposit);
 
     // first, check if there's enough balance
-    const balance = await promisify(this.token.balanceOf.call)(account, { from: account });
+    const balance = await promisify(this.token.balanceOf, 'call')(account, { from: account });
     if (!(balance >= tkn_deposit)) {
       throw new Error(`Not enough tokens.
         Token balance = ${this.tkn2num(balance)}, required = ${deposit}`);
@@ -289,7 +289,7 @@ export class MicroRaiden {
     if (typeof this.token.transfer['address,uint256,bytes'] === 'function') {
       // ERC223
       // transfer tokens directly to the channel manager contract
-      transferTxHash = await promisify(this.token.transfer['address,uint256,bytes'].sendTransaction)(
+      transferTxHash = await promisify<string>(this.token.transfer['address,uint256,bytes'], 'sendTransaction')(
         this.contract.address,
         tkn_deposit,
         receiver, // bytes _data (3rd param) is the receiver
@@ -297,12 +297,12 @@ export class MicroRaiden {
     } else {
       // ERC20
       // send 'approve' transaction to token contract
-      const approveTxHash = await promisify(this.token.approve.sendTransaction)(
+      await promisify<string>(this.token.approve, 'sendTransaction')(
         this.contract.address,
         tkn_deposit,
         { from: account });
       // send 'createChannel' transaction to channel manager contract
-      transferTxHash = await promisify(this.contract.createChannelERC20.sendTransaction)(
+      transferTxHash = await promisify<string>(this.contract.createChannelERC20, 'sendTransaction')(
         receiver,
         tkn_deposit,
         { from: account });
@@ -313,7 +313,7 @@ export class MicroRaiden {
     const receipt = await this.waitTx(transferTxHash, 1);
 
     // call getChannelInfo to be sure channel was created
-    const info = await promisify(this.contract.getChannelInfo.call)(
+    const info = await promisify(this.contract.getChannelInfo, 'call')(
       account,
       receiver,
       receipt.blockNumber,
@@ -341,7 +341,7 @@ export class MicroRaiden {
     const tkn_deposit = this.num2tkn(deposit);
 
     // first, check if there's enough balance
-    const balance = await promisify(this.token.balanceOf.call)(account, { from: account });
+    const balance = await promisify(this.token.balanceOf, 'call')(account, { from: account });
     if (!(balance >= tkn_deposit)) {
       throw new Error(`Not enough tokens.
         Token balance = ${this.tkn2num(balance)}, required = ${deposit}`);
@@ -353,7 +353,7 @@ export class MicroRaiden {
     if (typeof this.token.transfer['address,uint256,bytes'] === 'function') {
       // ERC223, just send token.transfer transaction
       // transfer tokens directly to the channel manager contract
-      transferTxHash = await promisify(this.token.transfer['address,uint256,bytes'].sendTransaction)(
+      transferTxHash = await promisify<string>(this.token.transfer['address,uint256,bytes'], 'sendTransaction')(
         this.contract.address,
         tkn_deposit,
         // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
@@ -362,12 +362,12 @@ export class MicroRaiden {
     } else {
       // ERC20, approve channel manager contract to handle our tokens, then topUp
       // send 'approve' transaction to token contract
-      const approveTxHash = await promisify(this.token.approve.sendTransaction)(
+      await promisify<string>(this.token.approve, 'sendTransaction')(
         this.contract.address,
         tkn_deposit,
         { from: account });
       // send 'topUp' transaction to channel manager contract
-      transferTxHash = await promisify(this.contract.topUpERC20.sendTransaction)(
+      transferTxHash = await promisify<string>(this.contract.topUpERC20, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
         tkn_deposit,
@@ -415,7 +415,7 @@ export class MicroRaiden {
       params.push(receiverSig);
       paramsTypes += ',bytes';
     }
-    const txHash = await promisify(this.contract.close[paramsTypes].sendTransaction)(
+    const txHash = await promisify<string>(this.contract.close[paramsTypes], 'sendTransaction')(
       ...params,
       { from: this.channel.account });
 
@@ -436,7 +436,7 @@ export class MicroRaiden {
     if (info.state !== 'closed') {
       throw new Error('Tried settling opened or settled channel');
     }
-    const txHash = await promisify(this.contract.settle.sendTransaction)(
+    const txHash = await promisify<string>(this.contract.settle, 'sendTransaction')(
       this.channel.receiver,
       this.channel.block,
       { from: this.channel.account });
@@ -457,12 +457,12 @@ export class MicroRaiden {
 
     let sign: string;
     try {
-      sign = await promisify(this.web3.personal.sign)(hex, this.channel.account);
+      sign = await promisify<string>(this.web3.personal, 'sign')(hex, this.channel.account);
     } catch (err) {
       if (err.message &&
         (err.message.includes('Method not found') ||
           err.message.includes('is not a function'))) {
-        sign = await promisify(this.web3.eth.sign)(this.channel.account, hex);
+        sign = await promisify<string>(this.web3.eth, 'sign')(this.channel.account, hex);
       } else {
         throw err;
       }
@@ -487,14 +487,14 @@ export class MicroRaiden {
       return this.channel.sign;
     }
 
-    const msg = await promisify(this.contract.getBalanceMessage.call)(
+    const msg = await promisify<string>(this.contract.getBalanceMessage, 'call')(
       this.channel.receiver,
       this.channel.block,
       this.num2tkn(newBalance),
       { from: this.channel.account });
 
     // ask for signing of this message
-    const sign = await promisify(this.signMessage)(msg);
+    const sign = await this.signMessage(msg);
 
     // return signed message
     if (newBalance === this.channel.balance && !this.channel.sign) {
@@ -534,7 +534,7 @@ export class MicroRaiden {
     /* For testing. Send 0.1 ETH to mint method of contract.
      * On TKN tests, it'll yield 50 TKNs.
      * Returns promise to tx receipt */
-    const txHash = await promisify(this.token.mint.sendTransaction)({
+    const txHash = await promisify<string>(this.token.mint, 'sendTransaction')({
       from: account,
       value: this.web3.toWei(0.1, 'ether')
     });
