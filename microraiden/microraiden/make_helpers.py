@@ -25,10 +25,10 @@ def make_contract_proxy(web3, private_key, contract_address):
                                 config.GAS_LIMIT)
 
 
-def make_channel_manager(private_key: str, state_filename: str, web3):
+def make_channel_manager(private_key: str, contract_address: str, state_filename: str, web3):
     contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
     abi = json.load(open(contracts_abi_path))['ERC223Token']['abi']
-    channel_manager_proxy = make_contract_proxy(web3, private_key, config.CHANNEL_MANAGER_ADDRESS)
+    channel_manager_proxy = make_contract_proxy(web3, private_key, contract_address)
     token_address = channel_manager_proxy.contract.call().token_address()
     token_contract = web3.eth.contract(abi=abi, address=token_address)
     try:
@@ -53,9 +53,12 @@ def make_channel_manager(private_key: str, state_filename: str, web3):
         sys.exit(1)
 
 
-def make_paywalled_proxy(private_key: str, state_filename: str, flask_app=None, web3=None):
+def make_paywalled_proxy(private_key: str,
+                         state_filename: str,
+                         contract_address=config.CHANNEL_MANAGER_ADDRESS,
+                         flask_app=None, web3=None):
     if web3 is None:
         web3 = Web3(config.WEB3_PROVIDER)
-    channel_manager = make_channel_manager(private_key, state_filename, web3)
+    channel_manager = make_channel_manager(private_key, contract_address, state_filename, web3)
     proxy = PaywalledProxy(channel_manager, flask_app, config.HTML_DIR, config.JSLIB_DIR)
     return proxy

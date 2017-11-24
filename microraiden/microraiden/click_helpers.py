@@ -101,7 +101,9 @@ def main(
     config.paywall_html_dir = paywall_info
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     try:
-        app = make_paywalled_proxy(private_key, state_file, web3=web3)
+        app = make_paywalled_proxy(private_key, state_file,
+                                   contract_address=channel_manager_address,
+                                   web3=web3)
     except StateFileLocked as ex:
         log.fatal('Another uRaiden process is already running (%s)!' % str(ex))
         sys.exit(1)
