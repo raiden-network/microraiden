@@ -133,37 +133,8 @@ contract RaidenMicroTransferChannels {
         return keccak256(_sender_address, _receiver_address, _open_block_number);
     }
 
-    /// @dev Returns a hash of the balance message needed to be signed by the sender.
-    /// @param _receiver_address The address that receives tokens.
-    /// @param _open_block_number The block number at which a channel between the
-    /// sender and receiver was created.
-    /// @param _balance The amount of tokens owed by the sender to the receiver.
-    /// @return Hash of the balance message.
-    function getBalanceMessage(
-        address _receiver_address,
-        uint32 _open_block_number,
-        uint192 _balance)
-        public
-        pure
-        returns (string)
-    {
-        string memory str = concat("Receiver: 0x", addressToString(_receiver_address));
-        str = concat(str, ", Balance: ");
-        str = concat(str, uintToString(uint256(_balance)));
-        str = concat(str, ", Channel ID: ");
-        str = concat(str, uintToString(uint256(_open_block_number)));
-        return str;
-    }
-
-    /*
-     *  Temporary implementation of verifyBalanceProof.
-     *  Message string reproduction is a workaround
-     *  until https://github.com/ethereum/EIPs/pull/712 is implemented.
-     *  Reason: offer the sender security that the Dapp sends the same balance as in
-     *  the signed message
-     */
-
     /// @dev Returns the sender address extracted from the balance proof.
+    /// Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
     /// @param _receiver_address The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
@@ -179,21 +150,13 @@ contract RaidenMicroTransferChannels {
         constant
         returns (address)
     {
-        // Create message which should be signed by sender
-        string memory message = getBalanceMessage(_receiver_address, _open_block_number, _balance);
-        uint message_length = bytes(message).length;
-        string memory message_length_string = uintToString(message_length);
-
-        // Prefix the message
-        string memory prefixed_message = concat(prefix, message_length_string);
-        prefixed_message = concat(prefixed_message, message);
-
-
-        // Hash the prefixed message string
-        bytes32 prefixed_message_hash = keccak256(prefixed_message);
+        var message_hash = keccak256(
+          keccak256('address receiver', 'uint32 block_created', 'uint192 balance'),
+          keccak256(_receiver_address, _open_block_number, _balance)
+        );
 
         // Derive address from signature
-        address signer = ECVerify.ecverify(prefixed_message_hash, _balance_msg_sig);
+        address signer = ECVerify.ecverify(message_hash, _balance_msg_sig);
         return signer;
     }
 
@@ -496,99 +459,5 @@ contract RaidenMicroTransferChannels {
         }
 
         return size > 0;
-    }
-
-    /*
-     *  Temporary functions.
-     *  Workaround until https://github.com/ethereum/EIPs/pull/712 is done.
-     *  We use these for verifyBalanceProof.
-     */
-
-    function memcpy(uint dest, uint src, uint len) private pure {
-        // Copy word-length chunks while possible
-        for(; len >= 32; len -= 32) {
-            assembly {
-                mstore(dest, mload(src))
-            }
-            dest += 32;
-            src += 32;
-        }
-
-        // Copy remaining bytes
-        uint mask = 256 ** (32 - len) - 1;
-        assembly {
-            let srcpart := and(mload(src), not(mask))
-            let destpart := and(mload(dest), mask)
-            mstore(dest, or(destpart, srcpart))
-        }
-    }
-
-    function concat(string _self, string _other) internal pure returns (string)
-    {
-        uint self_len = bytes(_self).length;
-        uint other_len = bytes(_other).length;
-        uint self_ptr;
-        uint other_ptr;
-
-        assembly {
-            self_ptr := add(_self, 0x20)
-            other_ptr := add(_other, 0x20)
-        }
-
-        var ret = new string(self_len + other_len);
-        uint retptr;
-        assembly { retptr := add(ret, 32) }
-        memcpy(retptr, self_ptr, self_len);
-        memcpy(retptr + self_len, other_ptr, other_len);
-        return ret;
-    }
-
-    function uintToString(uint v) internal pure returns (string) {
-        bytes32 ret;
-        if (v == 0) {
-            ret = '0';
-        } else {
-             while (v > 0) {
-                ret = bytes32(uint(ret) / (2 ** 8));
-                ret |= bytes32(((v % 10) + 48) * 2 ** (8 * 31));
-                v /= 10;
-            }
-        }
-
-        bytes memory bytesString = new bytes(32);
-        uint charCount = 0;
-        for (uint j=0; j<32; j++) {
-            byte char = byte(bytes32(uint(ret) * 2 ** (8 * j)));
-            if (char != 0) {
-                bytesString[j] = char;
-                charCount++;
-            }
-        }
-        bytes memory bytesStringTrimmed = new bytes(charCount);
-        for (j = 0; j < charCount; j++) {
-            bytesStringTrimmed[j] = bytesString[j];
-        }
-
-        return string(bytesStringTrimmed);
-    }
-
-    function addressToString(address account_address) internal pure returns (string) {
-        bytes memory str = new bytes(40);
-        for (uint i = 0; i < 20; i++) {
-            byte b = byte(uint8(uint(account_address) / (2**(8*(19 - i)))));
-            byte hi = byte(uint8(b) / 16);
-            byte lo = byte(uint8(b) - 16 * uint8(hi));
-            str[2*i] = char(hi);
-            str[2*i+1] = char(lo);
-        }
-        return string(str);
-    }
-
-    function char(byte b) internal pure returns (byte c) {
-        if (b < 10) {
-            return byte(uint8(b) + 0x30);
-        } else {
-            return byte(uint8(b) + 0x57);
-        }
     }
 }
