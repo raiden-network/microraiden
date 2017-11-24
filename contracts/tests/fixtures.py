@@ -36,7 +36,6 @@ def token_contract(chain, create_contract):
 
         print_logs(token_contract, 'Approval', 'CustomToken')
         print_logs(token_contract, 'Transfer', 'CustomToken')
-        # print_logs(token_contract, 'GasCost', 'CustomToken')
 
         return token_contract
     return get
@@ -53,8 +52,6 @@ def channels_contract(chain, create_contract):
         print_logs(channels_contract, 'ChannelToppedUp', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
         print_logs(channels_contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
-        print_logs(channels_contract, 'GasCost', 'RaidenMicroTransferChannels')
-
 
         return channels_contract
     return get
