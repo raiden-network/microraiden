@@ -18,6 +18,22 @@ class ChannelManagementRoot(Resource):
         return "OK"
 
 
+class ChannelManagerAbi(Resource):
+    def __init__(self, abi={}):
+        self.abi = abi
+
+    def get(self):
+        return self.abi
+
+
+class TokenAbi(Resource):
+    def __init__(self, abi={}):
+        self.abi = abi
+
+    def get(self):
+        return self.abi
+
+
 class ChannelManagementStats(Resource):
     def __init__(self, channel_manager):
         super(ChannelManagementStats, self).__init__()
@@ -42,7 +58,9 @@ class ChannelManagementStats(Resource):
                 'unique_senders': len(unique_senders),
                 'liquid_balance': self.channel_manager.get_liquid_balance(),
                 'token_address': self.channel_manager.token_contract.address,
-                'contract_address': contract_address}
+                'contract_address': contract_address,
+                'receiver_address': self.channel_manager.receiver
+                }
 
 
 class ChannelManagementListChannels(Resource):

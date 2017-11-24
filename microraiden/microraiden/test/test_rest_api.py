@@ -56,3 +56,28 @@ def test_resources(doggo_proxy, api_endpoint_address, users_db):
     # use the token to login
     rv = requests.get(api_path + "/admin", auth=token_credentials)
     assert rv.status_code == 401
+
+
+def test_stats(doggo_proxy, api_endpoint_address):
+    api_path = "http://" + api_endpoint_address + API_PATH
+
+    rv = requests.get(api_path + "/stats")
+    assert rv.status_code == 200
+    stats = json.loads(rv.text)
+    assert 'balance_sum' in stats
+    assert 'deposit_sum' in stats
+    assert 'token_address' in stats
+    assert 'receiver_address' in stats
+    assert 'contract_address' in stats
+    assert stats['receiver_address'] == doggo_proxy.channel_manager.receiver
+    token_address = doggo_proxy.channel_manager.token_contract.address
+    assert stats['token_address'] == token_address
+    contract_address = doggo_proxy.channel_manager.contract_proxy.contract.address
+    assert stats['contract_address'] == contract_address
+
+    rv = requests.get(api_path + "/manager_abi")
+    assert rv.status_code == 200
+    json.loads(rv.text)
+    rv = requests.get(api_path + "/token_abi")
+    assert rv.status_code == 200
+    json.loads(rv.text)
