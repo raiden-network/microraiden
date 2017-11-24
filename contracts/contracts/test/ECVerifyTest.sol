@@ -4,17 +4,14 @@ import "../lib/ECVerify.sol";
 
 contract ECVerifyTest {
     function verify(
-        string _prefixed_message,
+        bytes32 _message,
         bytes _signed_message)
         public
         constant
         returns (address)
     {
-        // Hash the prefixed message string
-        bytes32 prefixed_message_hash = keccak256(_prefixed_message);
-
         // Derive address from signature
-        address signer = ECVerify.ecverify(prefixed_message_hash, _signed_message);
+        address signer = ECVerify.ecverify(_message, _signed_message);
         return signer;
     }
 

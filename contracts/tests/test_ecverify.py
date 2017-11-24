@@ -1,6 +1,7 @@
 import pytest
 from ethereum import tester
 from utils import sign
+from tests.utils import balance_proof_hash
 from tests.fixtures import (
     create_contract,
     token_contract,
@@ -18,10 +19,12 @@ def ecverify_test_contract(chain, create_contract):
 
 def test_ecrecover_output(web3, ecverify_test_contract):
     (A, B) = web3.eth.accounts[:2]
-    message = "daddydaddycool"
-    prefixed_message = sign.eth_message_prefixed(message)
-    hash_prefixed_message = sign.eth_message_hex(message)
-    signed_message, addr = sign.check(message, tester.k0)
+    block = 4804175
+    balance = 22000000000000000000
+
+    balance_message_hash = balance_proof_hash(B, block, balance)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k0)
+    assert addr == A
 
     # r = signed_message[:32];
     # s = signed_message[32:64];
@@ -33,53 +36,54 @@ def test_ecrecover_output(web3, ecverify_test_contract):
     address = '0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb'
 
     with pytest.raises(tester.TransactionFailed):
-        ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, r, s, 0)
+        ecverify_test_contract.call().verify_ecrecover_output(balance_message_hash, r, s, 0)
 
     web3.testing.mine(30)
     with pytest.raises(tester.TransactionFailed):
-        ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, r, bytearray(), v)
+        ecverify_test_contract.call().verify_ecrecover_output(balance_message_hash, r, bytearray(), v)
 
     web3.testing.mine(30)
     with pytest.raises(tester.TransactionFailed):
-        ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, bytearray(), s, v)
+        ecverify_test_contract.call().verify_ecrecover_output(balance_message_hash, bytearray(), s, v)
 
     web3.testing.mine(30)
-    verified_address = ecverify_test_contract.call().verify_ecrecover_output(hash_prefixed_message, r, s, v)
+    verified_address = ecverify_test_contract.call().verify_ecrecover_output(balance_message_hash, r, s, v)
     # assert address == verified_address
 
 
 def test_sign(web3, ecverify_test_contract):
     (A, B) = web3.eth.accounts[:2]
-    message = "daddydaddycool"
-    prefixed_message = sign.eth_message_prefixed(message)
+    block = 4804175
+    balance = 22000000000000000000
 
-    signed_message, addr = sign.check(message, tester.k0)
-    signed_message_false, addr1 = sign.check(message, tester.k1)
+    balance_message_hash = balance_proof_hash(B, block, balance)
+    balance_message_hash2 = balance_proof_hash(B, block, balance + 1000)
+    signed_message, addr = sign.check(balance_message_hash, tester.k0)
+    signed_message_false, addr1 = sign.check(balance_message_hash, tester.k1)
     assert addr == A
     assert addr1 == B
     assert len(signed_message) == 65
     assert len(signed_message_false) == 65
 
-
     with pytest.raises(tester.TransactionFailed):
-        verified_address = ecverify_test_contract.call().verify(prefixed_message, bytearray())
+        verified_address = ecverify_test_contract.call().verify(balance_message_hash, bytearray())
 
     web3.testing.mine(30)
     with pytest.raises(tester.TransactionFailed):
-        verified_address = ecverify_test_contract.call().verify(prefixed_message, bytearray(64))
+        verified_address = ecverify_test_contract.call().verify(balance_message_hash, bytearray(64))
 
     web3.testing.mine(30)
     with pytest.raises(tester.TransactionFailed):
-        verified_address = ecverify_test_contract.call().verify(prefixed_message, bytearray(66))
+        verified_address = ecverify_test_contract.call().verify(balance_message_hash, bytearray(66))
 
     web3.testing.mine(30)
-    verified_address = ecverify_test_contract.call().verify(message, signed_message)
+    verified_address = ecverify_test_contract.call().verify(balance_message_hash2, signed_message)
     assert verified_address != A
 
-    verified_address = ecverify_test_contract.call().verify(prefixed_message, signed_message)
+    verified_address = ecverify_test_contract.call().verify(balance_message_hash, signed_message)
     assert verified_address == A
 
-    verified_address_false = ecverify_test_contract.call().verify(prefixed_message, signed_message_false)
+    verified_address_false = ecverify_test_contract.call().verify(balance_message_hash, signed_message_false)
     assert verified_address_false != A
     assert verified_address_false == B
 
@@ -95,6 +99,7 @@ def test_sign(web3, ecverify_test_contract):
 
 
 def test_verifyBalanceProof(web3, token_contract, channels_contract):
+    (A, B) = web3.eth.accounts[:2]
     challenge_period = 5
     supply = 10000 * 10**18
     token = token_contract([supply, "CustomToken", "TKN", 18])
@@ -109,3 +114,10 @@ def test_verifyBalanceProof(web3, token_contract, channels_contract):
 
     signature_address = contract.call().verifyBalanceProof(receiver, block, balance, balance_msg_sig)
     assert signature_address == signer
+
+    balance_message_hash = balance_proof_hash(B, block, balance)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k0)
+    assert addr == A
+
+    signature_address = contract.call().verifyBalanceProof(B, block, balance, balance_msg_sig)
+    assert signature_address == A

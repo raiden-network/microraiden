@@ -6,6 +6,7 @@ from web3.utils.compat import (
 
 from ethereum import tester
 from utils import sign
+from tests.utils import balance_proof_hash
 
 from tests.fixtures import (
     uraiden_contract_version,
@@ -17,7 +18,6 @@ from tests.fixtures import (
     print_logs,
     get_gas_used,
     print_gas_used,
-    get_balance_message,
     decimals
 )
 
@@ -280,8 +280,8 @@ def test_close_call(web3, chain, contract, channel):
     (A) = web3.eth.accounts[3]
     balance = channel_deposit - 10
 
-    balance_msg = get_balance_message(receiver, open_block_number, balance)
-    balance_msg_sig, addr = sign.check(balance_msg, tester.k1)
+    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k1)
 
     # Cannot close what was not opened
     with pytest.raises(tester.TransactionFailed):
@@ -304,10 +304,15 @@ def test_close_by_receiver(web3, chain, contract, channel):
     current_deposit = get_current_deposit(contract, channel)
     balance = current_deposit - 1
 
-    balance_msg = get_balance_message(receiver, open_block_number, balance)
-    balance_msg_sig, addr = sign.check(balance_msg, tester.k1)
-    balance_msg_sig_false, addr = sign.check(balance_msg, tester.k3)
+    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k1)
+    balance_msg_sig_false, addr2 = sign.check(balance_message_hash, tester.k3)
+    assert addr == sender
 
+    contract_verified_address = contract.call().verifyBalanceProof(
+                                        receiver, open_block_number,
+                                        balance, balance_msg_sig)
+    assert contract_verified_address == sender
 
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': A}).uncooperativeClose(receiver, open_block_number, balance, balance_msg_sig)
@@ -348,16 +353,16 @@ def test_close_by_sender(web3, chain, contract, channel):
     current_deposit = get_current_deposit(contract, channel)
     balance = current_deposit - 1
 
-    balance_msg = get_balance_message(receiver, open_block_number, balance)
-    balance_msg_false_receiver = get_balance_message(A, open_block_number, balance)
+    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_message_hash_false_receiver = balance_proof_hash(A, open_block_number, balance)
 
-    balance_msg_sig, addr = sign.check(balance_msg, tester.k1)
-    balance_msg_sig_false_signer, addr = sign.check(balance_msg, tester.k3)
-    balance_msg_sig_false_receiver, addr = sign.check(balance_msg_false_receiver, tester.k3)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k1)
+    balance_msg_sig_false_signer, addr = sign.check(balance_message_hash, tester.k3)
+    balance_msg_sig_false_receiver, addr = sign.check(balance_message_hash_false_receiver, tester.k3)
 
-    closing_sig, addr = sign.check(balance_msg, tester.k2)
-    closing_sig_false_signer, addr = sign.check(balance_msg, tester.k3)
-    closing_sig_false_receiver, addr = sign.check(balance_msg_false_receiver, tester.k2)
+    closing_sig, addr = sign.check(balance_message_hash, tester.k2)
+    closing_sig_false_signer, addr = sign.check(balance_message_hash, tester.k3)
+    closing_sig_false_receiver, addr = sign.check(balance_message_hash_false_receiver, tester.k2)
 
     with pytest.raises(tester.TransactionFailed):
         contract.transact({'from': sender}).cooperativeClose(A, open_block_number, balance, balance_msg_sig, closing_sig)
@@ -403,8 +408,8 @@ def test_close_by_sender_challenge_settle_by_receiver(web3, chain, contract, cha
     current_deposit = get_current_deposit(contract, channel)
     balance = current_deposit - 1
 
-    balance_msg = get_balance_message(receiver, open_block_number, balance)
-    balance_msg_sig, addr = sign.check(balance_msg, tester.k1)
+    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k1)
 
     receiver_pre_balance = token.call().balanceOf(receiver)
     sender_pre_balance = token.call().balanceOf(sender)
@@ -443,8 +448,8 @@ def test_close_by_sender_challenge_settle_by_sender(web3, chain, contract, chann
     current_deposit = get_current_deposit(contract, channel)
     balance = current_deposit - 1
 
-    balance_msg = get_balance_message(receiver, open_block_number, balance)
-    balance_msg_sig, addr = sign.check(balance_msg, tester.k1)
+    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k1)
 
     receiver_pre_balance = token.call().balanceOf(receiver)
     sender_pre_balance = token.call().balanceOf(sender)
@@ -490,8 +495,8 @@ def test_close_by_sender_challenge_settle_by_sender2(web3, chain, contract, chan
     current_deposit = get_current_deposit(contract, channel)
     balance = 0
 
-    balance_msg = get_balance_message(receiver, open_block_number, balance)
-    balance_msg_sig, addr = sign.check(balance_msg, tester.k1)
+    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_msg_sig, addr = sign.check(balance_message_hash, tester.k1)
 
     receiver_pre_balance = token.call().balanceOf(receiver)
     sender_pre_balance = token.call().balanceOf(sender)
