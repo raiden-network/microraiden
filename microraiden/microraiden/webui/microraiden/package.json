@@ -25,7 +25,7 @@
     "build:esnext": "tsc --module esnext --target esnext --outDir dist/esnext",
     "build:esm": "tsc --module es2015 --target es5 --outDir dist/esm",
     "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
-    "build:umd": "rollup dist/esm/index.js -f umd --name microraiden --sourceMap -e web3 -g Web3 -o dist/umd/microraiden.js",
+    "build:umd": "rollup -c",
     "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 --comments -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz",
     "prepublish": "npm run build"
   },
@@ -42,6 +42,10 @@
     "@types/node": "^8.0.53",
     "rimraf": "^2.6.2",
     "rollup": "^0.51.8",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-json": "^2.3.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
     "typescript": "^2.6.1",
     "uglify-js": "^3.1.10",
     "web3-typescript-typings": "^0.7.2"
