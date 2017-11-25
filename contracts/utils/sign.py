@@ -24,8 +24,30 @@ def eth_message_hex(msg: str) -> bytes:
     return sol_sha3(msg_hex)
 
 
-def sign(data: str, private_key_seed_ascii: str):
-    data = eth_message_hex(data)
+def eth_signed_typed_data_message(types, names, data) -> bytes:
+    """
+    types e.g. ('address', 'uint', ('uint', 32))
+    names e.g. ('receiver', 'block_created', 'balance')
+    data e.g. ('0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb', 3000, 1000)
+    """
+    assert len(types) == len(data) == len(names), 'Argument length mismatch.'
+
+    sign_types = []
+    sign_values = []
+    for i, type in enumerate(types):
+        if isinstance(type, tuple):
+            sign_types.append(type[0] + str(type[1]))
+            sign_values.append((data[i], type[1]))
+        else:
+            sign_types.append(type)
+            sign_values.append(data[i])
+
+        sign_types[i] += ' ' + names[i]
+
+    return sol_sha3(sol_sha3(*sign_types), sol_sha3(*sign_values))
+
+
+def sign(data: bytes, private_key_seed_ascii: str):
     priv = private_key_seed_ascii
     pk = PrivateKey(priv, raw=True)
     signature = pk.ecdsa_recoverable_serialize(pk.ecdsa_sign_recoverable(data, raw=True))

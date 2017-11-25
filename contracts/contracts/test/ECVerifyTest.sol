@@ -1,20 +1,21 @@
 pragma solidity ^0.4.17;
 
+/*
+This is a contract used for testing the ECVerify library and ecrecover behaviour.
+.*/
+
 import "../lib/ECVerify.sol";
 
 contract ECVerifyTest {
     function verify(
-        string _prefixed_message,
+        bytes32 _message,
         bytes _signed_message)
         public
         constant
         returns (address)
     {
-        // Hash the prefixed message string
-        bytes32 prefixed_message_hash = keccak256(_prefixed_message);
-
         // Derive address from signature
-        address signer = ECVerify.ecverify(prefixed_message_hash, _signed_message);
+        address signer = ECVerify.ecverify(_message, _signed_message);
         return signer;
     }
 
@@ -31,5 +32,26 @@ contract ECVerifyTest {
         require(signature_address != 0x0);
 
         return signature_address;
+    }
+
+    function verifyEthSignedTypedData(
+        address _address,
+        uint32 _value,
+        uint192 _value2,
+        bytes _balance_msg_sig)
+        public
+        constant
+        returns (address)
+    {
+        // The hashed strings should be kept in sync with this function's parameters
+        // (variable names and types)
+        var hash = keccak256(
+          keccak256('address Address', 'uint32 Value', 'uint192 Value2'),
+          keccak256(_address, _value, _value2)
+        );
+
+        // Derive address from signature
+        address signer = ECVerify.ecverify(hash, _balance_msg_sig);
+        return signer;
     }
 }
