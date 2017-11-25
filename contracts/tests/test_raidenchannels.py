@@ -310,8 +310,11 @@ def test_close_by_receiver(web3, chain, contract, channel):
     assert addr == sender
 
     contract_verified_address = contract.call().verifyBalanceProof(
-                                        receiver, open_block_number,
-                                        balance, balance_msg_sig)
+                                        receiver,
+                                        open_block_number,
+                                        balance,
+                                        balance_msg_sig
+    )
     assert contract_verified_address == sender
 
     with pytest.raises(tester.TransactionFailed):

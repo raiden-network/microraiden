@@ -3,7 +3,7 @@ import bitcoin
 from ethereum import utils
 from secp256k1 import PrivateKey
 from eth_utils import encode_hex
-from utils.utils import sol_sha3, pack
+from utils.utils import sol_sha3
 
 
 eth_prefix = "\x19Ethereum Signed Message:\n"
@@ -30,7 +30,7 @@ def eth_signed_typed_data_message(types, names, data) -> bytes:
     names e.g. ('receiver', 'block_created', 'balance')
     data e.g. ('0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb', 3000, 1000)
     """
-    assert len(types) == len(data) == len(names), 'Check argument length.'
+    assert len(types) == len(data) == len(names), 'Argument length mismatch.'
 
     sign_types = []
     sign_values = []
