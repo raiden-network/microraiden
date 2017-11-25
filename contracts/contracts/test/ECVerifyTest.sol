@@ -1,5 +1,9 @@
 pragma solidity ^0.4.17;
 
+/*
+This is a contract used for testing the ECVerify library and ecrecover behaviour.
+.*/
+
 import "../lib/ECVerify.sol";
 
 contract ECVerifyTest {
@@ -39,6 +43,8 @@ contract ECVerifyTest {
         constant
         returns (address)
     {
+        // The hashed strings should be kept in sync with this function's parameters
+        // (variable names and types)
         var hash = keccak256(
           keccak256('address Address', 'uint32 Value', 'uint192 Value2'),
           keccak256(_address, _value, _value2)
