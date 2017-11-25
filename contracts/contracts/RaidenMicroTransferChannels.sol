@@ -150,6 +150,10 @@ contract RaidenMicroTransferChannels {
         constant
         returns (address)
     {
+        // The variable names from below will be shown to the sender when signing
+        // the balance proof, so they have to be kept in sync with the Dapp client.
+        // The hashed strings should be kept in sync with this function's parameters
+        // (variable names and types)
         var message_hash = keccak256(
           keccak256('address receiver', 'uint32 block_created', 'uint192 balance'),
           keccak256(_receiver_address, _open_block_number, _balance)
