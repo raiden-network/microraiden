@@ -1,5 +1,3 @@
-import logging
-
 import pytest  # noqa: F401
 
 from microraiden import DefaultHTTPClient
@@ -14,8 +12,6 @@ def test_eth_ticker(
         sender_privkey: str,
         receiver_privkey: str,
 ):
-    logging.basicConfig(level=logging.INFO)
-
     proxy = ETHTickerProxy(receiver_privkey, proxy=doggo_proxy)
     ticker = ETHTickerClient(sender_privkey, httpclient=default_http_client)
 

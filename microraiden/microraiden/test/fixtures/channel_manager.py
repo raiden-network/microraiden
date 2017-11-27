@@ -45,3 +45,4 @@ def channel_manager(web3, receiver_privkey, make_channel_manager_proxy, token_co
     manager.stop()
     if use_tester:
         web3.testing.revert(snapshot_id)
+    manager.stop()

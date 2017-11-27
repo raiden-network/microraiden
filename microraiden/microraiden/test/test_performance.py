@@ -13,9 +13,6 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.skip(reason="it takes too long")
 def test_resource_request(doggo_proxy, default_http_client: DefaultHTTPClient):
-    logging.basicConfig(level=logging.DEBUG)
-#    logging.getLogger('testrpc.rpc').setLevel(logging.WARNING)
-
     requests = 1000
     default_http_client.initial_deposit = lambda x: (requests + 1) * x
 

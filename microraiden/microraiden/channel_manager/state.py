@@ -116,7 +116,7 @@ class ChannelManagerState(object):
 
     def __init__(self, filename):
         self.filename = filename
-        self.conn = sqlite3.connect(self.filename)
+        self.conn = sqlite3.connect(self.filename, isolation_level="EXCLUSIVE")
         self.conn.row_factory = dict_factory
 
     def setup_db(self, network_id, contract_address, receiver):

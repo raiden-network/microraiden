@@ -6,21 +6,7 @@ import os
 import json
 from microraiden.client.client import CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
 from microraiden.crypto import privkey_to_addr
-
-
-@pytest.fixture
-def contracts_relative_path():
-    return 'data/contracts.json'
-
-
-@pytest.fixture
-def compiled_contracts_path(test_dir, contracts_relative_path):
-    return os.path.join(test_dir, contracts_relative_path)
-
-
-@pytest.fixture
-def compiled_contracts(compiled_contracts_path):
-    return json.load(open(compiled_contracts_path))
+from microraiden.config import CONTRACTS_ABI_JSON
 
 
 @pytest.fixture
@@ -67,7 +53,7 @@ def deployer_address(deployer_privkey):
 
 @pytest.fixture(scope='session')
 def contract_abi_path():
-    return os.path.join(os.path.dirname(os.path.dirname(__file__)), '../data/contracts.json')
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "../" + CONTRACTS_ABI_JSON)
 
 
 @pytest.fixture(scope='session')
