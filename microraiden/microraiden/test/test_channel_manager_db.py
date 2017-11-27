@@ -15,9 +15,9 @@ SIG = '0x' + 'bb' * 130
 
 @pytest.fixture()
 def state(tmpdir):
-    filename = str(tmpdir.join('state.sqlite'))
-    state = ChannelManagerState.setup_db(
-        filename,
+    db = tmpdir.join("state.db")
+    state = ChannelManagerState(db.strpath)
+    state.setup_db(
         NETWORK_ID,
         CONTRACT_ADDRESS,
         RECEIVER_ADDRESS

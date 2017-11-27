@@ -45,12 +45,14 @@ class Blockchain(gevent.Greenlet):
         self.wait_sync_event.wait()
 
     def _update(self):
+        current_block = self.web3.eth.blockNumber
         # reset unconfirmed channels in case of reorg
         if self.wait_sync_event.is_set():  # but not on first sync
-            if self.web3.eth.blockNumber < self.cm.state.unconfirmed_head_number:
+            if current_block < self.cm.state.unconfirmed_head_number:
                 self.log.info('chain reorganization detected. '
-                              'Resyncing unconfirmed events (%d < %d)' %
-                              (self.web3.eth.blockNumber, self.cm.state.unconfirmed_head_number))
+                              'Resyncing unconfirmed events (%d < %d) %s %s' %
+                              (current_block, self.cm.state.unconfirmed_head_number,
+                               self, self.cm))
                 self.cm.reset_unconfirmed()
             try:
                 # raises if hash doesn't exist (i.e. block has been replaced)
@@ -59,7 +61,7 @@ class Blockchain(gevent.Greenlet):
                 self.log.info('chain reorganization detected. '
                               'resyncing unconfirmed events (%d < %d). '
                               '(getBlock() raised ValueError)' %
-                              (self.web3.eth.blockNumber, self.cm.state.unconfirmed_head_number))
+                              (current_block, self.cm.state.unconfirmed_head_number))
                 self.cm.reset_unconfirmed()
 
             # in case of reorg longer than confirmation number fail
@@ -73,7 +75,6 @@ class Blockchain(gevent.Greenlet):
             self.cm.state.update_sync_state(confirmed_head_number=-1)
         if self.cm.state.unconfirmed_head_number is None:
             self.cm.state.update_sync_state(unconfirmed_head_number=-1)
-        current_block = self.web3.eth.blockNumber
         new_unconfirmed_head_number = self.cm.state.unconfirmed_head_number + self.sync_chunk_size
         new_unconfirmed_head_number = min(new_unconfirmed_head_number, current_block)
         new_confirmed_head_number = max(new_unconfirmed_head_number - self.n_confirmations, 0)

@@ -50,16 +50,18 @@ class ChannelManager(gevent.Greenlet):
         assert privkey_to_addr(self.private_key) == self.receiver.lower()
 
         channel_contract_address = contract_proxy.contract.address
-        if state_filename is not None and os.path.isfile(state_filename):
+        if ((state_filename is not None) and
+           (state_filename is not ':memory:') and
+           (os.path.isfile(state_filename))):
             self.state = ChannelManagerState.load(state_filename)
         else:
-            self.state = ChannelManagerState.setup_db(state_filename,
-                                                      network_id,
-                                                      channel_contract_address,
-                                                      self.receiver)
+            self.state = ChannelManagerState(state_filename)
+            self.state.setup_db(network_id,
+                                channel_contract_address,
+                                self.receiver)
 
         assert self.state is not None
-        if state_filename is not None:
+        if state_filename not in (None, ":memory:"):
             self.lock_state = filelock.FileLock(state_filename + '.lock')
             try:
                 self.lock_state.acquire(timeout=0)
@@ -80,6 +82,9 @@ class ChannelManager(gevent.Greenlet):
 
         self.log.debug('setting up channel manager, receiver=%s channel_contract=%s' %
                        (self.receiver, channel_contract_address))
+
+    def __del__(self):
+        self.stop()
 
     def _run(self):
         self.blockchain.start()

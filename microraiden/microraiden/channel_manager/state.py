@@ -119,14 +119,10 @@ class ChannelManagerState(object):
         self.conn = sqlite3.connect(self.filename)
         self.conn.row_factory = dict_factory
 
-    @classmethod
-    def setup_db(cls, filename, network_id, contract_address, receiver):
-        assert os.path.isfile(filename) is False
-        with sqlite3.connect(filename) as conn:
-            conn.executescript(DB_CREATION_SQL)
-            conn.execute(UPDATE_METADATA_SQL, [network_id, contract_address, receiver])
-            conn.commit()
-        return cls(filename)
+    def setup_db(self, network_id, contract_address, receiver):
+        self.conn.executescript(DB_CREATION_SQL)
+        self.conn.execute(UPDATE_METADATA_SQL, [network_id, contract_address, receiver])
+        self.conn.commit()
 
     @property
     def contract_address(self):
@@ -338,11 +334,13 @@ class ChannelManagerState(object):
     def load(cls, filename: str, check_permissions=True):
         """Load a previously stored state."""
         assert filename is not None
-        if os.path.isfile(filename) is False:
-            log.error("State file  %s doesn't exist" % filename)
-            return None
-        if check_permissions and not check_permission_safety(filename):
-            raise InsecureStateFile(filename)
+        assert isinstance(filename, str)
+        if filename != ':memory:':
+            if os.path.isfile(filename) is False:
+                log.error("State file  %s doesn't exist" % filename)
+                return None
+            if check_permissions and not check_permission_safety(filename):
+                raise InsecureStateFile(filename)
         ret = cls(filename)
         log.debug("loaded saved state. head_number=%s receiver=%s" %
                   (ret.confirmed_head_number, ret.receiver))
