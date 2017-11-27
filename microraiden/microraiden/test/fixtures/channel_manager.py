@@ -33,12 +33,12 @@ def start_channel_manager(channel_manager, use_tester, mine_sync_event):
 
 @pytest.fixture
 def channel_manager(web3, receiver_privkey, make_channel_manager_proxy, token_contract, use_tester,
-                    mine_sync_event):
+                    mine_sync_event, state_db_path):
     if use_tester:
         snapshot_id = web3.testing.snapshot()
     contract_proxy = make_channel_manager_proxy(receiver_privkey)
     manager = ChannelManager(web3, contract_proxy, token_contract, receiver_privkey,
-                             n_confirmations=5)
+                             n_confirmations=5, state_filename=state_db_path)
     start_channel_manager(manager, use_tester, mine_sync_event)
     yield manager
     if use_tester:

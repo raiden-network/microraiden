@@ -5,6 +5,8 @@ from flask_restful import (
 from microraiden.channel_manager import (
     ChannelManager,
     Channel,
+)
+from microraiden.exceptions import (
     NoOpenChannel,
     InvalidBalanceProof,
     InvalidBalanceAmount,

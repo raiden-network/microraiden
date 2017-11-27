@@ -99,3 +99,9 @@ def token_bytecode(contract_abis):
 @pytest.fixture(scope='session')
 def kovan_block_time():
     return 4
+
+
+@pytest.fixture
+def state_db_path(tmpdir):
+    db = tmpdir.join("state.db")
+    return db.strpath
