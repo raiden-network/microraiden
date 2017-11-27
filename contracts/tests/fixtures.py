@@ -1,26 +1,94 @@
 import pytest
-
-global token
-global logs
-global challenge_period
+from tests.utils import print_logs
+from utils.logs import LogHandler
 
 
+MAX_UINT = 2 ** 256 - 1
+MAX_UINT192 = 2 ** 192 - 1
+fake_address = '0x03432'
+empty_address = '0x0000000000000000000000000000000000000000'
+passphrase = '0'
 uraiden_contract_version = '1.0.0'
-decimals_params = [
-    18,
-    2,
-    0
+contract_args = [
+    {
+        'decimals': 18,
+        'challenge_period': 5
+    }]
+'''
+    {
+        'decimals': 3,
+        'challenge_period': 10
+    },
+    {
+        'decimals': 0,
+        'challenge_period': 300
+    }
 ]
+'''
 
 
-@pytest.fixture(params=decimals_params)
-def decimals(request):
+uraiden_events = {
+    'created': 'ChannelCreated',
+    'topup': 'ChannelToppedUp',
+    'closed': 'ChannelCloseRequested',
+    'settled': 'ChannelSettled'
+}
+
+
+@pytest.fixture(params=contract_args)
+def contract_params(request):
     return request.param
 
 
+@pytest.fixture()
+def owner_index():
+    return 1
+
+
+@pytest.fixture()
+def owner(web3, owner_index):
+    return web3.eth.accounts[owner_index]
+
+
+@pytest.fixture()
+def get_accounts(web3, owner_index, create_accounts):
+    def get(number):
+        index_start = owner_index + 1
+        accounts_len = len(web3.eth.accounts)
+        index_end = min(number + index_start, accounts_len)
+        accounts = web3.eth.accounts[index_start:index_end]
+        if number > len(accounts):
+            accounts += create_accounts(number - len(accounts))
+        return accounts
+    return get
+
+
+@pytest.fixture()
+def create_accounts(web3):
+    def get(number):
+        new_accounts = []
+        for i in range(0, number):
+            new_account = web3.personal.newAccount(passphrase)
+            amount = int(web3.eth.getBalance(web3.eth.accounts[0]) / 2 / number)
+            web3.eth.sendTransaction({
+                'from': web3.eth.accounts[0],
+                'to': new_account,
+                'value': amount
+            })
+            web3.personal.unlockAccount(new_account, passphrase)
+            new_accounts.append(new_account)
+        return new_accounts
+    return get
+
+
 @pytest.fixture
-def create_contract(chain):
+def create_contract(chain, owner):
     def get(contract_type, arguments, transaction=None):
+        if not transaction:
+            transaction = {}
+        if 'from' not in transaction:
+            transaction['from'] = owner
+
         deploy_txn_hash = contract_type.deploy(transaction=transaction, args=arguments)
         contract_address = chain.wait.for_contract_address(deploy_txn_hash)
         contract = contract_type(address=contract_address)
@@ -29,84 +97,64 @@ def create_contract(chain):
 
 
 @pytest.fixture()
-def token_contract(chain, create_contract):
-    def get(arguments, transaction=None):
-        CustomToken = chain.provider.get_contract_factory('CustomToken')
-        token_contract = create_contract(CustomToken, arguments, transaction)
+def event_handler(chain, web3):
+    def get(contract=None, address=None, abi=None):
+        if contract:
+            # Get contract factory name from contract instance
+            # TODO is there an actual API for this??
+            comp_target = contract.metadata['settings']['compilationTarget']
+            name = comp_target[list(comp_target.keys())[0]]
 
-        print_logs(token_contract, 'Approval', 'CustomToken')
-        print_logs(token_contract, 'Transfer', 'CustomToken')
+            abi = chain.provider.get_base_contract_factory(name).abi
+            address = contract.address
 
-        return token_contract
+        if address and abi:
+            return LogHandler(web3, address, abi)
+        else:
+            raise Exception('event_handler called without a contract instance')
     return get
 
 
 @pytest.fixture()
-def channels_contract(chain, create_contract):
+def get_token_contract(chain, create_contract):
     def get(arguments, transaction=None):
-        RaidenMicroTransferChannels = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
-
-        channels_contract = create_contract(RaidenMicroTransferChannels, arguments, transaction)
-
-        print_logs(channels_contract, 'ChannelCreated', 'RaidenMicroTransferChannels')
-        print_logs(channels_contract, 'ChannelToppedUp', 'RaidenMicroTransferChannels')
-        print_logs(channels_contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
-        print_logs(channels_contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
-
-        return channels_contract
+        CustomToken = chain.provider.get_contract_factory('CustomToken')
+        token_contract = create_contract(CustomToken, arguments, transaction)
+        return token_contract
     return get
 
 
 @pytest.fixture
-def contract(chain, web3, token_contract, channels_contract, decimals):
-    global token
-    global logs
-    global challenge_period
-    challenge_period = 5
-    logs = {}
-    supply = 10000 * 10**(decimals)
-    token = token_contract([supply, "CustomToken", decimals, "TKN"])
-    contract = channels_contract([token.address, challenge_period])
-    return contract
+def txn_cost(web3, txnGas):
+    def get(txn_hash):
+        return txnGas(txn_hash) * web3.eth.gasPrice
+    return get
 
 
-def print_logs(contract, event, name=''):
-    transfer_filter_past = contract.pastEvents(event)
-    past_events = transfer_filter_past.get()
-    if len(past_events):
-        print('--(', name, ') past events for ', event, past_events)
-
-    transfer_filter = contract.on(event)
-    events = transfer_filter.get()
-    if len(events):
-        print('--(', name, ') events for ', event, events)
-
-    transfer_filter.watch(lambda x: print('--(', name, ') event ', event, x['args']))
+@pytest.fixture
+def txn_gas(chain):
+    def get(txn_hash):
+        receipt = chain.wait.for_receipt(txn_hash)
+        return receipt['gasUsed']
+    return get
 
 
-def save_logs(contract, event_name, add):
-    transfer_filter_past = contract.pastEvents(event_name)
-    past_events = transfer_filter_past.get()
-    for event in past_events:
-        add(event)
+@pytest.fixture
+def print_gas(chain, txn_gas):
+    def get(txn_hash, message=None, additional_gas=0):
+        gas_used = txn_gas(txn_hash)
+        if not message:
+            message = txn_hash
 
-    transfer_filter = contract.on(event_name)
-
-    events = transfer_filter.get()
-    for event in events:
-        add(event)
-    transfer_filter.watch(lambda x: add(x))
-
-
-def get_gas_used(chain, trxid):
-    return chain.wait.for_receipt(trxid)["gasUsed"]
+        print('----------------------------------')
+        print('GAS USED ' + message, gas_used + additional_gas)
+        print('----------------------------------')
+    return get
 
 
-def print_gas_used(chain, trxid, message):
-    print(message, get_gas_used(chain, trxid))
-
-
-def wait(transfer_filter):
-    with Timeout(30) as timeout:
-        while not transfer_filter.get(False):
-            timeout.sleep(2)
+@pytest.fixture()
+def get_block(chain):
+    def get(txn_hash):
+        receipt = chain.wait.for_receipt(txn_hash)
+        return receipt['blockNumber']
+    return get

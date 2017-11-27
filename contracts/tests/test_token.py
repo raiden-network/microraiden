@@ -1,18 +1,23 @@
 import pytest
 from ethereum import tester
 from tests.fixtures import (
+    owner_index,
+    owner,
+    contract_params,
     create_contract,
-    token_contract,
-    decimals
+    get_token_contract,
+    get_accounts,
+    create_accounts
 )
+from tests.fixtures_uraiden import token_contract
 
 
-def test_token_mint(web3, token_contract, decimals):
+def test_token_mint(web3, token_contract, contract_params, get_accounts):
+    decimals = contract_params['decimals']
     multiplier = 10**(decimals)
     supply = 10000 * multiplier
-    token = token_contract([supply, "CustomToken", "TKN", decimals])
-    (A, B) = web3.eth.accounts[1:3]
-
+    (A, B) = get_accounts(2)
+    token = token_contract()
     supply = token.call().totalSupply()
     token_pre_balance = web3.eth.getBalance(token.address)
 
