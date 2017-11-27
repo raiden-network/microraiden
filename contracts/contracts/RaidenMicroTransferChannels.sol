@@ -145,8 +145,8 @@ contract RaidenMicroTransferChannels {
         // The hashed strings should be kept in sync with this function's parameters
         // (variable names and types)
         var message_hash = keccak256(
-          keccak256('address receiver', 'uint32 block_created', 'uint192 balance'),
-          keccak256(_receiver_address, _open_block_number, _balance)
+          keccak256('address receiver', 'uint32 block_created', 'uint192 balance', 'address contract'),
+          keccak256(_receiver_address, _open_block_number, _balance, address(this))
         );
 
         // Derive address from signature
@@ -237,7 +237,6 @@ contract RaidenMicroTransferChannels {
         bytes _balance_msg_sig)
         external
     {
-        require(_balance_msg_sig.length == 65);
         address sender = verifyBalanceProof(_receiver_address, _open_block_number, _balance, _balance_msg_sig);
 
         if(msg.sender == _receiver_address) {
@@ -264,15 +263,14 @@ contract RaidenMicroTransferChannels {
         bytes _closing_sig)
         external
     {
-        require(_balance_msg_sig.length == 65);
-        require(_closing_sig.length == 65);
-
-        // Derive address from signature
-        address receiver = verifyBalanceProof(_receiver_address, _open_block_number, _balance, _closing_sig);
+        // Derive receiver address from signature
+        address receiver = ECVerify.ecverify(keccak256(_balance_msg_sig), _closing_sig);
         require(receiver == _receiver_address);
 
+        // Derive sender address from signed balance proof
         address sender = verifyBalanceProof(_receiver_address, _open_block_number, _balance, _balance_msg_sig);
         require(msg.sender == sender);
+
         settleChannel(sender, receiver, _open_block_number, _balance);
     }
 
