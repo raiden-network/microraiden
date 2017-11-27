@@ -11,7 +11,6 @@ contract RaidenMicroTransferChannels {
      */
 
     address public owner_address;
-    address public token_address;
     uint32 public challenge_period;
 
     // Contract semantic version
@@ -21,8 +20,6 @@ contract RaidenMicroTransferChannels {
     // by the owner during a new contract deployment for all outdated contracts.
     // Outdated contracts can still be used.
     address public latest_version_address;
-
-    string constant prefix = "\x19Ethereum Signed Message:\n";
 
     Token public token;
 
@@ -49,11 +46,6 @@ contract RaidenMicroTransferChannels {
     /*
      *  Modifiers
      */
-
-    modifier isToken() {
-        require(msg.sender == token_address);
-        _;
-    }
 
     modifier isOwner() {
         require(msg.sender == owner_address);
@@ -99,7 +91,6 @@ contract RaidenMicroTransferChannels {
         require(_challenge_period > 0);
 
         owner_address = msg.sender;
-        token_address = _token_address;
         token = Token(_token_address);
 
         challenge_period = _challenge_period;
@@ -174,7 +165,7 @@ contract RaidenMicroTransferChannels {
     /// @param _data Receiver address in bytes.
     function tokenFallback(address _sender_address, uint256 _deposit, bytes _data) external {
         // Make sure we trust the token
-        require(msg.sender == token_address);
+        require(msg.sender == address(token));
         uint length = _data.length;
 
         // createChannel - receiver address (20 bytes)
