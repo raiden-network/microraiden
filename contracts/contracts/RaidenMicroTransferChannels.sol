@@ -215,10 +215,12 @@ contract RaidenMicroTransferChannels {
         uint192 _added_deposit)
         external
     {
+        topUpPrivate(msg.sender, _receiver_address, _open_block_number, _added_deposit);
+
         // transferFrom deposit from msg.sender to contract
         // ! needs prior approval from user
+        // Do transfer after any state change
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
-        topUpPrivate(msg.sender, _receiver_address, _open_block_number, _added_deposit);
     }
 
     /// @dev Function called when any of the parties wants to close the channel and settle;
@@ -410,15 +412,17 @@ contract RaidenMicroTransferChannels {
         require(channel.open_block_number > 0);
         require(_balance <= channel.deposit);
 
+        // Remove closed channel structures
+        // channel.open_block_number will become 0
+        // Change state before transfer call
+        delete channels[key];
+        delete closing_requests[key];
+
         // Send _balance to the receiver, as it is always <= deposit
         require(token.transfer(_receiver_address, _balance));
 
         // Send deposit - balance back to sender
         require(token.transfer(_sender_address, channel.deposit - _balance));
-
-        // remove closed channel structures
-        delete channels[key];
-        delete closing_requests[key];
 
         ChannelSettled(_sender_address, _receiver_address, _open_block_number, _balance);
     }
