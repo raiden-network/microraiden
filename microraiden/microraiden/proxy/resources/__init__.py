@@ -6,6 +6,8 @@ from .management import (
     ChannelManagementListChannels,
     ChannelManagementStats,
     ChannelManagementChannelInfo,
+    ChannelManagerAbi,
+    TokenAbi
 )
 from .login import (
     ChannelManagementLogin,
@@ -14,14 +16,16 @@ from .login import (
 from .staticfiles import StaticFilesServer
 
 __all__ = (
-    'Expensive',
-    'ChannelManagementRoot',
-    'ChannelManagementListChannels',
-    'ChannelManagementChannelInfo',
-    'ChannelManagementAdmin',
-    'ChannelManagementAdminChannels',
-    'ChannelManagementStats',
-    'ChannelManagementLogin',
-    'ChannelManagementLogout',
-    'StaticFilesServer'
+    Expensive,
+    ChannelManagementRoot,
+    ChannelManagementListChannels,
+    ChannelManagementChannelInfo,
+    ChannelManagementAdmin,
+    ChannelManagementAdminChannels,
+    ChannelManagementStats,
+    ChannelManagementLogin,
+    ChannelManagementLogout,
+    StaticFilesServer,
+    ChannelManagerAbi,
+    TokenAbi
 )
