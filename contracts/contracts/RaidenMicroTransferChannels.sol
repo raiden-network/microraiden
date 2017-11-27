@@ -12,7 +12,7 @@ contract RaidenMicroTransferChannels {
 
     address public owner_address;
     address public token_address;
-    uint8 public challenge_period;
+    uint32 public challenge_period;
 
     // Contract semantic version
     string public constant version = '1.0.0';
@@ -94,7 +94,7 @@ contract RaidenMicroTransferChannels {
     /// @param _token_address The address of the Token used by the uRaiden contract.
     /// @param _challenge_period A fixed number of blocks representing the challenge period
     /// after a sender requests the closing of the channel without the receiver's signature.
-    function RaidenMicroTransferChannels(address _token_address, uint8 _challenge_period) public {
+    function RaidenMicroTransferChannels(address _token_address, uint32 _challenge_period) public {
         require(_token_address != 0x0);
         require(addressHasCode(_token_address));
         require(_challenge_period > 0);
