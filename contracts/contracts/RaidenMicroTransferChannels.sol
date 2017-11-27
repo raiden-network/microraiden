@@ -24,10 +24,10 @@ contract RaidenMicroTransferChannels {
 
     string constant prefix = "\x19Ethereum Signed Message:\n";
 
-    Token token;
+    Token public token;
 
-    mapping (bytes32 => Channel) channels;
-    mapping (bytes32 => ClosingRequest) closing_requests;
+    mapping (bytes32 => Channel) public channels;
+    mapping (bytes32 => ClosingRequest) public closing_requests;
 
     // 28 (deposit) + 4 (block no settlement)
     struct Channel {
@@ -42,8 +42,8 @@ contract RaidenMicroTransferChannels {
     }
 
     struct ClosingRequest {
-        uint32 settle_block_number;
         uint192 closing_balance;
+        uint32 settle_block_number;
     }
 
     /*
@@ -177,8 +177,8 @@ contract RaidenMicroTransferChannels {
         require(msg.sender == token_address);
         uint length = _data.length;
 
-        // createChannel - receiver address (20 bytes + padding = 32 bytes)
-        // topUp - receiver address (32 bytes) + open_block_number (4 bytes + padding = 32 bytes)
+        // createChannel - receiver address (20 bytes)
+        // topUp - receiver address (20 bytes) + open_block_number (4 bytes) = 24 bytes
         require(length == 20 || length == 24);
 
         address receiver = addressFromData(_data);
@@ -293,7 +293,8 @@ contract RaidenMicroTransferChannels {
         require(channels[key].open_block_number > 0);
 
         return (
-            key, channels[key].deposit,
+            key,
+            channels[key].deposit,
             closing_requests[key].settle_block_number,
             closing_requests[key].closing_balance
         );
