@@ -2,11 +2,17 @@
 Convention within this module is to only add the '0x' hex prefix to addresses while other
 hex-encoded values, such as hashes and private keys, come without a 0x prefix.
 """
+from typing import List, Tuple, Any
 
 from coincurve import PrivateKey, PublicKey
 from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak, is_0x_prefixed
 from ethereum.transactions import Transaction
 import rlp
+
+
+Type = str
+Name = str
+TypedData = Tuple[Type, Name, Any]
 
 
 def generate_privkey() -> bytes:
@@ -56,7 +62,7 @@ def pack(*args) -> bytes:
 
     msg = b''
     for arg in args:
-        assert arg
+        assert arg is not None
         if isinstance(arg, bytes):
             msg += arg
         elif isinstance(arg, str):
@@ -64,6 +70,8 @@ def pack(*args) -> bytes:
                 msg += decode_hex(arg)
             else:
                 msg += arg.encode()
+        elif isinstance(arg, bool):
+            msg += format_int(int(arg), 8)
         elif isinstance(arg, int):
             msg += format_int(arg, 256)
         elif isinstance(arg, tuple):
@@ -122,13 +130,41 @@ def eth_verify(sig: bytes, msg: str) -> str:
     return addr_from_sig(sig, eth_message_hash(msg))
 
 
-def get_balance_message(receiver: str, open_block_number: int, balance: int,) -> str:
-    return 'Receiver: {}, Balance: {}, Channel ID: {}'.format(receiver, balance, open_block_number)
+def eth_sign_typed_data_message(typed_data: List[TypedData]) -> bytes:
+    typed_data = [('{} {}'.format(type_, name), data) for type_, name, data in typed_data]
+    schema, data = [list(zipped) for zipped in zip(*typed_data)]
+
+    return sha3(sha3(*schema), sha3(*data))
+
+
+def eth_sign_typed_data(privkey: str, typed_data: List[TypedData]):
+    msg = eth_sign_typed_data_message(typed_data)
+    return sign(privkey, msg, v=27)
+
+
+def eth_sign_typed_data_message_eip(typed_data: List[TypedData]) -> bytes:
+    typed_data = [('{} {}'.format(type_, name), data) for type_, name, data in typed_data]
+    schema, data = [list(zipped) for zipped in zip(*typed_data)]
+
+    return sha3(sha3(*schema), *data)
+
+
+def eth_sign_typed_data_eip(privkey: str, typed_data: List[TypedData]) -> bytes:
+    msg = eth_sign_typed_data_message_eip(typed_data)
+    return sign(privkey, msg, v=27)
+
+
+def get_balance_message(receiver: str, open_block_number: int, balance: int,) -> bytes:
+    return eth_sign_typed_data_message([
+        ('address', 'receiver', receiver),
+        ('uint32', 'block_created', (open_block_number, 32)),
+        ('uint192', 'balance', (balance, 192))
+    ])
 
 
 def sign_balance_proof(privkey: str, receiver: str, open_block_number: int, balance: int) -> bytes:
     msg = get_balance_message(receiver, open_block_number, balance)
-    return eth_sign(privkey, msg)
+    return sign(privkey, msg, v=27)
 
 
 def verify_balance_proof(
@@ -138,4 +174,4 @@ def verify_balance_proof(
         balance_sig: bytes
 ) -> str:
     msg = get_balance_message(receiver, open_block_number, balance)
-    return eth_verify(balance_sig, msg)
+    return addr_from_sig(balance_sig, msg)
