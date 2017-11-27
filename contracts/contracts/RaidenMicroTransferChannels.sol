@@ -72,8 +72,7 @@ contract RaidenMicroTransferChannels {
         address indexed _sender,
         address indexed _receiver,
         uint32 indexed _open_block_number,
-        uint192 _added_deposit,
-        uint192 _deposit);
+        uint192 _added_deposit);
     event ChannelCloseRequested(
         address indexed _sender,
         address indexed _receiver,
@@ -364,7 +363,7 @@ contract RaidenMicroTransferChannels {
 
         channels[key].deposit += _added_deposit;
         assert(channels[key].deposit > _added_deposit);
-        ChannelToppedUp(_sender_address, _receiver_address, _open_block_number, _added_deposit, channels[key].deposit);
+        ChannelToppedUp(_sender_address, _receiver_address, _open_block_number, _added_deposit);
     }
 
 
