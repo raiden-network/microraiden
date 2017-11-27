@@ -1,24 +1,11 @@
 import * as Web3 from 'web3';
 import * as BigNumber from 'bignumber.js';
+import { typedSignatureHash, recoverTypedSignature } from 'eth-sig-util';
 
 declare const localStorage; // possibly missing
 
-function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> {
-  /* Convert a callback-based func to return a promise */
-  return (...params) =>
-    new Promise((resolve, reject) =>
-      obj[method](...params, (err, res) => err ? reject(err) : resolve(res)));
-}
 
-class Deferred<T> {
-  resolve: (res: T) => void;
-  reject: (err: Error) => void;
-  promise = new Promise<T>((resolve, reject) => {
-    this.resolve = resolve;
-    this.reject = reject;
-  });
-}
-
+// helper types
 export interface MicroChannel {
   /* MicroRaiden.channel data structure */
   account: string;
@@ -43,6 +30,44 @@ export interface MicroTokenInfo {
   balance: number;
 }
 
+interface MsgParam {
+  type: string;
+  name: string;
+  value: string;
+}
+
+
+// utils
+function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> {
+  /* Convert a callback-based func to return a promise */
+  return (...params) =>
+    new Promise((resolve, reject) =>
+      obj[method](...params, (err, res) => err ? reject(err) : resolve(res)));
+}
+
+class Deferred<T> {
+  resolve: (res: T) => void;
+  reject: (err: Error) => void;
+  promise = new Promise<T>((resolve, reject) => {
+    this.resolve = resolve;
+    this.reject = reject;
+  });
+}
+
+function encodeHex(val: string|number, zPadLength?: number): string {
+  /* Encode a string or number as hexadecimal, without '0x' prefix */
+  if (typeof val === 'number') {
+    val = val.toString(16);
+  } else {
+    val = Array.from(val).map((char) =>
+        char.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join('');
+  }
+  return val.padStart(zPadLength || 0, '0');
+}
+
+
+// main class
 export class MicroRaiden {
   web3: Web3;
   channel: MicroChannel;
@@ -73,18 +98,6 @@ export class MicroRaiden {
   }
 
   // "static" methods/utils
-  private encodeHex(val: string|number, zPadLength?: number): string {
-    /* Encode a string or number as hexadecimal, without '0x' prefix */
-    if (typeof val === 'number') {
-      val = val.toString(16);
-    } else {
-      val = Array.from(val).map((char) =>
-          char.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('');
-    }
-    return val.padStart(zPadLength || 0, '0');
-  }
-
   private num2tkn(value: number): BigNumber {
     /* Convert number to BigNumber compatible with configured token,
      * taking in account the token decimals */
@@ -375,7 +388,7 @@ export class MicroRaiden {
         this.contract.address,
         tkn_deposit,
         // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
-        this.channel.receiver + this.encodeHex(this.channel.block, 8),
+        this.channel.receiver + encodeHex(this.channel.block, 8),
         { from: account });
     } else {
       // ERC20, approve channel manager contract to handle our tokens, then topUp
@@ -470,7 +483,7 @@ export class MicroRaiden {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
-    const hex = '0x' + this.encodeHex(msg);
+    const hex = msg.startsWith('0x') ? msg : ( '0x' + encodeHex(msg) );
     console.log(`Signing "${msg}" => ${hex}, account: ${this.channel.account}`);
 
     let sign: string;
@@ -505,14 +518,47 @@ export class MicroRaiden {
       return this.channel.sign;
     }
 
-    const msg = await promisify<string>(this.contract.getBalanceMessage, 'call')(
-      this.channel.receiver,
-      this.channel.block,
-      this.num2tkn(newBalance),
-      { from: this.channel.account });
-
-    // ask for signing of this message
-    const sign = await this.signMessage(msg);
+    const params: MsgParam[] = [
+      {
+        name: 'receiver',
+        type: 'address',
+        value: this.channel.receiver,
+      },
+      {
+        name: 'block_created',
+        type: 'uint32',
+        value: '' + this.channel.block,
+      },
+      {
+        name: 'balance',
+        type: 'uint192',
+        value: ''+newBalance,
+      },
+    ];
+    let sign: string;
+    try {
+      const result = await promisify<{ result: string, error: Error }>(
+        this.web3.currentProvider, 'sendAsync'
+      )({
+        method: 'eth_signTypedData',
+        params: [params, this.channel.account],
+        from: this.channel.account
+      });
+      if (result.error)
+        throw result.error;
+      sign = result.result;
+    } catch (err) {
+      if (err.message && err.message.includes('User denied')) {
+        throw err;
+      }
+      console.log('Error on signTypedData', err);
+      const hash = typedSignatureHash(params);
+      // ask for signing of the hash
+      sign = await this.signMessage(hash);
+    }
+    //debug
+    const recovered = recoverTypedSignature({ data: params, sig: sign  });
+    console.log('signTypedData =', sign, recovered);
 
     // return signed message
     if (newBalance === this.channel.balance && !this.channel.sign) {

@@ -40,8 +40,11 @@
   "devDependencies": {
     "@types/core-js": "^0.9.43",
     "@types/node": "^8.0.53",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-env": "^1.6.1",
     "rimraf": "^2.6.2",
     "rollup": "^0.51.8",
+    "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-json": "^2.3.0",
     "rollup-plugin-node-builtins": "^2.1.2",
@@ -51,6 +54,7 @@
     "web3-typescript-typings": "^0.7.2"
   },
   "dependencies": {
+    "eth-sig-util": "^1.4.0",
     "web3": "<0.99"
   }
 }
