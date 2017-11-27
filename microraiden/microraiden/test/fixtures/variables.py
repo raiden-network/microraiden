@@ -103,5 +103,6 @@ def kovan_block_time():
 
 @pytest.fixture
 def state_db_path(tmpdir):
-    db = tmpdir.join("state.db")
-    return db.strpath
+    return ':memory:'
+#    db = tmpdir.join("state.db")
+#    return db.strpath

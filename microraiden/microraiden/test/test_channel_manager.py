@@ -35,14 +35,16 @@ def test_channel_opening(client, web3, make_account, make_channel_manager_proxy,
     receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver2_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
     receiver_address = privkey_to_addr(receiver1_privkey)
+    # make sure channel_manager1 is terminated properly, otherwise Blockchain will be running
+    #  in the background, ruining other tests' results
     channel_manager1 = ChannelManager(web3, make_channel_manager_proxy(receiver1_privkey),
                                       token_contract, receiver1_privkey,
-                                      n_confirmations=5, state_filename=state_db_path + "1")
+                                      n_confirmations=5, state_filename=state_db_path)
     start_channel_manager(channel_manager1, use_tester, mine_sync_event)
 
     channel_manager2 = ChannelManager(web3, make_channel_manager_proxy(receiver2_privkey),
                                       token_contract, receiver2_privkey,
-                                      n_confirmations=5, state_filename=state_db_path + "2")
+                                      n_confirmations=5, state_filename=state_db_path)
     start_channel_manager(channel_manager2, use_tester, mine_sync_event)
     channel_manager1.wait_sync()
     channel_manager2.wait_sync()
@@ -73,6 +75,8 @@ def test_channel_opening(client, web3, make_account, make_channel_manager_proxy,
     # should not appear in other channel manager
     assert (channel.sender, channel.block) not in channel_manager2.channels
     assert (channel.sender, channel.block) not in channel_manager2.unconfirmed_channels
+    channel_manager1.stop()
+    channel_manager2.stop()
 
 
 def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait_for_blocks):
@@ -447,12 +451,12 @@ def test_different_receivers(web3, make_account, make_channel_manager_proxy, tok
     receiver1_address = privkey_to_addr(receiver1_privkey)
     channel_manager1 = ChannelManager(web3, make_channel_manager_proxy(receiver1_privkey),
                                       token_contract, receiver1_privkey,
-                                      n_confirmations=5, state_filename=state_db_path + ".1")
+                                      n_confirmations=5, state_filename=state_db_path)
     start_channel_manager(channel_manager1, use_tester, mine_sync_event)
 
     channel_manager2 = ChannelManager(web3, make_channel_manager_proxy(receiver2_privkey),
                                       token_contract, receiver2_privkey,
-                                      n_confirmations=5, state_filename=state_db_path + ".2")
+                                      n_confirmations=5, state_filename=state_db_path)
     start_channel_manager(channel_manager2, use_tester, mine_sync_event)
     channel_manager1.wait_sync()
     channel_manager2.wait_sync()
@@ -503,6 +507,8 @@ def test_different_receivers(web3, make_account, make_channel_manager_proxy, tok
     wait_for_blocks(blockchain.n_confirmations)
     gevent.sleep(blockchain.poll_interval)
     assert (sender_address, channel.block) not in channel_manager1.channels
+    channel_manager1.stop()
+    channel_manager2.stop()
 
 
 def test_reorg(web3, channel_manager, client, receiver_address, wait_for_blocks, use_tester):
