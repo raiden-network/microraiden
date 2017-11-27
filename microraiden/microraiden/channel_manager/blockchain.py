@@ -50,18 +50,17 @@ class Blockchain(gevent.Greenlet):
         if self.wait_sync_event.is_set():  # but not on first sync
             if current_block < self.cm.state.unconfirmed_head_number:
                 self.log.info('chain reorganization detected. '
-                              'Resyncing unconfirmed events (%d < %d) %s %s' %
-                              (current_block, self.cm.state.unconfirmed_head_number,
-                               self, self.cm))
+                              'Resyncing unconfirmed events (unconfirmed_head=%d) [@%d]' %
+                              (self.cm.state.unconfirmed_head_number, self.web3.eth.blockNumber))
                 self.cm.reset_unconfirmed()
             try:
                 # raises if hash doesn't exist (i.e. block has been replaced)
                 self.web3.eth.getBlock(self.cm.state.unconfirmed_head_hash)
             except ValueError:
                 self.log.info('chain reorganization detected. '
-                              'resyncing unconfirmed events (%d < %d). '
+                              'Resyncing unconfirmed events (unconfirmed_head=%d) [@%d]. '
                               '(getBlock() raised ValueError)' %
-                              (current_block, self.cm.state.unconfirmed_head_number))
+                              (self.cm.state.unconfirmed_head_number, current_block))
                 self.cm.reset_unconfirmed()
 
             # in case of reorg longer than confirmation number fail

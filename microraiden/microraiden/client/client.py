@@ -14,9 +14,9 @@ from microraiden.config import CHANNEL_MANAGER_ADDRESS, GAS_LIMIT, GAS_PRICE, NE
 from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
 from microraiden.crypto import privkey_to_addr
 from .channel import Channel
+from microraiden.config import TOKEN_ABI_NAME, CONTRACTS_ABI_JSON
 
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
-TOKEN_ABI_NAME = 'ERC223Token'
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Client:
             rpc_endpoint: str = 'localhost',
             rpc_port: int = 8545,
             contract_abi_path: str = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)), 'data/contracts.json'
+                os.path.dirname(os.path.dirname(__file__)), CONTRACTS_ABI_JSON
             )
     ) -> None:
         assert privkey or key_path

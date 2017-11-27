@@ -25,3 +25,6 @@ HTML_DIR = os.path.join(MICRORAIDEN_DIR, 'microraiden', 'webui')
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 WEB3_PROVIDER = HTTPProvider("http://127.0.0.1:8545", request_kwargs={'timeout': 60})
+
+TOKEN_ABI_NAME = 'ERC223Token'
+CONTRACTS_ABI_JSON = 'data/contracts.json'

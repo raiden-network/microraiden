@@ -1,6 +1,10 @@
 from microraiden.test.fixtures import * # flake8: noqa
 from gevent import monkey
 monkey.patch_all(thread=False) # thread is false due to clash when testing both contract/microraiden modules
+import logging
+
+# to disable annoying 'test.rpc eth_getBlockNumber' message
+logging.getLogger('testrpc.rpc').setLevel(logging.WARNING)
 
 
 def pytest_addoption(parser):

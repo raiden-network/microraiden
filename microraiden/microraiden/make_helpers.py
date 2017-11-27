@@ -16,18 +16,19 @@ from microraiden.exceptions import (
 )
 from microraiden import config
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
+from microraiden.config import TOKEN_ABI_NAME, CONTRACTS_ABI_JSON
 
 
 def make_contract_proxy(web3, private_key, contract_address):
-    contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
+    contracts_abi_path = os.path.join(os.path.dirname(__file__), CONTRACTS_ABI_JSON)
     abi = json.load(open(contracts_abi_path))['RaidenMicroTransferChannels']['abi']
     return ChannelContractProxy(web3, private_key, contract_address, abi, config.GAS_PRICE,
                                 config.GAS_LIMIT)
 
 
 def make_channel_manager(private_key: str, contract_address: str, state_filename: str, web3):
-    contracts_abi_path = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
-    abi = json.load(open(contracts_abi_path))['ERC223Token']['abi']
+    contracts_abi_path = os.path.join(os.path.dirname(__file__), CONTRACTS_ABI_JSON)
+    abi = json.load(open(contracts_abi_path))[TOKEN_ABI_NAME]['abi']
     channel_manager_proxy = make_contract_proxy(web3, private_key, contract_address)
     token_address = channel_manager_proxy.contract.call().token_address()
     token_contract = web3.eth.contract(abi=abi, address=token_address)

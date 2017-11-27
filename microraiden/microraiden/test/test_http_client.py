@@ -1,12 +1,8 @@
-import logging
 import json
 import types
 
 from microraiden import DefaultHTTPClient
 from microraiden.test.utils.client import close_channel_cooperatively
-
-
-log = logging.getLogger(__name__)
 
 
 def check_response(response: bytes):
@@ -80,7 +76,6 @@ def test_default_http_client(
         receiver_privkey,
         receiver_address
 ):
-    logging.basicConfig(level=logging.INFO)
 
     check_response(default_http_client.run('doggo.jpg'))
 
@@ -100,7 +95,6 @@ def test_default_http_client(
 def test_default_http_client_topup(
         doggo_proxy, default_http_client: DefaultHTTPClient, receiver_privkey
 ):
-    logging.basicConfig(level=logging.INFO)
 
     # Create a channel that has just enough capacity for one transfer.
     default_http_client.initial_deposit = lambda x: 0
@@ -129,7 +123,6 @@ def test_default_http_client_topup(
 def test_default_http_client_close(
     doggo_proxy, default_http_client: DefaultHTTPClient
 ):
-    logging.basicConfig(level=logging.INFO)
 
     client = default_http_client.client
     check_response(default_http_client.run('doggo.jpg'))
@@ -141,7 +134,6 @@ def test_default_http_client_close(
 def test_default_http_client_existing_channel(
         doggo_proxy, default_http_client: DefaultHTTPClient, receiver_privkey, receiver_address
 ):
-    logging.basicConfig(level=logging.INFO)
 
     client = default_http_client.client
     channel = client.open_channel(receiver_address, 50)
@@ -154,7 +146,6 @@ def test_default_http_client_existing_channel(
 def test_default_http_client_existing_channel_topup(
     doggo_proxy, default_http_client: DefaultHTTPClient, receiver_privkey, receiver_address
 ):
-    logging.basicConfig(level=logging.INFO)
 
     client = default_http_client.client
     default_http_client.topup_deposit = lambda x: 13
@@ -167,7 +158,6 @@ def test_default_http_client_existing_channel_topup(
 
 def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, sender_address,
                     receiver_privkey, receiver_address):
-    logging.basicConfig(level=logging.INFO)
 
     check_response(default_http_client.run('doggo.jpg'))
 

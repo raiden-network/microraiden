@@ -10,9 +10,6 @@ from microraiden.test.utils.client import close_channel_cooperatively
 def test_client(client: Client, receiver_privkey, receiver_address):
     """test if contract calls go through"""
 
-    import logging
-    logging.basicConfig(level=logging.INFO)
-
     c = client.open_channel(receiver_address, 10)
     assert c is not None
 
