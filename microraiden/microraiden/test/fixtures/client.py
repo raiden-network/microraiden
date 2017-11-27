@@ -1,6 +1,3 @@
-import shutil
-import tempfile
-
 import pytest
 
 from microraiden import Client
@@ -26,10 +23,8 @@ def rpc_port():
 
 
 @pytest.fixture
-def datadir():
-    tmpdir = tempfile.mkdtemp()
-    yield tmpdir
-    shutil.rmtree(tmpdir)
+def datadir(tmpdir):
+    return tmpdir.strpath + "client"
 
 
 @pytest.fixture
