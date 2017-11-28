@@ -3,9 +3,19 @@ from ethereum import tester
 from utils import sign
 from tests.utils import balance_proof_hash
 from tests.fixtures import (
+    owner_index,
+    owner,
+    contract_params,
     create_contract,
+    get_token_contract,
+    get_accounts,
+    create_accounts
+)
+from tests.fixtures_uraiden import (
     token_contract,
-    channels_contract
+    token_instance,
+    get_uraiden_contract,
+    uraiden_contract
 )
 
 
@@ -103,7 +113,10 @@ def test_sign(web3, ecverify_test_contract):
     )
     assert verified_address != A
 
-    verified_address = ecverify_test_contract.call().verify(balance_message_hash, signed_message)
+    verified_address = ecverify_test_contract.call().verify(
+        balance_message_hash,
+        signed_message
+    )
     assert verified_address == A
 
     verified_address_false = ecverify_test_contract.call().verify(
@@ -129,12 +142,12 @@ def test_sign(web3, ecverify_test_contract):
     assert verified_address == signer
 
 
-def test_verifyBalanceProof(web3, token_contract, channels_contract):
+def test_verifyBalanceProof(web3, token_instance, uraiden_contract):
     (A, B) = web3.eth.accounts[:2]
     challenge_period = 5
     supply = 10000 * 10**18
-    token = token_contract([supply, "CustomToken", "TKN", 18])
-    contract = channels_contract([token.address, challenge_period])
+    token = token_instance
+    uraiden = uraiden_contract()
 
     signer = '0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb'
     receiver = '0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb'
@@ -143,7 +156,7 @@ def test_verifyBalanceProof(web3, token_contract, channels_contract):
     balance_msg_sig = '0x1803dfc1e597c08f0cc3f6e39fb109f6497c2b5321deb656f54567981889fddb49c82a33ecae2b1ae86f2fb50f0929cbad097502f8c04c7bfb8ae51883d3e1371b'
     balance_msg_sig = bytes.fromhex(balance_msg_sig[2:])
 
-    signature_address = contract.call().verifyBalanceProof(
+    signature_address = uraiden.call().verifyBalanceProof(
         receiver,
         block,
         balance,
@@ -155,5 +168,5 @@ def test_verifyBalanceProof(web3, token_contract, channels_contract):
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k0)
     assert addr == A
 
-    signature_address = contract.call().verifyBalanceProof(B, block, balance, balance_msg_sig)
+    signature_address = uraiden.call().verifyBalanceProof(B, block, balance, balance_msg_sig)
     assert signature_address == A
