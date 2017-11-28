@@ -69,19 +69,19 @@ function pageReady(contractABI, tokenABI) {
   function signRetry() {
     autoSign = false;
     uraiden.incrementBalanceAndSign(uRaidenParams.amount)
-      .then(function(sign) {
+      .then(function(proof) {
         $('.channel_present_sign').removeClass('green-btn')
-        console.log("SIGNED!", sign);
+        console.log("SIGNED!", proof);
         Cookies.set("RDN-Sender-Address", uraiden.channel.account);
         Cookies.set("RDN-Open-Block", uraiden.channel.block);
-        Cookies.set("RDN-Sender-Balance", uraiden.channel.balance);
-        Cookies.set("RDN-Balance-Signature", sign);
+        Cookies.set("RDN-Sender-Balance", proof.balance);
+        Cookies.set("RDN-Balance-Signature", proof.sign);
         Cookies.remove("RDN-Nonexisting-Channel");
         $('html').load(location.href, function(res, status, xhr) {
           if ( status === 'error' ) {
             errorDialog("An error ocurred re-sending request", xhr.statusText);
           } else {
-            uraiden.confirmPayment(sign);
+            uraiden.confirmPayment(proof);
           }
         });
       })
@@ -92,7 +92,7 @@ function pageReady(contractABI, tokenABI) {
           var required = +(err.message.match(/required ?= ?([\d.,]+)/i)[1]) - current;
           $('#deposited').text(current);
           $('#required').text(required);
-          $('#remaining').text(current - uraiden.channel.balance);
+          $('#remaining').text(current - uraiden.channel.proof.balance);
           mainSwitch("#topup");
         } else if (err.message && err.message.includes('User denied message signature')) {
           console.error(err);
@@ -158,8 +158,8 @@ function pageReady(contractABI, tokenABI) {
               $('#channel_present .on-state:not(.on-state-'+ info.state + ')').hide();
 
               var remaining = 0;
-              if (info.deposit > 0 && uraiden.channel && !isNaN(uraiden.channel.balance)) {
-                remaining = info.deposit - uraiden.channel.balance;
+              if (info.deposit > 0 && uraiden.channel && !isNaN(uraiden.channel.proof.balance)) {
+                remaining = info.deposit - uraiden.channel.proof.balance;
               }
               $("#channel_present #channel_present_balance").text(remaining);
               $("#channel_present #channel_present_deposit").attr("value", info.deposit);
@@ -214,21 +214,21 @@ function pageReady(contractABI, tokenABI) {
     if (uraiden.channel.close_sign) {
       return closeChannel(uraiden.channel.close_sign);
     }
-    // signBalance without balance, sign (if needed) and return current balance
-    return uraiden.signBalance(null)
+    // signNewProof without balance, sign (if needed) and return current balance
+    return uraiden.signNewProof(null)
       .catch(function(err) {
         errorDialog("An error occurred trying to get balance signature", err);
         refreshAccounts();
         throw err;
       })
-      .then(function(sign) {
+      .then(function(proof) {
         // call cooperative-close URL, and closeChannel with close_signature data
         return $.ajax({
           url: '/api/1/channels/' + uraiden.channel.account + '/' + uraiden.channel.block,
           method: 'DELETE',
           contentType: 'application/json',
           dataType: 'json',
-          data: JSON.stringify({ 'balance': uraiden.channel.balance }),
+          data: JSON.stringify({ 'balance': proof.balance }),
         })
         .done(function(result) {
           var closeSign = null;
@@ -321,23 +321,22 @@ function pageReady(contractABI, tokenABI) {
 
 mainSwitch("#channel_loading");
 
-$.when(
-  $.getJSON("/api/1/manager_abi"),
-  $.getJSON("/api/1/token_abi"),
-).then(function(statsRes, contractRes, tokenRes) {
-  var cnt = 20;
-  // wait up to 20*200ms for web3 and call ready()
-  var pollingId = setInterval(function() {
-    if (Cookies.get("RDN-Insufficient-Confirmations")) {
-      Cookies.remove("RDN-Insufficient-Confirmations");
-      clearInterval(pollingId);
-      $("body").html('<h1>Waiting confirmations...</h1>');
-      setTimeout(function() { location.reload(); }, 5000);
-    } else if (cnt <= 0 || window.web3) {
-      clearInterval(pollingId);
-      pageReady(contractRes[0], tokenRes[0]);
-    } else {
-      --cnt;
-    }
-  }, 200);
+$(function() {
+  $.getJSON("/api/1/stats").done(function(json) {
+    var cnt = 20;
+    // wait up to 20*200ms for web3 and call ready()
+    var pollingId = setInterval(function() {
+      if (Cookies.get("RDN-Insufficient-Confirmations")) {
+        Cookies.remove("RDN-Insufficient-Confirmations");
+        clearInterval(pollingId);
+        $("body").html('<h1>Waiting confirmations...</h1>');
+        setTimeout(function() { location.reload(); }, 5000);
+      } else if (cnt <= 0 || window.web3) {
+        clearInterval(pollingId);
+        pageReady(json['manager_abi'], json['token_abi']);
+      } else {
+        --cnt;
+      }
+    }, 200);
+  });
 });

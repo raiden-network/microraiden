@@ -1,20 +1,23 @@
-import Web3 from 'web3';
-import BigNumber from 'bignumber.js';
+import * as Web3 from 'web3';
+import * as BigNumber from 'bignumber.js';
 import { typedSignatureHash, recoverTypedSignature } from 'eth-sig-util';
 
 declare const localStorage; // possibly missing
 
 
 // helper types
+export interface MicroProof {
+  balance: number;
+  sign?: string;
+}
+
 export interface MicroChannel {
   /* MicroRaiden.channel data structure */
   account: string;
   receiver: string;
   block: number;
-  balance: number;
-  sign?: string;
-  next_balance?: number;
-  next_sign?: string;
+  proof: MicroProof;
+  next_proof?: MicroProof;
   close_sign?: string;
 }
 
@@ -213,7 +216,8 @@ export class MicroRaiden {
   isChannelValid(): boolean {
     /* Health check for currently configured channel info */
     if (!this.channel || !this.channel.receiver || !this.channel.block
-      || isNaN(this.channel.balance) || !this.channel.account) {
+      || !this.channel.proof || isNaN(this.channel.proof.balance)
+      || !this.channel.account) {
       return false;
     }
     return true;
@@ -355,7 +359,12 @@ export class MicroRaiden {
     if (!(info[1] > 0)) {
       throw new Error('No deposit found!');
     }
-    this.setChannel({account, receiver, block: receipt.blockNumber, balance: 0});
+    this.setChannel({
+      account,
+      receiver,
+      block: receipt.blockNumber,
+      proof: { balance: 0 },
+    });
 
     // return channel
     return this.channel;
@@ -443,26 +452,26 @@ export class MicroRaiden {
     console.log(`Closing channel. Cooperative = ${receiverSign}`);
 
 
-    let sign;
-    if (!this.channel.sign) {
-      sign = await this.signBalance(this.channel.balance);
+    let proof: MicroProof;
+    if (!this.channel.proof.sign) {
+      proof = await this.signNewProof(this.channel.proof);
     } else {
-      sign = this.channel.sign;
+      proof = this.channel.proof;
     }
 
     const txHash = receiverSign ?
       await promisify<string>(this.contract.cooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
-        this.num2tkn(this.channel.balance),
-        sign,
+        this.num2tkn(proof.balance),
+        proof.sign,
         receiverSign,
         { from: this.channel.account }) :
       await promisify<string>(this.contract.uncooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
-        this.num2tkn(this.channel.balance),
-        sign,
+        this.num2tkn(proof.balance),
+        proof.sign,
         { from: this.channel.account });
 
     console.log('closeTxHash', txHash);
@@ -516,7 +525,7 @@ export class MicroRaiden {
     return sign;
   }
 
-  async signBalance(newBalance: number): Promise<string> {
+  async signNewProof(proof?: MicroProof): Promise<MicroProof> {
     /* Ask user for signing a channel balance.
      * Notice it's the final balance, not the increment, and that the new
      * balance is set in channel data in next_*, requiring confirmPayment
@@ -525,12 +534,12 @@ export class MicroRaiden {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
-    console.log('signBalance', newBalance, this.channel);
-    if (newBalance === null) {
-      newBalance = this.channel.balance;
+    console.log('signNewProof', proof);
+    if (!proof) {
+      proof = this.channel.proof;
     }
-    if (newBalance === this.channel.balance && this.channel.sign) {
-      return this.channel.sign;
+    if (proof.sign) {
+      return proof;
     }
 
     const params: MsgParam[] = [
@@ -547,7 +556,7 @@ export class MicroRaiden {
       {
         name: 'balance',
         type: 'uint192',
-        value: ''+newBalance,
+        value: proof.balance,
       },
       {
         name: 'contract',
@@ -580,24 +589,26 @@ export class MicroRaiden {
     const recovered = recoverTypedSignature({ data: params, sig: sign  });
     console.log('signTypedData =', sign, recovered);
 
+    proof.sign = sign;
+
     // return signed message
-    if (newBalance === this.channel.balance) {
+    if (proof.balance === this.channel.proof.balance) {
       this.setChannel(Object.assign(
         {},
         this.channel,
-        { sign, next_balance: newBalance, next_sign: sign }
+        { proof, next_proof: proof }
       ));
     } else {
       this.setChannel(Object.assign(
         {},
         this.channel,
-        { next_balance: newBalance, next_sign: sign }
+        { next_proof: proof }
       ));
     }
-    return sign;
+    return proof;
   }
 
-  async incrementBalanceAndSign(amount: number): Promise<string> {
+  async incrementBalanceAndSign(amount: number): Promise<MicroProof> {
     /* Ask user for signing a new balance, which is previous balance added
      * of a given amount.
      * Notice that it doesn't replace signed balance proof, but next_* balance
@@ -607,29 +618,31 @@ export class MicroRaiden {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
-    const newBalance = this.channel.balance + +amount;
+    const proof: MicroProof = { balance: this.channel.proof.balance + +amount };
     // get current deposit
     const info = await this.getChannelInfo();
     if (info.state !== 'opened') {
       throw new Error('Tried signing on closed channel');
-    } else if (newBalance > info.deposit) {
-      throw new Error(`Insuficient funds: current = ${info.deposit} , required = ${newBalance}`);
+    } else if (proof.balance > info.deposit) {
+      throw new Error(`Insuficient funds: current = ${info.deposit} , required = ${proof.balance}`);
     }
     // get hash for new balance proof
-    return await this.signBalance(newBalance);
+    return await this.signNewProof(proof);
   }
 
-  confirmPayment(sign: string): void {
+  confirmPayment(proof: MicroProof): void {
     /* This method must be used after successful payment request.
      * It will persist this.channel's next_{balance,sign} to balance,sign */
-    if (!this.channel.next_sign || this.channel.next_sign !== sign) {
+    if (!this.channel.next_proof
+      || !this.channel.next_proof.sign
+      || this.channel.next_proof.sign !== proof.sign) {
       throw new Error('Invalid provided or stored next signature');
     }
     this.setChannel(Object.assign(
       {},
       this.channel,
-      { balance: this.channel.next_balance, sign: this.channel.next_sign },
-      { next_balance: undefined, next_sign: undefined },
+      { proof: this.channel.next_proof },
+      { next_proof: undefined },
     ));
   }
 
