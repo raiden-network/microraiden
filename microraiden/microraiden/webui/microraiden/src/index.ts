@@ -1,5 +1,5 @@
-import * as Web3 from 'web3';
-import * as BigNumber from 'bignumber.js';
+import Web3 from 'web3';
+import BigNumber from 'bignumber.js';
 import { typedSignatureHash, recoverTypedSignature } from 'eth-sig-util';
 
 declare const localStorage; // possibly missing
@@ -15,6 +15,7 @@ export interface MicroChannel {
   sign?: string;
   next_balance?: number;
   next_sign?: string;
+  close_sign?: string;
 }
 
 export interface MicroChannelInfo {
@@ -415,7 +416,7 @@ export class MicroRaiden {
     return (await this.getChannelInfo()).deposit;
   }
 
-  async closeChannel(receiverSig?: string): Promise<number> {
+  async closeChannel(receiverSign?: string): Promise<number> {
     /* Close current channel.
      * Optional parameter is signed cooperative close from receiver.
      * If cooperative close was successful, channel is already settled after.
@@ -429,7 +430,18 @@ export class MicroRaiden {
     if (info.state !== 'opened') {
       throw new Error('Tried closing already closed channel');
     }
-    console.log(`Closing channel. Cooperative = ${receiverSig}`);
+
+    if (this.channel.close_sign) {
+      receiverSign = this.channel.close_sign;
+    } else if (receiverSign) {
+      this.setChannel(Object.assign(
+        {},
+        this.channel,
+        { close_sign: receiverSign },
+      ));
+    }
+    console.log(`Closing channel. Cooperative = ${receiverSign}`);
+
 
     let sign;
     if (!this.channel.sign) {
@@ -438,13 +450,13 @@ export class MicroRaiden {
       sign = this.channel.sign;
     }
 
-    const txHash = receiverSig ?
+    const txHash = receiverSign ?
       await promisify<string>(this.contract.cooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
         this.num2tkn(this.channel.balance),
         sign,
-        receiverSig,
+        receiverSign,
         { from: this.channel.account }) :
       await promisify<string>(this.contract.uncooperativeClose, 'sendTransaction')(
         this.channel.receiver,

@@ -12,7 +12,7 @@ export default {
     format: 'umd',
   },
   name: 'microraiden',
-  sourceMap: true,
+  sourcemap: true,
   external: ['web3'],
   globals: ['web3:web3'],
   plugins: [

@@ -115,14 +115,16 @@ function pageReady(json) {
   }
 
   function closeChannel(closeSign) {
-    uraiden.closeChannel(closeSign)
+    return uraiden.closeChannel(closeSign)
       .then(function(res) {
         console.log("CLOSED", res);
         refreshAccounts();
+        return res;
       })
       .catch(function(err) {
         errorDialog("An error occurred trying to close the channel", err);
         refreshAccounts();
+        throw err;
       });
   }
 
@@ -217,34 +219,39 @@ function pageReady(json) {
       return;
     }
     mainSwitch("#channel_opening");
-    // signBalance without balance, sign current balance only if needed
-    uraiden.signBalance(null)
+    // if cooperative close signature exists, use it (api will fail)
+    if (uraiden.channel.close_sign) {
+      return closeChannel(uraiden.channel.close_sign);
+    }
+    // signBalance without balance, sign (if needed) and return current balance
+    return uraiden.signBalance(null)
+      .catch(function(err) {
+        errorDialog("An error occurred trying to get balance signature", err);
+        refreshAccounts();
+        throw err;
+      })
       .then(function(sign) {
         // call cooperative-close URL, and closeChannel with close_signature data
-        $.ajax({
+        return $.ajax({
           url: '/api/1/channels/' + uraiden.channel.account + '/' + uraiden.channel.block,
           method: 'DELETE',
           contentType: 'application/json',
           dataType: 'json',
           data: JSON.stringify({ 'balance': uraiden.channel.balance }),
-          success: function(result) {
-            var closeSign = null;
-            if (result && typeof result === 'object' && result['close_signature']) {
-              closeSign = result['close_signature'];
-            } else {
-              console.warn('Invalid cooperative-close response', result);
-            }
-            closeChannel(closeSign);
-          },
-          error: function(request, msg, error) {
-            console.warn('Error calling cooperative-close', request, msg, error);
-            closeChannel(null);
+        })
+        .done(function(result) {
+          var closeSign = null;
+          if (result && typeof result === 'object' && result['close_signature']) {
+            closeSign = result['close_signature'];
+          } else {
+            console.warn('Invalid cooperative-close response', result);
           }
+          return closeChannel(closeSign);
+        })
+        .fail(function(request, msg, error) {
+          console.warn('Error calling cooperative-close', request, msg, error);
+          return closeChannel(null);
         });
-      })
-      .catch(function(err) {
-        errorDialog("An error occurred trying to get balance signature", err);
-        refreshAccounts();
       });
   });
 
