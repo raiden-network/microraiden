@@ -178,7 +178,12 @@ contract RaidenMicroTransferChannels {
             createChannelPrivate(_sender_address, receiver, uint192(_deposit));
         } else {
             uint32 open_block_number = blockNumberFromData(_data);
-            topUpPrivate(_sender_address, receiver, open_block_number, uint192(_deposit));
+            updateInternalBalanceStructs(
+                _sender_address,
+                receiver,
+                open_block_number,
+                uint192(_deposit)
+            );
         }
     }
 
@@ -205,7 +210,12 @@ contract RaidenMicroTransferChannels {
         uint192 _added_deposit)
         external
     {
-        topUpPrivate(msg.sender, _receiver_address, _open_block_number, _added_deposit);
+        updateInternalBalanceStructs(
+            msg.sender,
+            _receiver_address,
+            _open_block_number,
+            _added_deposit
+        );
 
         // transferFrom deposit from msg.sender to contract
         // ! needs prior approval from user
@@ -334,13 +344,13 @@ contract RaidenMicroTransferChannels {
         ChannelCreated(_sender_address, _receiver_address, _deposit);
     }
 
-    /// @dev Funds channel with an additional deposit of tokens, only callable by the Token contract.
+    /// @dev Updates internal balance Structures, only callable by the Token contract.
     /// @param _sender_address The address that sends tokens.
     /// @param _receiver_address The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
     /// @param _added_deposit The added token deposit with which the current deposit is increased.
-    function topUpPrivate(
+    function updateInternalBalanceStructs(
         address _sender_address,
         address _receiver_address,
         uint32 _open_block_number,
