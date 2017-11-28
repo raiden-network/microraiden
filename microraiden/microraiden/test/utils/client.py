@@ -1,6 +1,6 @@
 from microraiden.client import Channel
 from microraiden import Client
-from microraiden.crypto import sign_balance_proof, privkey_to_addr
+from microraiden.crypto import privkey_to_addr, sign_close
 
 
 def close_all_channels(client: Client):
@@ -9,23 +9,20 @@ def close_all_channels(client: Client):
 
 
 def close_channel_cooperatively(
-        channel, privkey_receiver, balance: int=None
+        channel: Channel, privkey_receiver: str, contract_address: str, balance: int=None
 ):
     if balance is not None:
         channel.balance = balance
-    closing_sig = sign_balance_proof(
-        privkey_receiver, channel.receiver, channel.block,
-        channel.balance if balance is None else balance
-    )
+    closing_sig = sign_close(privkey_receiver, channel.balance_sig)
     assert channel.close_cooperatively(closing_sig)
 
 
 def close_all_channels_cooperatively(
-        client: Client, privkey_receiver, balance: int=None
+        client: Client, privkey_receiver: str, contract_address: str, balance: int=None
 ):
     receiver_addr = privkey_to_addr(privkey_receiver)
     client.sync_channels()
     channels = [c for c in client.channels
                 if c.state != Channel.State.closed and c.receiver == receiver_addr]
     for channel in channels:
-        close_channel_cooperatively(channel, privkey_receiver, balance)
+        close_channel_cooperatively(channel, privkey_receiver, contract_address, balance)

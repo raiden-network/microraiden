@@ -1,7 +1,3 @@
-"""
-Convention within this module is to only add the '0x' hex prefix to addresses while other
-hex-encoded values, such as hashes and private keys, come without a 0x prefix.
-"""
 from typing import List, Tuple, Any
 
 from coincurve import PrivateKey, PublicKey
@@ -23,7 +19,7 @@ def pubkey_to_addr(pubkey) -> str:
     if isinstance(pubkey, PublicKey):
         pubkey = pubkey.format(compressed=False)
     assert isinstance(pubkey, bytes)
-    return encode_hex(sha3(pubkey[1:])[-20:])
+    return encode_hex(keccak256(pubkey[1:])[-20:])
 
 
 def privkey_to_addr(privkey: str) -> str:
@@ -45,11 +41,11 @@ def addr_from_sig(sig: bytes, msg: bytes):
 
 def pack(*args) -> bytes:
     """
-    Simulates Solidity's sha3 packing. Integers can be passed as tuples where the second tuple
+    Simulates Solidity's keccak256 packing. Integers can be passed as tuples where the second tuple
     element specifies the variable's size in bits, e.g.:
-    sha3((5, 32))
+    keccak256((5, 32))
     would be equivalent to Solidity's
-    sha3(uint32(5))
+    keccak256(uint32(5))
     Default size is 256.
     """
     def format_int(value, size):
@@ -82,12 +78,12 @@ def pack(*args) -> bytes:
     return msg
 
 
-def sha3(*args) -> bytes:
+def keccak256(*args) -> bytes:
     return keccak(pack(*args))
 
 
-def sha3_hex(*args) -> bytes:
-    return encode_hex(sha3(*args))
+def keccak256_hex(*args) -> bytes:
+    return encode_hex(keccak256(*args))
 
 
 def sign(privkey: str, msg: bytes, v=0) -> bytes:
@@ -108,7 +104,7 @@ def sign(privkey: str, msg: bytes, v=0) -> bytes:
 def sign_transaction(tx: Transaction, privkey: str, network_id: int):
     # Implementing EIP 155.
     tx.v = network_id
-    sig = sign(privkey, sha3(rlp.encode(tx)), v=35 + 2 * network_id)
+    sig = sign(privkey, keccak256(rlp.encode(tx)), v=35 + 2 * network_id)
     v, r, s = sig[-1], sig[0:32], sig[32:-1]
     tx.v = v
     tx.r = int.from_bytes(r, byteorder='big')
@@ -117,7 +113,7 @@ def sign_transaction(tx: Transaction, privkey: str, network_id: int):
 
 def eth_message_hash(msg: str) -> bytes:
     msg = '\x19Ethereum Signed Message:\n' + str(len(msg)) + msg
-    return sha3(msg)
+    return keccak256(msg)
 
 
 def eth_sign(privkey: str, msg: str) -> bytes:
@@ -134,10 +130,10 @@ def eth_sign_typed_data_message(typed_data: List[TypedData]) -> bytes:
     typed_data = [('{} {}'.format(type_, name), data) for type_, name, data in typed_data]
     schema, data = [list(zipped) for zipped in zip(*typed_data)]
 
-    return sha3(sha3(*schema), sha3(*data))
+    return keccak256(keccak256(*schema), keccak256(*data))
 
 
-def eth_sign_typed_data(privkey: str, typed_data: List[TypedData]):
+def eth_sign_typed_data(privkey: str, typed_data: List[TypedData]) -> bytes:
     msg = eth_sign_typed_data_message(typed_data)
     return sign(privkey, msg, v=27)
 
@@ -146,7 +142,7 @@ def eth_sign_typed_data_message_eip(typed_data: List[TypedData]) -> bytes:
     typed_data = [('{} {}'.format(type_, name), data) for type_, name, data in typed_data]
     schema, data = [list(zipped) for zipped in zip(*typed_data)]
 
-    return sha3(sha3(*schema), *data)
+    return keccak256(keccak256(*schema), *data)
 
 
 def eth_sign_typed_data_eip(privkey: str, typed_data: List[TypedData]) -> bytes:
@@ -154,16 +150,21 @@ def eth_sign_typed_data_eip(privkey: str, typed_data: List[TypedData]) -> bytes:
     return sign(privkey, msg, v=27)
 
 
-def get_balance_message(receiver: str, open_block_number: int, balance: int,) -> bytes:
+def get_balance_message(
+        receiver: str, open_block_number: int, balance: int, contract_address: str
+) -> bytes:
     return eth_sign_typed_data_message([
         ('address', 'receiver', receiver),
         ('uint32', 'block_created', (open_block_number, 32)),
-        ('uint192', 'balance', (balance, 192))
+        ('uint192', 'balance', (balance, 192)),
+        ('address', 'contract', contract_address)
     ])
 
 
-def sign_balance_proof(privkey: str, receiver: str, open_block_number: int, balance: int) -> bytes:
-    msg = get_balance_message(receiver, open_block_number, balance)
+def sign_balance_proof(
+        privkey: str, receiver: str, open_block_number: int, balance: int, contract_address: str
+) -> bytes:
+    msg = get_balance_message(receiver, open_block_number, balance, contract_address)
     return sign(privkey, msg, v=27)
 
 
@@ -171,7 +172,17 @@ def verify_balance_proof(
         receiver: str,
         open_block_number: int,
         balance: int,
-        balance_sig: bytes
+        balance_sig: bytes,
+        contract_address: str
 ) -> str:
-    msg = get_balance_message(receiver, open_block_number, balance)
+    msg = get_balance_message(receiver, open_block_number, balance, contract_address)
     return addr_from_sig(balance_sig, msg)
+
+
+def sign_close(privkey: str, balance_sig: bytes) -> bytes:
+    return sign(privkey, keccak256(balance_sig))
+
+
+def verify_closing_sig(balance_sig: bytes, closing_sig: bytes) -> str:
+    msg = keccak256(balance_sig)
+    return addr_from_sig(closing_sig, msg)

@@ -72,7 +72,11 @@ def client(
 
 
 @pytest.fixture
-def clean_channels(client):
-    close_all_channels_cooperatively(client, balance=0)
+def clean_channels(client: Client, receiver_privkey: str, channel_manager_contract_address: str):
+    close_all_channels_cooperatively(
+        client, receiver_privkey, channel_manager_contract_address, balance=0
+    )
     yield
-    close_all_channels_cooperatively(client, balance=0)
+    close_all_channels_cooperatively(
+        client, receiver_privkey, channel_manager_contract_address, balance=0
+    )

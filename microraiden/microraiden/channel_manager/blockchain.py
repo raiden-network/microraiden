@@ -132,12 +132,19 @@ class Blockchain(gevent.Greenlet):
             txhash = log['transactionHash']
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
-            deposit = log['args']['_deposit']
             added_deposit = log['args']['_added_deposit']
-            self.log.debug('received top up event (sender %s, block number %s, deposit %s)',
-                           sender, open_block_number, deposit)
-            self.cm.unconfirmed_event_channel_topup(sender, open_block_number, txhash,
-                                                    added_deposit, deposit)
+            self.log.debug(
+                'received top up event (sender %s, block number %s, deposit %s)',
+                sender,
+                open_block_number,
+                added_deposit
+            )
+            self.cm.unconfirmed_event_channel_topup(
+                sender,
+                open_block_number,
+                txhash,
+                added_deposit
+            )
 
         # confirmed channel top ups
         logs = self.contract_proxy.get_channel_topup_logs(**filters_confirmed)
@@ -146,11 +153,14 @@ class Blockchain(gevent.Greenlet):
             txhash = log['transactionHash']
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
-            deposit = log['args']['_deposit']
             added_deposit = log['args']['_added_deposit']
-            self.log.debug('received top up event (sender %s, block number %s, deposit %s)',
-                           sender, open_block_number, deposit)
-            self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit, deposit)
+            self.log.debug(
+                'received top up event (sender %s, block number %s, added deposit %s)',
+                sender,
+                open_block_number,
+                added_deposit
+            )
+            self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit)
 
         # channel settled event
         logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)

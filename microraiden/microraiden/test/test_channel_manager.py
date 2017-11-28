@@ -17,8 +17,14 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def confirmed_open_channel(channel_manager, client, receiver_address, receiver_privkey,
-                           wait_for_blocks):
+def confirmed_open_channel(
+        channel_manager,
+        client,
+        receiver_address,
+        receiver_privkey,
+        wait_for_blocks,
+        channel_manager_contract_address
+):
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.n_confirmations + 1)
     gevent.sleep(channel_manager.blockchain.poll_interval)
@@ -27,7 +33,7 @@ def confirmed_open_channel(channel_manager, client, receiver_address, receiver_p
     yield channel
 
     if not channel.state == channel.State.closed:
-        close_channel_cooperatively(channel, receiver_privkey)
+        close_channel_cooperatively(channel, receiver_privkey, channel_manager_contract_address)
 
 
 def test_channel_opening(client, web3, make_account, make_channel_manager_proxy, token_contract,
@@ -97,7 +103,9 @@ def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait
     gevent.sleep(blockchain.poll_interval)
     assert (channel.sender, channel.block) not in channel_manager.unconfirmed_channels
     assert (channel.sender, channel.block) in channel_manager.channels
-    close_channel_cooperatively(channel, channel_manager.private_key)
+    close_channel_cooperatively(
+        channel, channel_manager.private_key, channel_manager.contract_proxy.contract.address
+    )
 
 
 def test_close_confirmed_event(channel_manager, confirmed_open_channel, web3, wait_for_blocks):
@@ -172,7 +180,9 @@ def test_unconfirmed_topup(channel_manager, client, receiver_address, wait_for_b
     assert (channel.sender, channel.block) in channel_manager.channels
     channel_rec = channel_manager.channels[channel.sender, channel.block]
     assert channel_rec.deposit == 15
-    close_channel_cooperatively(channel, channel_manager.private_key)
+    close_channel_cooperatively(
+        channel, channel_manager.private_key, channel_manager.contract_proxy.contract.address
+    )
 
 
 def test_payment(channel_manager, confirmed_open_channel, receiver_address, receiver_privkey,
@@ -195,7 +205,8 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
         receiver_privkey,  # should be sender's privkey
         channel_rec.receiver,
         channel_rec.open_block_number,
-        4
+        4,
+        channel_manager.contract_proxy.contract.address
     ))
     with pytest.raises(InvalidBalanceProof):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4,
@@ -209,7 +220,8 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
         sender_privkey,
         sender_address,  # should be receiver's address
         channel_rec.open_block_number,
-        4
+        4,
+        channel_manager.contract_proxy.contract.address
     ))
     with pytest.raises(InvalidBalanceProof):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number, 4,
@@ -223,7 +235,8 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
         sender_privkey,
         receiver_address,
         channel_rec.open_block_number,
-        1  # should be greater than 2
+        1,  # should be greater than 2
+        channel_manager.contract_proxy.contract.address
     ))
     with pytest.raises(InvalidBalanceAmount):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number, 1,
@@ -263,7 +276,8 @@ def test_payment(channel_manager, confirmed_open_channel, receiver_address, rece
         sender_privkey,
         receiver_address,
         channel_rec.open_block_number,
-        12  # should not be greater than 10
+        12,  # should not be greater than 10
+        channel_manager.contract_proxy.contract.address
     ))
     with pytest.raises(InvalidBalanceProof):
         channel_manager.register_payment(sender_address, channel_rec.open_block_number, 12,

@@ -11,9 +11,9 @@ from eth_utils import (
 )
 
 from microraiden.crypto import (
-    sign_balance_proof,
     verify_balance_proof,
-    privkey_to_addr
+    privkey_to_addr,
+    sign_close
 )
 from microraiden.exceptions import (
     NetworkIdMismatch,
@@ -129,8 +129,11 @@ class ChannelManager(gevent.Greenlet):
         assert settle_timeout >= 0
         """Notify the channel manager that a the closing of a channel has been requested."""
         if (sender, open_block_number) not in self.channels:
-            self.log.warn('attempt to close a non existing channel (sender %ss, block_number %ss)',
-                          sender, open_block_number)
+            self.log.warning(
+                'attempt to close a non existing channel (sender %ss, block_number %ss)',
+                sender,
+                open_block_number
+            )
             return
         c = self.channels[sender, open_block_number]
         if c.balance > balance:
@@ -153,33 +156,38 @@ class ChannelManager(gevent.Greenlet):
                       sender, open_block_number)
         self.state.del_channel(sender, open_block_number)
 
-    def unconfirmed_event_channel_topup(self, sender, open_block_number, txhash, added_deposit,
-                                        deposit):
+    def unconfirmed_event_channel_topup(
+            self, sender, open_block_number, txhash, added_deposit
+    ):
         """Notify the channel manager of a topup with not enough confirmations yet."""
         if (sender, open_block_number) not in self.channels:
             assert (sender, open_block_number) in self.unconfirmed_channels
             self.log.info('Ignoring unconfirmed topup of unconfirmed channel '
-                          '(sender %s, block number %s, aded %s)',
+                          '(sender %s, block number %s, added %s)',
                           sender, open_block_number, added_deposit)
             return
         self.log.info('Registering unconfirmed deposit top up '
-                      '(sender %s, block number %s, aded %s)',
+                      '(sender %s, block number %s, added %s)',
                       sender, open_block_number, added_deposit)
         c = self.channels[sender, open_block_number]
         c.unconfirmed_topups[txhash] = added_deposit
         self.state.set_channel(c)
 
-    def event_channel_topup(self, sender, open_block_number, txhash, added_deposit, deposit):
+    def event_channel_topup(self, sender, open_block_number, txhash, added_deposit):
         """Notify the channel manager that the deposit of a channel has been topped up."""
-        self.log.info('Registering deposit top up (sender %s, block number %s, new deposit %s)',
-                      sender, open_block_number, deposit)
+        self.log.info(
+            'Registering deposit top up (sender %s, block number %s, added deposit %s)',
+            sender, open_block_number, added_deposit
+        )
         assert (sender, open_block_number) in self.channels
         c = self.channels[sender, open_block_number]
         if c.is_closed is True:
-            self.log.warn("Topup of an already closed channel (sender=%s open_block=%d)" %
-                          (sender, open_block_number))
+            self.log.warning(
+                "Topup of an already closed channel (sender=%s open_block=%d)" %
+                (sender, open_block_number)
+            )
             return None
-        c.deposit = deposit
+        c.deposit += added_deposit
         c.unconfirmed_topups.pop(txhash, None)
         c.mtime = time.time()
         self.state.set_channel(c)
@@ -189,8 +197,10 @@ class ChannelManager(gevent.Greenlet):
     def close_channel(self, sender, open_block_number):
         """Close and settle a channel."""
         if not (sender, open_block_number) in self.channels:
-            self.log.warn("attempt to close a non-registered channel (sender=%s open_block=%s" %
-                          (sender, open_block_number))
+            self.log.warning(
+                "attempt to close a non-registered channel (sender=%s open_block=%s" %
+                (sender, open_block_number)
+            )
             return
         c = self.channels[sender, open_block_number]
         if c.last_signature is None:
@@ -233,9 +243,7 @@ class ChannelManager(gevent.Greenlet):
             raise InvalidBalanceProof('Requested closing balance does not match latest one.')
         c.is_closed = True
         c.mtime = time.time()
-        receiver_sig = sign_balance_proof(
-            self.private_key, self.receiver, open_block_number, balance
-        )
+        receiver_sig = sign_close(self.private_key, c.last_signature)
         self.state.set_channel(c)
         self.log.info('signed cooperative closing message (sender %s, block number %s)',
                       sender, open_block_number)
@@ -271,7 +279,11 @@ class ChannelManager(gevent.Greenlet):
 
         if not is_same_address(
                 verify_balance_proof(
-                    self.receiver, open_block_number, balance, decode_hex(signature)
+                    self.receiver,
+                    open_block_number,
+                    balance,
+                    decode_hex(signature),
+                    self.contract_proxy.contract.address
                 ),
                 sender
         ):
@@ -292,7 +304,7 @@ class ChannelManager(gevent.Greenlet):
         self.state.set_channel(c)
         self.log.debug('registered payment (sender %s, block number %s, new balance %s)',
                        c.sender, open_block_number, balance)
-        return (c.sender, received)
+        return c.sender, received
 
     def reset_unconfirmed(self):
         """Forget all unconfirmed channels and topups to allow for a clean resync."""

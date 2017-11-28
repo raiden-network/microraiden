@@ -80,7 +80,13 @@ class DefaultHTTPClient(HTTPClient):
             return False
 
         verified = balance_sig and is_same_address(
-            verify_balance_proof(self.channel.receiver, self.channel.block, balance, balance_sig),
+            verify_balance_proof(
+                self.channel.receiver,
+                self.channel.block,
+                balance,
+                balance_sig,
+                self.client.channel_manager_address
+            ),
             self.channel.sender
         )
 
