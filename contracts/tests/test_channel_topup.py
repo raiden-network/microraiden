@@ -181,4 +181,8 @@ def test_topup_token_fallback_uint_conversion(contract_params, owner, get_accoun
     # TopUp a channel with tokenFallback
     if deposit > 2 ** 192:
         with pytest.raises(tester.TransactionFailed):
-            txn_hash = token_instance.transact({"from": sender}).transfer(uraiden_instance.address, top_up_deposit, top_up_data)
+            txn_hash = token_instance.transact({"from": sender}).transfer(
+                uraiden_instance.address,
+                top_up_deposit,
+                top_up_data
+            )

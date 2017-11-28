@@ -136,7 +136,11 @@ def test_create_token_fallback_uint_conversion(contract_params, owner, get_accou
     # Open a channel with tokenFallback
     if deposit > 2 ** 192:
         with pytest.raises(tester.TransactionFailed):
-            txn_hash = token_instance.transact({"from": sender}).transfer(uraiden_instance.address, deposit, txdata)
+            txn_hash = token_instance.transact({"from": sender}).transfer(
+                uraiden_instance.address,
+                deposit,
+                txdata
+            )
     '''
     # For testing what happens in the above case if we remove the contract require(deposit == _deposit)
     open_block_number = get_block(txn_hash)
