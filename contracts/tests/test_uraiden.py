@@ -47,7 +47,7 @@ def test_uraiden_init(
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address, -2])
     with pytest.raises(TypeError):
-        get_uraiden_contract([token.address, 2 ** 8])
+        get_uraiden_contract([token.address, 2 ** 32])
     with pytest.raises(TypeError):
         get_uraiden_contract([0x0, 100])
     with pytest.raises(tester.TransactionFailed):
