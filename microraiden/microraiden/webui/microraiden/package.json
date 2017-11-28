@@ -25,8 +25,8 @@
     "build:esnext": "tsc --module esnext --target esnext --outDir dist/esnext",
     "build:esm": "tsc --module es2015 --target es5 --outDir dist/esm",
     "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
-    "build:umd": "rollup -c",
-    "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 --comments -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz",
+    "build:umd": "webpack",
+    "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz",
     "prepublish": "npm run build"
   },
   "main": "dist/cjs/index.js",
@@ -40,18 +40,14 @@
   "devDependencies": {
     "@types/core-js": "^0.9.43",
     "@types/node": "^8.0.53",
-    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
     "rimraf": "^2.6.2",
-    "rollup": "^0.51.8",
-    "rollup-plugin-babel": "^3.0.2",
-    "rollup-plugin-commonjs": "^8.2.6",
-    "rollup-plugin-json": "^2.3.0",
-    "rollup-plugin-node-builtins": "^2.1.2",
-    "rollup-plugin-node-resolve": "^3.0.0",
     "typescript": "^2.6.1",
     "uglify-js": "^3.1.10",
-    "web3-typescript-typings": "^0.7.2"
+    "web3-typescript-typings": "^0.7.2",
+    "webpack": "^3.8.1"
   },
   "dependencies": {
     "eth-sig-util": "^1.4.0",
