@@ -24,7 +24,7 @@ contract RaidenMicroTransferChannels {
 
     // Contract implementing EIP712 helper functions.
     // Reason: EIP712 is not standardized at this moment and can have breaking changes.
-    MicoRaidenEIP712Helper public microraiden_eip712_helper;
+    MicroRaidenEIP712Helper public microraiden_eip712_helper;
 
     Token public token;
 
@@ -112,7 +112,7 @@ contract RaidenMicroTransferChannels {
     /// @param _microraiden_eip712_helper The address for EIP712 helper contract.
     function setEip712HelperContract(address _microraiden_eip712_helper) public isOwner {
         require(addressHasCode(_microraiden_eip712_helper));
-        microraiden_eip712_helper = MicoRaidenEIP712Helper(_microraiden_eip712_helper);
+        microraiden_eip712_helper = MicroRaidenEIP712Helper(_microraiden_eip712_helper);
     }
 
     /*

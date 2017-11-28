@@ -2,6 +2,7 @@ import pytest
 from ethereum import tester
 from utils import sign
 from tests.utils import balance_proof_hash
+from eth_utils import force_bytes
 from tests.fixtures import (
     owner_index,
     owner,
@@ -46,7 +47,7 @@ def test_eip712_instance(owner, get_accounts, uraiden_contract, eip712_contract,
     assert uraiden_instance.call().microraiden_eip712_helper() == eip712_instance2.address
 
 
-def test_getMessageHash(get_accounts, uraiden_instance, eip712_instance):
+def test_get_message_hash(get_accounts, uraiden_instance, eip712_instance):
     (A, B) = get_accounts(2)
     receiver = '0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb'
     block = 4804175
@@ -64,8 +65,7 @@ def test_getMessageHash(get_accounts, uraiden_instance, eip712_instance):
         balance,
         uraiden_instance.address
     )
-    # TODO
-    # assert eip712_message_hash == message_hash
+    assert force_bytes(eip712_message_hash) == message_hash
 
     eip712_message_hash = eip712_instance.call().getMessageHash(
         A,
@@ -73,6 +73,7 @@ def test_getMessageHash(get_accounts, uraiden_instance, eip712_instance):
         balance,
         uraiden_instance.address
     )
+    assert force_bytes(eip712_message_hash) != message_hash
 
     eip712_message_hash = eip712_instance.call().getMessageHash(
         receiver,
@@ -80,7 +81,7 @@ def test_getMessageHash(get_accounts, uraiden_instance, eip712_instance):
         balance,
         uraiden_instance.address
     )
-    assert eip712_message_hash != message_hash
+    assert force_bytes(eip712_message_hash) != message_hash
 
     eip712_message_hash = eip712_instance.call().getMessageHash(
         receiver,
@@ -88,7 +89,7 @@ def test_getMessageHash(get_accounts, uraiden_instance, eip712_instance):
         20,
         uraiden_instance.address
     )
-    assert eip712_message_hash != message_hash
+    assert force_bytes(eip712_message_hash) != message_hash
 
     eip712_message_hash = eip712_instance.call().getMessageHash(
         receiver,
@@ -96,4 +97,4 @@ def test_getMessageHash(get_accounts, uraiden_instance, eip712_instance):
         balance,
         A
     )
-    assert eip712_message_hash != message_hash
+    assert force_bytes(eip712_message_hash) != message_hash
