@@ -59,7 +59,7 @@ def test_uraiden_init(
 
     uraiden = get_uraiden_contract([token.address, 2 ** 8 - 1])
     assert uraiden.call().owner_address() == owner
-    assert uraiden.call().token_address() == token.address
+    assert uraiden.call().token()
     assert uraiden.call().challenge_period() == 2 ** 8 - 1
     assert token.call().balanceOf(uraiden.address) == 0
     assert web3.eth.getBalance(uraiden.address) == 0
@@ -68,7 +68,7 @@ def test_uraiden_init(
 def test_variable_access(owner, uraiden_contract, token_instance, contract_params):
     uraiden_instance = uraiden_contract()
     assert uraiden_instance.call().owner_address() == owner
-    assert uraiden_instance.call().token_address() == token_instance.address
+    assert uraiden_instance.call().token()
     assert uraiden_instance.call().challenge_period() == contract_params['challenge_period']
     assert uraiden_instance.call().version() == uraiden_contract_version
     assert uraiden_instance.call().latest_version_address() == empty_address
