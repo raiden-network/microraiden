@@ -198,7 +198,7 @@ class ChannelManager(gevent.Greenlet):
         # send closing tx
         tx_params = [self.state.receiver, open_block_number,
                      c.balance, decode_hex(c.last_signature)]
-        raw_tx = self.contract_proxy.create_signed_transaction('close', tx_params)
+        raw_tx = self.contract_proxy.create_signed_transaction('uncooperativeClose', tx_params)
 
         txid = self.blockchain.web3.eth.sendRawTransaction(raw_tx)
         self.log.info('sent channel close(sender %s, block number %s, tx %s)',

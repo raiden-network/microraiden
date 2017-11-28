@@ -90,8 +90,9 @@ def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: ge
     contract = contract_proxy.contract
     web3 = contract_proxy.web3
 
-    channels_with_balance_proof = [c for c in state.channels.values()
-                                   if c.last_signature is not None]
+    channels_with_balance_proof = [
+        c for c in state.channels.values() if c.last_signature is not None
+    ]
     n_channels = len(state.channels)
     n_no_balance_proof = len(state.channels) - len(channels_with_balance_proof)
     n_txs_sent = 0
@@ -120,9 +121,13 @@ def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: ge
 
             # send close if open or settling with wrong balance, unless already done
             if not close_sent and is_valid:
-                tx_params = [channel.receiver, channel.open_block_number,
-                             channel.balance, decode_hex(channel.last_signature)]
-                raw_tx = contract_proxy.create_signed_transaction('close', tx_params)
+                tx_params = [
+                    channel.receiver,
+                    channel.open_block_number,
+                    channel.balance,
+                    decode_hex(channel.last_signature)
+                ]
+                raw_tx = contract_proxy.create_signed_transaction('uncooperativeClose', tx_params)
                 tx_hash = web3.eth.sendRawTransaction(raw_tx)
                 log.info('sending close tx (hash: {})'.format(tx_hash))
                 pending_txs[channel.sender, channel.open_block_number] = tx_hash
@@ -130,11 +135,17 @@ def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: ge
 
         # print status
         msg_status = 'block: {}, pending txs: {}, total txs sent: {}'
-        msg_progress = ('initial channels: {}, settled: {}, pending txs: {}, no BP: {}, '
-                        'invalid BP: {}')
+        msg_progress = (
+            'initial channels: {}, settled: {}, pending txs: {}, no BP: {}, invalid BP: {}'
+        )
         log.info(msg_status.format(web3.eth.blockNumber, len(pending_txs), n_txs_sent))
-        log.info(msg_progress.format(n_channels, n_non_existant, len(pending_txs),
-                                     n_no_balance_proof, n_invalid_balance_proof))
+        log.info(msg_progress.format(
+            n_channels,
+            n_non_existant,
+            len(pending_txs),
+            n_no_balance_proof,
+            n_invalid_balance_proof
+        ))
 
         # wait for next block
         block_before = web3.eth.blockNumber

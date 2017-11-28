@@ -26,5 +26,5 @@ JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 WEB3_PROVIDER = HTTPProvider("http://127.0.0.1:8545", request_kwargs={'timeout': 60})
 
-TOKEN_ABI_NAME = 'ERC223Token'
+TOKEN_ABI_NAME = 'CustomToken'
 CONTRACTS_ABI_JSON = 'data/contracts.json'

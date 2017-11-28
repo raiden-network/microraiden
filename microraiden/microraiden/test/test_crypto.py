@@ -122,12 +122,6 @@ def test_get_balance_message():
     assert encode_hex(msg) == '0x5125456656feababa90b0ae8468a6e415a3762bc80569fcdbf372aea65ce2e73'
 
 
-def test_balance_message_contract(client_contract_proxy: ChannelContractProxy):
-    msg1 = get_balance_message(RECEIVER_ADDR, 37, 15)
-    msg2 = client_contract_proxy.contract.call().getBalanceMessage(RECEIVER_ADDR, 37, 15)
-    assert msg1 == msg2
-
-
 def test_sign_balance_proof_contract(client_contract_proxy: ChannelContractProxy):
     sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15)
     sender_recovered = client_contract_proxy.contract.call().verifyBalanceProof(

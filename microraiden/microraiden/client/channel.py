@@ -137,7 +137,7 @@ class Channel:
             self.balance = balance
 
         tx = self.client.channel_manager_proxy.create_signed_transaction(
-            'close', [self.receiver, self.block, self.balance, self.balance_sig]
+            'uncooperativeClose', [self.receiver, self.block, self.balance, self.balance_sig]
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
@@ -178,7 +178,8 @@ class Channel:
             return None
 
         tx = self.client.channel_manager_proxy.create_signed_transaction(
-            'close', [self.receiver, self.block, self.balance, self.balance_sig, closing_sig]
+            'cooperativeClose',
+            [self.receiver, self.block, self.balance, self.balance_sig, closing_sig]
         )
         self.client.web3.eth.sendRawTransaction(tx)
 

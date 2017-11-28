@@ -42,7 +42,9 @@ def disable_requests_loggin():
 
 def deploy_token_contract(web3, deployer_address, token_abi, token_bytecode):
     Token = web3.eth.contract(abi=token_abi, bytecode=token_bytecode)
-    txhash = Token.deploy({'from': deployer_address}, args=[100000, "ERC223", 6, "ERC223"])
+    txhash = Token.deploy(
+        {'from': deployer_address}, args=[100000, "Raiden Network Token", "RDN", 18]
+    )
     receipt = web3.eth.getTransactionReceipt(txhash)
     contract_address = receipt.contractAddress
     token = Token(contract_address)
