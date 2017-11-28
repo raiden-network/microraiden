@@ -534,6 +534,11 @@ export class MicroRaiden {
         type: 'uint192',
         value: ''+newBalance,
       },
+      {
+        name: 'contract',
+        type: 'address',
+        value: this.contract.address,
+      },
     ];
     let sign: string;
     try {
