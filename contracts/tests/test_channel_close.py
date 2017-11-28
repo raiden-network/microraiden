@@ -2,6 +2,7 @@ import pytest
 from ethereum import tester
 from utils import sign
 from tests.utils import balance_proof_hash
+from utils.utils import sol_sha3
 from tests.fixtures import (
     contract_params,
     owner_index,
@@ -40,7 +41,12 @@ def test_close_call(get_accounts, uraiden_instance, token_instance, get_channel)
     (sender, receiver, open_block_number) = channel
     balance = channel_deposit - 10
 
-    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_message_hash = balance_proof_hash(
+        receiver,
+        open_block_number,
+        balance,
+        uraiden_instance.address
+    )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
 
     # Cannot close what was not opened
@@ -95,7 +101,12 @@ def test_close_by_receiver(
 
     balance = channel_deposit - 1
 
-    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_message_hash = balance_proof_hash(
+        receiver,
+        open_block_number,
+        balance,
+        uraiden_instance.address
+    )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
     balance_msg_sig_false, addr2 = sign.check(balance_message_hash, tester.k4)
     assert addr == sender
@@ -190,16 +201,29 @@ def test_close_by_sender(
 
     balance = channel_deposit - 1
 
-    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
-    balance_message_hash_false_receiver = balance_proof_hash(A, open_block_number, balance)
+    balance_message_hash = balance_proof_hash(
+        receiver,
+        open_block_number,
+        balance,
+        uraiden_instance.address
+    )
+    balance_message_hash_false_receiver = balance_proof_hash(
+        A,
+        open_block_number,
+        balance,
+        uraiden_instance.address
+    )
 
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
     balance_msg_sig_false_signer, addr = sign.check(balance_message_hash, tester.k4)
     balance_msg_sig_false_receiver, addr = sign.check(balance_message_hash_false_receiver, tester.k4)
 
-    closing_sig, addr = sign.check(balance_message_hash, tester.k3)
-    closing_sig_false_signer, addr = sign.check(balance_message_hash, tester.k4)
-    closing_sig_false_receiver, addr = sign.check(balance_message_hash_false_receiver, tester.k3)
+    closing_sig, addr = sign.check(sol_sha3(balance_msg_sig), tester.k3)
+    closing_sig_false_signer, addr = sign.check(sol_sha3(balance_msg_sig), tester.k4)
+    closing_sig_false_receiver, addr = sign.check(
+        sol_sha3(balance_msg_sig_false_receiver),
+        tester.k3
+    )
 
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({'from': sender}).cooperativeClose(
@@ -314,7 +338,12 @@ def test_close_by_sender_challenge_settle_by_receiver(
 
     balance = channel_deposit - 1
 
-    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_message_hash = balance_proof_hash(
+        receiver,
+        open_block_number,
+        balance,
+        uraiden_instance.address
+    )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
 
     channel_pre_close_tests(uraiden_instance, token_instance, channel, top_up_deposit)
@@ -386,7 +415,12 @@ def test_close_by_sender_challenge_settle_by_sender(
 
     balance = channel_deposit - 1
 
-    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_message_hash = balance_proof_hash(
+        receiver,
+        open_block_number,
+        balance,
+        uraiden_instance.address
+    )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
 
     channel_pre_close_tests(uraiden_instance, token_instance, channel, top_up_deposit)
@@ -467,7 +501,12 @@ def test_close_by_sender_challenge_settle_by_sender2(
 
     balance = 0
 
-    balance_message_hash = balance_proof_hash(receiver, open_block_number, balance)
+    balance_message_hash = balance_proof_hash(
+        receiver,
+        open_block_number,
+        balance,
+        uraiden_instance.address
+    )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
 
     channel_pre_close_tests(uraiden_instance, token_instance, channel, top_up_deposit)
