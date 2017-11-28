@@ -437,20 +437,21 @@ export class MicroRaiden {
     } else {
       sign = this.channel.sign;
     }
-    let params = [
-      this.channel.receiver,
-      this.channel.block,
-      this.num2tkn(this.channel.balance),
-      sign
-    ];
-    let paramsTypes = 'address,uint32,uint192,bytes';
-    if (receiverSig) {
-      params.push(receiverSig);
-      paramsTypes += ',bytes';
-    }
-    const txHash = await promisify<string>(this.contract.close[paramsTypes], 'sendTransaction')(
-      ...params,
-      { from: this.channel.account });
+
+    const txHash = receiverSig ?
+      await promisify<string>(this.contract.cooperativeClose, 'sendTransaction')(
+        this.channel.receiver,
+        this.channel.block,
+        this.num2tkn(this.channel.balance),
+        sign,
+        receiverSig,
+        { from: this.channel.account }) :
+      await promisify<string>(this.contract.uncooperativeClose, 'sendTransaction')(
+        this.channel.receiver,
+        this.channel.block,
+        this.num2tkn(this.channel.balance),
+        sign,
+        { from: this.channel.account });
 
     console.log('closeTxHash', txHash);
     const receipt = await this.waitTx(txHash, 0);
