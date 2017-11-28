@@ -44,7 +44,7 @@ def get_uraiden_contract(chain, create_contract):
 @pytest.fixture()
 def token_contract(contract_params, get_token_contract):
     def get(transaction=None):
-        args = [10 ** 26, 'CustomToken', 'TKN', contract_params['decimals']]
+        args = [contract_params['supply'], 'CustomToken', 'TKN', contract_params['decimals']]
         token_contract = get_token_contract(args, transaction)
         return token_contract
     return get
