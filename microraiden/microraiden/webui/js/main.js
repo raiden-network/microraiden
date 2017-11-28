@@ -86,7 +86,13 @@ function pageReady(json) {
         Cookies.set("RDN-Sender-Balance", uraiden.channel.balance);
         Cookies.set("RDN-Balance-Signature", sign);
         Cookies.remove("RDN-Nonexisting-Channel");
-        location.reload();
+        $('html').load(location.href, function(res, status, xhr) {
+          if ( status === 'error' ) {
+            errorDialog("An error ocurred re-sending request", xhr.statusText);
+          } else {
+            uraiden.confirmPayment(sign);
+          }
+        });
       })
       .catch(function(err) {
         if (err.message && err.message.includes('Insuficient funds')) {

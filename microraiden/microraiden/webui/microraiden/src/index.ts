@@ -13,6 +13,8 @@ export interface MicroChannel {
   block: number;
   balance: number;
   sign?: string;
+  next_balance?: number;
+  next_sign?: string;
 }
 
 export interface MicroChannelInfo {
@@ -504,8 +506,8 @@ export class MicroRaiden {
   async signBalance(newBalance: number): Promise<string> {
     /* Ask user for signing a channel balance.
      * Notice it's the final balance, not the increment, and that the new
-     * balance is set in channel data, despite "success" of any following
-     * sender/receiver request/call.
+     * balance is set in channel data in next_*, requiring confirmPayment
+     * call to persist it, after successful request.
      * Returns promise to signed data */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
@@ -566,8 +568,18 @@ export class MicroRaiden {
     console.log('signTypedData =', sign, recovered);
 
     // return signed message
-    if (newBalance === this.channel.balance && !this.channel.sign) {
-      this.setChannel(Object.assign({}, this.channel, { sign }));
+    if (newBalance === this.channel.balance) {
+      this.setChannel(Object.assign(
+        {},
+        this.channel,
+        { sign, next_balance: newBalance, next_sign: sign }
+      ));
+    } else {
+      this.setChannel(Object.assign(
+        {},
+        this.channel,
+        { next_balance: newBalance, next_sign: sign }
+      ));
     }
     return sign;
   }
@@ -575,8 +587,9 @@ export class MicroRaiden {
   async incrementBalanceAndSign(amount: number): Promise<string> {
     /* Ask user for signing a new balance, which is previous balance added
      * of a given amount.
-     * Notice that, if sign is successful, balance is incremented regardless
-     * of "success" of any following sender/receiver request/call.
+     * Notice that it doesn't replace signed balance proof, but next_* balance
+     * proof. You must call confirmPayment with the signature after confirming
+     * successful request, to persist it.
      * Returns promise to signed data */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
@@ -590,13 +603,21 @@ export class MicroRaiden {
       throw new Error(`Insuficient funds: current = ${info.deposit} , required = ${newBalance}`);
     }
     // get hash for new balance proof
-    const sign = await this.signBalance(newBalance);
+    return await this.signBalance(newBalance);
+  }
+
+  confirmPayment(sign: string): void {
+    /* This method must be used after successful payment request.
+     * It will persist this.channel's next_{balance,sign} to balance,sign */
+    if (!this.channel.next_sign || this.channel.next_sign !== sign) {
+      throw new Error('Invalid provided or stored next signature');
+    }
     this.setChannel(Object.assign(
       {},
       this.channel,
-      { balance: newBalance, sign }
+      { balance: this.channel.next_balance, sign: this.channel.next_sign },
+      { next_balance: undefined, next_sign: undefined },
     ));
-    return sign;
   }
 
   async buyToken(account: string): Promise<Web3.TransactionReceipt> {
