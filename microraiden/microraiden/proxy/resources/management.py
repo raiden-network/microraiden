@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse
 import json
 from collections import defaultdict
 
-from microraiden.crypto import sign_balance_proof
+from microraiden.crypto import sign_close
 from microraiden.proxy.resources.login import auth
 from eth_utils import encode_hex
 
@@ -134,12 +134,7 @@ class ChannelManagementListChannels(Resource):
         channel = self.channel_manager.channels[sender_address, args.block]
         if channel.last_signature != args.signature:
             return "Invalid or outdated balance signature", 400
-        ret = sign_balance_proof(
-            self.channel_manager.private_key,
-            self.channel_manager.receiver,
-            args.block,
-            channel.balance
-        )
+        ret = sign_close(self.channel_manager.private_key, args.signature)
         return ret, 200
 
 

@@ -3,7 +3,7 @@ import pytest
 
 from microraiden import Client
 from microraiden.client import Channel
-from microraiden.crypto import sign_balance_proof
+from microraiden.crypto import sign_balance_proof, sign_close
 from microraiden.test.utils.client import close_channel_cooperatively
 
 
@@ -23,7 +23,7 @@ def test_client(client: Client, receiver_privkey, receiver_address):
     ev = c.close()
     assert ev is not None
 
-    close_channel_cooperatively(c, receiver_privkey)
+    close_channel_cooperatively(c, receiver_privkey, client.channel_manager_address)
 
 
 def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
@@ -33,7 +33,7 @@ def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
     assert c.deposit >= 3
     assert c.balance == 3
 
-    sig = sign_balance_proof(receiver_privkey, c.receiver, c.block, c.balance)
+    sig = sign_close(receiver_privkey, c.balance_sig)
     assert c.close_cooperatively(sig)
     assert c.state == Channel.State.closed
 
@@ -41,7 +41,9 @@ def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
 def test_integrity(client: Client, receiver_address):
     c = client.get_suitable_channel(receiver_address, 5)
     assert c.balance == 0
-    assert c.balance_sig == sign_balance_proof(client.privkey, receiver_address, c.block, 0)
+    assert c.balance_sig == sign_balance_proof(
+        client.privkey, receiver_address, c.block, 0, client.channel_manager_address
+    )
     assert c.is_valid()
 
     # Balance update without sig update.
@@ -79,7 +81,7 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
     # Check if channel is forgotten on resync after closure.
     assert len(client.channels) == 1
     c = client.channels[0]
-    close_channel_cooperatively(c, receiver_privkey)
+    close_channel_cooperatively(c, receiver_privkey, client.channel_manager_address)
 
     client.sync_channels()
     assert c not in client.channels

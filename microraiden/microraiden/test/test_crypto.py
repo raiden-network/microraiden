@@ -131,32 +131,31 @@ def test_eth_sign_typed_data_eip():
     assert encode_hex(sig) == sig_expected
 
 
-def test_get_balance_message():
-    msg = get_balance_message(RECEIVER_ADDR, 310214, 14)
-    assert encode_hex(msg) == '0x5125456656feababa90b0ae8468a6e415a3762bc80569fcdbf372aea65ce2e73'
+def test_get_balance_message(channel_manager_contract_address: str):
+    msg = get_balance_message(RECEIVER_ADDR, 310214, 14, channel_manager_contract_address)
+    assert encode_hex(msg) == '0x030600a234c173e696c945642673a00720f591bea0741589a3cb0cb09a898ce1'
 
 
-def test_sign_balance_proof_contract(client_contract_proxy: ChannelContractProxy):
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15)
+def test_sign_balance_proof_contract(
+        client_contract_proxy: ChannelContractProxy,
+        channel_manager_contract_address: str
+):
+    sig = sign_balance_proof(
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract_address
+    )
     sender_recovered = client_contract_proxy.contract.call().verifyBalanceProof(
         RECEIVER_ADDR, 37, 15, sig
     )
     assert sender_recovered == SENDER_ADDR
 
 
-def test_verify_balance_proof():
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 315123, 8)
-    assert verify_balance_proof(RECEIVER_ADDR, 315123, 8, sig) == SENDER_ADDR
-
-
-def test_verify_balance_proof_external():
-    sender = '0xc5075799c8d1e286bc7dc0f285668499ddb5286d'
-    receiver = '0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb'
-    block = 4804175
-    balance = 22000000000000000000
-    sig = '0x2b264f610e4ba57dcb5494250a9c19bd090b961dd82b5496639e4249c43e91c7' \
-          '7fa6e71dc6dbc857aa442ee2949e48c5b92172a9a77b73f6530210a5413891b91b'
-    assert verify_balance_proof(receiver, block, balance, decode_hex(sig)) == sender
+def test_verify_balance_proof(channel_manager_contract_address: str):
+    sig = sign_balance_proof(
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 315123, 8, channel_manager_contract_address
+    )
+    assert verify_balance_proof(
+        RECEIVER_ADDR, 315123, 8, sig, channel_manager_contract_address
+    ) == SENDER_ADDR
 
 
 def test_sign_v0():
@@ -172,14 +171,22 @@ def test_eth_sign_v27():
     assert eth_verify(sig, 'hello v=27') == SENDER_ADDR
 
 
-def test_verify_balance_proof_v0():
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11)
-    sig = sig[:-1] + b'\x01'
-    assert verify_balance_proof(RECEIVER_ADDR, 312524, 11, sig) == SENDER_ADDR
+def test_verify_balance_proof_v0(channel_manager_contract_address: str):
+    sig = sign_balance_proof(
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_contract_address
+    )
+    sig = sig[:-1] + b'\x00'
+    assert verify_balance_proof(
+        RECEIVER_ADDR, 312524, 11, sig, channel_manager_contract_address
+    ) == SENDER_ADDR
 
 
-def test_verify_balance_proof_v27():
+def test_verify_balance_proof_v27(channel_manager_contract_address: str):
     # Should be default but test anyway.
-    sig = sign_balance_proof(SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11)
-    sig = sig[:-1] + b'\x1c'
-    assert verify_balance_proof(RECEIVER_ADDR, 312524, 11, sig) == SENDER_ADDR
+    sig = sign_balance_proof(
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_contract_address
+    )
+    sig = sig[:-1] + b'\x1b'
+    assert verify_balance_proof(
+        RECEIVER_ADDR, 312524, 11, sig, channel_manager_contract_address
+    ) == SENDER_ADDR

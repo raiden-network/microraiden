@@ -86,7 +86,7 @@ class ContractProxy:
                 if not self.tester_mode:
                     gevent.sleep(wait)
                 else:
-                    self.web3.eth.mine(1)
+                    self.web3.testing.mine(1)
 
         return None
 
@@ -124,7 +124,7 @@ class ChannelContractProxy(ContractProxy):
         )
 
     def get_channel_topped_up_event_blocking(
-            self, sender, receiver, opening_block, deposit, topup,
+            self, sender, receiver, opening_block, topup,
             from_block=0, to_block='pending', wait=DEFAULT_RETRY_INTERVAL, timeout=DEFAULT_TIMEOUT
     ):
         filters = {
@@ -134,8 +134,7 @@ class ChannelContractProxy(ContractProxy):
         }
 
         def condition(event):
-            return (event['args']['_deposit'] == deposit and
-                    event['args']['_added_deposit'] == topup)
+            return event['args']['_added_deposit'] == topup
 
         return self.get_event_blocking(
             'ChannelToppedUp', from_block, to_block, filters, condition, wait, timeout

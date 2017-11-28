@@ -89,7 +89,7 @@ def test_default_http_client(
     assert channel.balance < channel.deposit
     assert channel.sender == sender_address
     assert channel.receiver == receiver_address
-    close_channel_cooperatively(channel, receiver_privkey)
+    close_channel_cooperatively(channel, receiver_privkey, client.channel_manager_address)
 
 
 def test_default_http_client_topup(
@@ -117,7 +117,7 @@ def test_default_http_client_topup(
     assert channel2.balance_sig
     assert channel2.balance < channel2.deposit
     assert channel1 == channel2
-    close_channel_cooperatively(channel1, receiver_privkey)
+    close_channel_cooperatively(channel1, receiver_privkey, client.channel_manager_address)
 
 
 def test_default_http_client_close(
@@ -140,7 +140,7 @@ def test_default_http_client_existing_channel(
     check_response(default_http_client.run('doggo.jpg'))
     assert channel.balance == 2
     assert channel.deposit == 50
-    close_channel_cooperatively(channel, receiver_privkey)
+    close_channel_cooperatively(channel, receiver_privkey, client.channel_manager_address)
 
 
 def test_default_http_client_existing_channel_topup(
@@ -153,11 +153,16 @@ def test_default_http_client_existing_channel_topup(
     check_response(default_http_client.run('doggo.jpg'))
     assert channel.balance == 2
     assert channel.deposit == 13
-    close_channel_cooperatively(channel, receiver_privkey)
+    close_channel_cooperatively(channel, receiver_privkey, client.channel_manager_address)
 
 
-def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, sender_address,
-                    receiver_privkey, receiver_address):
+def test_coop_close(
+        doggo_proxy,
+        default_http_client: DefaultHTTPClient,
+        sender_address,
+        receiver_privkey,
+        receiver_address
+):
 
     check_response(default_http_client.run('doggo.jpg'))
 
@@ -177,4 +182,4 @@ def test_coop_close(doggo_proxy, default_http_client: DefaultHTTPClient, sender_
                             (channel.sender, channel.block), data=request_data)
 
     assert reply.status_code == 200
-    close_channel_cooperatively(channel, receiver_privkey)
+    close_channel_cooperatively(channel, receiver_privkey, client.channel_manager_address)
