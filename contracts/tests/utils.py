@@ -21,9 +21,3 @@ def print_logs(contract, event, name=''):
         print('--(', name, ') events for ', event, events)
 
     transfer_filter.watch(lambda x: print('--(', name, ') event ', event, x['args']))
-
-
-def wait(transfer_filter):
-    with Timeout(30) as timeout:
-        while not transfer_filter.get(False):
-            timeout.sleep(2)

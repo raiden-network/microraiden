@@ -1,5 +1,4 @@
 import pytest
-import os
 from ethereum import tester
 from tests.fixtures import (
     contract_params,
@@ -29,7 +28,13 @@ from tests.fixtures_uraiden import (
 from tests.fixtures_uraiden import checkToppedUpEvent
 
 
-def test_channel_topup_223(get_accounts, uraiden_instance, token_instance, get_channel, event_handler, print_gas):
+def test_channel_topup_223(
+    get_accounts,
+    uraiden_instance,
+    token_instance,
+    get_channel,
+    event_handler,
+    print_gas):
     token = token_instance
     ev_handler = event_handler(uraiden_instance)
     (sender, receiver, A, B) = get_accounts(4)
@@ -76,7 +81,14 @@ def test_channel_topup_223(get_accounts, uraiden_instance, token_instance, get_c
     assert channel_data[1] == MAX_UINT192 - 100'''
 
 
-def test_channel_topup_20(get_accounts, uraiden_instance, token_instance, get_channel, txn_gas, event_handler, print_gas):
+def test_channel_topup_20(
+    get_accounts,
+    uraiden_instance,
+    token_instance,
+    get_channel,
+    txn_gas,
+    event_handler,
+    print_gas):
     token = token_instance
     ev_handler = event_handler(uraiden_instance)
     (sender, receiver, A) = get_accounts(3)
@@ -86,7 +98,11 @@ def test_channel_topup_20(get_accounts, uraiden_instance, token_instance, get_ch
     top_up_deposit = 14
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
+        uraiden_instance.transact({'from': sender}).topUpERC20(
+            receiver,
+            open_block_number,
+            top_up_deposit
+        )
 
     # Approve token allowance
     txn_hash = token.transact({"from": sender}).approve(uraiden_instance.address, top_up_deposit)
@@ -112,7 +128,11 @@ def test_channel_topup_20(get_accounts, uraiden_instance, token_instance, get_ch
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({'from': sender}).topUpERC20(receiver, 0, top_up_deposit)
 
-    txn_hash = uraiden_instance.transact({'from': sender}).topUpERC20(receiver, open_block_number, top_up_deposit)
+    txn_hash = uraiden_instance.transact({'from': sender}).topUpERC20(
+        receiver,
+        open_block_number,
+        top_up_deposit
+    )
 
     channel_data = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == channel_deposit + top_up_deposit  # deposit
@@ -120,5 +140,11 @@ def test_channel_topup_20(get_accounts, uraiden_instance, token_instance, get_ch
     print_gas(txn_hash, 'test_channel_topup_20', gas_used_approve)
 
     # Check topup event
-    ev_handler.add(txn_hash, uraiden_events['topup'], checkToppedUpEvent(sender, receiver, open_block_number, top_up_deposit, channel_deposit + top_up_deposit))
+    ev_handler.add(txn_hash, uraiden_events['topup'], checkToppedUpEvent(
+        sender,
+        receiver,
+        open_block_number,
+        top_up_deposit,
+        channel_deposit + top_up_deposit)
+    )
     ev_handler.check()

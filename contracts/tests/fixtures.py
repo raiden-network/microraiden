@@ -1,5 +1,4 @@
 import pytest
-from tests.utils import print_logs
 from utils.logs import LogHandler
 
 

@@ -1,5 +1,4 @@
 import pytest
-import os
 from ethereum import tester
 from tests.fixtures import (
     contract_params,
@@ -32,7 +31,7 @@ def test_channel_223_create(owner, get_accounts, uraiden_instance, token_instanc
     (sender, receiver, C, D) = get_accounts(4)
     deposit = 1000
     txdata = bytes.fromhex(receiver[2:].zfill(40))
-    txdata_D = bytes.fromhex(D[2:].zfill(40))
+    # txdata_D = bytes.fromhex(D[2:].zfill(40))
     txdata_fake = txdata[1:]
 
     # Fund accounts with tokens
@@ -46,13 +45,25 @@ def test_channel_223_create(owner, get_accounts, uraiden_instance, token_instanc
     with pytest.raises(TypeError):
         token_instance.transact({"from": sender}).transfer(uraiden_instance.address, -2, txdata)
     with pytest.raises(TypeError):
-        token_instance.transact({"from": sender}).transfer(uraiden_instance.address, MAX_UINT + 1, txdata)
+        token_instance.transact({"from": sender}).transfer(
+            uraiden_instance.address,
+            MAX_UINT + 1,
+            txdata
+        )
     with pytest.raises(tester.TransactionFailed):
         token_instance.transact({"from": sender}).transfer(empty_address, deposit, txdata)
     with pytest.raises(tester.TransactionFailed):
-        token_instance.transact({"from": sender}).transfer(uraiden_instance.address, deposit, bytearray(10))
+        token_instance.transact({"from": sender}).transfer(
+            uraiden_instance.address,
+            deposit,
+            bytearray(10)
+        )
     with pytest.raises(tester.TransactionFailed):
-        token_instance.transact({"from": sender}).transfer(uraiden_instance.address, deposit, txdata_fake)
+        token_instance.transact({"from": sender}).transfer(
+            uraiden_instance.address,
+            deposit,
+            txdata_fake
+        )
 
     # tokenFallback only callable by token
     with pytest.raises(tester.TransactionFailed):

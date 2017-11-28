@@ -30,7 +30,13 @@ from tests.fixtures_uraiden import (
 # from tests.test_channel_create import get_channel
 
 
-def test_uraiden_init(web3, owner, get_accounts, get_uraiden_contract, token_contract, uraiden_contract):
+def test_uraiden_init(
+    web3,
+    owner,
+    get_accounts,
+    get_uraiden_contract,
+    token_contract,
+    uraiden_contract):
     token = token_contract()
     (A, B) = get_accounts(2)
 
@@ -68,7 +74,13 @@ def test_variable_access(owner, uraiden_contract, token_instance, contract_param
     assert uraiden_instance.call().latest_version_address() == empty_address
 
 
-def test_function_access(owner, get_accounts, uraiden_contract, uraiden_instance, token_instance, get_channel):
+def test_function_access(
+    owner,
+    get_accounts,
+    uraiden_contract,
+    uraiden_instance,
+    token_instance,
+    get_channel):
     (A, B, C, D) = get_accounts(4)
     uraiden_instance2 = uraiden_contract()
     channel = get_channel(uraiden_instance, token_instance, 100, A, B)
