@@ -5,14 +5,14 @@ from eth_utils import encode_hex, decode_hex
 from microraiden.contract_proxy import ChannelContractProxy
 from microraiden.crypto import (
     privkey_to_addr,
-    sha3_hex,
+    keccak256_hex,
     sign,
     pubkey_to_addr,
     get_balance_message,
     sign_balance_proof,
     verify_balance_proof,
     eth_sign,
-    sha3,
+    keccak256,
     addr_from_sig,
     eth_verify,
     eth_sign_typed_data_message_eip, eth_sign_typed_data_eip, pack)
@@ -33,22 +33,36 @@ def test_pack():
     assert pack(True) == b'\x01'
 
 
-def test_sha3():
+def test_keccak256():
     addr1 = '0x1212121212121212121212121212121212121212'
     addr2 = '0x3434343434343434343434343434343434343434'
 
-    assert sha3_hex('a') == '0x3ac225168df54212a25c1c01fd35bebfea408fdac2e31ddd6f80a4bbf9a5f1cb'
-    assert sha3_hex('0x0a') == '0x0ef9d8f8804d174666011a394cab7901679a8944d24249fd148a6a36071151f8'
-    assert (sha3_hex(addr1, (15, 32)) ==
-            '0x1e17ec1733a759ef0d988fd0195d0e2792dc6181c8953130d14f9a261c6260bb')
-    assert (sha3_hex(addr1, (17, 32), addr2) ==
-            '0x00424f9e17d5fecf44d798962d27cd1d44ef37d3968b05a5ff078ff696c14ea8')
-    assert (sha3_hex((23, 256)) ==
-            '0xc624b66cc0138b8fabc209247f72d758e1cf3343756d543badbf24212bed8c15')
-    assert sha3_hex(19) == '0x66de8ffda797e3de9c05e8fc57b3bf0ec28a930d40b0d285d93c06501cf6a090'
-    assert sha3_hex(-5) == '0x7234c58e51ab4abdf62492ac6faf025ebff2afd4f861cebfa33d3e76667716a9'
-    assert sha3_hex(True) == '0x5fe7f977e71dba2ea1a68e21057beebb9be2ac30c6410aa38d4f3fbe41dcffd2'
-    assert sha3_hex(False) == '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a'
+    ref = '0x3ac225168df54212a25c1c01fd35bebfea408fdac2e31ddd6f80a4bbf9a5f1cb'
+    assert keccak256_hex('a') == ref
+
+    ref = '0x0ef9d8f8804d174666011a394cab7901679a8944d24249fd148a6a36071151f8'
+    assert keccak256_hex('0x0a') == ref
+
+    ref = '0x1e17ec1733a759ef0d988fd0195d0e2792dc6181c8953130d14f9a261c6260bb'
+    assert keccak256_hex(addr1, (15, 32)) == ref
+
+    ref = '0x00424f9e17d5fecf44d798962d27cd1d44ef37d3968b05a5ff078ff696c14ea8'
+    assert keccak256_hex(addr1, (17, 32), addr2) == ref
+
+    ref = '0xc624b66cc0138b8fabc209247f72d758e1cf3343756d543badbf24212bed8c15'
+    assert keccak256_hex((23, 256)) == ref
+
+    ref = '0x66de8ffda797e3de9c05e8fc57b3bf0ec28a930d40b0d285d93c06501cf6a090'
+    assert keccak256_hex(19) == ref
+
+    ref = '0x7234c58e51ab4abdf62492ac6faf025ebff2afd4f861cebfa33d3e76667716a9'
+    assert keccak256_hex(-5) == ref
+
+    ref = '0x5fe7f977e71dba2ea1a68e21057beebb9be2ac30c6410aa38d4f3fbe41dcffd2'
+    assert keccak256_hex(True) == ref
+
+    ref = '0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a'
+    assert keccak256_hex(False) == ref
 
 
 def test_sign():
@@ -146,7 +160,7 @@ def test_verify_balance_proof_external():
 
 
 def test_sign_v0():
-    msg = sha3('hello v=0')
+    msg = keccak256('hello v=0')
     sig = sign(SENDER_PRIVATE_KEY, msg)
     assert sig[-1] == 1
     assert addr_from_sig(sig, msg) == SENDER_ADDR
