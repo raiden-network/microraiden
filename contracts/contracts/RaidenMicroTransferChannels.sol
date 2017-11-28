@@ -1,7 +1,8 @@
 pragma solidity ^0.4.17;
 
-import "./Token.sol";
-import "./lib/ECVerify.sol";
+import './Token.sol';
+import './lib/ECVerify.sol';
+import './MicroRaidenEIP712Helper.sol';
 
 /// @title Raiden MicroTransfer Channels Contract.
 contract RaidenMicroTransferChannels {
@@ -20,6 +21,10 @@ contract RaidenMicroTransferChannels {
     // by the owner during a new contract deployment for all outdated contracts.
     // Outdated contracts can still be used.
     address public latest_version_address;
+
+    // Contract implementing EIP712 helper functions.
+    // Reason: EIP712 is not standardized at this moment and can have breaking changes.
+    MicroRaidenEIP712Helper public microraiden_eip712_helper;
 
     Token public token;
 
@@ -103,6 +108,13 @@ contract RaidenMicroTransferChannels {
         latest_version_address = _latest_version_address;
     }
 
+    /// @dev Sets the address for the contract-library implementing EIP712 helper functions.
+    /// @param _microraiden_eip712_helper The address for EIP712 helper contract.
+    function setEip712HelperContract(address _microraiden_eip712_helper) public isOwner {
+        require(addressHasCode(_microraiden_eip712_helper));
+        microraiden_eip712_helper = MicroRaidenEIP712Helper(_microraiden_eip712_helper);
+    }
+
     /*
      *  Public helper functions (constant)
      */
@@ -137,16 +149,15 @@ contract RaidenMicroTransferChannels {
         uint192 _balance,
         bytes _balance_msg_sig)
         public
-        constant
+        view
         returns (address)
     {
-        // The variable names from below will be shown to the sender when signing
-        // the balance proof, so they have to be kept in sync with the Dapp client.
-        // The hashed strings should be kept in sync with this function's parameters
-        // (variable names and types)
-        var message_hash = keccak256(
-          keccak256('address receiver', 'uint32 block_created', 'uint192 balance', 'address contract'),
-          keccak256(_receiver_address, _open_block_number, _balance, address(this))
+        // getMessageHash is a pure function
+        bytes32 message_hash = microraiden_eip712_helper.getMessageHash(
+            _receiver_address,
+            _open_block_number,
+            _balance,
+            address(this)
         );
 
         // Derive address from signature

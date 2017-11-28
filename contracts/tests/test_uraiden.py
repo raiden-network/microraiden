@@ -24,6 +24,8 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
+    eip712_contract,
+    eip712_instance,
     get_channel,
     event_handler
 )

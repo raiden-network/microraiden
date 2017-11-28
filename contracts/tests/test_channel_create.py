@@ -22,7 +22,9 @@ from tests.fixtures_uraiden import (
     token_instance,
     get_uraiden_contract,
     uraiden_contract,
-    uraiden_instance
+    uraiden_instance,
+    eip712_contract,
+    eip712_instance
 )
 
 

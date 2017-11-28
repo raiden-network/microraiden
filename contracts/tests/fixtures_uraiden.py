@@ -68,8 +68,25 @@ def uraiden_contract(contract_params, token_instance, get_uraiden_contract):
 
 
 @pytest.fixture
-def uraiden_instance(uraiden_contract):
-    return uraiden_contract()
+def uraiden_instance(owner, uraiden_contract, eip712_instance):
+    uraiden_instance = uraiden_contract()
+    uraiden_instance.transact({'from': owner}).setEip712HelperContract(eip712_instance.address)
+    return uraiden_instance
+
+
+@pytest.fixture()
+def eip712_contract(chain, create_contract):
+    def get():
+        MicroRaidenEIP712Helper = chain.provider.get_contract_factory('MicroRaidenEIP712Helper')
+        eip712_contract = create_contract(MicroRaidenEIP712Helper, [])
+
+        return eip712_contract
+    return get
+
+
+@pytest.fixture()
+def eip712_instance(chain, eip712_contract):
+    return eip712_contract()
 
 
 @pytest.fixture(params=['20', '223'])
