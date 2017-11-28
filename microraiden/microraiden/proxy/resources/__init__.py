@@ -6,8 +6,6 @@ from .management import (
     ChannelManagementListChannels,
     ChannelManagementStats,
     ChannelManagementChannelInfo,
-    ChannelManagerAbi,
-    TokenAbi
 )
 from .login import (
     ChannelManagementLogin,
@@ -26,6 +24,4 @@ __all__ = (
     ChannelManagementLogin,
     ChannelManagementLogout,
     StaticFilesServer,
-    ChannelManagerAbi,
-    TokenAbi
 )

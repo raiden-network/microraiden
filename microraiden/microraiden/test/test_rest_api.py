@@ -74,10 +74,3 @@ def test_stats(doggo_proxy, api_endpoint_address):
     assert stats['token_address'] == token_address
     contract_address = doggo_proxy.channel_manager.contract_proxy.contract.address
     assert stats['contract_address'] == contract_address
-
-    rv = requests.get(api_path + "/manager_abi")
-    assert rv.status_code == 200
-    json.loads(rv.text)
-    rv = requests.get(api_path + "/token_abi")
-    assert rv.status_code == 200
-    json.loads(rv.text)
