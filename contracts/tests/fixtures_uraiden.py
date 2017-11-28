@@ -184,7 +184,6 @@ def checkToppedUpEvent(sender, receiver, open_block_number, added_deposit, depos
         assert event['args']['_sender'] == sender
         assert event['args']['_receiver'] == receiver
         assert event['args']['_open_block_number'] == open_block_number
-        assert event['args']['_deposit'] == deposit
         assert event['args']['_added_deposit'] == added_deposit
     return get
 
