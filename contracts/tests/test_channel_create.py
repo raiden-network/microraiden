@@ -81,17 +81,6 @@ def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance
     token.transact({"from": owner}).transfer(sender, deposit + 100)
     token.transact({"from": owner}).transfer(receiver, 20)
 
-    with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(0x0, deposit)
-    with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20('0x0', deposit)
-    with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(fake_address, deposit)
-    with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, -3)
-    with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, MAX_UINT192 + 1)
-
     # Cannot create a channel if tokens were not approved
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
@@ -103,6 +92,17 @@ def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance
 
     # Approve token allowance
     token_instance.transact({"from": sender}).approve(uraiden_instance.address, deposit)
+
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).createChannelERC20(0x0, deposit)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).createChannelERC20('0x0', deposit)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).createChannelERC20(fake_address, deposit)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, -3)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, MAX_UINT192 + 1)
 
     # Create channel
     uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)

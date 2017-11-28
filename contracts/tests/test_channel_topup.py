@@ -26,9 +26,7 @@ from tests.fixtures_uraiden import (
     uraiden_instance,
     get_channel
 )
-from tests.fixtures_uraiden import (
-    checkToppedUpEvent
-)
+from tests.fixtures_uraiden import checkToppedUpEvent
 
 
 def test_channel_topup_223(get_accounts, uraiden_instance, token_instance, get_channel, event_handler, print_gas):
@@ -93,6 +91,17 @@ def test_channel_topup_20(get_accounts, uraiden_instance, token_instance, get_ch
     # Approve token allowance
     txn_hash = token.transact({"from": sender}).approve(uraiden_instance.address, top_up_deposit)
     gas_used_approve = txn_gas(txn_hash)
+
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).topUpERC20(0x0, top_up_deposit)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).topUpERC20('0x0', top_up_deposit)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).topUpERC20(fake_address, top_up_deposit)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).topUpERC20(receiver, -3)
+    with pytest.raises(TypeError):
+        uraiden_instance.transact({"from": sender}).topUpERC20(receiver, MAX_UINT192 + 1)
 
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({'from': A}).topUpERC20(receiver, open_block_number, top_up_deposit)
