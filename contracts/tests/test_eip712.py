@@ -24,15 +24,15 @@ from tests.fixtures_uraiden import (
 
 
 def test_eip712_instance_fixture(uraiden_instance):
-    assert uraiden_instance.call().uraiden_eip712_contract()
+    assert uraiden_instance.call().microraiden_eip712_helper()
 
 
 def test_eip712_instance(owner, get_accounts, uraiden_contract, eip712_contract, eip712_instance):
     uraiden_instance = uraiden_contract()
     (A, B) = get_accounts(2)
-    assert uraiden_instance.call().uraiden_eip712_contract() == empty_address
+    assert uraiden_instance.call().microraiden_eip712_helper() == empty_address
     uraiden_instance.transact({'from': owner}).setEip712HelperContract(eip712_instance.address)
-    assert uraiden_instance.call().uraiden_eip712_contract() == eip712_instance.address
+    assert uraiden_instance.call().microraiden_eip712_helper() == eip712_instance.address
 
     # Test eip712_instance address change
     eip712_instance2 = eip712_contract()
@@ -43,7 +43,7 @@ def test_eip712_instance(owner, get_accounts, uraiden_contract, eip712_contract,
         uraiden_instance.transact({'from': A}).setEip712HelperContract(eip712_instance2.address)
 
     uraiden_instance.transact({'from': owner}).setEip712HelperContract(eip712_instance2.address)
-    assert uraiden_instance.call().uraiden_eip712_contract() == eip712_instance2.address
+    assert uraiden_instance.call().microraiden_eip712_helper() == eip712_instance2.address
 
 
 def test_getMessageHash(get_accounts, uraiden_instance, eip712_instance):

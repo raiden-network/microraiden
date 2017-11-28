@@ -2,7 +2,7 @@ pragma solidity ^0.4.17;
 
 import './Token.sol';
 import './lib/ECVerify.sol';
-import './URaidenEIP712HelperContract.sol';
+import './MicroRaidenEIP712Helper.sol';
 
 /// @title Raiden MicroTransfer Channels Contract.
 contract RaidenMicroTransferChannels {
@@ -24,7 +24,7 @@ contract RaidenMicroTransferChannels {
 
     // Contract implementing EIP712 helper functions.
     // Reason: EIP712 is not standardized at this moment and can have breaking changes.
-    URaidenEIP712HelperContract public uraiden_eip712_contract;
+    MicoRaidenEIP712Helper public microraiden_eip712_helper;
 
     Token public token;
 
@@ -109,10 +109,10 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @dev Sets the address for the contract-library implementing EIP712 helper functions.
-    /// @param _uraiden_eip712_contract The address for EIP712 helper contract.
-    function setEip712HelperContract(address _uraiden_eip712_contract) public isOwner {
-        require(addressHasCode(_uraiden_eip712_contract));
-        uraiden_eip712_contract = URaidenEIP712HelperContract(_uraiden_eip712_contract);
+    /// @param _microraiden_eip712_helper The address for EIP712 helper contract.
+    function setEip712HelperContract(address _microraiden_eip712_helper) public isOwner {
+        require(addressHasCode(_microraiden_eip712_helper));
+        microraiden_eip712_helper = MicoRaidenEIP712Helper(_microraiden_eip712_helper);
     }
 
     /*
@@ -153,7 +153,7 @@ contract RaidenMicroTransferChannels {
         returns (address)
     {
         // getMessageHash is a pure function
-        bytes32 message_hash = uraiden_eip712_contract.getMessageHash(
+        bytes32 message_hash = microraiden_eip712_helper.getMessageHash(
             _receiver_address,
             _open_block_number,
             _balance,

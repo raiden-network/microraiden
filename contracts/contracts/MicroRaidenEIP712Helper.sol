@@ -1,6 +1,6 @@
 pragma solidity ^0.4.17;
 
-contract URaidenEIP712HelperContract {
+contract MicroRaidenEIP712Helper {
     /// @dev Returns the message hash used for creating the balance proof.
     /// Used in the RaidenMicroTransferChannels contract.
     /// Should be kept up-to-date with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
@@ -19,7 +19,6 @@ contract URaidenEIP712HelperContract {
         pure
         returns (bytes32)
     {
-        // Used in the RaidenMicroTransferChannels contract
         // The variable names from below will be shown to the sender when signing
         // the balance proof, so they have to be kept in sync with the Dapp client.
         // The hashed strings should be kept in sync with this function's parameters
