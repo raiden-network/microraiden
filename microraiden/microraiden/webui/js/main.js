@@ -4,33 +4,24 @@ function mainSwitch(id) {
   $(".container").show();
 }
 
-function pageReady(json) {
+function pageReady(contractABI, tokenABI) {
 
   // ==== BASIC INITIALIZATION ====
 
   // you can set this variable in a new 'script' tag, for example
-  if (!window.uRaidenParams && Cookies.get("RDN-Price")) {
-    window.uRaidenParams = {
-      contract: Cookies.get("RDN-Contract-Address"),
-      token: Cookies.get("RDN-Token-Address"),
-      receiver: Cookies.get("RDN-Receiver-Address"),
-      amount: +(Cookies.get("RDN-Price")),
-    };
-  } else if (!window.uRaidenParams) {
-    window.uRaidenParams = {
-      contract: json["contractAddr"],
-      token: json["tokenAddr"],
-      receiver: json["receiver"],
-      amount: json["amount"],
-    };
-  }
+  window.uRaidenParams = {
+    contract: Cookies.get("RDN-Contract-Address"),
+    token: Cookies.get("RDN-Token-Address"),
+    receiver: Cookies.get("RDN-Receiver-Address"),
+    amount: +(Cookies.get("RDN-Price")),
+  };
 
   window.uraiden = new microraiden.MicroRaiden(
     window.web3,
     uRaidenParams.contract,
-    json["contractABI"],
+    contractABI,
     uRaidenParams.token,
-    json["tokenABI"],
+    tokenABI,
   );
 
   // ==== MAIN VARIABLES ====
@@ -330,7 +321,10 @@ function pageReady(json) {
 
 mainSwitch("#channel_loading");
 
-$.getJSON("/js/parameters.json", function(json) {
+$.when(
+  $.getJSON("/api/1/manager_abi"),
+  $.getJSON("/api/1/token_abi"),
+).then(function(statsRes, contractRes, tokenRes) {
   var cnt = 20;
   // wait up to 20*200ms for web3 and call ready()
   var pollingId = setInterval(function() {
@@ -339,9 +333,9 @@ $.getJSON("/js/parameters.json", function(json) {
       clearInterval(pollingId);
       $("body").html('<h1>Waiting confirmations...</h1>');
       setTimeout(function() { location.reload(); }, 5000);
-    } else if (cnt < 0 || window.web3) {
+    } else if (cnt <= 0 || window.web3) {
       clearInterval(pollingId);
-      pageReady(json);
+      pageReady(contractRes[0], tokenRes[0]);
     } else {
       --cnt;
     }
