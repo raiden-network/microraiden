@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "lib": ["es2015", "es2017", "dom"],
+    "moduleResolution": "node",
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "pretty": true
+  },
+  "files": [
+    "src/index.ts"
+  ],
+  "include": [
+    "node_modules/web3-typescript-typings/index.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "types": [
+    "core-js",
+    "node"
+  ]
+}

@@ -75,7 +75,8 @@ truffle/.bash_history
 *.static-abi.json
 
 # ignore node_modules
-raiden/raidenwebui/node_modules/
+node_modules/
+package-lock.json
 
 # never check in the smoketest_config.json
 smoketest_config.json

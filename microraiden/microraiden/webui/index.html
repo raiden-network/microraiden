@@ -31,25 +31,25 @@
         <h4>by transfering <strong id="amount"></strong> <strong class="tkn-symbol">TKN</strong> tokens.</h4>
         <div class="account-dropdown form-horizontal">
           <div class="row">
-			  <div class="col-xs-2"></div>
+        <div class="col-xs-2"></div>
             <div class="col-xs-9">
-				<div class="input-group input-group">
-					<span class="input-group-addon account-label" data-toggle="tooltip" data-placement="left" title="This is your current web3 account">Account</span>
-					<select class="form-control account-select" id="accounts"></select>
-				</div>
+        <div class="input-group input-group">
+          <span class="input-group-addon account-label" data-toggle="tooltip" data-placement="left" title="This is your current web3 account">Account</span>
+          <select class="form-control account-select" id="accounts"></select>
+        </div>
             </div>
           </div>
           <div class="row">
-			  <div class="col-xs-2"></div>
+        <div class="col-xs-2"></div>
             <div class="col-xs-9">
-				<div class="input-group input-group">
-					<span class="input-group-addon account-label" >Balance</span>
+        <div class="input-group input-group">
+          <span class="input-group-addon account-label" >Balance</span>
                 <input type="text" class="form-control tkn-balance tkn-decimals" id="token_balance" placeholder="Buy Tokens"
                 style="font-size: 16px; text-align:right; height: 40px;" readonly>
                 <span class="input-group-btn">
                   <button type="button" class="btn btn-default token_buy" data-toggle="tooltip" data-placement="bottom" title="0.1 Eth = 50 TKN">Buy</button>
                 </span>
-				</div>
+        </div>
             </div>
           </div>
         </div>
@@ -156,7 +156,7 @@
                 </div>
                 <div class="sign">
                   <li>
-                    For each transfer, <strong>sign</strong> a message confirming the balance with the new transferred amount
+                    For each transfer, <strong>sign</strong> a message confirming the balance with the new transferred amount. <br>PS: the balance is the cumulative sum of all previous payments and current one. It may also be shown multiplied by as many decimals as token decimals (up to 18).
                   </li>
                 </div>
               </ol>
@@ -237,6 +237,6 @@
     </div>
   </div>
 
-  <script type="text/javascript" src="/js/main.js"></script>
+  <script type="text/javascript" src="js/main.js"></script>
 </body>
 </html>

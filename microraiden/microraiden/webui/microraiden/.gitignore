@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.*.sw?
+*.vim
+package-lock.json

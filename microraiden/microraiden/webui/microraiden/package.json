@@ -1,0 +1,56 @@
+{
+  "name": "microraiden",
+  "version": "0.1.0",
+  "description": "Javascript/Typescript client library for µRaiden (MicroRaiden), a payment channels implementation for the Ethereum blockchain",
+  "author": "Raiden Network Team <contact@raiden.network>",
+  "license": "MIT",
+  "homepage": "https://micro.raiden.network",
+  "repository": "https://github.com/raiden-network/microraiden/tree/master/microraiden/microraiden/webui/microraiden/",
+  "bugs": "https://github.com/raiden-network/microraiden/issues",
+  "keywords": [
+    "microraiden",
+    "µraiden",
+    "uraiden",
+    "raiden",
+    "ethereum",
+    "blockchain",
+    "web3"
+  ],
+  "contributors": [
+    "André Vitor de Lima Matos <andre@brainbot.com>"
+  ],
+  "scripts": {
+    "clean": "rimraf dist/",
+    "build": "npm run clean && npm run build:esnext && npm run build:esm && npm run build:cjs && npm run build:umd && npm run build:umd:min",
+    "build:esnext": "tsc --module esnext --target esnext --outDir dist/esnext",
+    "build:esm": "tsc --module es2015 --target es5 --outDir dist/esm",
+    "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
+    "build:umd": "webpack",
+    "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz",
+    "prepublish": "npm run build"
+  },
+  "main": "dist/cjs/index.js",
+  "jsnext:main": "dist/esnext/index.js",
+  "module": "dist/esm/index.js",
+  "unpkg": "dist/umd/microraiden.min.js",
+  "types": "dist/esnext/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/core-js": "^0.9.43",
+    "@types/node": "^8.0.53",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "rimraf": "^2.6.2",
+    "typescript": "^2.6.1",
+    "uglify-js": "^3.1.10",
+    "web3-typescript-typings": "^0.7.2",
+    "webpack": "^3.8.1"
+  },
+  "dependencies": {
+    "eth-sig-util": "^1.4.0",
+    "web3": "<0.99"
+  }
+}
