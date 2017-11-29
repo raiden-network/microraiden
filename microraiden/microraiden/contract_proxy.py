@@ -30,6 +30,10 @@ class ContractProxy:
         self.gas_limit = gas_limit
         self.tester_mode = tester_mode
 
+        bytecode = web3.eth.getCode(contract_address)
+        if bytecode == '0x':
+            raise ValueError('No contract deployed at address {}'.format(contract_address))
+
     def create_signed_transaction(self, func_name, args, nonce_offset=0, value=0):
         tx = self.create_transaction(func_name, args, nonce_offset, value)
         sign_transaction(tx, self.privkey, self.web3.version.network)
