@@ -23,6 +23,10 @@ def test_create_signed_transaction():
             def getTransactionCount(self, *args, **kwargs):
                 return 9
 
+            def getCode(self, *args, **kwargs):
+                """Need to implement this to fake contract existence check"""
+                return '0x123456789abcdef'
+
         version = VersionMock()
         eth = EthMock()
 

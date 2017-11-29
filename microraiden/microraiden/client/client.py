@@ -10,8 +10,13 @@ from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
 from microraiden.utils import get_private_key
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, TOKEN_ADDRESS, GAS_LIMIT, GAS_PRICE, \
-    NETWORK_NAMES, CONTRACT_METADATA
+from microraiden.config import (
+    CHANNEL_MANAGER_ADDRESS,
+    GAS_LIMIT,
+    GAS_PRICE,
+    NETWORK_NAMES,
+    CONTRACT_METADATA
+)
 from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
 from microraiden.crypto import privkey_to_addr
 from .channel import Channel
@@ -38,7 +43,7 @@ class Client:
             rpc_port: int = 8545,
             contract_abi_path: str = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), CONTRACTS_ABI_JSON
-            )
+            ),
             contract_metadata: dict = CONTRACT_METADATA
     ) -> None:
         assert privkey or key_path
