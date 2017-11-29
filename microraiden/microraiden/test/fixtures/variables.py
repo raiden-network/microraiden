@@ -58,8 +58,8 @@ def contract_abi_path():
 
 @pytest.fixture(scope='session')
 def contract_abis(contract_abi_path):
-    abi_file = open(contract_abi_path, 'r')
-    return json.load(abi_file)
+    with open(contract_abi_path) as abi_file:
+        return json.load(abi_file)
 
 
 @pytest.fixture(scope='session')

@@ -85,7 +85,8 @@ class RequestData:
 
 class LightClientProxy:
     def __init__(self, index_html):
-        self.data = open(index_html).read()
+        with open(index_html) as fp:
+            self.data = fp.read()
 
     def get(self, content, receiver, amount, token):
         return self.data

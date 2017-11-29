@@ -9,20 +9,16 @@ log = logging.getLogger(__name__)
 
 class Fortunes:
     def __init__(self, fortunes_file):
-        fp = io.open(fortunes_file, 'r', encoding='utf8')
-        self.quotes = Fortunes.load(fp)
-
-    @staticmethod
-    def load(fp):
-        ret = []
-        quote = ''
-        for line in fp.readlines():
-            if line.strip() == '%':
-                ret.append(quote)
-                quote = ''
-            else:
-                quote += line
-        return ret
+        with io.open(fortunes_file, 'r', encoding='utf8') as fp:
+            ret = []
+            quote = ''
+            for line in fp:
+                if line.strip() == '%':
+                    ret.append(quote)
+                    quote = ''
+                else:
+                    quote += line
+        self.quotes = ret
 
     def get(self):
         log.error("%d" % len(self.quotes))
