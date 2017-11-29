@@ -2,7 +2,6 @@ pragma solidity ^0.4.17;
 
 import './Token.sol';
 import './lib/ECVerify.sol';
-import './MicroRaidenEIP712Helper.sol';
 
 /// @title Raiden MicroTransfer Channels Contract.
 contract RaidenMicroTransferChannels {
@@ -11,20 +10,10 @@ contract RaidenMicroTransferChannels {
      *  Data structures
      */
 
-    address public owner_address;
     uint32 public challenge_period;
 
     // Contract semantic version
     string public constant version = '1.0.0';
-
-    // Address of the latest deployed version of the contract. This is set
-    // by the owner during a new contract deployment for all outdated contracts.
-    // Outdated contracts can still be used.
-    address public latest_version_address;
-
-    // Contract implementing EIP712 helper functions.
-    // Reason: EIP712 is not standardized at this moment and can have breaking changes.
-    MicroRaidenEIP712Helper public microraiden_eip712_helper;
 
     Token public token;
 
@@ -46,15 +35,6 @@ contract RaidenMicroTransferChannels {
     struct ClosingRequest {
         uint192 closing_balance;
         uint32 settle_block_number;
-    }
-
-    /*
-     *  Modifiers
-     */
-
-    modifier isOwner() {
-        require(msg.sender == owner_address);
-        _;
     }
 
     /*
@@ -95,24 +75,8 @@ contract RaidenMicroTransferChannels {
         require(addressHasCode(_token_address));
         require(_challenge_period > 0);
 
-        owner_address = msg.sender;
         token = Token(_token_address);
-
         challenge_period = _challenge_period;
-    }
-
-    /// @dev Sets the address for the latest contract version
-    /// @param _latest_version_address The address for the latest contract version.
-    function setLatestVersionAddress(address _latest_version_address) public isOwner {
-        require(addressHasCode(_latest_version_address));
-        latest_version_address = _latest_version_address;
-    }
-
-    /// @dev Sets the address for the contract-library implementing EIP712 helper functions.
-    /// @param _microraiden_eip712_helper The address for EIP712 helper contract.
-    function setEip712HelperContract(address _microraiden_eip712_helper) public isOwner {
-        require(addressHasCode(_microraiden_eip712_helper));
-        microraiden_eip712_helper = MicroRaidenEIP712Helper(_microraiden_eip712_helper);
     }
 
     /*
@@ -152,12 +116,15 @@ contract RaidenMicroTransferChannels {
         view
         returns (address)
     {
-        // getMessageHash is a pure function
-        bytes32 message_hash = microraiden_eip712_helper.getMessageHash(
-            _receiver_address,
-            _open_block_number,
-            _balance,
-            address(this)
+        // The variable names from below will be shown to the sender when signing
+        // the balance proof, so they have to be kept in sync with the Dapp client.
+        // The hashed strings should be kept in sync with this function's parameters
+        // (variable names and types).
+        // ! Note that EIP712 might change how hashing is done, triggering a
+        // new contract deployment with updated code.
+        bytes32 message_hash = keccak256(
+          keccak256('address receiver', 'uint32 block_created', 'uint192 balance', 'address contract'),
+          keccak256(_receiver_address, _open_block_number, _balance, address(this))
         );
 
         // Derive address from signature

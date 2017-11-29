@@ -24,8 +24,6 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
-    eip712_contract,
-    eip712_instance,
     get_channel,
     event_handler
 )
@@ -60,8 +58,7 @@ def test_uraiden_init(
         get_uraiden_contract([token.address, 0])
 
     uraiden = get_uraiden_contract([token.address, 2 ** 8 - 1])
-    assert uraiden.call().owner_address() == owner
-    assert uraiden.call().token()
+    assert uraiden.call().token() == token.address
     assert uraiden.call().challenge_period() == 2 ** 8 - 1
     assert token.call().balanceOf(uraiden.address) == 0
     assert web3.eth.getBalance(uraiden.address) == 0
@@ -69,11 +66,9 @@ def test_uraiden_init(
 
 def test_variable_access(owner, uraiden_contract, token_instance, contract_params):
     uraiden_instance = uraiden_contract()
-    assert uraiden_instance.call().owner_address() == owner
-    assert uraiden_instance.call().token()
+    assert uraiden_instance.call().token() == token_instance.address
     assert uraiden_instance.call().challenge_period() == contract_params['challenge_period']
     assert uraiden_instance.call().version() == uraiden_contract_version
-    assert uraiden_instance.call().latest_version_address() == empty_address
 
 
 def test_function_access(
@@ -90,8 +85,6 @@ def test_function_access(
 
     uraiden_instance.call().getKey(*channel)
     uraiden_instance.call().getChannelInfo(*channel)
-
-    uraiden_instance.transact({'from': owner}).setLatestVersionAddress(uraiden_instance2.address)
 
     # even if TransactionFailed , this means the function is public / external
     with pytest.raises(tester.TransactionFailed):
@@ -127,21 +120,6 @@ def test_version(web3, owner, get_accounts, get_uraiden_contract, uraiden_instan
     other_contract = get_uraiden_contract([token.address, 10], {'from': A})
 
     assert uraiden_instance.call().version() == uraiden_contract_version
-    assert uraiden_instance.call().latest_version_address() == empty_address
-
-    with pytest.raises(TypeError):
-        uraiden_instance.transact({'from': owner}).setLatestVersionAddress('0x0')
-    with pytest.raises(TypeError):
-        uraiden_instance.transact({'from': owner}).setLatestVersionAddress(123)
-    with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': owner}).setLatestVersionAddress(empty_address)
-    with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': owner}).setLatestVersionAddress(A)
-    with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': A}).setLatestVersionAddress(other_contract.address)
-
-    uraiden_instance.transact({'from': owner}).setLatestVersionAddress(other_contract.address)
-    assert uraiden_instance.call().latest_version_address() == other_contract.address
 
 
 def test_get_channel_info(web3, get_accounts, uraiden_instance, token_instance, get_channel):
