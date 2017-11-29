@@ -11,7 +11,6 @@ from .login import (
     ChannelManagementLogin,
     ChannelManagementLogout,
 )
-from .staticfiles import StaticFilesServer
 
 __all__ = (
     Expensive,
@@ -23,5 +22,4 @@ __all__ = (
     ChannelManagementStats,
     ChannelManagementLogin,
     ChannelManagementLogout,
-    StaticFilesServer,
 )
