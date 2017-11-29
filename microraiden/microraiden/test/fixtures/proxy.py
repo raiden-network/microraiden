@@ -1,4 +1,6 @@
 import pytest
+
+from microraiden.channel_manager import ChannelManager
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 from microraiden.proxy.content import (
     PaywalledContent,
@@ -9,6 +11,18 @@ import microraiden.proxy.resources.login as login
 @pytest.fixture
 def proxy_state_filename():
     return None
+
+
+@pytest.fixture
+def empty_proxy(channel_manager: ChannelManager, wait_for_blocks):
+    app = PaywalledProxy(channel_manager)
+    app.run()
+
+    # Waiting only required on tester chains due to monkey patching.
+    wait_for_blocks(1)
+
+    yield app
+    app.stop()
 
 
 @pytest.fixture

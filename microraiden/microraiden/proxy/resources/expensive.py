@@ -153,7 +153,11 @@ class Expensive(Resource):
 
         headers = self.generate_headers(channel, proxy_handle)
         amount_sent = data.balance - channel.balance
-        if amount_sent != 0 and amount_sent != proxy_handle.price:
+        price = proxy_handle.price
+        if callable(price):
+            price = price(content)
+
+        if amount_sent != 0 and amount_sent != price:
             headers[header.INVALID_AMOUNT] = 1
             #  if difference is 0, it will be handled by channel manager
             return self.reply_payment_required(content, proxy_handle,
