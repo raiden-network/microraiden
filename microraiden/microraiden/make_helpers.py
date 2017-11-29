@@ -17,22 +17,22 @@ from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
 
 def make_contract_proxy(web3, private_key, contract_address):
-    metadata = config.CONTRACT_METADATA['RaidenMicroTransferChannels']
+    manager_abi = config.CONTRACT_METADATA['RaidenMicroTransferChannels']['abi']
     return ChannelContractProxy(
         web3,
         private_key,
         contract_address,
-        metadata['abi'],
+        manager_abi,
         config.GAS_PRICE,
         config.GAS_LIMIT
     )
 
 
 def make_channel_manager(private_key: str, contract_address: str, state_filename: str, web3):
-    abi = config.CONTRACT_METADATA['RaidenMicroTransferChannels']['abi']
     channel_manager_proxy = make_contract_proxy(web3, private_key, contract_address)
     token_address = channel_manager_proxy.contract.call().token()
-    token_contract = web3.eth.contract(abi=abi, address=token_address)
+    token_abi = config.CONTRACT_METADATA['CustomToken']['abi']
+    token_contract = web3.eth.contract(abi=token_abi, address=token_address)
     try:
         return ChannelManager(
             web3,
