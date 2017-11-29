@@ -177,6 +177,10 @@ contract RaidenMicroTransferChannels {
     function tokenFallback(address _sender_address, uint256 _deposit, bytes _data) external {
         // Make sure we trust the token
         require(msg.sender == address(token));
+
+        uint192 deposit = uint192(_deposit);
+        require(deposit == _deposit);
+
         uint length = _data.length;
 
         // createChannel - receiver address (20 bytes)
@@ -186,14 +190,14 @@ contract RaidenMicroTransferChannels {
         address receiver = addressFromData(_data);
 
         if(length == 20) {
-            createChannelPrivate(_sender_address, receiver, uint192(_deposit));
+            createChannelPrivate(_sender_address, receiver, deposit);
         } else {
             uint32 open_block_number = blockNumberFromData(_data);
             updateInternalBalanceStructs(
                 _sender_address,
                 receiver,
                 open_block_number,
-                uint192(_deposit)
+                deposit
             );
         }
     }

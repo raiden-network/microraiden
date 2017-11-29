@@ -150,3 +150,45 @@ def test_channel_topup_20(
         channel_deposit + top_up_deposit)
     )
     ev_handler.check()
+
+
+def test_topup_token_fallback_uint_conversion(
+    contract_params,
+    owner,
+    get_accounts,
+    uraiden_instance,
+    token_instance,
+    get_block):
+    token = token_instance
+    (sender, receiver) = get_accounts(2)
+
+    # Make sure you have a fixture with a supply > 2 ** 192
+    supply = contract_params['supply']
+    deposit = 100
+    top_up_deposit = supply - 100
+
+    txdata = bytes.fromhex(receiver[2:].zfill(40))
+
+    # Fund accounts with tokens
+    token.transact({"from": owner}).transfer(sender, supply)
+    assert token.call().balanceOf(sender) == supply
+
+    # Open a channel with tokenFallback
+    txn_hash = token_instance.transact({"from": sender}).transfer(uraiden_instance.address, deposit, txdata)
+    open_block_number = get_block(txn_hash)
+
+    assert token.call().balanceOf(uraiden_instance.address) == deposit
+    channel_data = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
+    assert channel_data[1] == deposit
+
+    top_up_data = receiver[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
+    top_up_data = bytes.fromhex(top_up_data)
+
+    # TopUp a channel with tokenFallback
+    if deposit > 2 ** 192:
+        with pytest.raises(tester.TransactionFailed):
+            txn_hash = token_instance.transact({"from": sender}).transfer(
+                uraiden_instance.address,
+                top_up_deposit,
+                top_up_data
+            )

@@ -119,3 +119,30 @@ def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance
 
     # Create channel
     uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
+
+
+def test_create_token_fallback_uint_conversion(
+    contract_params,
+    owner,
+    get_accounts,
+    uraiden_instance,
+    token_instance):
+    token = token_instance
+    (sender, receiver) = get_accounts(2)
+
+    # Make sure you have a fixture with a supply > 2 ** 192 + 100
+    deposit = contract_params['supply'] - 100
+    txdata = bytes.fromhex(receiver[2:].zfill(40))
+
+    # Fund accounts with tokens
+    token.transact({"from": owner}).transfer(sender, deposit)
+    assert token.call().balanceOf(sender) == deposit
+
+    # Open a channel with tokenFallback
+    if deposit > 2 ** 192:
+        with pytest.raises(tester.TransactionFailed):
+            txn_hash = token_instance.transact({"from": sender}).transfer(
+                uraiden_instance.address,
+                deposit,
+                txdata
+            )

@@ -11,19 +11,20 @@ uraiden_contract_version = '1.0.0'
 contract_args = [
     {
         'decimals': 18,
+        'supply': 10 ** 26,
         'challenge_period': 5
-    }]
-'''
+    },
     {
-        'decimals': 3,
+        'decimals': 18,
+        'supply': 2 ** 200,  # test tokenFallback uint256 -> uint192 conversion
         'challenge_period': 10
     },
     {
         'decimals': 0,
-        'challenge_period': 300
+        'supply': 10 ** 26,
+        'challenge_period': 100
     }
 ]
-'''
 
 
 uraiden_events = {
