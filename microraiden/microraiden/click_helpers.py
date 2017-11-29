@@ -18,7 +18,7 @@ if __package__ is None:
     sys.path.insert(0, path)
     sys.path.insert(0, path + "/../")
 
-from web3 import HTTPProvider, Web3
+from web3 import Web3, HTTPProvider
 from microraiden.make_helpers import make_paywalled_proxy
 from microraiden import utils, config
 from microraiden.exceptions import StateFileLocked, InsecureStateFile, NetworkIdMismatch
@@ -57,7 +57,7 @@ pass_app = click.make_pass_decorator(PaywalledProxy)
 )
 @click.option(
     '--rpc-provider',
-    default='http://localhost:8545',
+    default=config.WEB3_PROVIDER_DEFAULT,
     help='Address of the Ethereum RPC provider'
 )
 @click.option(

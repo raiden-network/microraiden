@@ -1,7 +1,7 @@
 import sys
 
 from microraiden.contract_proxy import ChannelContractProxy
-from web3 import Web3
+from web3 import Web3, HTTPProvider
 
 import logging
 
@@ -60,7 +60,7 @@ def make_paywalled_proxy(private_key: str,
                          contract_address=config.CHANNEL_MANAGER_ADDRESS,
                          flask_app=None, web3=None):
     if web3 is None:
-        web3 = Web3(config.WEB3_PROVIDER)
+        web3 = Web3(HTTPProvider(config.WEB3_PROVIDER_DEFAULT, request_kwargs={'timeout': 60}))
     channel_manager = make_channel_manager(private_key, contract_address, state_filename, web3)
     proxy = PaywalledProxy(channel_manager, flask_app, config.HTML_DIR, config.JSLIB_DIR)
     return proxy
