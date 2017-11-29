@@ -33,11 +33,12 @@ CREATE TABLE `syncstate` (
     `unconfirmed_head_number` INTEGER,
     `unconfirmed_head_hash`   CHAR(66)
 );
+-- deposit and balance have length of 78 to fit uint256
 CREATE TABLE `channels` (
     `sender`            CHAR(42),
     `open_block_number` INTEGER,
-    `deposit`           INTEGER,
-    `balance`           INTEGER,
+    `deposit`           DECIMAL(78,0),
+    `balance`           DECIMAL(78,0),
     `last_signature`    CHAR(132),
     `settle_timeout`    INTEGER,
     `mtime`             INTEGER,
@@ -49,7 +50,7 @@ CREATE TABLE `channels` (
 CREATE TABLE `topups` (
     `channel_rowid`     INTEGER,
     `txhash`            CHAR(66),
-    `deposit`           INTEGER,
+    `deposit`           DECIMAL(78,0),
     PRIMARY KEY (`channel_rowid`, `txhash`),
     FOREIGN KEY (`channel_rowid`) REFERENCES channels (rowid)
         ON DELETE CASCADE
@@ -295,15 +296,15 @@ class ChannelManagerState(object):
         self.conn.execute('DELETE FROM topups WHERE channel_rowid = ?', [channel_rowid])
         for txhash, deposit in topups.items():
             self.conn.execute('INSERT OR REPLACE INTO topups VALUES (?, ?, ?)',
-                              [channel_rowid, txhash, deposit])
+                              [channel_rowid, txhash, str(deposit)])
 
     def add_channel(self, channel):
         # TODO unconfirmed topups
         params = [
             channel.sender.lower(),
             channel.open_block_number,
-            channel.deposit,
-            channel.balance,
+            str(channel.deposit),
+            str(channel.balance),
             channel.last_signature,
             channel.settle_timeout,
             channel.mtime,

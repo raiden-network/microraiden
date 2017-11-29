@@ -13,7 +13,9 @@ JSLIB_DIR = os.path.join(HTML_DIR, 'js')
 
 FAUCET_PRIVKEY = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 FAUCET_ADDRESS = privkey_to_addr(FAUCET_PRIVKEY)
+FAUCET_ALLOWANCE = 10**23
+INITIAL_TOKEN_SUPPLY = 10**25
 SENDER_ETH_ALLOWANCE = int(0.02 * denoms.ether)
-SENDER_TOKEN_ALLOWANCE = 100
+SENDER_TOKEN_ALLOWANCE = 10**20
 RECEIVER_ETH_ALLOWANCE = int(0.02 * denoms.ether)
 RECEIVER_TOKEN_ALLOWANCE = 0
