@@ -26,6 +26,8 @@ from microraiden.test.config import (
     FAUCET_PRIVKEY,
     GAS_PRICE,
     GAS_LIMIT,
+    FAUCET_ALLOWANCE,
+    INITIAL_TOKEN_SUPPLY
 )
 
 
@@ -43,12 +45,12 @@ def disable_requests_loggin():
 def deploy_token_contract(web3, deployer_address, token_abi, token_bytecode):
     Token = web3.eth.contract(abi=token_abi, bytecode=token_bytecode)
     txhash = Token.deploy(
-        {'from': deployer_address}, args=[100000, "Raiden Network Token", "RDN", 18]
+        {'from': deployer_address}, args=[INITIAL_TOKEN_SUPPLY, "Raiden Network Token", "RDN", 18]
     )
     receipt = web3.eth.getTransactionReceipt(txhash)
     contract_address = receipt.contractAddress
     token = Token(contract_address)
-    token.transact({'from': deployer_address}).transfer(FAUCET_ADDRESS, 10000)
+    token.transact({'from': deployer_address}).transfer(FAUCET_ADDRESS, FAUCET_ALLOWANCE)
     assert web3.eth.getCode(contract_address) != '0x'
     return token
 
@@ -143,7 +145,7 @@ def web3(request, use_tester, deployer_address, mine_sync_event):
         request.addfinalizer(remove_faucet_account)
 
         # make faucet rich
-        web3.eth.sendTransaction({'to': FAUCET_ADDRESS, 'value': 10**23})
+        web3.eth.sendTransaction({'to': FAUCET_ADDRESS, 'value': FAUCET_ALLOWANCE})
 
     else:
         rpc = RPCProvider('localhost', 8545)
