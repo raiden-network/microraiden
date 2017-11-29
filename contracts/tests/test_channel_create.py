@@ -121,7 +121,12 @@ def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance
     uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
 
 
-def test_create_token_fallback_uint_conversion(contract_params, owner, get_accounts, uraiden_instance, token_instance):
+def test_create_token_fallback_uint_conversion(
+    contract_params,
+    owner,
+    get_accounts,
+    uraiden_instance,
+    token_instance):
     token = token_instance
     (sender, receiver) = get_accounts(2)
 
@@ -141,10 +146,3 @@ def test_create_token_fallback_uint_conversion(contract_params, owner, get_accou
                 deposit,
                 txdata
             )
-    '''
-    # For testing what happens in the above case if we remove the contract require(deposit == _deposit)
-    open_block_number = get_block(txn_hash)
-    assert token.call().balanceOf(uraiden_instance.address) == deposit
-    channel_data = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
-    assert channel_data[1] == deposit
-    '''

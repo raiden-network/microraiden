@@ -152,7 +152,13 @@ def test_channel_topup_20(
     ev_handler.check()
 
 
-def test_topup_token_fallback_uint_conversion(contract_params, owner, get_accounts, uraiden_instance, token_instance, get_block):
+def test_topup_token_fallback_uint_conversion(
+    contract_params,
+    owner,
+    get_accounts,
+    uraiden_instance,
+    token_instance,
+    get_block):
     token = token_instance
     (sender, receiver) = get_accounts(2)
 
