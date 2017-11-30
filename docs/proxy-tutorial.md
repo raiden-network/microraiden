@@ -46,12 +46,19 @@ responds with `402 Payment Required`.
 For dynamic resources, you can use the `PaywalledContent` class:
 ```python
 from microraiden.proxy.content import PaywalledContent
-app.add_content(PaywalledContent("teapot.txt", 1, lambda _: ("HI I AM A TEAPOT", 418)))
-app.add_content(PaywalledContent("temperature", 2, lambda _: (thermo.get_temp(), 200)))
-app.add_content(PaywalledContent("sqrt/^[0-9]+(\.[0-9]+)?$", 3, lambda uri:
-	number = float(uri.split('/')[1])
-	return (str(number), 200))
-))
+app.add_content(PaywalledContent(
+	"teapot.txt",
+	1,
+	lambda _: ("HI I AM A TEAPOT", 418)))
+app.add_content(PaywalledContent(
+	"temperature", 
+	2, 
+	lambda _: (thermo.get_temp(), 200)))
+app.add_content(PaywalledContent(
+	"sqrt/^[0-9]+(\.[0-9]+)?$", 
+	3,  # cost of the resource
+	lambda uri:	(sqrt(float(uri.split('/'])[-1]))) # data to return
+	))
 ```
 The first argument of the constructor is a resource URI, the second is a
 price, and the third is a content generator function. This function can return
@@ -119,7 +126,7 @@ example (`microraiden/examples/echo_client.py`).
 
 ## Proxy state file
 
-Off-chain transactions are stored in a state file that is loaded on start.
+Off-chain transactions are stored in a sqlite database.
 You should do regular backups of this file -- it contains balance signatures of
 the client, and if you lose them, you will have no way of proving that the
 client is settling the channel using less funds than he has actually paid to the

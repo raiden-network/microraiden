@@ -23,14 +23,14 @@ To activate the environment, do `cd raiden-micropayments && . bin/activate`.
 Now change to the directory that contains raiden micropayment code and install
 python dependencies.
 
-`pip install -r raiden_mps/requirements.txt`
+`pip install -r microraiden/requirements.txt`
 
 
 1. Starting the proxy
 ---------------------
 You are ready to start the proxy! Run
 
-`python -m raiden_mps.proxy`
+`python -m microraiden.proxy`
 
 
 2. WebUI client
