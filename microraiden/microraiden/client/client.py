@@ -20,7 +20,7 @@ from microraiden.config import (
 from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
 from microraiden.crypto import privkey_to_addr
 from .channel import Channel
-from microraiden.config import TOKEN_ABI_NAME, CONTRACTS_ABI_JSON
+from microraiden.config import TOKEN_ABI_NAME
 
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 

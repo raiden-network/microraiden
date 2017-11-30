@@ -1,5 +1,4 @@
 import pytest
-from web3 import Web3
 
 from microraiden import Client
 from microraiden.config import GAS_LIMIT
