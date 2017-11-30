@@ -16,8 +16,10 @@ contract RaidenMicroTransferChannels {
     string public constant version = '0.1.0';
 
     // We temporarily limit total token deposits in a channel to 100 tokens with 18 decimals.
-    // This is just for the bug bounty release.
-    uint256 public channel_deposit_bugbounty_limit = 10 ** 18 * 100;
+    // This was calculated just for RDN with its current (as of 30/11/2017) price and should
+    // not be considered to be the same for other tokens.
+    // This is just for the bug bounty release, as a safety measure.
+    uint256 public constant channel_deposit_bugbounty_limit = 10 ** 18 * 100;
 
     Token public token;
 
