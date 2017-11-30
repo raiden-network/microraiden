@@ -72,7 +72,13 @@ populus compile
 
 # tests
 pytest
-pytest tests/test_raidenchannels.py -p no:warnings -s
+pytest -p no:warnings -s
+pytest tests/test_uraiden.py -p no:warnings -s
+
+# Recommended for speed:
+# you have to comment lines in tests/conftest.py to use this
+pip install pytest-xdist
+pytest -p no:warnings -s -n NUM_OF_CPUs
 
 ```
 
@@ -80,7 +86,9 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
 
 
 
-#### Chain setup
+#### Chain setup for testing
+
+Note - you can change RPC/IPC chain connection, timeout parameters etc. in [/contracts/populus.json](/contracts/populus.json)
 
  * `privtest`
    - start:
@@ -127,21 +135,12 @@ pytest tests/test_raidenchannels.py -p no:warnings -s
 
 # Fast deploy on kovan | ropsten | rinkeby | tester | privtest
 
-# Following two calls are quivalent
-python -m deploy.deploy_testnet
-python -m deploy.deploy_testnet \
-    --chain kovan \
-    --owner 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb  \  # web3.eth.accounts[0]
-    --challenge-period 30 \
-    --supply 10000000 \
-    --token-name CustomToken \
-    --token-decimals 18 \
-    --token-symbol TKN \
-    --senders 5 \
-    --sender-addresses \ '0xe2e429949e97f2e31cd82facd0a7ae38f65e2f38,0xd1bf222ef7289ae043b723939d86c8a91f3aac3f,0xE0902284c85A9A03dAA3B5ab032e238cc05CFF9a,0x0052D7B657553E7f47239d8c4431Fef001A7f99c'
+# Following two calls are equivalent
+python -m deploy.deploy_testnet  # --owner is web.eth.accounts[0]
+python -m deploy.deploy_testnet --chain kovan --owner 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb --challenge-period 500 --supply 10000000 --token-name CustomToken --token-decimals 18 --token-symbol TKN
 
 # Provide a custom deployed token
-python -m deploy.deploy_testnet --token-address address
+python -m deploy.deploy_testnet --token-address TOKEN_ADDRESS
 
 
 ```
@@ -162,15 +161,6 @@ npm install -g solidity-doc
 
 ## API
 
-
-- _Sender_ = token sender
-- _Receiver_ = token receiver
-- _Contract_ = Raiden MicroTransferChannels Smart Contract
-- _Token_ = Token
-
-![ContractClass](/contracts/docs/diagrams/ContractClass.png)
-
-
 ### Opening a transfer channel
 
 #### ERC223 compatible (recommended)
@@ -179,15 +169,14 @@ Sender sends tokens to the Contract, with a payload for calling `createChannel`.
 ```
 Token.transfer(_to, _value, _data)
 ```
-Gas cost (testing): 73908
+Gas cost (testing): 86982
 
  * `_to` = `Contract.address`
  * `_value` = deposit value (number of tokens)
  * `_data` contains the Receiver address encoded in 20 bytes
    - in python
    ```
-    _data = receiver_address[2:].zfill(40)
-    _data = bytes.fromhex(_data)
+    _data = bytes.fromhex(receiver_address[2:].zfill(40))
    ```
 
 ![ChannelOpen_ERC223](/contracts/docs/diagrams/ChannelOpen_223.png)
@@ -200,7 +189,7 @@ Token.approve(contract, deposit)
 
 Contract.createChannelERC20(receiver, deposit)
 ```
-Gas cost (testing): 104802
+Gas cost (testing): 119739
 
 ![ChannelOpen_ERC20](/contracts/docs/diagrams/ChannelOpen_20.png)
 
@@ -215,7 +204,7 @@ Sender sends tokens to the Contract, with a payload for calling `topUp`.
 ```
 Token.transfer(_to, _value, _data)
 ```
-Gas cost (testing): 54770
+Gas cost (testing): 52867
 
  * `_to` = `Contract.address`
  * `_value` = deposit value (number of tokens)
@@ -237,13 +226,14 @@ Token.approve(contract, added_deposit)
 
 Contract.createChannelERC20(receiver, deposit)
 ```
-Gas cost (testing): 85747
+Gas cost (testing): 85688
 
  ![ChannelTopUp_20](/contracts/docs/diagrams/ChannelTopUp_20.png)
 
 
 ### Generating and validating a balance proof
 
+(to be updated post EIP712)
 
 ```python
 
@@ -251,16 +241,12 @@ Gas cost (testing): 85747
 # The contract implements some helper functions for that
 
 # Balance message
-# Current format: "Receiver: 0xdceceaf3fc5c0a63d195d69b1a90011b7b19650d\nBalance: 23\nChannel ID: 5"
-balance_message = Contract.call().getBalanceMessage(receiver, open_block_number, balance)
+bytes32 balance_message_hash = keccak256(
+  keccak256('address receiver', 'uint32 block_created', 'uint192 balance', 'address contract'),
+  keccak256(_receiver_address, _open_block_number, _balance, address(this))
+);
 
-# Transform message to hexadecimal format
-# For the above example, result will be: 0x19457468657265756d205369676e6564204d6573736167653a0a3738
-from eth_utils import encode_hex
-balance_message_hex = encode_hex(balance_message)
-
-# balance_message_hex is signed by the Sender with MetaMask / Parity
-# For the above example, result will be: 0x52656365697665723a203078646365636561663366633563306136336431393564363962316139303031316237623139363530640a42616c616e63653a2032330a4368616e6e656c2049443a2035
+# balance_message_hash is signed by the Sender with MetaMasky
 balance_msg_sig
 
 # Data is sent to the Receiver (receiver, open_block_number, balance, balance_msg_sig)
@@ -278,13 +264,15 @@ from eth_utils import encode_hex
 # closing_sig is created in the same way as balance_msg_sig, but it is signed by the Receiver
 
 # Balance message
-balance_message = Contract.call().getBalanceMessage(receiver, open_block_number, balance)
-balance_message_hex = encode_hex(balance_message)
+bytes32 balance_message_hash = keccak256(
+  keccak256('address receiver', 'uint32 block_created', 'uint192 balance', 'address contract'),
+  keccak256(_receiver_address, _open_block_number, _balance, address(this))
+);
 
-# balance_message_hex is signed by the Sender with MetaMask / Parity
+# balance_message_hash is signed by the Sender with MetaMask
 balance_msg_sig
 
-# balance_message_hex is signed by the Receiver with MetaMask / Parity
+# balance_msg_sig is signed by the Receiver inside the microraiden code
 closing_sig
 
 # Send to the Contract (example of collaborative closing, transaction sent by Sender)
@@ -299,10 +287,6 @@ Contract.transact({ "from": Sender }).close(receiver, open_block_number, balance
 # Returns the Sender's address
 sender = Contract.call().verifyBalanceProof(receiver, open_block_number, balance, balance_msg_sig)
 
-# Returns the Receiver's address
-receiver = Contract.call().verifyBalanceProof(receiver, open_block_number, balance, closing_sig)
-
-
 ```
 
 
@@ -311,22 +295,22 @@ receiver = Contract.call().verifyBalanceProof(receiver, open_block_number, balan
 ```py
 
 # 1. Receiver calls Contract with the sender's signed balance message = instant close & settle
-# Gas cost (testing): 107105
+# Gas cost (testing): 60100
 Contract.close(receiver, open_block_number, balance, balance_msg_sig)
 
 # 2. Client calls Contract with receiver's closing signature = instant close & settle
-# Gas cost (testing): 163375
+# Gas cost (testing): 69438
 Contract.close(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
 
 # 3. Client calls Contract without receiver's closing signature = settlement period starts
 Contract.close(receiver, open_block_number, balance, balance_msg_sig)
 
 # 3.a. Receiver calls Contract with the sender's signed balance message = instant close & settle
-# Gas cost (testing): 199532
+# Gas cost (testing): 108000
 Contract.close(receiver, open_block_number, balance, balance_msg_sig)
 
 # 3.b. Client calls Contract after settlement period ends
-# Gas cost (testing): 149193
+# Gas cost (testing): 103491
 Contract.settle(receiver, open_block_number)
 
 ```
