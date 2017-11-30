@@ -9,6 +9,7 @@ from microraiden.proxy.content import (
     PaywalledProxyUrl
 )
 from microraiden.make_helpers import make_paywalled_proxy
+from microraiden.config import TKN
 
 if __name__ == '__main__':
     private_key = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
@@ -27,16 +28,16 @@ if __name__ == '__main__':
     # We setup the resource to return whatever is supplied as a second argument
     #  in the URL.
     app.add_content(PaywalledContent(
-                    "echofix\/[a-zA-Z0-9]+", 1,
+                    "echofix\/[a-zA-Z0-9]+", 1 * TKN,
                     lambda request: (request.split("/")[1], 200)))
     # Resource with a price determined by the second parameter
     app.add_content(PaywalledContent(
                     "echodyn\/[0-9]+",
-                    lambda request: int(request.split("/")[1]),
+                    lambda request: int(request.split("/")[1]) * TKN,
                     lambda request: (int(request.split("/")[1]), 200)))
     app.add_content(PaywalledProxyUrl(
                     "p\/[0-9]+",
-                    1,
+                    1 * TKN,
                     lambda request: 'google.com/search?q=' + request.split("/")[1]))
     # start the app. proxy is a WSGI greenlet, so you must join it properly
     app.run(debug=True)

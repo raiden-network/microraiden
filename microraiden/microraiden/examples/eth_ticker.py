@@ -9,7 +9,7 @@ import os
 
 from microraiden import Client, DefaultHTTPClient
 from microraiden.crypto import privkey_to_addr
-from microraiden.config import CHANNEL_MANAGER_ADDRESS
+from microraiden.config import CHANNEL_MANAGER_ADDRESS, TKN
 from microraiden.proxy.content import PaywalledProxyUrl
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 from microraiden.make_helpers import make_paywalled_proxy
@@ -28,7 +28,7 @@ def start_proxy(receiver_privkey: str) -> PaywalledProxy:
     app = make_paywalled_proxy(receiver_privkey, os.path.join(app_dir, state_file_name))
     app.add_content(PaywalledProxyUrl(
         "[A-Z]{6}",
-        1,
+        1 * TKN,
         'http://api.bitfinex.com/v1/pubticker/',
         [r'[A-Z]{6}']
     ))
@@ -42,7 +42,7 @@ class ETHTickerProxy:
             self.app = proxy
             self.app.add_content(PaywalledProxyUrl(
                 "[A-Z]{6}",
-                1,
+                1 * TKN,
                 'http://api.bitfinex.com/v1/pubticker/',
                 [r'[A-Z]{6}']
             ))

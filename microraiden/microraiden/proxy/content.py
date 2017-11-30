@@ -70,7 +70,7 @@ class PaywalledProxyUrl(PaywalledContent):
         # extract body of the paywall page and transform it into a div we'll be
         #  using later
         with open(path) as fp:
-            soup = BeautifulSoup(fp)
+            soup = BeautifulSoup(fp, 'html.parser')
         b = soup.body
         b['id'] = "overlay"
         b.name = "div"
@@ -93,7 +93,7 @@ class PaywalledProxyUrl(PaywalledContent):
 
 #  <link rel="stylesheet" type="text/css" href="/js/styles.css">
 
-        soup = BeautifulSoup(data.data.decode())
+        soup = BeautifulSoup(data.data.decode(), 'html.parser')
         # generate js paths that are required
         js_paths = [
             "//code.jquery.com/jquery-3.2.1.js",

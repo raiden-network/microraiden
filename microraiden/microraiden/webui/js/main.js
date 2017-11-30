@@ -13,7 +13,7 @@ function pageReady(contractABI, tokenABI) {
     contract: Cookies.get("RDN-Contract-Address"),
     token: Cookies.get("RDN-Token-Address"),
     receiver: Cookies.get("RDN-Receiver-Address"),
-    amount: +(Cookies.get("RDN-Price")),
+    amount: Cookies.get("RDN-Price"),
   };
 
   window.uraiden = new microraiden.MicroRaiden(
@@ -77,12 +77,13 @@ function pageReady(contractABI, tokenABI) {
         Cookies.set("RDN-Sender-Balance", proof.balance.toString());
         Cookies.set("RDN-Balance-Signature", proof.sign);
         Cookies.remove("RDN-Nonexisting-Channel");
-        $('html').load(location.href, function(res, status, xhr) {
-          if ( status === 'error' ) {
-            errorDialog("An error ocurred re-sending request", xhr.statusText);
-          } else {
-            uraiden.confirmPayment(proof);
-          }
+        mainSwitch("#channel_loading");
+        $.get(location.href).then(function(data, status, xhr) {
+          uraiden.confirmPayment(proof);
+          $('html').html(data);
+        }, function(xhr, status, error) {
+          errorDialog("An error ocurred re-sending request", xhr.statusText);
+          refreshAccounts();
         });
       })
       .catch(function(err) {
