@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import requests
 from eth_utils import encode_hex, decode_hex
@@ -22,7 +23,7 @@ class HTTPClient(object):
         self.running = False
         self.use_ssl = False
 
-    def run(self, requested_resource=None):
+    def run(self, requested_resource: str = None):
         self.on_init(requested_resource)
         resource = None
         self.running = True
@@ -60,7 +61,7 @@ class HTTPClient(object):
         if self.channel:
             self.close_channel(self.channel)
 
-    def _request_resource(self, requested_resource: str):
+    def _request_resource(self, requested_resource: str) -> (Any, bool):
         """
         Performs a simple GET request to the HTTP server with headers representing the given
         channel state.
@@ -79,47 +80,51 @@ class HTTPClient(object):
         headers = HTTPHeaders.deserialize(response.headers)
 
         if response.status_code == requests.codes.OK:
-            self.on_success(response.content, headers.get('cost'))
-            return response.content, False
+            retry = self.on_success(response.content, headers.get('cost'))
+            return response.content, retry
         elif response.status_code == requests.codes.PAYMENT_REQUIRED:
             if 'insuf_confs' in headers:
-                self.on_insufficient_confirmations()
+                retry = self.on_insufficient_confirmations()
             elif 'insuf_funds' in headers:
-                self.on_insufficient_funds()
+                retry = self.on_insufficient_funds()
             elif 'invalid_amount' in headers:
-                self.on_invalid_amount()
+                retry = self.on_invalid_amount()
                 self.channel.balance = int(headers.sender_balance)
-                return None, False
             else:
-                balance = int(headers.sender_balance) if 'sender_balance' in headers else None
-                balance_sig = decode_hex(headers.balance_signature) \
-                    if 'balance_signature' in headers else None
-                self.on_payment_requested(
+                balance = None
+                balance_sig = None
+                if 'sender_balance' in headers:
+                    balance = int(headers.sender_balance)
+                if 'balance_signature' in headers:
+                    balance_sig = decode_hex(headers.balance_signature)
+                retry = self.on_payment_requested(
                     headers.receiver_address,
                     int(headers.price),
                     balance,
                     balance_sig,
                     headers.get('contract_address')
                 )
-            return None, True
+            return None, retry
+        else:
+            return None, False
 
-    def on_init(self):
+    def on_init(self, requested_resource):
         pass
 
     def on_exit(self):
         pass
 
     def on_success(self, resource, cost: int):
-        pass
+        return False
 
-    def on_insufficient_funds(self):
-        pass
+    def on_insufficient_funds(self) -> bool:
+        return True
 
-    def on_insufficient_confirmations(self):
-        pass
+    def on_insufficient_confirmations(self) -> bool:
+        return True
 
-    def on_invalid_amount(self):
-        pass
+    def on_invalid_amount(self) -> bool:
+        return True
 
     def on_payment_requested(
             self,
@@ -129,4 +134,4 @@ class HTTPClient(object):
             balance_sig: bytes,
             channel_manager_address: str
     ):
-        pass
+        return True

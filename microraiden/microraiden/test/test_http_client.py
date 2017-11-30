@@ -9,15 +9,12 @@ from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
 
 def check_response(response: bytes):
-    assert response.decode().strip() == '"HI I AM A DOGGO"'
+    assert response and response.decode().strip() == '"HI I AM A DOGGO"'
 
 
 def test_cheating_client(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
-        sender_address,
-        receiver_privkey,
-        receiver_address
+        default_http_client: DefaultHTTPClient
 ):
     """this test scenario where client sends less funds than what is requested
         by the server. In such case, a "RDN-Invalid-Amount=1" header should
