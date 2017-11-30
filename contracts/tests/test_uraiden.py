@@ -4,6 +4,7 @@ from ethereum import tester
 from tests.fixtures import (
     channel_deposit_bugbounty_limit,
     uraiden_contract_version,
+    challenge_period_min,
     contract_params,
     owner_index,
     owner,
@@ -44,23 +45,25 @@ def test_uraiden_init(
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address])
     with pytest.raises(TypeError):
-        get_uraiden_contract([fake_address, 100])
+        get_uraiden_contract([fake_address, challenge_period_min])
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address, -2])
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address, 2 ** 32])
     with pytest.raises(TypeError):
-        get_uraiden_contract([0x0, 100])
+        get_uraiden_contract([0x0, challenge_period_min])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([empty_address, 100])
+        get_uraiden_contract([empty_address, challenge_period_min])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([A, 100])
+        get_uraiden_contract([A, challenge_period_min])
     with pytest.raises(tester.TransactionFailed):
         get_uraiden_contract([token.address, 0])
+    with pytest.raises(tester.TransactionFailed):
+        get_uraiden_contract([token.address, challenge_period_min - 1])
 
-    uraiden = get_uraiden_contract([token.address, 2 ** 8 - 1])
+    uraiden = get_uraiden_contract([token.address, 2 ** 32 - 1])
     assert uraiden.call().token() == token.address
-    assert uraiden.call().challenge_period() == 2 ** 8 - 1
+    assert uraiden.call().challenge_period() == 2 ** 32 - 1
     assert token.call().balanceOf(uraiden.address) == 0
     assert web3.eth.getBalance(uraiden.address) == 0
 
@@ -119,10 +122,19 @@ def test_function_access(
         uraiden_instance.transact().settleChannel(*channel, 10)
 
 
-def test_version(web3, owner, get_accounts, get_uraiden_contract, uraiden_instance, token_instance):
+def test_version(
+    web3,
+    owner,
+    get_accounts,
+    get_uraiden_contract,
+    uraiden_instance,
+    token_instance):
     (A, B) = get_accounts(2)
     token = token_instance
-    other_contract = get_uraiden_contract([token.address, 10], {'from': A})
+    other_contract = get_uraiden_contract(
+        [token.address, challenge_period_min],
+        {'from': A}
+    )
 
     assert uraiden_instance.call().version() == uraiden_contract_version
 
