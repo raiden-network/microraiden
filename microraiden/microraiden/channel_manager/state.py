@@ -119,6 +119,8 @@ class ChannelManagerState(object):
         self.filename = filename
         self.conn = sqlite3.connect(self.filename, isolation_level="EXCLUSIVE")
         self.conn.row_factory = dict_factory
+        if filename not in (None, ':memory:'):
+            os.chmod(filename, 0o600)
 
     def setup_db(self, network_id, contract_address, receiver):
         self.conn.executescript(DB_CREATION_SQL)

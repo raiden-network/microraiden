@@ -1,5 +1,5 @@
 import os
-from flask import make_response, request, Response, stream_with_context, send_file
+from flask import request, Response, stream_with_context, send_file
 import requests
 import re
 import logging

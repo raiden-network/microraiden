@@ -1,7 +1,6 @@
 import json
 import os
 from eth_utils import denoms
-from web3 import HTTPProvider
 
 API_PATH = "/api/1"
 GAS_LIMIT = 250000
@@ -24,7 +23,7 @@ CHANNEL_MANAGER_ADDRESS = '0xeb8f0c65921c6f2b6025d9dbdd9466419cbe56ec'
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 HTML_DIR = os.path.join(MICRORAIDEN_DIR, 'microraiden', 'webui')
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')
-TKN = 10**18 # token decimals
+TKN_DECIMALS = 10**18  # token decimals
 
 WEB3_PROVIDER_DEFAULT = "http://127.0.0.1:8545"
 

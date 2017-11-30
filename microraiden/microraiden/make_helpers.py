@@ -31,7 +31,7 @@ def make_contract_proxy(web3, private_key, contract_address):
 def make_channel_manager(private_key: str, contract_address: str, state_filename: str, web3):
     channel_manager_proxy = make_contract_proxy(web3, private_key, contract_address)
     token_address = channel_manager_proxy.contract.call().token()
-    token_abi = config.CONTRACT_METADATA['CustomToken']['abi']
+    token_abi = config.CONTRACT_METADATA[config.TOKEN_ABI_NAME]['abi']
     token_contract = web3.eth.contract(abi=token_abi, address=token_address)
     try:
         return ChannelManager(

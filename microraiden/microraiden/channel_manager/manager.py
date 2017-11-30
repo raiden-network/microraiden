@@ -57,8 +57,6 @@ class ChannelManager(gevent.Greenlet):
             self.state.setup_db(network_id,
                                 channel_contract_address,
                                 self.receiver)
-            if state_filename not in (None, ':memory:'):
-                os.chmod(state_filename, 0o600)
 
         assert self.state is not None
         if state_filename not in (None, ':memory:'):

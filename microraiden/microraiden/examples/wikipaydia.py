@@ -4,7 +4,7 @@ from microraiden.proxy.content import (
     PaywalledProxyUrl
 )
 from microraiden.click_helpers import main, pass_app
-from microraiden.config import TKN
+from microraiden.config import TKN_DECIMALS
 
 
 @main.command()
@@ -20,7 +20,10 @@ from microraiden.config import TKN
 )
 @pass_app
 def start(app, host, port):
-    app.add_content(PaywalledProxyUrl(".*", 1 * TKN, "http://en.wikipedia.org/", [r"wiki/.*"]))
+    app.add_content(PaywalledProxyUrl(".*",
+                                      1 * TKN_DECIMALS,
+                                      "http://en.wikipedia.org/",
+                                      [r"wiki/.*"]))
     app.run(host=host, port=port, debug=True)
     app.join()
 

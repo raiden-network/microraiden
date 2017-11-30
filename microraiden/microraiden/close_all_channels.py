@@ -55,7 +55,11 @@ log = logging.getLogger('close_all_channels')
     default=None,
     help='Ethereum address of the channel manager contract'
 )
-def main(rpc_provider, private_key, private_key_password_file, state_file, channel_manager_address):
+def main(rpc_provider,
+         private_key,
+         private_key_password_file,
+         state_file,
+         channel_manager_address):
     private_key = utils.get_private_key(private_key, private_key_password_file)
     if private_key is None:
         sys.exit(1)
