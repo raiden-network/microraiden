@@ -15,6 +15,10 @@ contract RaidenMicroTransferChannels {
     // Contract semantic version
     string public constant version = '0.1.0';
 
+    // We temporarily limit total token deposits in a channel to 100 tokens with 18 decimals.
+    // This is just for the bug bounty release.
+    uint256 public channel_deposit_bugbounty_limit = 10 ** 18 * 100;
+
     Token public token;
 
     mapping (bytes32 => Channel) public channels;
@@ -310,6 +314,8 @@ contract RaidenMicroTransferChannels {
     /// @param _receiver_address The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     function createChannelPrivate(address _sender_address, address _receiver_address, uint192 _deposit) private {
+        require(_deposit <= channel_deposit_bugbounty_limit);
+
         uint32 open_block_number = uint32(block.number);
 
         // Create unique identifier from sender, receiver and current block number
@@ -344,6 +350,7 @@ contract RaidenMicroTransferChannels {
 
         require(channels[key].deposit > 0);
         require(closing_requests[key].settle_block_number == 0);
+        require(channels[key].deposit + _added_deposit <= channel_deposit_bugbounty_limit);
 
         channels[key].deposit += _added_deposit;
         assert(channels[key].deposit > _added_deposit);
