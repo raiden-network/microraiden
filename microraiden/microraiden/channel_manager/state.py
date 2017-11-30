@@ -334,8 +334,7 @@ class ChannelManagerState(object):
     @classmethod
     def load(cls, filename: str, check_permissions=True):
         """Load a previously stored state."""
-        assert filename is not None
-        assert isinstance(filename, str)
+        assert filename and isinstance(filename, str)
         if filename != ':memory:':
             if os.path.isfile(filename) is False:
                 log.error("State file  %s doesn't exist" % filename)
