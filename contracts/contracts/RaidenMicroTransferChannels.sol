@@ -74,12 +74,13 @@ contract RaidenMicroTransferChannels {
 
     /// @dev Constructor for creating the uRaiden microtransfer channels contract.
     /// @param _token_address The address of the Token used by the uRaiden contract.
-    /// @param _challenge_period A fixed number of blocks representing the challenge period
+    /// @param _challenge_period A fixed number of blocks representing the challenge period.
+    /// We enforce a minimum of 500 blocks waiting period.
     /// after a sender requests the closing of the channel without the receiver's signature.
     function RaidenMicroTransferChannels(address _token_address, uint32 _challenge_period) public {
         require(_token_address != 0x0);
         require(addressHasCode(_token_address));
-        require(_challenge_period > 0);
+        require(_challenge_period >= 500);
 
         token = Token(_token_address);
         challenge_period = _challenge_period;
