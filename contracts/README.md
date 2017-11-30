@@ -33,18 +33,8 @@ RaidenMicroTransferChannels address is 0xe71269969cfd3c9c13c31c1caaf1ac4f242075e
 
 ```
 
-CustomToken  address is
-RaidenMicroTransferChannels address is
-
-```
-
-
-### Rinkeby
-
-```
-
-CustomToken  address is
-RaidenMicroTransferChannels address is
+CustomToken  address is 0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c
+RaidenMicroTransferChannels address is  0x6c4A0f93a21fb711adA78F68083577ab541b9620
 
 ```
 
