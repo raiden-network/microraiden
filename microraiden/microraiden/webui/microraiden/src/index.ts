@@ -1,5 +1,5 @@
 import * as Web3 from 'web3';
-import * as BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import { typedSignatureHash, recoverTypedSignature } from 'eth-sig-util';
 
 declare const localStorage; // possibly missing
@@ -7,7 +7,7 @@ declare const localStorage; // possibly missing
 
 // helper types
 export interface MicroProof {
-  balance: number;
+  balance: BigNumber;
   sign?: string;
 }
 
@@ -25,7 +25,7 @@ export interface MicroChannelInfo {
   /* MicroRaiden.getChannelInfo result */
   state: string;
   block: number;
-  deposit: number;
+  deposit: BigNumber;
 }
 
 export interface MicroTokenInfo {
@@ -33,7 +33,7 @@ export interface MicroTokenInfo {
   name: string;
   symbol: string;
   decimals: number;
-  balance: number;
+  balance: BigNumber;
 }
 
 interface MsgParam {
@@ -60,12 +60,12 @@ class Deferred<T> {
   });
 }
 
-function encodeHex(val: string|number, zPadLength?: number): string {
+function encodeHex(val: string|number|BigNumber, zPadLength?: number): string {
   /* Encode a string or number as hexadecimal, without '0x' prefix */
-  if (typeof val === 'number') {
+  if (typeof val === 'number' || val instanceof BigNumber ) {
     val = val.toString(16);
   } else {
-    val = Array.from(val).map((char) =>
+    val = Array.from(<string>val).map((char: string) =>
         char.charCodeAt(0).toString(16).padStart(2, '0'))
       .join('');
   }
@@ -103,19 +103,17 @@ export class MicroRaiden {
     this.token = this.web3.eth.contract(tokenABI).at(tokenAddr);
   }
 
-  // "static" methods/utils
-  private num2tkn(value: number): BigNumber {
+  // utils
+  num2tkn(value: number|string): BigNumber {
     /* Convert number to BigNumber compatible with configured token,
      * taking in account the token decimals */
-    return Math.floor(value * Math.pow(10, this.decimals));
+    return new BigNumber(value).shift(this.decimals);
   }
 
-  private tkn2num(bal: BigNumber): number {
+  tkn2num(bal: BigNumber): number {
     /* Convert BigNumber to number compatible with configured token,
      * taking in account the token decimals */
-    return bal && bal.div ?
-      bal.div(Math.pow(10, this.decimals)) :
-      bal / Math.pow(10, this.decimals);
+    return (new BigNumber(bal)).shift(-this.decimals).toNumber();
   }
 
   private async waitTx(txHash: string, confirmations: number): Promise<Web3.TransactionReceipt> {
@@ -180,15 +178,19 @@ export class MicroRaiden {
     /* If localStorage is available, try to load a channel from it,
      * indexed by given account and receiver */
     if (!localStorage) {
-      this.channel = undefined;
+      delete this.channel;
       return;
     }
     const key = [account, receiver].join('|');
     const value = localStorage.getItem(key);
     if (value) {
-      this.channel = JSON.parse(value);
+      const channel = JSON.parse(value);
+      channel.proof.balance = new BigNumber(channel.proof.balance);
+      if (channel.next_proof)
+        channel.next_proof.balance = new BigNumber(channel.next_proof.balance);
+      this.channel = channel;
     } else {
-      this.channel = undefined;
+      delete this.channel;
     }
   }
 
@@ -201,7 +203,7 @@ export class MicroRaiden {
       const key = [this.channel.account, this.channel.receiver].join('|');
       localStorage.removeItem(key);
     }
-    this.channel = undefined;
+    delete this.channel;
   }
 
   setChannel(channel: MicroChannel): void {
@@ -240,7 +242,7 @@ export class MicroRaiden {
       account ? promisify<BigNumber>(this.token.balanceOf, 'call')(account) : null
     ]);
     this.decimals = decimals;
-    return { name, symbol, decimals, balance: this.tkn2num(balance) };
+    return { name, symbol, decimals, balance };
   }
 
   async getChannelInfo(): Promise<MicroChannelInfo> {
@@ -284,7 +286,7 @@ export class MicroRaiden {
     }
     // for settled channel, getChannelInfo call will fail, so we return before
     if (settled) {
-      return {'state': 'settled', 'block': settled, 'deposit': 0};
+      return {'state': 'settled', 'block': settled, 'deposit': new BigNumber(0)};
     }
 
     const info = await promisify<BigNumber[]>(this.contract.getChannelInfo, 'call')(
@@ -293,17 +295,17 @@ export class MicroRaiden {
       this.channel.block,
       { from: this.channel.account });
 
-    if (!(info[1] > 0)) {
+    if (!(info[1].gt(0))) {
       throw new Error('Invalid channel deposit: '+JSON.stringify(info));
     }
     return {
       'state': closed ? 'closed' : 'opened',
       'block': closed || this.channel.block,
-      'deposit': this.tkn2num(info[1]),
+      'deposit': info[1],
     };
   }
 
-  async openChannel(account: string, receiver: string, deposit: number): Promise<MicroChannel> {
+  async openChannel(account: string, receiver: string, deposit: BigNumber): Promise<MicroChannel> {
     /* Open a channel for account to receiver, depositing some tokens in it.
      * Should work with both ERC20/ERC223 tokens.
      * Returns promise to MicroChannel info object */
@@ -311,16 +313,13 @@ export class MicroRaiden {
       console.warn('Already valid channel will be forgotten:', this.channel);
     }
 
-    // in this method, deposit is already multiplied by decimals
-    const tkn_deposit = this.num2tkn(deposit);
-
     // first, check if there's enough balance
     const balance = await promisify<BigNumber>(this.token.balanceOf, 'call')(account, { from: account });
-    if (!(balance >= tkn_deposit)) {
+    if (!(balance.gte(deposit))) {
       throw new Error(`Not enough tokens.
-        Token balance = ${this.tkn2num(balance)}, required = ${deposit}`);
+        Token balance = ${balance}, required = ${deposit}`);
     }
-    console.log('Token balance', this.token.address, this.tkn2num(balance));
+    console.log('Token balance', this.token.address, balance);
 
     // call transfer to make the deposit, automatic support for ERC20/223 token
     let transferTxHash: string;
@@ -329,7 +328,7 @@ export class MicroRaiden {
       // transfer tokens directly to the channel manager contract
       transferTxHash = await promisify<string>(this.token.transfer['address,uint256,bytes'], 'sendTransaction')(
         this.contract.address,
-        tkn_deposit,
+        deposit,
         receiver, // bytes _data (3rd param) is the receiver
         { from: account });
     } else {
@@ -337,12 +336,12 @@ export class MicroRaiden {
       // send 'approve' transaction to token contract
       await promisify<string>(this.token.approve, 'sendTransaction')(
         this.contract.address,
-        tkn_deposit,
+        deposit,
         { from: account });
       // send 'createChannel' transaction to channel manager contract
       transferTxHash = await promisify<string>(this.contract.createChannelERC20, 'sendTransaction')(
         receiver,
-        tkn_deposit,
+        deposit,
         { from: account });
     }
     console.log('transferTxHash', transferTxHash);
@@ -356,40 +355,37 @@ export class MicroRaiden {
       receiver,
       receipt.blockNumber,
       { from: account });
-    if (!(info[1] > 0)) {
+    if (!(info[1].gt(0))) {
       throw new Error('No deposit found!');
     }
     this.setChannel({
       account,
       receiver,
       block: receipt.blockNumber,
-      proof: { balance: 0 },
+      proof: { balance: new BigNumber(0) },
     });
 
     // return channel
     return this.channel;
   }
 
-  async topUpChannel(deposit: number): Promise<number> {
+  async topUpChannel(deposit: BigNumber): Promise<number> {
     /* Top up current channel, by depositing some tokens to it
      * Should work with both ERC20/ERC223 tokens
-     * Returns promise to final channel deposited amount */
+     * Returns promise block number */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
 
     const account = this.channel.account;
 
-    // in this method, deposit is already multiplied by decimals
-    const tkn_deposit = this.num2tkn(deposit);
-
     // first, check if there's enough balance
     const balance = await promisify<BigNumber>(this.token.balanceOf, 'call')(account, { from: account });
-    if (!(balance >= tkn_deposit)) {
+    if (!(balance.gte(deposit))) {
       throw new Error(`Not enough tokens.
-        Token balance = ${this.tkn2num(balance)}, required = ${deposit}`);
+        Token balance = ${balance}, required = ${deposit}`);
     }
-    console.log('Token balance', this.token.address, this.tkn2num(balance));
+    console.log('Token balance', this.token.address, balance);
 
     // automatically support both ERC20 and ERC223 tokens
     let transferTxHash: string;
@@ -398,7 +394,7 @@ export class MicroRaiden {
       // transfer tokens directly to the channel manager contract
       transferTxHash = await promisify<string>(this.token.transfer['address,uint256,bytes'], 'sendTransaction')(
         this.contract.address,
-        tkn_deposit,
+        deposit,
         // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
         this.channel.receiver + encodeHex(this.channel.block, 8),
         { from: account });
@@ -407,13 +403,13 @@ export class MicroRaiden {
       // send 'approve' transaction to token contract
       await promisify<string>(this.token.approve, 'sendTransaction')(
         this.contract.address,
-        tkn_deposit,
+        deposit,
         { from: account });
       // send 'topUp' transaction to channel manager contract
       transferTxHash = await promisify<string>(this.contract.topUpERC20, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
-        tkn_deposit,
+        deposit,
         { from: account });
     }
     console.log('transferTxHash', transferTxHash);
@@ -421,8 +417,7 @@ export class MicroRaiden {
     // wait for 'transfer' transaction to be mined
     const receipt = await this.waitTx(transferTxHash, 1);
 
-    // return current deposit
-    return (await this.getChannelInfo()).deposit;
+    return receipt.blockNumber;
   }
 
   async closeChannel(receiverSign?: string): Promise<number> {
@@ -463,14 +458,14 @@ export class MicroRaiden {
       await promisify<string>(this.contract.cooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
-        this.num2tkn(proof.balance),
+        proof.balance,
         proof.sign,
         receiverSign,
         { from: this.channel.account }) :
       await promisify<string>(this.contract.uncooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
-        this.num2tkn(proof.balance),
+        proof.balance,
         proof.sign,
         { from: this.channel.account });
 
@@ -556,7 +551,7 @@ export class MicroRaiden {
       {
         name: 'balance',
         type: 'uint192',
-        value: proof.balance,
+        value: proof.balance.toString(),
       },
       {
         name: 'contract',
@@ -592,7 +587,7 @@ export class MicroRaiden {
     proof.sign = sign;
 
     // return signed message
-    if (proof.balance === this.channel.proof.balance) {
+    if (proof.balance.equals(this.channel.proof.balance)) {
       this.setChannel(Object.assign(
         {},
         this.channel,
@@ -608,7 +603,7 @@ export class MicroRaiden {
     return proof;
   }
 
-  async incrementBalanceAndSign(amount: number): Promise<MicroProof> {
+  async incrementBalanceAndSign(amount: BigNumber): Promise<MicroProof> {
     /* Ask user for signing a new balance, which is previous balance added
      * of a given amount.
      * Notice that it doesn't replace signed balance proof, but next_* balance
@@ -618,13 +613,16 @@ export class MicroRaiden {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
-    const proof: MicroProof = { balance: this.channel.proof.balance + +amount };
+    const proof: MicroProof = { balance: this.channel.proof.balance.plus(amount) };
     // get current deposit
     const info = await this.getChannelInfo();
     if (info.state !== 'opened') {
       throw new Error('Tried signing on closed channel');
-    } else if (proof.balance > info.deposit) {
-      throw new Error(`Insuficient funds: current = ${info.deposit} , required = ${proof.balance}`);
+    } else if (proof.balance.gt(info.deposit)) {
+      const err = new Error(`Insuficient funds: current = ${info.deposit} , required = ${proof.balance}`);
+      err['current'] = info.deposit;
+      err['required'] = proof.balance;
+      throw err;
     }
     // get hash for new balance proof
     return await this.signNewProof(proof);
@@ -638,12 +636,13 @@ export class MicroRaiden {
       || this.channel.next_proof.sign !== proof.sign) {
       throw new Error('Invalid provided or stored next signature');
     }
-    this.setChannel(Object.assign(
+    const channel = Object.assign(
       {},
       this.channel,
       { proof: this.channel.next_proof },
-      { next_proof: undefined },
-    ));
+    );
+    delete channel.next_proof;
+    this.setChannel(channel);
   }
 
   async buyToken(account: string): Promise<Web3.TransactionReceipt> {

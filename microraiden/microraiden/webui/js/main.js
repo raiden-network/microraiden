@@ -74,7 +74,7 @@ function pageReady(contractABI, tokenABI) {
         console.log("SIGNED!", proof);
         Cookies.set("RDN-Sender-Address", uraiden.channel.account);
         Cookies.set("RDN-Open-Block", uraiden.channel.block);
-        Cookies.set("RDN-Sender-Balance", proof.balance);
+        Cookies.set("RDN-Sender-Balance", proof.balance.toString());
         Cookies.set("RDN-Balance-Signature", proof.sign);
         Cookies.remove("RDN-Nonexisting-Channel");
         $('html').load(location.href, function(res, status, xhr) {
@@ -88,11 +88,11 @@ function pageReady(contractABI, tokenABI) {
       .catch(function(err) {
         if (err.message && err.message.includes('Insuficient funds')) {
           console.error(err);
-          var current = +(err.message.match(/current ?= ?([\d.,]+)/i)[1]);
-          var required = +(err.message.match(/required ?= ?([\d.,]+)/i)[1]) - current;
-          $('#deposited').text(current);
-          $('#required').text(required);
-          $('#remaining').text(current - uraiden.channel.proof.balance);
+          var current = err['current'];
+          var missing = err['required'].sub(current);
+          $('#deposited').text(uraiden.tkn2num(current));
+          $('#required').text(uraiden.tkn2num(missing));
+          $('#remaining').text(uraiden.tkn2num(current.sub(uraiden.channel.proof.balance)));
           mainSwitch("#topup");
         } else if (err.message && err.message.includes('User denied message signature')) {
           console.error(err);
@@ -130,9 +130,10 @@ function pageReady(contractABI, tokenABI) {
       .then(function(token) {
         $('.tkn-name').text(token.name);
         $('.tkn-symbol').text(token.symbol);
-        $('.tkn-balance').attr("value", (token.balance || 0) + ' ' + token.symbol);
+        $('.tkn-balance').attr("value", uraiden.tkn2num(token.balance) + ' ' + token.symbol);
         $('.tkn-decimals')
           .attr("min", Math.pow(10, -token.decimals).toFixed(token.decimals));
+        $("#amount").text(uraiden.tkn2num(uRaidenParams["amount"]));
 
         if (uraiden.isChannelValid() &&
             uraiden.channel.account === $event.target.value &&
@@ -158,11 +159,13 @@ function pageReady(contractABI, tokenABI) {
               $('#channel_present .on-state:not(.on-state-'+ info.state + ')').hide();
 
               var remaining = 0;
-              if (info.deposit > 0 && uraiden.channel && !isNaN(uraiden.channel.proof.balance)) {
-                remaining = info.deposit - uraiden.channel.proof.balance;
+              if (info.deposit.gt(0) && uraiden.channel && uraiden.channel.proof
+                  && uraiden.channel.proof.balance.isFinite()) {
+                remaining = info.deposit.sub(uraiden.channel.proof.balance);
               }
-              $("#channel_present #channel_present_balance").text(remaining);
-              $("#channel_present #channel_present_deposit").attr("value", info.deposit);
+              $("#channel_present #channel_present_balance").text(uraiden.tkn2num(remaining));
+              $("#channel_present #channel_present_deposit").attr(
+                "value", uraiden.tkn2num(info.deposit));
               $(".btn-bar").show()
               if (info.state === 'opened' && autoSign) {
                 signRetry();
@@ -188,7 +191,7 @@ function pageReady(contractABI, tokenABI) {
   $("#channel_missing_start").attr("disabled", false);
 
   $("#channel_missing_start").click(function() {
-    var deposit = +$("#channel_missing_deposit").val();
+    var deposit = uraiden.num2tkn($("#channel_missing_deposit").val());
     var account = $("#accounts").val();
     mainSwitch("#channel_opening");
     uraiden.openChannel(account, uRaidenParams.receiver, deposit)
@@ -228,7 +231,7 @@ function pageReady(contractABI, tokenABI) {
           method: 'DELETE',
           contentType: 'application/json',
           dataType: 'json',
-          data: JSON.stringify({ 'balance': proof.balance }),
+          data: JSON.stringify({ 'balance': proof.balance.toNumber() }),
         })
         .done(function(result) {
           var closeSign = null;
@@ -286,7 +289,7 @@ function pageReady(contractABI, tokenABI) {
   });
 
   $("#topup_start").click(function() {
-    var deposit = +$("#topup_deposit").val();
+    var deposit = uraiden.num2tkn($("#topup_deposit").val());
     mainSwitch("#channel_opening");
     uraiden.topUpChannel(deposit)
       .then(function() {
@@ -312,7 +315,6 @@ function pageReady(contractABI, tokenABI) {
 
   // ==== FINAL SETUP ====
 
-  $("#amount").text(uRaidenParams["amount"]);
   refreshAccounts(true);
   $('[data-toggle="tooltip"]').tooltip();
 
