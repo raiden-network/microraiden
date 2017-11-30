@@ -1,7 +1,5 @@
 import logging
-from flask_restful import (
-    Resource
-)
+
 from microraiden.channel_manager import (
     ChannelManager,
     Channel,
@@ -19,6 +17,8 @@ from microraiden import HTTPHeaders as header
 import microraiden.config as config
 
 from flask import Response, make_response, request
+from flask_restful import Resource
+from werkzeug.datastructures import EnvironHeaders
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +26,6 @@ log = logging.getLogger(__name__)
 class RequestData:
     def __init__(self, headers, cookies=None):
         """parse a flask request object and check if the data received are valid"""
-        from werkzeug.datastructures import EnvironHeaders
         assert isinstance(headers, EnvironHeaders)
         self.check_headers(headers)
         if cookies:
