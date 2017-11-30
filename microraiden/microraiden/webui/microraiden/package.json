@@ -27,7 +27,7 @@
     "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
     "build:umd": "webpack",
     "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "main": "dist/cjs/index.js",
   "jsnext:main": "dist/esnext/index.js",

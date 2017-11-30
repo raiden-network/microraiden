@@ -80,6 +80,7 @@ export class MicroRaiden {
   token: Web3.ContractInstance;
   contract: Web3.ContractInstance;
   decimals: number = 0;
+  challenge: number;
 
   constructor(
     web3: string | { currentProvider: any },
@@ -116,61 +117,46 @@ export class MicroRaiden {
     return (new BigNumber(bal)).shift(-this.decimals).toNumber();
   }
 
-  private async waitTx(txHash: string, confirmations: number): Promise<Web3.TransactionReceipt> {
+  private async waitTx(txHash: string, confirmations?: number): Promise<Web3.TransactionReceipt> {
     /* Watch for a particular transaction hash to have given confirmations
-     * Inspired in: https://github.com/ethereum/web3.js/issues/393
      * Return promise to mined receipt of transaction */
-    let blockCounter = 30;
     confirmations = +confirmations || 0;
 
     const defer = new Deferred<Web3.TransactionReceipt>();
-    let filter = this.web3.eth.filter('latest');
-    const firstBlockTimeout = setTimeout(() => {
-      if (filter) {
-        filter.stopWatching(null);
-        filter = null;
-      }
-      defer.reject(new Error('No blocks seen in 30s. '+
-        'You may need to restart your browser or check '+
-        'if your node is synced!'));
-    }, 30e3);
+    const blockStart = await promisify<number>(this.web3.eth, 'getBlockNumber')();
 
-    // Wait for tx to be finished
-    filter.watch(async (err, blockHash) => {
-      if (err) {
-        return defer.reject(err);
-      }
-      // on first block, stop timeout
-      clearTimeout(firstBlockTimeout);
-
-      if (blockCounter<=0) {
-        if (filter) {
-          filter.stopWatching(null);
-          filter = null;
-        }
-        console.warn('!! Tx expired !!', txHash);
-        return defer.reject(new Error('Tx expired: ' + txHash));
-      }
-
-      // Get info about latest Ethereum block
-      const receipt = await promisify<Web3.TransactionReceipt>(this.web3.eth, 'getTransactionReceipt')(txHash);
+    const intervalId = setInterval(async () => {
+      const [ receipt, block ] = await Promise.all([
+        await promisify<Web3.TransactionReceipt>(this.web3.eth, 'getTransactionReceipt')(txHash),
+        await promisify<number>(this.web3.eth, 'getBlockNumber')(),
+      ]);
       if (!receipt || !receipt.blockNumber) {
-        console.log('Waiting tx..', blockCounter--);
+        console.log('Waiting tx..', block - blockStart);
         return;
-      } else if (confirmations > 0) {
-        console.log('Waiting confirmations...', confirmations--);
+      } else if (block - receipt.blockNumber < confirmations) {
+        console.log('Waiting confirmations...', block - receipt.blockNumber);
         return;
       }
 
       // Tx is finished
-      if (filter) {
-        filter.stopWatching(null);
-        filter = null;
-      }
+      clearInterval(intervalId);
       return defer.resolve(receipt);
-    });
+    }, 2e3); // poll every 2secs
 
     return defer.promise;
+  }
+
+  async getChallengePeriod(): Promise<number> {
+    /* Get contract's configured challenge's period
+     * As it calls the contract method, can be used for
+     * validating that contract's address has code in current network
+     * Returns promise to challenge period number, in blocks
+     */
+    this.challenge = (await promisify<BigNumber>(
+      this.contract.challenge_period,
+      'call'
+    )()).toNumber();
+    return this.challenge;
   }
 
   // instance methods
