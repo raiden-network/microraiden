@@ -75,7 +75,7 @@ def token_contract_address(use_tester, web3, deployer_address, token_abi, token_
             abi=channel_manager_abi,
             address=CHANNEL_MANAGER_ADDRESS
         )
-        return channel_manager_contract.call().token_address()
+        return channel_manager_contract.call().token()
 
 
 @pytest.fixture(scope='session')

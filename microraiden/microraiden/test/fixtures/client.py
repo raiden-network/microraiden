@@ -1,4 +1,5 @@
 import pytest
+from web3 import Web3
 
 from microraiden import Client
 from microraiden.config import GAS_LIMIT
@@ -28,8 +29,13 @@ def datadir(tmpdir):
 
 
 @pytest.fixture
-def client_contract_proxy(web3, sender_privkey, channel_manager_contract_address,
-                          channel_manager_abi, use_tester):
+def client_contract_proxy(
+        web3,
+        sender_privkey,
+        channel_manager_contract_address,
+        channel_manager_abi,
+        use_tester
+):
     return ChannelContractProxy(
         web3,
         sender_privkey,
@@ -54,18 +60,16 @@ def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi, 
 
 @pytest.fixture
 def client(
-        sender_privkey,
-        client_contract_proxy,
-        client_token_proxy,
-        datadir,
-        channel_manager_contract_address,
+        sender_privkey: str,
+        client_contract_proxy: ChannelContractProxy,
+        client_token_proxy: ContractProxy,
+        datadir: str
 ):
     client = Client(
         privkey=sender_privkey,
         channel_manager_proxy=client_contract_proxy,
         token_proxy=client_token_proxy,
-        datadir=datadir,
-        channel_manager_address=channel_manager_contract_address,
+        datadir=datadir
     )
     yield client
     client.close()

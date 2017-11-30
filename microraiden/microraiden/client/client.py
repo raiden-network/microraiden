@@ -35,15 +35,9 @@ class Client:
             key_password_path: str = None,
             datadir: str = click.get_app_dir('microraiden'),
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
-            rpc: RPCProvider = None,
             web3: Web3 = None,
             channel_manager_proxy: ChannelContractProxy = None,
             token_proxy: ContractProxy = None,
-            rpc_endpoint: str = 'localhost',
-            rpc_port: int = 8545,
-            contract_abi_path: str = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)), CONTRACTS_ABI_JSON
-            ),
             contract_metadata: dict = CONTRACT_METADATA
     ) -> None:
         assert privkey or key_path
@@ -73,34 +67,32 @@ class Client:
         if not web3:
             if channel_manager_proxy:
                 self.web3 = channel_manager_proxy.web3
+                self.channel_manager_address = channel_manager_proxy.address
             elif token_proxy:
                 self.web3 = token_proxy.web3
             else:
-                if not rpc:
-                    rpc = RPCProvider(rpc_endpoint, rpc_port)
-                self.web3 = Web3(rpc)
+                self.web3 = Web3(RPCProvider())
 
         # Create missing contract proxies.
-        if not channel_manager_proxy or not token_proxy:
-            if not channel_manager_proxy:
-                channel_manager_abi = contract_metadata[CHANNEL_MANAGER_ABI_NAME]['abi']
-                self.channel_manager_proxy = ChannelContractProxy(
-                    self.web3,
-                    self.privkey,
-                    channel_manager_address,
-                    channel_manager_abi,
-                    GAS_PRICE,
-                    GAS_LIMIT
-                )
+        if not channel_manager_proxy:
+            channel_manager_abi = contract_metadata[CHANNEL_MANAGER_ABI_NAME]['abi']
+            self.channel_manager_proxy = ChannelContractProxy(
+                self.web3,
+                self.privkey,
+                channel_manager_address,
+                channel_manager_abi,
+                GAS_PRICE,
+                GAS_LIMIT
+            )
 
-            token_address = self.channel_manager_proxy.contract.call().token_address()
-            if not token_proxy:
-                token_abi = contract_metadata[TOKEN_ABI_NAME]['abi']
-                self.token_proxy = ContractProxy(
-                    self.web3, self.privkey, token_address, token_abi, GAS_PRICE, GAS_LIMIT
-                )
-            else:
-                assert is_same_address(self.token_proxy.address, token_address)
+        token_address = self.channel_manager_proxy.contract.call().token()
+        if not token_proxy:
+            token_abi = contract_metadata[TOKEN_ABI_NAME]['abi']
+            self.token_proxy = ContractProxy(
+                self.web3, self.privkey, token_address, token_abi, GAS_PRICE, GAS_LIMIT
+            )
+        else:
+            assert is_same_address(self.token_proxy.address, token_address)
 
         assert self.web3
         assert self.channel_manager_proxy
