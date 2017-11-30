@@ -8,6 +8,7 @@ fake_address = '0x03432'
 empty_address = '0x0000000000000000000000000000000000000000'
 passphrase = '0'
 uraiden_contract_version = '0.1.0'
+channel_deposit_bugbounty_limit = 100 * 10 ** 18
 contract_args = [
     {
         'decimals': 18,
