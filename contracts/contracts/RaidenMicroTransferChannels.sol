@@ -13,7 +13,7 @@ contract RaidenMicroTransferChannels {
     uint32 public challenge_period;
 
     // Contract semantic version
-    string public constant version = '1.0.0';
+    string public constant version = '0.1.0';
 
     Token public token;
 

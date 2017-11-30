@@ -7,7 +7,7 @@ MAX_UINT192 = 2 ** 192 - 1
 fake_address = '0x03432'
 empty_address = '0x0000000000000000000000000000000000000000'
 passphrase = '0'
-uraiden_contract_version = '1.0.0'
+uraiden_contract_version = '0.1.0'
 contract_args = [
     {
         'decimals': 18,
