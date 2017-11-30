@@ -18,7 +18,7 @@ if __package__ is None:
     sys.path.insert(0, path)
     sys.path.insert(0, path + "/../")
 
-from web3 import HTTPProvider, Web3
+from web3 import Web3, HTTPProvider
 from microraiden.make_helpers import make_paywalled_proxy
 from microraiden import utils, config
 from microraiden.exceptions import StateFileLocked, InsecureStateFile, NetworkIdMismatch
@@ -57,7 +57,7 @@ pass_app = click.make_pass_decorator(PaywalledProxy)
 )
 @click.option(
     '--rpc-provider',
-    default='http://localhost:8545',
+    default=config.WEB3_PROVIDER_DEFAULT,
     help='Address of the Ethereum RPC provider'
 )
 @click.option(
@@ -67,7 +67,7 @@ pass_app = click.make_pass_decorator(PaywalledProxy)
 )
 @click.option(
     '--paywall-info',
-    default=os.path.abspath(os.path.join(os.path.dirname(__file__), '../webui')),
+    default=config.HTML_DIR,
     help='Directory where the paywall info is stored. '
          'The directory shoud contain a index.html file with the payment info/webapp. '
          'Content of the directory (js files, images..) is available on the "js/" endpoint.'
@@ -92,7 +92,7 @@ def main(
     channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
 
     if not state_file:
-        state_file_name = "%s_%s.json" % (channel_manager_address[:10], receiver_address[:10])
+        state_file_name = "%s_%s.db" % (channel_manager_address[:10], receiver_address[:10])
         app_dir = click.get_app_dir('microraiden')
         if not os.path.exists(app_dir):
             os.makedirs(app_dir)

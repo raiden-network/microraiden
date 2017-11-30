@@ -119,6 +119,8 @@ class ChannelManagerState(object):
         self.filename = filename
         self.conn = sqlite3.connect(self.filename, isolation_level="EXCLUSIVE")
         self.conn.row_factory = dict_factory
+        if filename not in (None, ':memory:'):
+            os.chmod(filename, 0o600)
 
     def setup_db(self, network_id, contract_address, receiver):
         self.conn.executescript(DB_CREATION_SQL)
@@ -334,8 +336,7 @@ class ChannelManagerState(object):
     @classmethod
     def load(cls, filename: str, check_permissions=True):
         """Load a previously stored state."""
-        assert filename is not None
-        assert isinstance(filename, str)
+        assert filename and isinstance(filename, str)
         if filename != ':memory:':
             if os.path.isfile(filename) is False:
                 log.error("State file  %s doesn't exist" % filename)

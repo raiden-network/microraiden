@@ -1,10 +1,9 @@
 import os
-from flask import make_response, request, Response, stream_with_context
+from flask import request, Response, stream_with_context, send_file
 import requests
 import re
-import mimetypes
 import logging
-import bs4
+from bs4 import BeautifulSoup
 
 from microraiden.config import MICRORAIDEN_DIR
 
@@ -48,13 +47,7 @@ class PaywalledFile(PaywalledContent):
         self.filepath = filepath
 
     def get(self, url):
-        try:
-            mimetype = mimetypes.guess_type(self.filepath)
-            data = open(self.filepath, 'rb').read()
-            headers = {'Content-Type': mimetype[0]}
-            return make_response(data, 200, headers)
-        except FileNotFoundError:
-            return 404, "NOT FOUND"
+        return send_file(self.filepath)
 
 
 class PaywalledProxyUrl(PaywalledContent):
@@ -76,7 +69,8 @@ class PaywalledProxyUrl(PaywalledContent):
     def extract_paywall_body(self, path):
         # extract body of the paywall page and transform it into a div we'll be
         #  using later
-        soup = bs4.BeautifulSoup(open(path).read(), "html.parser")
+        with open(path) as fp:
+            soup = BeautifulSoup(fp, 'html.parser')
         b = soup.body
         b['id'] = "overlay"
         b.name = "div"
@@ -99,7 +93,7 @@ class PaywalledProxyUrl(PaywalledContent):
 
 #  <link rel="stylesheet" type="text/css" href="/js/styles.css">
 
-        soup = bs4.BeautifulSoup(data.data.decode(), "html.parser")
+        soup = BeautifulSoup(data.data.decode(), 'html.parser')
         # generate js paths that are required
         js_paths = [
             "//code.jquery.com/jquery-3.2.1.js",

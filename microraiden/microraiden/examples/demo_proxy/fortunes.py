@@ -9,14 +9,14 @@ log = logging.getLogger(__name__)
 
 class Fortunes:
     def __init__(self, fortunes_file):
-        fp = io.open(fortunes_file, 'r', encoding='utf8')
-        self.quotes = Fortunes.load(fp)
+        with io.open(fortunes_file, 'r', encoding='utf8') as fp:
+            self.quotes = Fortunes.load(fp)
 
     @staticmethod
     def load(fp):
         ret = []
         quote = ''
-        for line in fp.readlines():
+        for line in fp:
             if line.strip() == '%':
                 ret.append(quote)
                 quote = ''

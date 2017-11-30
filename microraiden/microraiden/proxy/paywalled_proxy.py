@@ -1,6 +1,6 @@
 import gevent
 
-from flask import Flask
+from flask import Flask, safe_join
 from flask_restful import (
     Api,
 )
@@ -21,7 +21,6 @@ from microraiden.proxy.resources import (
     ChannelManagementLogout,
     ChannelManagementRoot,
     ChannelManagementStats,
-    StaticFilesServer,
 )
 
 from microraiden.proxy.content import PaywallDatabase, PaywalledContent
@@ -41,24 +40,26 @@ class PaywalledProxy:
                  flask_app=None,
                  paywall_html_dir=None,
                  paywall_js_dir=None):
-        if not flask_app:
-            self.app = Flask(__name__, static_url_path='/mystatic')
-        else:
-            assert isinstance(flask_app, Flask)
-            self.app = flask_app
         paywall_html_dir = paywall_html_dir or config.HTML_DIR
         paywall_js_dir = paywall_js_dir or config.JSLIB_DIR
         assert isinstance(channel_manager, ChannelManager)
         assert isinstance(paywall_html_dir, str)
-        self.paywall_db = PaywallDatabase()
+
+        if not flask_app:
+            self.app = Flask(__name__, static_url_path='/js', static_folder=paywall_js_dir)
+        else:
+            assert isinstance(flask_app, Flask)
+            self.app = flask_app
+
         self.api = Api(self.app)
         self.rest_server = None
         self.server_greenlet = None
 
+        self.paywall_db = PaywallDatabase()
         self.channel_manager = channel_manager
         self.channel_manager.start()
 
-        self.light_client_proxy = LightClientProxy(paywall_html_dir + "/index.html")
+        self.light_client_proxy = LightClientProxy(safe_join(paywall_html_dir, "index.html"))
 
         cfg = {
             'contract_address': channel_manager.state.contract_address,
@@ -67,9 +68,6 @@ class PaywalledProxy:
             'paywall_db': self.paywall_db,
             'light_client_proxy': self.light_client_proxy
         }
-        # static files
-        self.api.add_resource(StaticFilesServer, "/js/<path:content>",
-                              resource_class_kwargs={'directory': paywall_js_dir})
         # paywall
         self.api.add_resource(Expensive, "/<path:content>", resource_class_kwargs=cfg)
 

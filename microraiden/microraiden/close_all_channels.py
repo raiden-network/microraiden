@@ -11,7 +11,7 @@ from eth_utils import (
     is_same_address,
 )
 from ethereum.tester import TransactionFailed
-from web3 import Web3
+from web3 import Web3, HTTPProvider
 from web3.exceptions import BadFunctionCallOutput
 
 from microraiden import (
@@ -28,6 +28,11 @@ log = logging.getLogger('close_all_channels')
 
 
 @click.command()
+@click.option(
+    '--rpc-provider',
+    default=config.WEB3_PROVIDER_DEFAULT,
+    help='Address of the Ethereum RPC provider'
+)
 @click.option(
     '--private-key',
     required=True,
@@ -50,7 +55,11 @@ log = logging.getLogger('close_all_channels')
     default=None,
     help='Ethereum address of the channel manager contract'
 )
-def main(private_key, private_key_password_file, state_file, channel_manager_address):
+def main(rpc_provider,
+         private_key,
+         private_key_password_file,
+         state_file,
+         channel_manager_address):
     private_key = utils.get_private_key(private_key, private_key_password_file)
     if private_key is None:
         sys.exit(1)
@@ -63,7 +72,7 @@ def main(private_key, private_key_password_file, state_file, channel_manager_add
         app_dir = click.get_app_dir('microraiden')
         state_file = os.path.join(app_dir, state_file_name)
 
-    web3 = Web3(config.WEB3_PROVIDER)
+    web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.eth.defaultAccount = receiver_address
     contract_proxy = make_contract_proxy(web3, private_key, config.CHANNEL_MANAGER_ADDRESS)
 

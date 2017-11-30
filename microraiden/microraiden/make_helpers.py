@@ -1,7 +1,7 @@
 import sys
 
 from microraiden.contract_proxy import ChannelContractProxy
-from web3 import Web3
+from web3 import Web3, HTTPProvider
 
 import logging
 
@@ -17,22 +17,22 @@ from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
 
 def make_contract_proxy(web3, private_key, contract_address):
-    metadata = config.CONTRACT_METADATA['RaidenMicroTransferChannels']
+    manager_abi = config.CONTRACT_METADATA['RaidenMicroTransferChannels']['abi']
     return ChannelContractProxy(
         web3,
         private_key,
         contract_address,
-        metadata['abi'],
+        manager_abi,
         config.GAS_PRICE,
         config.GAS_LIMIT
     )
 
 
 def make_channel_manager(private_key: str, contract_address: str, state_filename: str, web3):
-    abi = config.CONTRACT_METADATA['RaidenMicroTransferChannels']['abi']
     channel_manager_proxy = make_contract_proxy(web3, private_key, contract_address)
     token_address = channel_manager_proxy.contract.call().token()
-    token_contract = web3.eth.contract(abi=abi, address=token_address)
+    token_abi = config.CONTRACT_METADATA[config.TOKEN_ABI_NAME]['abi']
+    token_contract = web3.eth.contract(abi=token_abi, address=token_address)
     try:
         return ChannelManager(
             web3,
@@ -60,7 +60,7 @@ def make_paywalled_proxy(private_key: str,
                          contract_address=config.CHANNEL_MANAGER_ADDRESS,
                          flask_app=None, web3=None):
     if web3 is None:
-        web3 = Web3(config.WEB3_PROVIDER)
+        web3 = Web3(HTTPProvider(config.WEB3_PROVIDER_DEFAULT, request_kwargs={'timeout': 60}))
     channel_manager = make_channel_manager(private_key, contract_address, state_filename, web3)
     proxy = PaywalledProxy(channel_manager, flask_app, config.HTML_DIR, config.JSLIB_DIR)
     return proxy
