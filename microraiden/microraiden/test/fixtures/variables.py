@@ -10,8 +10,18 @@ from microraiden.config import CONTRACTS_ABI_JSON
 
 
 @pytest.fixture
-def test_dir():
-    return os.path.dirname(os.path.dirname(__file__)) + "/../"
+def proxy_ssl():
+    return False
+
+
+@pytest.fixture
+def test_dir(request):
+    return request.fspath.dirname
+
+
+@pytest.fixture
+def proxy_ssl_certs(test_dir):
+    return os.path.join(test_dir + '/data/key.pem'), os.path.join(test_dir + '/data/cert.pem')
 
 
 @pytest.fixture(scope='session')

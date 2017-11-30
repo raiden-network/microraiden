@@ -1,8 +1,11 @@
 import json
 import types
+import pytest
+from requests.exceptions import SSLError
 
 from microraiden import DefaultHTTPClient
 from microraiden.test.utils.client import close_channel_cooperatively
+from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
 
 def check_response(response: bytes):
@@ -183,3 +186,15 @@ def test_coop_close(
 
     assert reply.status_code == 200
     close_channel_cooperatively(channel, receiver_privkey, client.channel_manager_address)
+
+
+@pytest.mark.parametrize('proxy_ssl', [1])
+def test_ssl_client(
+        doggo_proxy,
+        default_http_client: DefaultHTTPClient
+):
+    default_http_client.use_ssl = True
+    with disable_ssl_check():
+        check_response(default_http_client.run('doggo.jpg'))
+    with pytest.raises(SSLError):
+        check_response(default_http_client.run('doggo.jpg'))
