@@ -149,6 +149,11 @@ pending_channels - count of all closed, but not yet settled channels
 balance_sum - sum of all spent, but not yet settled funds
 unique_senders - count of all unique addresses that have channels open
 liquid_balance - amount of tokens that are settled and available to the receiver
+token_address - token contract address
+contract_address - channel manager contract address
+receiver_address - server's ethereum address
+manager_abi - abi of the channel manager contract
+token_abi - abi of the token contract
 
 
 Example Request
@@ -168,5 +173,10 @@ Example Response
       "pending_channels": 15,
       "balance_sum": 12,
       "unique_senders": 6,
-      "liquid_balance": 334
+      "liquid_balance": 334,
+	  "token_address" : "0xafe1.....001",
+	  "contract_address": "0x1234....567"
+	  "receiver_address": "0xdead....beef",
+	  "manager_abi": { ... },
+	  "token_abi": { ... }
     }
