@@ -153,7 +153,7 @@ function pageReady(contractABI, tokenABI) {
             })
             .catch(function(err) {
               console.error(err);
-              return { state: "error", deposit: 0 }
+              return { state: "error", deposit: uraiden.num2tkn(0) };
             })
             .then(function(info) {
               $('#channel_present .on-state.on-state-' + info.state).show();

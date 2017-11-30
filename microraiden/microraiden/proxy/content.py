@@ -98,6 +98,7 @@ class PaywalledProxyUrl(PaywalledContent):
         js_paths = [
             "//code.jquery.com/jquery-3.2.1.js",
             "//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js",
+            "//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js",
             "/js/web3.js",
             "/js/microraiden.js"]
         for src in js_paths:

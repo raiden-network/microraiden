@@ -185,6 +185,9 @@ export class MicroRaiden {
     const value = localStorage.getItem(key);
     if (value) {
       const channel = JSON.parse(value);
+      if (!channel || !channel.proof || !channel.proof.balance) {
+        return;
+      }
       channel.proof.balance = new BigNumber(channel.proof.balance);
       if (channel.next_proof)
         channel.next_proof.balance = new BigNumber(channel.next_proof.balance);
