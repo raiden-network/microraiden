@@ -62,6 +62,11 @@ npm i && npm run build
 
 * run the Proxy component (more details [here](/microraiden/README.md)):
 
+For an overview of parameters and default options check https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/click_helpers.py
+
+For chain and contract settings change: https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/config.py
+This is where you integrate custom contract & token deployments.
+
 ```
 cd microraiden
 python -m microraiden.examples.demo_proxy --private-key <private_key_file> start
