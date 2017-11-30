@@ -1,6 +1,7 @@
 # µRaiden
 
 µRaiden components overview.
+! Some parts might be outdated.
 
  * [HTTP Request and Response Headers](#http-request-and-response-headers)
  * [Exceptions](#exceptions)
@@ -135,8 +136,6 @@ For a better overview, also check out how the smart contract does a closing sign
 
 
 ## Web Client
-
-![](/docs/diagrams/JSClientClass.png)
 
 
 ## Smart Contract
