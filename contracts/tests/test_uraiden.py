@@ -2,6 +2,7 @@ import pytest
 import os
 from ethereum import tester
 from tests.fixtures import (
+    channel_deposit_bugbounty_limit,
     uraiden_contract_version,
     contract_params,
     owner_index,
@@ -63,12 +64,16 @@ def test_uraiden_init(
     assert token.call().balanceOf(uraiden.address) == 0
     assert web3.eth.getBalance(uraiden.address) == 0
 
+    # Temporary limit for the bug bounty release
+    assert uraiden.call().channel_deposit_bugbounty_limit() == channel_deposit_bugbounty_limit
+
 
 def test_variable_access(owner, uraiden_contract, token_instance, contract_params):
-    uraiden_instance = uraiden_contract()
-    assert uraiden_instance.call().token() == token_instance.address
-    assert uraiden_instance.call().challenge_period() == contract_params['challenge_period']
-    assert uraiden_instance.call().version() == uraiden_contract_version
+    uraiden = uraiden_contract()
+    assert uraiden.call().token() == token_instance.address
+    assert uraiden.call().challenge_period() == contract_params['challenge_period']
+    assert uraiden.call().version() == uraiden_contract_version
+    assert uraiden.call().channel_deposit_bugbounty_limit() == channel_deposit_bugbounty_limit
 
 
 def test_function_access(

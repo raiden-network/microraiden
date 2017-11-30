@@ -1,6 +1,7 @@
 import pytest
 from ethereum import tester
 from tests.fixtures import (
+    channel_deposit_bugbounty_limit,
     contract_params,
     owner_index,
     owner,
@@ -76,11 +77,42 @@ def test_channel_223_create(owner, get_accounts, uraiden_instance, token_instanc
 
     token_instance.transact({"from": sender}).transfer(uraiden_instance.address, deposit, txdata)
 
-    # TODO Test deposit > uint192
-    '''txn_hash = token.transact({"from": C}).transfer(uraiden_instance.address, MAX_UINT192, txdata_D)
+
+def test_channel_223_create_bounty_limit(get_block, owner, get_accounts, uraiden_instance, token_instance):
+    token = token_instance
+    (sender, receiver, C, D) = get_accounts(4)
+    txdata = bytes.fromhex(receiver[2:].zfill(40))
+
+    # Fund accounts with tokens
+    token.transact({"from": owner}).transfer(sender, channel_deposit_bugbounty_limit + 1)
+
+    pre_balance = token_instance.call().balanceOf(uraiden_instance.address)
+
+    with pytest.raises(tester.TransactionFailed):
+        token_instance.transact({"from": sender}).transfer(
+            uraiden_instance.address,
+            channel_deposit_bugbounty_limit + 1,
+            txdata
+        )
+    with pytest.raises(tester.TransactionFailed):
+        token_instance.transact({"from": sender}).transfer(
+            uraiden_instance.address,
+            channel_deposit_bugbounty_limit + 10,
+            txdata
+        )
+
+    txn_hash = token_instance.transact({"from": sender}).transfer(
+        uraiden_instance.address,
+        channel_deposit_bugbounty_limit,
+        txdata
+    )
+
+    post_balance = pre_balance + channel_deposit_bugbounty_limit
+    assert token_instance.call().balanceOf(uraiden_instance.address) == post_balance
     open_block_number = get_block(txn_hash)
-    channel_data = uraiden_instance.call().getChannelInfo(C, D, open_block_number)
-    assert channel_data[1] == MAX_UINT192'''
+
+    channel_data = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
+    assert channel_data[1] == channel_deposit_bugbounty_limit
 
 
 def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance):
@@ -117,6 +149,45 @@ def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance
 
     # Create channel
     uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
+
+
+def test_channel_20_create_bounty_limit(owner, get_accounts, uraiden_instance, token_instance, get_block):
+    token = token_instance
+    (sender, receiver) = get_accounts(2)
+
+    # Fund accounts with tokens
+    token.transact({"from": owner}).transfer(sender, channel_deposit_bugbounty_limit + 1)
+
+    # Approve token allowance
+    token_instance.transact({"from": sender}).approve(
+        uraiden_instance.address,
+        channel_deposit_bugbounty_limit + 1
+    )
+
+    pre_balance = token_instance.call().balanceOf(uraiden_instance.address)
+
+    with pytest.raises(tester.TransactionFailed):
+        uraiden_instance.transact({"from": sender}).createChannelERC20(
+            receiver,
+            channel_deposit_bugbounty_limit + 1
+        )
+    with pytest.raises(tester.TransactionFailed):
+        uraiden_instance.transact({"from": sender}).createChannelERC20(
+            receiver,
+            channel_deposit_bugbounty_limit + 100
+        )
+
+    txn_hash = uraiden_instance.transact({"from": sender}).createChannelERC20(
+        receiver,
+        channel_deposit_bugbounty_limit
+    )
+
+    post_balance = pre_balance + channel_deposit_bugbounty_limit
+    assert token_instance.call().balanceOf(uraiden_instance.address) == post_balance
+    open_block_number = get_block(txn_hash)
+
+    channel_data = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
+    assert channel_data[1] == channel_deposit_bugbounty_limit
 
 
 def test_create_token_fallback_uint_conversion(
