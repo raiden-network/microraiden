@@ -4,6 +4,22 @@
 µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.
 
 
+## Smart Contract
+
+The `RaidenMicroTransferChannels` contract has been deployed on the main net: https://etherscan.io/address/0x4d6e0922e6b703f0fdf92745343a9b83eb656402
+
+The following parameters were used:
+`token_address`: 0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6
+`challenge_period`: 8640 (blocks, rough equivalent of 36 hours)
+
+
+There have been internal and external audits of above contract. That being said:
+All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+
+
+For the contracts deployed on test nets, please check [/contracts/README.md](/contracts/README.md)
+
+
 ## Brief Overview
 
 µRaiden is not part of the [Raiden Network](https://github.com/raiden-network/raiden). However, it was built using the same state channel idea and implements it in a less general fashion focusing on the concrete application of micropayments for paywalled content.
