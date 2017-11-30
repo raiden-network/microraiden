@@ -98,7 +98,7 @@ You can use the configuration for the above default example for creating your ow
 
  * µRaiden Paywall Tutorial:
    - Proxy: [/docs/proxy-tutorial.md](/docs/proxy-tutorial.md)
-   - Web Interface: [/microraiden/microraiden/webui/README.md](/microraiden/microraiden/webui/README.md)
+   - Web Interface: soon
  * Various paywall [examples](/microraiden/microraiden/examples)
 
 
