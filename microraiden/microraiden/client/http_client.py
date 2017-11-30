@@ -20,6 +20,7 @@ class HTTPClient(object):
 
         self.channel = None  # type: Channel
         self.running = False
+        self.use_ssl = False
 
     def run(self, requested_resource=None):
         self.on_init(requested_resource)
@@ -37,8 +38,9 @@ class HTTPClient(object):
         self.running = False
 
     def make_url(self, resource_path: str):
-        # TODO: HTTPS?
-        return 'http://{}:{}/{}'.format(self.api_endpoint, self.api_port, resource_path)
+        # TODO: Do `requests` support other protocols?
+        proto = 'https' if self.use_ssl else 'http'
+        return '{}://{}:{}/{}'.format(proto, self.api_endpoint, self.api_port, resource_path)
 
     def close_channel(self, channel: Channel):
         log.info(

@@ -10,7 +10,6 @@ from eth_utils import (
     is_hex,
 )
 
-
 log = logging.getLogger(__name__)
 
 
