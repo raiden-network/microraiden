@@ -40,6 +40,7 @@ def test_uraiden_init(
     token_contract,
     uraiden_contract):
     token = token_contract()
+    fake_token = uraiden_contract()
     (A, B) = get_accounts(2)
 
     with pytest.raises(TypeError):
@@ -60,6 +61,8 @@ def test_uraiden_init(
         get_uraiden_contract([token.address, 0])
     with pytest.raises(tester.TransactionFailed):
         get_uraiden_contract([token.address, challenge_period_min - 1])
+    with pytest.raises(tester.TransactionFailed):
+        get_uraiden_contract([fake_token.address, challenge_period_min])
 
     uraiden = get_uraiden_contract([token.address, 2 ** 32 - 1])
     assert uraiden.call().token() == token.address

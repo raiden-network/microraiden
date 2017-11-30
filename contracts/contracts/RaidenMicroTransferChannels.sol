@@ -83,6 +83,10 @@ contract RaidenMicroTransferChannels {
         require(_challenge_period >= 500);
 
         token = Token(_token_address);
+
+        // Check if the contract is indeed a token contract
+        require(token.totalSupply() > 0);
+
         challenge_period = _challenge_period;
     }
 
