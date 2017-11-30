@@ -42,20 +42,33 @@ Try out the µRaiden demo and build your own customized version, following our i
 
 ## Quick Start
 
- * install and run the Proxy component (more details [here](/microraiden/README.md)):
+ * install the Proxy component (more details [here](/microraiden/README.md)):
 
 ```
 cd microraiden
 virtualenv -p python3 env
 . env/bin/activate
 pip install -e microraiden
+```
+
+* install the WebUI component for the paywall examples
+
+Note that while the `RaidenMicroTransferChannels` contract supports multiple open channels between a sender and a receiver, the WebUI component only supports one.
+
+```
+cd microraiden/microraiden/webui/microraiden
+npm i && npm run build
+```
+
+* run the Proxy component (more details [here](/microraiden/README.md)):
+
+```
 cd microraiden
 python -m microraiden.examples.demo_proxy --private-key <private_key_file> start
 ```
 
  * Go to the paywalled resource pages:
     - http://localhost:5000/doggo.jpg
-    - http://localhost:5000/teapot.jpg
 
 
 ## How To

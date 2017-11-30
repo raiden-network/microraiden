@@ -27,7 +27,7 @@ from utils.utils import (
 )
 @click.option(
     '--challenge-period',
-    default=30,
+    default=500,
     help='Challenge period in number of blocks.'
 )
 @click.option(
@@ -78,6 +78,8 @@ def getTokens(**kwargs):
     token_decimals = kwargs['token_decimals']
     token_symbol = kwargs['token_symbol']
     token_address = kwargs['token_address']
+
+    assert challenge_period >= 500, 'Challenge period should be >= 500 blocks'
 
     if sender_addresses:
         sender_addresses = sender_addresses.split(',')
