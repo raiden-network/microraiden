@@ -160,7 +160,7 @@ class Client:
 
         for e in topup:
             c = get_channel(e)
-            c.deposit = e['args']['_deposit']
+            c.deposit += e['args']['_added_deposit']
 
         for e in close:
             # Requested closed, not actual closed.
