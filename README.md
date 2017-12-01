@@ -17,26 +17,23 @@ There have been internal and external audits of above contract. That being said:
 All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
 
 
-Kovan
+### Kovan
 
-```
-CustomToken address is 0x5a7f24e34adac43955de79c6be3a050e29d1f93e
-RaidenMicroTransferChannels address is 0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed
-```
 
-Ropsten
+- CustomToken address is:  [0x5a7f24e34adac43955de79c6be3a050e29d1f93e](https://kovan.etherscan.io/address/0x5a7f24e34adac43955de79c6be3a050e29d1f93e)
+- RaidenMicroTransferChannels address is: [0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed](https://kovan.etherscan.io/address/0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed#code)
 
-```
-CustomToken  address is 0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c
-RaidenMicroTransferChannels address is  0x6c4A0f93a21fb711adA78F68083577ab541b9620
-```
 
-Rinkeby
+### Ropsten
 
-```
-CustomToken  address is 0x101e64900a7f283468ec7484691afca8385dc1d8
-RaidenMicroTransferChannels address is  0x568a0d52a173f584d4a286a22b2a876911079e15
-```
+- CustomToken address is:  [0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c](https://ropsten.etherscan.io/address/0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c)
+- RaidenMicroTransferChannels address is: [0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed](https://ropsten.etherscan.io/address/0x6c4A0f93a21fb711adA78F68083577ab541b9620#code)
+
+
+### Rinkeby
+
+- CustomToken address is:  [0x101e64900a7f283468ec7484691afca8385dc1d8](https://rinkeby.etherscan.io/address/0x101e64900a7f283468ec7484691afca8385dc1d8)
+- RaidenMicroTransferChannels address is: [0x568a0d52a173f584d4a286a22b2a876911079e15](https://rinkeby.etherscan.io/address/0x568a0d52a173f584d4a286a22b2a876911079e15#code)
 
 
 ## Brief Overview
