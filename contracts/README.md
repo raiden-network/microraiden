@@ -17,27 +17,6 @@ Smart Contracts, Unittests and Infrastructure for RaidenPaymentChannel Smart Con
    - [Closing a channel](#closing-a-channel)
 
 
-
-## Contract Addresses
-
-### Kovan
-
-```
-
-CustomToken address is 0x5a7f24e34adac43955de79c6be3a050e29d1f93e
-RaidenMicroTransferChannels address is 0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed
-
-```
-
-### Ropsten Revival
-
-```
-
-CustomToken  address is 0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c
-RaidenMicroTransferChannels address is  0x6c4A0f93a21fb711adA78F68083577ab541b9620
-
-```
-
 ## Installation
 
 The Smart Contracts can be installed separately from the other components of the RaidenMicroTransferChannels App.
