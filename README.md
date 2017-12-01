@@ -9,15 +9,34 @@
 The `RaidenMicroTransferChannels` contract has been deployed on the main net: https://etherscan.io/address/0x4d6e0922e6b703f0fdf92745343a9b83eb656402
 
 The following parameters were used:
-`token_address`: 0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6
-`challenge_period`: 8640 (blocks, rough equivalent of 36 hours)
+- `token_address`: `0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6`
+- `challenge_period`: `8640` (blocks, rough equivalent of 36 hours)
 
 
 There have been internal and external audits of above contract. That being said:
 All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
 
 
-For the contracts deployed on test nets, please check [/contracts/README.md](/contracts/README.md)
+Kovan
+
+```
+CustomToken address is 0x5a7f24e34adac43955de79c6be3a050e29d1f93e
+RaidenMicroTransferChannels address is 0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed
+```
+
+Ropsten
+
+```
+CustomToken  address is 0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c
+RaidenMicroTransferChannels address is  0x6c4A0f93a21fb711adA78F68083577ab541b9620
+```
+
+Rinkeby
+
+```
+CustomToken  address is 0x101e64900a7f283468ec7484691afca8385dc1d8
+RaidenMicroTransferChannels address is  0x568a0d52a173f584d4a286a22b2a876911079e15
+```
 
 
 ## Brief Overview
