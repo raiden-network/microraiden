@@ -53,7 +53,7 @@ class DefaultHTTPClient(HTTPClient):
         log.error(
             'Server was unable to verify the transfer - Invalid amount sent by the client.'
         )
-        return False
+        return True
 
     def _approve_payment(self, balance: int, balance_sig: bytes, channel_manager_address: str):
         assert balance is None or isinstance(balance, int)
