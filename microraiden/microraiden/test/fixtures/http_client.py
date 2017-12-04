@@ -17,4 +17,4 @@ def default_http_client(client, api_endpoint, api_endpoint_port):
 
     http_client = DefaultHTTPClient(client, api_endpoint, api_endpoint_port, retry_interval=0.5)
     http_client._request_resource = types.MethodType(request_patched, http_client)
-    return http_client
+    yield http_client

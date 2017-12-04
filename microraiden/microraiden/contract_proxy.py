@@ -5,7 +5,6 @@ from ethereum.transactions import Transaction
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 from web3.formatters import input_filter_params_formatter, log_array_formatter
-from web3.utils.empty import empty as web3_empty
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 
@@ -21,8 +20,6 @@ class ContractProxy:
         self.web3 = web3
         self.privkey = privkey
         self.caller_address = privkey_to_addr(privkey)
-        if self.web3.eth.defaultAccount == web3_empty:
-            self.web3.eth.defaultAccount = self.caller_address
         self.address = contract_address
         self.abi = abi
         self.contract = self.web3.eth.contract(abi=self.abi, address=contract_address)

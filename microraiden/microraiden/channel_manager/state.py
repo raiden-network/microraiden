@@ -3,13 +3,14 @@
 import sqlite3
 import os
 import logging
+from eth_utils import is_address
 
 from microraiden.utils import check_permission_safety
 
 from microraiden.exceptions import (
     InsecureStateFile
 )
-from .channel import Channel
+from .channel import Channel, ChannelState
 
 log = logging.getLogger(__name__)
 
@@ -35,22 +36,22 @@ CREATE TABLE `syncstate` (
 );
 -- deposit and balance have length of 78 to fit uint256
 CREATE TABLE `channels` (
-    `sender`            CHAR(42),
-    `open_block_number` INTEGER,
-    `deposit`           DECIMAL(78,0),
-    `balance`           DECIMAL(78,0),
+    `sender`            CHAR(42)        NOT NULL,
+    `open_block_number` INTEGER         NOT NULL,
+    `deposit`           DECIMAL(78,0)   NOT NULL,
+    `balance`           DECIMAL(78,0)   NOT NULL,
     `last_signature`    CHAR(132),
-    `settle_timeout`    INTEGER,
-    `mtime`             INTEGER,
-    `ctime`             INTEGER,
-    `is_closed`         BOOL,
-    `confirmed`         BOOL,
+    `settle_timeout`    INTEGER         NOT NULL,
+    `mtime`             INTEGER         NOT NULL,
+    `ctime`             INTEGER         NOT NULL,
+    `state`             INTEGER         NOT NULL,
+    `confirmed`         BOOL            NOT NULL,
     PRIMARY KEY (`sender`, `open_block_number`)
 );
 CREATE TABLE `topups` (
     `channel_rowid`     INTEGER,
-    `txhash`            CHAR(66),
-    `deposit`           DECIMAL(78,0),
+    `txhash`            CHAR(66)        NOT NULL,
+    `deposit`           DECIMAL(78,0)   NOT NULL,
     PRIMARY KEY (`channel_rowid`, `txhash`),
     FOREIGN KEY (`channel_rowid`) REFERENCES channels (rowid)
         ON DELETE CASCADE
@@ -104,7 +105,7 @@ UPDATE `channels` SET
     `last_signature` = ?,
     `settle_timeout` = ?,
     `mtime` = ?,
-    `is_closed` = ?
+    `state` = ?
 WHERE `sender` = ? AND `open_block_number` = ?;
 """
 
@@ -230,7 +231,8 @@ class ChannelManagerState(object):
     @property
     def n_open_channels(self):
         c = self.conn.cursor()
-        c.execute('SELECT COUNT(*) as count FROM `channels` WHERE `is_closed` = 0')
+        c.execute('SELECT COUNT(*) as count FROM `channels` WHERE `state` = ?',
+                  [ChannelState.OPEN.value])
         return c.fetchone()['count']
 
     def get_channels(self, confirmed=True):
@@ -250,6 +252,17 @@ class ChannelManagerState(object):
     def unconfirmed_channels(self):
         return self.get_channels(confirmed=False)
 
+    @property
+    def pending_channels(self):
+        ret = dict()
+        c = self.conn.cursor()
+        c.execute('SELECT rowid, * FROM `channels` WHERE `state` = ?',
+                  [ChannelState.CLOSE_PENDING.value])
+        for result in c.fetchall():
+            channel = self.result_to_channel(result)
+            ret[result['sender'], result['open_block_number']] = channel
+        return ret
+
     def result_to_channel(self, result):
         """Helper function to serialize one row of `channels` table into a channel object
         """
@@ -257,7 +270,7 @@ class ChannelManagerState(object):
                           result['deposit'],
                           result['open_block_number'])
         channel.balance = result['balance']
-        channel.is_closed = bool(result['is_closed'])
+        channel.state = ChannelState(result['state'])
         channel.last_signature = result['last_signature']
         channel.settle_timeout = result['settle_timeout']
         channel.mtime = result['mtime']
@@ -301,7 +314,9 @@ class ChannelManagerState(object):
                               [channel_rowid, txhash, str(deposit)])
 
     def add_channel(self, channel):
-        # TODO unconfirmed topups
+        assert channel.open_block_number > 0
+        assert channel.state is not ChannelState.UNDEFINED
+        assert is_address(channel.sender.lower())
         params = [
             channel.sender.lower(),
             channel.open_block_number,
@@ -311,7 +326,7 @@ class ChannelManagerState(object):
             channel.settle_timeout,
             channel.mtime,
             channel.ctime,
-            channel.is_closed,
+            channel.state.value,
             channel.confirmed
         ]
         self.conn.execute(ADD_CHANNEL_SQL, params)
@@ -320,6 +335,8 @@ class ChannelManagerState(object):
         self.conn.commit()
 
     def get_channel(self, sender, open_block_number):
+        assert is_address(sender)
+        assert open_block_number > 0
         # TODO unconfirmed topups
         c = self.conn.cursor()
         sql = 'SELECT rowid,* FROM `channels` WHERE `sender` = ? AND `open_block_number` = ?'
@@ -329,6 +346,8 @@ class ChannelManagerState(object):
         return self.result_to_channel(result)
 
     def del_channel(self, sender: str, open_block_number: int):
+        assert is_address(sender)
+        assert open_block_number > 0
         assert self.channel_exists(sender, open_block_number)
         self.conn.execute(DEL_CHANNEL_SQL, [sender.lower(), open_block_number])
         self.conn.commit()
@@ -354,3 +373,8 @@ class ChannelManagerState(object):
     def del_unconfirmed_channels(self):
         self.conn.execute('DELETE FROM `channels` WHERE `confirmed` = 0')
         self.conn.commit()
+
+    def set_channel_state(self, sender: str, open_block_number: int, state: ChannelState):
+        self.conn.execute('UPDATE `channels` SET `state` = ?'
+                          'WHERE `sender` = ? AND `open_block_number` = ?',
+                          [state, sender, open_block_number])

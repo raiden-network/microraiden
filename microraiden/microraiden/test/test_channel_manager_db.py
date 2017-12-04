@@ -1,6 +1,7 @@
 import pytest
 from microraiden.channel_manager import (
     Channel,
+    ChannelState,
     ChannelManagerState
 )
 
@@ -66,6 +67,7 @@ def test_sync_state(state):
 def test_adding_channel(state):
     channel = Channel(RECEIVER_ADDRESS, SENDER_ADDRESS, 100, 123)
     channel.balance = 50
+    channel.state = ChannelState.OPEN
     assert not state.channel_exists(channel.sender, channel.open_block_number)
     state.add_channel(channel)
     assert state.channel_exists(channel.sender, channel.open_block_number)
@@ -84,6 +86,7 @@ def test_adding_channel(state):
 def test_updating_channel(state):
     channel = Channel(RECEIVER_ADDRESS, SENDER_ADDRESS, 100, 123)
     channel.balance = 50
+    channel.state = ChannelState.OPEN
     state.add_channel(channel)
     channel.deposit = 200
     channel.balance = 100

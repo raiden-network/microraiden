@@ -9,6 +9,7 @@ from eth_utils import (
     decode_hex,
     is_same_address
 )
+from ethereum.exceptions import InsufficientBalance
 
 from microraiden.crypto import (
     verify_balance_proof,
@@ -30,7 +31,7 @@ from microraiden.exceptions import (
 from microraiden.config import CHANNEL_MANAGER_CONTRACT_VERSION
 from .state import ChannelManagerState
 from .blockchain import Blockchain
-from .channel import Channel
+from .channel import Channel, ChannelState
 
 log = logging.getLogger(__name__)
 
@@ -114,6 +115,7 @@ class ChannelManager(gevent.Greenlet):
             return  # ignore event if already provessed
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
         c.confirmed = True
+        c.state = ChannelState.OPEN
         self.log.info('new channel opened (sender %s, block number %s)', sender, open_block_number)
         self.state.set_channel(c)
 
@@ -125,6 +127,7 @@ class ChannelManager(gevent.Greenlet):
             return
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
         c.confirmed = False
+        c.state = ChannelState.OPEN
         self.state.set_channel(c)
         self.log.info('unconfirmed channel event received (sender %s, block_number %s)',
                       sender, open_block_number)
@@ -141,8 +144,9 @@ class ChannelManager(gevent.Greenlet):
             return
         c = self.channels[sender, open_block_number]
         if c.balance > balance:
-            self.log.info('sender tried to cheat, sending challenge (sender %s, block number %s)',
-                          sender, open_block_number)
+            self.log.warning('sender tried to cheat, sending challenge '
+                             '(sender %s, block number %s)',
+                             sender, open_block_number)
             self.close_channel(sender, open_block_number)  # dispute by closing the channel
         else:
             self.log.info('valid channel close request received '
@@ -214,13 +218,19 @@ class ChannelManager(gevent.Greenlet):
                      c.balance, decode_hex(c.last_signature)]
         raw_tx = self.contract_proxy.create_signed_transaction('uncooperativeClose', tx_params)
 
-        txid = self.blockchain.web3.eth.sendRawTransaction(raw_tx)
-        self.log.info('sent channel close(sender %s, block number %s, tx %s)',
-                      sender, open_block_number, txid)
         # update local state
         c.is_closed = True
         c.mtime = time.time()
         self.state.set_channel(c)
+
+        try:
+            txid = self.blockchain.web3.eth.sendRawTransaction(raw_tx)
+            self.log.info('sent channel close(sender %s, block number %s, tx %s)',
+                          sender, open_block_number, txid)
+        except InsufficientBalance:
+            c.state = ChannelState.CLOSE_PENDING
+            self.state.set_channel(c)
+            raise
 
     def force_close_channel(self, sender, open_block_number):
         """Forcibly remove a channel from our channel state"""
@@ -261,6 +271,10 @@ class ChannelManager(gevent.Greenlet):
         """Get the balance of the receiver in the token contract (not locked in channels)."""
         balance = self.token_contract.call().balanceOf(self.receiver)
         return balance
+
+    def get_eth_balance(self):
+        """Get eth balance of the receiver"""
+        return self.contract_proxy.web3.eth.getBalance(self.receiver)
 
     def verify_balance_proof(self, sender, open_block_number, balance, signature):
         """Verify that a balance proof is valid and return the sender.
@@ -327,6 +341,10 @@ class ChannelManager(gevent.Greenlet):
     def unconfirmed_channels(self):
         return self.state.unconfirmed_channels
 
+    @property
+    def pending_channels(self):
+        return self.state.pending_channels
+
     def channels_to_dict(self):
         """Export all channels as a dictionary."""
         d = {}
@@ -375,3 +393,10 @@ class ChannelManager(gevent.Greenlet):
             raise InvalidContractVersion("Incompatible contract version: expected=%s deployed=%s" %
                                          (CHANNEL_MANAGER_CONTRACT_VERSION,
                                           deployed_contract_version))
+
+    def close_pending_channels(self):
+        """Close all channels that are in CLOSE_PENDING state.
+        This state happens if the receiver's eth balance is not enough to
+            close channel on-chain."""
+        for sender, open_block_number in self.pending_channels.keys():
+            self.close_channel(sender, open_block_number)  # dispute by closing the channel

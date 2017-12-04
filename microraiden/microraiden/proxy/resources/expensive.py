@@ -114,6 +114,8 @@ class Expensive(Resource):
         log.info(content)
         if self.channel_manager.node_online() is False:
             return "Ethereum node is not responding", 502
+        if self.channel_manager.get_eth_balance() < config.PROXY_BALANCE_LIMIT:
+            return "Channel manager ETH balance is below limit", 502
         try:
             data = RequestData(request.headers, request.cookies)
         except ValueError as e:

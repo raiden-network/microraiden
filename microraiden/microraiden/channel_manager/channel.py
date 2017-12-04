@@ -1,4 +1,12 @@
 import time
+from enum import IntEnum
+
+
+class ChannelState(IntEnum):
+    OPEN = 0
+    CLOSED = 1
+    CLOSE_PENDING = 2
+    UNDEFINED = 100
 
 
 class Channel(object):
@@ -11,7 +19,7 @@ class Channel(object):
         self.open_block_number = open_block_number
 
         self.balance = 0  # how much of the deposit has been spent
-        self.is_closed = False
+        self.state = ChannelState.UNDEFINED
         self.last_signature = None
         # if set, this is the absolute block_number the channel can be settled
         self.settle_timeout = -1
@@ -20,6 +28,15 @@ class Channel(object):
         self.confirmed = False
 
         self.unconfirmed_topups = {}  # txhash to added deposit
+
+    @property
+    def is_closed(self):
+        return (self.state) in (ChannelState.CLOSED, ChannelState.CLOSE_PENDING)
+
+    @is_closed.setter
+    def is_closed(self, value):
+        assert value is True
+        self.state = ChannelState.CLOSED
 
     @property
     def unconfirmed_deposit(self):
