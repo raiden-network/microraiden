@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Tuple, Any
 
 import requests
 from eth_utils import encode_hex, decode_hex
@@ -61,7 +61,7 @@ class HTTPClient(object):
         if self.channel:
             self.close_channel(self.channel)
 
-    def _request_resource(self, requested_resource: str) -> (Any, bool):
+    def _request_resource(self, requested_resource: str) -> Tuple[Any, bool]:
         """
         Performs a simple GET request to the HTTP server with headers representing the given
         channel state.
@@ -78,6 +78,9 @@ class HTTPClient(object):
         url = self.make_url(requested_resource)
         response = requests.get(url, headers=HTTPHeaders.serialize(headers))
         headers = HTTPHeaders.deserialize(response.headers)
+
+        if self.on_http_response(requested_resource, response) is False:
+            return None, False  # user requested abort
 
         if response.status_code == requests.codes.OK:
             retry = self.on_success(response.content, headers.get('cost'))
@@ -106,7 +109,7 @@ class HTTPClient(object):
                 )
             return None, retry
         else:
-            return None, False
+            return None, True
 
     def on_init(self, requested_resource):
         pass
@@ -135,3 +138,10 @@ class HTTPClient(object):
             channel_manager_address: str
     ):
         return True
+
+    def on_http_response(self,
+                         resource: str,
+                         reply):
+        """Called whenever server returns a reply.
+        Return False to abort current request."""
+        return reply.status_code in (200, 402)

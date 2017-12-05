@@ -4,7 +4,7 @@ import pytest
 from requests.exceptions import SSLError
 
 from microraiden import DefaultHTTPClient
-from microraiden.test.utils.client import close_channel_cooperatively
+from microraiden.test.utils.client import close_channel_cooperatively, patch_on_http_response
 from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
 
@@ -195,3 +195,11 @@ def test_ssl_client(
         check_response(default_http_client.run('doggo.jpg'))
     with pytest.raises(SSLError):
         check_response(default_http_client.run('doggo.jpg'))
+
+
+def test_status_codes(doggo_proxy, default_http_client):
+    patch_on_http_response(default_http_client, abort_on=[404])
+    default_http_client.run('doggo.jpg')
+    assert default_http_client.last_response.status_code == 200
+    default_http_client.run('does-not-exist')
+    assert default_http_client.last_response.status_code == 404

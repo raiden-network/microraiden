@@ -1,5 +1,7 @@
+import types
+
 from microraiden.client import Channel
-from microraiden import Client
+from microraiden import Client, DefaultHTTPClient
 from microraiden.crypto import privkey_to_addr, sign_close
 
 
@@ -26,3 +28,13 @@ def close_all_channels_cooperatively(
                 if c.state != Channel.State.closed and c.receiver == receiver_addr]
     for channel in channels:
         close_channel_cooperatively(channel, privkey_receiver, contract_address, balance)
+
+
+def patch_on_http_response(default_http_client: DefaultHTTPClient, abort_on=[]):
+    def patched(self, resource, response):
+        self.last_response = response
+        return (response.status_code not in abort_on)
+    default_http_client.on_http_response = types.MethodType(
+        patched,
+        default_http_client
+    )
