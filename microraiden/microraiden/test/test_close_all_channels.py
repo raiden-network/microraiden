@@ -30,6 +30,7 @@ def test_close_simple(client, channel_manager, web3, wait_for_blocks):
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
         contract_proxy.contract.call().getChannelInfo(*channel_id)
+
     wait_for_blocks(1)
 
 

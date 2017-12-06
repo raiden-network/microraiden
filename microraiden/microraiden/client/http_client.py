@@ -5,6 +5,7 @@ import requests
 from eth_utils import encode_hex, decode_hex, is_same_address
 import json
 from munch import Munch
+from requests import Response
 
 from microraiden.client import Channel
 from microraiden.header import HTTPHeaders
@@ -93,8 +94,8 @@ class HTTPClient(object):
                 return None, self.on_insufficient_funds()
 
             elif 'contract_address' not in headers or not is_same_address(
-                        headers.contract_address,
-                        self.client.channel_manager_address
+                headers.contract_address,
+                self.client.channel_manager_address
             ):
                 return None, self.on_invalid_contract_address(
                     headers.contract_address
@@ -115,7 +116,7 @@ class HTTPClient(object):
                     int(headers.price),
                 )
         else:
-            return None, True
+            return None, self.on_http_error(requested_resource, response)
 
     def on_init(self, requested_resource):
         log.info('Starting request loop for resource at {}.'.format(requested_resource))
@@ -151,9 +152,16 @@ class HTTPClient(object):
     def on_payment_requested(self, receiver: str, price: int):
         return True
 
-    def on_http_response(self,
-                         resource: str,
-                         reply):
+    def on_http_response(self, requested_resource: str, response: Response):
         """Called whenever server returns a reply.
         Return False to abort current request."""
-        return reply.status_code in (200, 402)
+        log.debug('Response received: {}'.format(response.headers))
+        return True
+
+    def on_http_error(self, requested_resource: str, response: Response):
+        """Triggered under the default behavior when the server returns anything other than a 402
+        or 200."""
+        log.warning(
+            'Unexpected server error, status code {}. Retrying.'.format(response.status_code)
+        )
+        return True

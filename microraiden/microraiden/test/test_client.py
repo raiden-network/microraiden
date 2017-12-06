@@ -7,7 +7,7 @@ from microraiden.crypto import sign_balance_proof, sign_close
 from microraiden.test.utils.client import close_channel_cooperatively
 
 
-def test_client(client: Client, receiver_privkey, receiver_address):
+def test_client(client: Client, receiver_address):
     """test if contract calls go through"""
 
     c = client.open_channel(receiver_address, 10)
@@ -22,8 +22,6 @@ def test_client(client: Client, receiver_privkey, receiver_address):
 
     ev = c.close()
     assert ev is not None
-
-    close_channel_cooperatively(c, receiver_privkey, client.channel_manager_address)
 
 
 def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
@@ -64,8 +62,9 @@ def test_integrity(client: Client, receiver_address):
 
 
 def test_sync(client: Client, receiver_address, receiver_privkey):
-    c = client.get_suitable_channel(receiver_address, 5)
+    c = client.get_suitable_channel(receiver_address, 5, initial_deposit=lambda x: x)
     assert c in client.channels
+    assert c.deposit == 5
     assert len(client.channels) == 1
 
     # Check if channel is still valid after sync.
@@ -73,15 +72,22 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
     assert c in client.channels
     assert len(client.channels) == 1
 
+    # Check if client handles topup events on sync.
+    c_topup = client.get_suitable_channel(receiver_address, 7, topup_deposit=lambda x: 2)
+    assert c_topup == c
+    assert len(client.channels) == 1
+    assert c.deposit == 7
+
     # Check if channel can be resynced after data loss.
     client.channels = []
     client.store_channels()
     client.sync_channels()
-
-    # Check if channel is forgotten on resync after closure.
     assert len(client.channels) == 1
     c = client.channels[0]
-    close_channel_cooperatively(c, receiver_privkey, client.channel_manager_address)
+    assert c.deposit == 7
+
+    # Check if channel is forgotten on resync after closure.
+    close_channel_cooperatively(c, receiver_privkey)
 
     client.sync_channels()
     assert c not in client.channels
@@ -92,8 +98,7 @@ def test_filelock(
         client_contract_proxy,
         client_token_proxy,
         datadir,
-        channel_manager_contract_address,
-        token_contract_address
+        channel_manager_contract_address
 ):
     kwargs = {
         'privkey': sender_privkey,

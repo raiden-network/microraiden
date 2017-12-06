@@ -3,7 +3,6 @@ from itertools import count
 from eth_utils import is_same_address, encode_hex
 from microraiden.exceptions import InvalidBalanceProof, NoOpenChannel, InvalidBalanceAmount
 from microraiden.crypto import sign_balance_proof, privkey_to_addr
-from microraiden.test.utils.client import close_channel_cooperatively
 from microraiden.test.fixtures.channel_manager import start_channel_manager
 from microraiden.channel_manager import ChannelManager
 from microraiden.test.config import (
@@ -21,19 +20,14 @@ def confirmed_open_channel(
         channel_manager,
         client,
         receiver_address,
-        receiver_privkey,
-        wait_for_blocks,
-        channel_manager_contract_address
+        wait_for_blocks
 ):
     channel = client.open_channel(receiver_address, 10)
     wait_for_blocks(channel_manager.n_confirmations + 1)
     gevent.sleep(channel_manager.blockchain.poll_interval)
     assert (channel.sender, channel.block) in channel_manager.channels
 
-    yield channel
-
-    if not channel.state == channel.State.closed:
-        close_channel_cooperatively(channel, receiver_privkey, channel_manager_contract_address)
+    return channel
 
 
 def test_channel_opening(client, web3, make_account, make_channel_manager_proxy, token_contract,
@@ -103,9 +97,6 @@ def test_close_unconfirmed_event(channel_manager, client, receiver_address, wait
     gevent.sleep(blockchain.poll_interval)
     assert (channel.sender, channel.block) not in channel_manager.unconfirmed_channels
     assert (channel.sender, channel.block) in channel_manager.channels
-    close_channel_cooperatively(
-        channel, channel_manager.private_key, channel_manager.contract_proxy.contract.address
-    )
 
 
 def test_close_confirmed_event(channel_manager, confirmed_open_channel, web3, wait_for_blocks):
@@ -180,9 +171,6 @@ def test_unconfirmed_topup(channel_manager, client, receiver_address, wait_for_b
     assert (channel.sender, channel.block) in channel_manager.channels
     channel_rec = channel_manager.channels[channel.sender, channel.block]
     assert channel_rec.deposit == 15
-    close_channel_cooperatively(
-        channel, channel_manager.private_key, channel_manager.contract_proxy.contract.address
-    )
 
 
 def test_payment(channel_manager, confirmed_open_channel, receiver_address, receiver_privkey,

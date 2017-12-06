@@ -8,5 +8,24 @@ logging.getLogger('testrpc.rpc').setLevel(logging.WARNING)
 
 
 def pytest_addoption(parser):
-    parser.addoption("--no-tester", action="store_false", default=True, dest='use_tester',
-                     help="connect to RPC node for testing")
+    parser.addoption(
+        "--no-tester",
+        action="store_false",
+        default=True,
+        dest='use_tester',
+        help="use a real RPC endpoint instead of the tester chain"
+    )
+    parser.addoption(
+        "--no-clean-channels",
+        action="store_false",
+        default=True,
+        dest='clean_channels',
+        help="prevent all channels from closing cooperatively before and after each test"
+    )
+    parser.addoption(
+        "--no-verbose",
+        action="store_false",
+        default=True,
+        dest='verbose',
+        help="disable debug logging printing"
+    )
