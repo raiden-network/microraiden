@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 
 from microraiden import Client
@@ -66,7 +64,8 @@ def client(
         client_token_proxy: ContractProxy,
         datadir: str,
         clean_channels: bool,
-        receiver_privkey: str
+        receiver_privkey: str,
+        revert_chain
 ):
     client = Client(
         privkey=sender_privkey,

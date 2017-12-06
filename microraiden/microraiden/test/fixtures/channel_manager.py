@@ -40,7 +40,8 @@ def channel_manager(
         token_contract,
         use_tester,
         mine_sync_event,
-        state_db_path
+        state_db_path,
+        revert_chain
 ):
     contract_proxy = make_channel_manager_proxy(receiver_privkey)
     manager = ChannelManager(

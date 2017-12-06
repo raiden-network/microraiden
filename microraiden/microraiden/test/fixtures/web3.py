@@ -212,15 +212,7 @@ def make_channel_manager_proxy(
             GAS_PRICE, GAS_LIMIT,
             use_tester
         )
-    # Everything is deployed. Make snapshot.
-    if use_tester:
-        snapshot_id = web3.testing.snapshot()
-
-        yield channel_manager_proxy_factory
-
-        web3.testing.revert(snapshot_id)
-    else:
-        yield channel_manager_proxy_factory
+    return channel_manager_proxy_factory
 
 
 @pytest.fixture(scope='session')
@@ -236,6 +228,14 @@ def make_token_proxy(web3, token_contract_address, token_abi, use_tester):
         )
 
     return token_proxy_factory
+
+
+@pytest.fixture
+def revert_chain(web3: Web3, use_tester: bool):
+    if use_tester:
+        snapshot_id = web3.testing.snapshot()
+        yield
+        web3.testing.revert(snapshot_id)
 
 
 @pytest.fixture
