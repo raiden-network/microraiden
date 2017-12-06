@@ -281,7 +281,7 @@ def test_challenge(channel_manager, confirmed_open_channel, receiver_address, se
     sig = encode_hex(confirmed_open_channel.create_transfer(5))
     channel_manager.register_payment(sender_address, confirmed_open_channel.block, 5, sig)
     # hack channel to decrease balance
-    confirmed_open_channel.balance = 0
+    confirmed_open_channel.update_balance(0)
     sig = confirmed_open_channel.create_transfer(3)
     block_before = web3.eth.blockNumber
     confirmed_open_channel.close()

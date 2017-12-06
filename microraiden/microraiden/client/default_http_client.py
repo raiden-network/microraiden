@@ -61,12 +61,12 @@ class DefaultHTTPClient(HTTPClient):
                         last_balance
                     )
                 )
-                self.channel.balance = last_balance
+                self.channel.update_balance(last_balance)
         else:
             log.debug(
                 'Server did not provide proof for a different channel balance. Reverting to 0.'
             )
-            self.channel.balance = 0
+            self.channel.update_balance(0)
 
         return self.on_payment_requested(self.channel.receiver, price)
 

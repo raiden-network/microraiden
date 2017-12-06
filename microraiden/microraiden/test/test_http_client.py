@@ -77,7 +77,7 @@ def test_full_cycle_adapt_balance(
     channel = client.get_suitable_channel(receiver_address, 10, initial_deposit=lambda x: 2 * x)
     channel.create_transfer(3)
     lost_balance_sig = channel.balance_sig
-    channel.balance = 0
+    channel.update_balance(0)
 
     with requests_mock.mock() as server_mock:
         headers1 = Munch()
@@ -205,7 +205,7 @@ def test_cheating_client(doggo_proxy, default_http_client: DefaultHTTPClient):
         DefaultHTTPClient.on_invalid_amount(self, price, balance, balance_sig)
         # on_invalid_amount will already prepare the next payment which we don't execute anymore,
         # so revert that.
-        self.channel.balance -= price
+        self.channel.update_balance(self.channel.balance - price)
         return False
 
     default_http_client.on_invalid_amount = types.MethodType(

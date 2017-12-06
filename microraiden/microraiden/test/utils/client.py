@@ -16,7 +16,7 @@ def close_channel_cooperatively(
         channel: Channel, privkey_receiver: str, balance: int=None
 ):
     if balance is not None:
-        channel.balance = balance
+        channel.update_balance(balance)
     closing_sig = sign_close(privkey_receiver, channel.balance_sig)
     assert channel.close_cooperatively(closing_sig)
 

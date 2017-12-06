@@ -30,7 +30,7 @@ def test_static_price(
 
     channel = client.get_suitable_channel(headers.receiver_address, 3)
     wait_for_blocks(6)
-    channel.balance = 3
+    channel.update_balance(3)
 
     headers = Munch()
     headers.balance = str(channel.balance)
@@ -91,7 +91,7 @@ def test_dynamic_price(
 
     channel = client.get_suitable_channel(headers.receiver_address, 2)
     wait_for_blocks(6)
-    channel.balance = 2
+    channel.update_balance(2)
 
     headers = Munch()
     headers.balance = str(channel.balance)

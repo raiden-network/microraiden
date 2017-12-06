@@ -31,7 +31,7 @@ class Channel:
         self.receiver = receiver.lower()
         self.deposit = deposit
         self.block = block
-        self.balance = balance
+        self.update_balance(balance)
         self.state = state
 
         assert self.block is not None
@@ -41,8 +41,7 @@ class Channel:
     def balance(self):
         return self._balance
 
-    @balance.setter
-    def balance(self, value):
+    def update_balance(self, value):
         self._balance = value
         self._balance_sig = self.sign()
 
@@ -116,7 +115,7 @@ class Channel:
         current_block = self.client.web3.eth.blockNumber
 
         if balance is not None:
-            self.balance = balance
+            self.update_balance(balance)
 
         tx = self.client.channel_manager_proxy.create_signed_transaction(
             'uncooperativeClose', [self.receiver, self.block, self.balance, self.balance_sig]
@@ -239,7 +238,7 @@ class Channel:
             log.error('Channel must be open to create a transfer.')
             return None
 
-        self.balance += value
+        self.update_balance(self.balance + value)
 
         return self.balance_sig
 

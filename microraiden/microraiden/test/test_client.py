@@ -46,7 +46,7 @@ def test_integrity(client: Client, receiver_address):
     assert not c.is_valid()
 
     # Proper balance update with sig update.
-    c.balance = 2
+    c.update_balance(2)
     assert c.is_valid()
 
     # Random sig.
@@ -54,7 +54,7 @@ def test_integrity(client: Client, receiver_address):
     assert not c.is_valid()
 
     # Balance exceeds deposit.
-    c.balance = 100
+    c.update_balance(100)
     assert not c.is_valid()
 
 

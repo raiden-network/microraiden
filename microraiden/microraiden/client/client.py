@@ -115,7 +115,7 @@ class Client:
 
         channel_key_to_channel = {}
 
-        def get_channel(event):
+        def get_channel(event) -> Channel:
             sender = event['args']['_sender']
             receiver = event['args']['_receiver']
             block = event['args'].get('_open_block_number', event['blockNumber'])
@@ -148,7 +148,7 @@ class Client:
             # Requested closed, not actual closed.
             c = get_channel(e)
 
-            c.balance = e['args']['_balance']
+            c.update_balance(e['args']['_balance'])
             c.state = Channel.State.settling
 
         for e in settle:
