@@ -24,8 +24,10 @@ from microraiden.exceptions import (
     InsufficientConfirmations,
     InvalidBalanceProof,
     InvalidBalanceAmount,
+    InvalidContractVersion,
     NoBalanceProofReceived,
 )
+from microraiden.config import CHANNEL_MANAGER_CONTRACT_VERSION
 from .state import ChannelManagerState
 from .blockchain import Blockchain
 from .channel import Channel
@@ -50,6 +52,10 @@ class ChannelManager(gevent.Greenlet):
         assert privkey_to_addr(self.private_key) == self.receiver.lower()
 
         channel_contract_address = contract_proxy.contract.address
+
+        # check contract version
+        self.check_contract_version()
+
         if state_filename not in (None, ':memory:') and os.path.isfile(state_filename):
             self.state = ChannelManagerState.load(state_filename)
         else:
@@ -362,3 +368,10 @@ class ChannelManager(gevent.Greenlet):
 
     def get_token_address(self):
         return self.token_contract.address
+
+    def check_contract_version(self):
+        deployed_contract_version = self.contract_proxy.contract.call().version()
+        if deployed_contract_version != CHANNEL_MANAGER_CONTRACT_VERSION:
+            raise InvalidContractVersion("Incompatible contract version: expected=%s deployed=%s" %
+                                         (CHANNEL_MANAGER_CONTRACT_VERSION,
+                                          deployed_contract_version))
