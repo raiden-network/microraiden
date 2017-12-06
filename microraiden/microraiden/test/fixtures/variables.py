@@ -30,11 +30,6 @@ def use_tester(request):
 
 
 @pytest.fixture(scope='session')
-def verbose(request):
-    return request.config.getoption('verbose')
-
-
-@pytest.fixture(scope='session')
 def clean_channels(request):
     return request.config.getoption('clean_channels')
 

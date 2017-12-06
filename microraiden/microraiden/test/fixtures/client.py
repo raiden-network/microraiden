@@ -65,13 +65,9 @@ def client(
         client_contract_proxy: ChannelContractProxy,
         client_token_proxy: ContractProxy,
         datadir: str,
-        verbose: bool,
         clean_channels: bool,
         receiver_privkey: str
 ):
-    if verbose:
-        logging.basicConfig(level=logging.DEBUG)
-        logging.getLogger("urllib3").setLevel(logging.WARNING)
     client = Client(
         privkey=sender_privkey,
         channel_manager_proxy=client_contract_proxy,

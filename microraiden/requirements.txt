@@ -3,13 +3,10 @@ rlp>=0.4.3,<0.6.0
 flask
 flask_httpauth
 flask_restful
-pytest
 ethereum<2.0.0,>=1.6.1
-ethereum-tester
 web3==3.11.1
 gevent
 click
-requests_mock
 requests
 werkzeug
 populus==1.9.1

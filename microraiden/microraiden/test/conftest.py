@@ -22,10 +22,3 @@ def pytest_addoption(parser):
         dest='clean_channels',
         help="prevent all channels from closing cooperatively before and after each test"
     )
-    parser.addoption(
-        "--no-verbose",
-        action="store_false",
-        default=True,
-        dest='verbose',
-        help="disable debug logging printing"
-    )
