@@ -1,6 +1,3 @@
-import filelock
-import pytest
-
 from microraiden import Client
 from microraiden.client import Channel
 from microraiden.crypto import sign_balance_proof, sign_close
@@ -80,7 +77,6 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
 
     # Check if channel can be resynced after data loss.
     client.channels = []
-    client.store_channels()
     client.sync_channels()
     assert len(client.channels) == 1
     c = client.channels[0]
@@ -91,33 +87,3 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
 
     client.sync_channels()
     assert c not in client.channels
-
-
-def test_filelock(
-        sender_privkey,
-        client_contract_proxy,
-        client_token_proxy,
-        datadir,
-        channel_manager_contract_address
-):
-    kwargs = {
-        'privkey': sender_privkey,
-        'channel_manager_proxy': client_contract_proxy,
-        'token_proxy': client_token_proxy,
-        'datadir': datadir,
-        'channel_manager_address': channel_manager_contract_address,
-    }
-    client = Client(**kwargs)
-    client.close()
-
-    client = Client(**kwargs)
-    with pytest.raises(filelock.Timeout):
-        Client(**kwargs)
-    client.close()
-
-    with Client(**kwargs):
-        pass
-
-    with Client(**kwargs):
-        with pytest.raises(filelock.Timeout):
-            Client(**kwargs)

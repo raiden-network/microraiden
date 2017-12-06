@@ -80,5 +80,3 @@ def client(
 
     if clean_channels:
         close_all_channels_cooperatively(client, receiver_privkey, balance=0)
-
-    client.close()

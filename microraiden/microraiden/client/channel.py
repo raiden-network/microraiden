@@ -37,25 +37,6 @@ class Channel:
         assert self.block is not None
         assert self._balance_sig
 
-    @staticmethod
-    def deserialize(client, channels_raw: dict):
-        return [
-            Channel(client, craw['sender'], craw['receiver'], craw['block'], craw['balance'])
-            for craw in channels_raw
-        ]
-
-    @staticmethod
-    def serialize(channels):
-        return [
-            {
-                'sender': c.sender,
-                'receiver': c.receiver,
-                'block': c.block,
-                'balance': c.balance
-
-            } for c in channels
-        ]
-
     @property
     def balance(self):
         return self._balance
@@ -64,7 +45,6 @@ class Channel:
     def balance(self, value):
         self._balance = value
         self._balance_sig = self.sign()
-        self.client.store_channels()
 
     @property
     def balance_sig(self):
@@ -117,7 +97,6 @@ class Channel:
         if event:
             log.debug('Successfully topped up channel in block {}.'.format(event['blockNumber']))
             self.deposit += deposit
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -154,7 +133,6 @@ class Channel:
                 event['blockNumber']
             ))
             self.state = Channel.State.settling
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -191,7 +169,6 @@ class Channel:
         if event:
             log.debug('Successfully closed channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -236,7 +213,6 @@ class Channel:
             log.debug('Successfully settled channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
             self.client.channels.remove(self)
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -264,8 +240,6 @@ class Channel:
             return None
 
         self.balance += value
-
-        self.client.store_channels()
 
         return self.balance_sig
 

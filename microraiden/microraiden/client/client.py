@@ -1,10 +1,8 @@
-import json
 import logging
 import os
 from typing import List
 
 import click
-import filelock
 from eth_utils import decode_hex, is_same_address
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
@@ -14,7 +12,6 @@ from microraiden.config import (
     CHANNEL_MANAGER_ADDRESS,
     GAS_LIMIT,
     GAS_PRICE,
-    NETWORK_NAMES,
     CONTRACT_METADATA
 )
 from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
@@ -99,25 +96,10 @@ class Client:
         assert self.token_proxy
         assert self.channel_manager_proxy.web3 == self.web3 == self.token_proxy.web3
 
-        netid = self.web3.version.network
-        self.balances_filename = 'balances_{}_{}.json'.format(
-            NETWORK_NAMES.get(netid, netid), self.account[:10]
-        )
-
-        self.filelock = filelock.FileLock(os.path.join(self.datadir, self.balances_filename))
-        self.filelock.acquire(timeout=0)
-
-        self.load_channels()
         self.sync_channels()
 
     def __enter__(self):
         return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    def close(self):
-        self.filelock.release()
 
     def sync_channels(self):
         """
@@ -177,48 +159,8 @@ class Client:
         self.channels = [
             c for c in channel_key_to_channel.values() if c.state != Channel.State.closed
         ]
-        self.store_channels()
 
         log.debug('Synced a total of {} channels.'.format(len(self.channels)))
-
-    def load_channels(self):
-        """
-        Loads the locally available channel storage if it exists.
-        """
-        channels_path = os.path.join(self.datadir, self.balances_filename)
-        if not os.path.exists(channels_path) or os.path.getsize(channels_path) == 0:
-            return
-        with open(channels_path) as channels_file:
-            try:
-                store = json.load(channels_file)
-                if isinstance(store, dict) and self.channel_manager_address in store:
-                    self.channels = Channel.deserialize(self, store[self.channel_manager_address])
-            except ValueError:
-                log.warning('Failed to load local channel storage.')
-
-        log.debug('Loaded {} channels from disk.'.format(len(self.channels)))
-
-    def store_channels(self):
-        """
-        Writes the current channel storage to the local storage.
-        """
-        os.makedirs(self.datadir, exist_ok=True)
-
-        store_path = os.path.join(self.datadir, self.balances_filename)
-        if os.path.exists(store_path):
-            with open(store_path) as channels_file:
-                try:
-                    store = json.load(channels_file)
-                except ValueError:
-                    store = dict()
-        else:
-            store = dict()
-        if not isinstance(store, dict):
-            store = dict()
-
-        with open(store_path, 'w') as channels_file:
-            store[self.channel_manager_address] = Channel.serialize(self.channels)
-            json.dump(store, channels_file, indent=4)
 
     def open_channel(self, receiver_address: str, deposit: int):
         """
@@ -263,7 +205,6 @@ class Client:
                 event['args']['_deposit']
             )
             self.channels.append(channel)
-            self.store_channels()
         else:
             log.error('Error: No event received.')
             channel = None
