@@ -2,7 +2,7 @@ import logging
 from typing import Tuple, Any
 
 import requests
-from eth_utils import encode_hex, decode_hex
+from eth_utils import encode_hex, decode_hex, is_same_address
 import json
 from munch import Munch
 
@@ -83,60 +83,72 @@ class HTTPClient(object):
             return None, False  # user requested abort
 
         if response.status_code == requests.codes.OK:
-            retry = self.on_success(response.content, headers.get('cost'))
-            return response.content, retry
+            return response.content, self.on_success(response.content, headers.get('cost'))
+
         elif response.status_code == requests.codes.PAYMENT_REQUIRED:
             if 'insuf_confs' in headers:
-                retry = self.on_insufficient_confirmations()
+                return None, self.on_insufficient_confirmations()
+
             elif 'insuf_funds' in headers:
-                retry = self.on_insufficient_funds()
+                return None, self.on_insufficient_funds()
+
+            elif 'contract_address' not in headers or not is_same_address(
+                        headers.contract_address,
+                        self.client.channel_manager_address
+            ):
+                return None, self.on_invalid_contract_address(
+                    headers.contract_address
+                )
+
             elif 'invalid_amount' in headers:
-                retry = self.on_invalid_amount()
-                self.channel.balance = int(headers.sender_balance)
-            else:
-                balance = None
-                balance_sig = None
+                last_balance = None
                 if 'sender_balance' in headers:
-                    balance = int(headers.sender_balance)
+                    last_balance = int(headers.sender_balance)
+                balance_sig = None
                 if 'balance_signature' in headers:
                     balance_sig = decode_hex(headers.balance_signature)
-                retry = self.on_payment_requested(
+                return None, self.on_invalid_amount(int(headers.price), last_balance, balance_sig)
+
+            else:
+                return None, self.on_payment_requested(
                     headers.receiver_address,
                     int(headers.price),
-                    balance,
-                    balance_sig,
-                    headers.get('contract_address')
                 )
-            return None, retry
         else:
             return None, True
 
     def on_init(self, requested_resource):
-        pass
+        log.info('Starting request loop for resource at {}.'.format(requested_resource))
 
     def on_exit(self):
         pass
 
-    def on_success(self, resource, cost: int):
+    def on_success(self, resource, cost: int) -> bool:
+        log.info('Resource received.')
+        if cost is not None:
+            log.info('Final cost was {}.'.format(cost))
         return False
 
     def on_insufficient_funds(self) -> bool:
-        return True
+        log.error(
+            'Server was unable to verify the transfer - Insufficient funds of the balance proof '
+            'or possibly an unconfirmed or unregistered topup.'
+        )
+        return False
 
     def on_insufficient_confirmations(self) -> bool:
         return True
 
-    def on_invalid_amount(self) -> bool:
+    def on_invalid_amount(self, price: int, last_balance: int, balance_sig: bytes) -> bool:
         return True
 
-    def on_payment_requested(
-            self,
-            receiver: str,
-            price: int,
-            balance: int,
-            balance_sig: bytes,
-            channel_manager_address: str
-    ):
+    def on_invalid_contract_address(self, contract_address: str) -> bool:
+        log.error(
+            'Server sent no or invalid contract address: {}.'.format(contract_address)
+        )
+        return False
+
+    def on_payment_requested(self, receiver: str, price: int):
         return True
 
     def on_http_response(self,

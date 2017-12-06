@@ -9,6 +9,7 @@ ethereum-tester
 web3==3.11.1
 gevent
 click
+requests_mock
 requests
 werkzeug
 populus==1.9.1

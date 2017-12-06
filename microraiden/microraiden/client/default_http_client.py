@@ -27,14 +27,6 @@ class DefaultHTTPClient(HTTPClient):
         self.topup_deposit = topup_deposit
         self.channel = None  # type: Channel
 
-    def on_init(self, requested_resource: str):
-        log.info('Starting request loop for resource at {}.'.format(requested_resource))
-
-    def on_success(self, resource, cost: int):
-        log.info('Resource received.')
-        if cost:
-            log.info('Final cost was {}.'.format(cost))
-
     def on_insufficient_confirmations(self) -> bool:
         log.warning(
             'Newly created channel does not have enough confirmations yet. Retrying in {} seconds.'
@@ -43,98 +35,42 @@ class DefaultHTTPClient(HTTPClient):
         time.sleep(self.retry_interval)
         return True
 
-    def on_insufficient_funds(self) -> bool:
-        log.error(
-            'Server was unable to verify the transfer - Insufficient funds of the balance proof.'
-        )
-        return False
-
-    def on_invalid_amount(self) -> bool:
-        log.error(
-            'Server was unable to verify the transfer - Invalid amount sent by the client.'
-        )
-        return True
-
-    def _approve_payment(self, balance: int, balance_sig: bytes, channel_manager_address: str):
-        assert balance is None or isinstance(balance, int)
-        if not channel_manager_address:
-            log.warning('Server did not specify a contract address.')
-        elif not is_same_address(channel_manager_address, self.client.channel_manager_address):
-            log.error(
-                'Server requested invalid channel manager: {}'.format(channel_manager_address)
-            )
-            return False
-
-        return self._sync_balance(balance, balance_sig)
-
-    def _sync_balance(self, balance: int, balance_sig: bytes) -> bool:
-        if not self.channel:
-            # Nothing to verify or sync. Server does not know about a channel yet.
-            return True
-        elif balance is None:
-            # Server does know about the channel but cannot confirm its creation yet.
-            log.info(
-                'Server could not confirm new channel yet. Waiting for {} seconds.'
-                .format(self.retry_interval)
-            )
-            time.sleep(self.retry_interval)
-            return True
+    def on_invalid_amount(self, price: int, last_balance: int, balance_sig: bytes) -> bool:
+        log.info('Server claims an invalid amount sent.')
 
         verified = balance_sig and is_same_address(
             verify_balance_proof(
                 self.channel.receiver,
                 self.channel.block,
-                balance,
+                last_balance,
                 balance_sig,
                 self.client.channel_manager_address
             ),
             self.channel.sender
         )
 
-        if balance > self.channel.balance:
-            if verified:
-                log.info(
-                    'Server proved a higher channel balance (server/local): {}/{}. Adopting.'
-                    .format(balance, self.channel.balance)
-                )
-                self.channel.balance = balance
-            else:
+        if verified:
+            if last_balance == self.channel.balance:
                 log.error(
-                    'Server could not prove higher channel balance (server/local): {}/{}'
-                    .format(balance, self.channel.balance)
+                    'Server tried to disguise the last unconfirmed payment as a confirmed payment.'
                 )
                 return False
-
-        elif balance < self.channel.balance:
-            if verified:
-                log.info(
-                    'Server sent older balance proof or rejected the last one (server/local): '
-                    '{}/{}. Possibly because of an unconfirmed topup. Retrying in {} seconds.'
-                    .format(balance, self.channel.balance, self.retry_interval)
-                )
-                self.channel.balance = balance
-
-                time.sleep(self.retry_interval)
             else:
                 log.info(
-                    'Server sent lower balance without proof. Attempting to continue on lower '
-                    'balance (server/local): {}.'.format(balance, self.channel.balance)
+                    'Server provided proof for a different channel balance ({}). Adopting.'.format(
+                        last_balance
+                    )
                 )
-                self.channel.balance = balance
+                self.channel.balance = last_balance
+        else:
+            log.info(
+                'Server did not provide proof for a different channel balance. Reverting to 0.'
+            )
+            self.channel.balance = 0
 
-        return True
+        return self.on_payment_requested(self.channel.receiver, price)
 
-    def on_payment_requested(
-            self,
-            receiver: str,
-            price: int,
-            balance: int,
-            balance_sig: bytes,
-            channel_manager_address: str
-    ) -> bool:
-        if not self._approve_payment(balance, balance_sig, channel_manager_address):
-            return False
-
+    def on_payment_requested(self, receiver: str, price: int) -> bool:
         assert price > 0
 
         log.info('Preparing payment of price {} to {}.'.format(price, receiver))
