@@ -36,7 +36,7 @@ class HTTPClient(object):
         return resource
 
     def stop(self):
-        log.info('Stopping HTTP client.')
+        log.debug('Stopping HTTP client.')
         self.running = False
 
     def make_url(self, resource_path: str):
@@ -45,7 +45,7 @@ class HTTPClient(object):
         return '{}://{}:{}/{}'.format(proto, self.api_endpoint, self.api_port, resource_path)
 
     def close_channel(self, channel: Channel):
-        log.info(
+        log.debug(
             'Requesting closing signature from server for balance {} on channel {}/{}/{}.'
             .format(channel.balance, channel.sender, channel.sender, channel.block)
         )
@@ -119,15 +119,15 @@ class HTTPClient(object):
             return None, self.on_http_error(requested_resource, response)
 
     def on_init(self, requested_resource):
-        log.info('Starting request loop for resource at {}.'.format(requested_resource))
+        log.debug('Starting request loop for resource at {}.'.format(requested_resource))
 
     def on_exit(self):
         pass
 
     def on_success(self, resource, cost: int) -> bool:
-        log.info('Resource received.')
+        log.debug('Resource received.')
         if cost is not None:
-            log.info('Final cost was {}.'.format(cost))
+            log.debug('Final cost was {}.'.format(cost))
         return False
 
     def on_insufficient_funds(self) -> bool:

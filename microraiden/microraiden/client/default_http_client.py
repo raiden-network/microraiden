@@ -36,7 +36,7 @@ class DefaultHTTPClient(HTTPClient):
         return True
 
     def on_invalid_amount(self, price: int, last_balance: int, balance_sig: bytes) -> bool:
-        log.info('Server claims an invalid amount sent.')
+        log.debug('Server claims an invalid amount sent.')
 
         verified = balance_sig and is_same_address(
             verify_balance_proof(
@@ -56,14 +56,14 @@ class DefaultHTTPClient(HTTPClient):
                 )
                 return False
             else:
-                log.info(
+                log.debug(
                     'Server provided proof for a different channel balance ({}). Adopting.'.format(
                         last_balance
                     )
                 )
                 self.channel.balance = last_balance
         else:
-            log.info(
+            log.debug(
                 'Server did not provide proof for a different channel balance. Reverting to 0.'
             )
             self.channel.balance = 0
@@ -73,7 +73,7 @@ class DefaultHTTPClient(HTTPClient):
     def on_payment_requested(self, receiver: str, price: int) -> bool:
         assert price > 0
 
-        log.info('Preparing payment of price {} to {}.'.format(price, receiver))
+        log.debug('Preparing payment of price {} to {}.'.format(price, receiver))
 
         if not self.channel or not self.channel.is_suitable(price):
             channel = self.client.get_suitable_channel(
@@ -93,7 +93,7 @@ class DefaultHTTPClient(HTTPClient):
             return False
 
         self.channel.create_transfer(price)
-        log.info(
+        log.debug(
             'Sending new balance proof. New channel balance: {}/{}'
             .format(self.channel.balance, self.channel.deposit)
         )

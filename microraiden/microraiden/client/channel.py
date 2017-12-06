@@ -105,7 +105,7 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for topup confirmation event...')
+        log.debug('Waiting for topup confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_topped_up_event_blocking(
             self.sender,
             self.receiver,
@@ -115,7 +115,7 @@ class Channel:
         )
 
         if event:
-            log.info('Successfully topped up channel in block {}.'.format(event['blockNumber']))
+            log.debug('Successfully topped up channel in block {}.'.format(event['blockNumber']))
             self.deposit += deposit
             self.client.store_channels()
             return event
@@ -144,13 +144,13 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for close confirmation event...')
+        log.debug('Waiting for close confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_close_requested_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully sent channel close request in block {}.'.format(
+            log.debug('Successfully sent channel close request in block {}.'.format(
                 event['blockNumber']
             ))
             self.state = Channel.State.settling
@@ -183,13 +183,13 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for settle confirmation event...')
+        log.debug('Waiting for settle confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_settle_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully closed channel in block {}.'.format(event['blockNumber']))
+            log.debug('Successfully closed channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
             self.client.store_channels()
             return event
@@ -227,13 +227,13 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for settle confirmation event...')
+        log.debug('Waiting for settle confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_settle_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully settled channel in block {}.'.format(event['blockNumber']))
+            log.debug('Successfully settled channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
             self.client.channels.remove(self)
             self.client.store_channels()
@@ -255,7 +255,7 @@ class Channel:
             )
             return None
 
-        log.info('Signing new transfer of value {} on channel to {} created at block #{}.'.format(
+        log.debug('Signing new transfer of value {} on channel to {} created at block #{}.'.format(
             value, self.receiver, self.block
         ))
 

@@ -179,7 +179,7 @@ class Client:
         ]
         self.store_channels()
 
-        log.info('Synced a total of {} channels.'.format(len(self.channels)))
+        log.debug('Synced a total of {} channels.'.format(len(self.channels)))
 
     def load_channels(self):
         """
@@ -196,7 +196,7 @@ class Client:
             except ValueError:
                 log.warning('Failed to load local channel storage.')
 
-        log.info('Loaded {} channels from disk.'.format(len(self.channels)))
+        log.debug('Loaded {} channels from disk.'.format(len(self.channels)))
 
     def store_channels(self):
         """
@@ -248,13 +248,13 @@ class Client:
         )
         self.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for channel creation event on the blockchain...')
+        log.debug('Waiting for channel creation event on the blockchain...')
         event = self.channel_manager_proxy.get_channel_created_event_blocking(
             self.account, receiver_address, current_block + 1
         )
 
         if event:
-            log.info('Event received. Channel created in block {}.'.format(event['blockNumber']))
+            log.debug('Event received. Channel created in block {}.'.format(event['blockNumber']))
             channel = Channel(
                 self,
                 event['args']['_sender'],
@@ -265,7 +265,7 @@ class Client:
             self.channels.append(channel)
             self.store_channels()
         else:
-            log.info('Error: No event received.')
+            log.error('Error: No event received.')
             channel = None
 
         return channel
@@ -316,7 +316,7 @@ class Client:
             capacity, channel = min(
                 ((c.deposit - c.balance, c) for c in suitable_channels), key=lambda x: x[0]
             )
-            log.info(
+            log.debug(
                 'Found suitable open channel, opened at block #{}.'.format(channel.block)
             )
             return channel
