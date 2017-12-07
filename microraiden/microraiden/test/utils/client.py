@@ -1,6 +1,7 @@
 import types
 
 from eth_utils import is_same_address
+from requests import Response
 
 from microraiden.client import Channel
 from microraiden import Client, DefaultHTTPClient
@@ -35,7 +36,7 @@ def close_all_channels_cooperatively(
 
 
 def patch_on_http_response(default_http_client: DefaultHTTPClient, abort_on=[]):
-    def patched(self, resource, response):
+    def patched(self, method: str, url: str, response: Response, **kwargs):
         self.last_response = response
         return (response.status_code not in abort_on)
     default_http_client.on_http_response = types.MethodType(

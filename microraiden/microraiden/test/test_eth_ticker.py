@@ -23,6 +23,9 @@ def test_eth_ticker(
         assert float(ticker.pricevar.get().split()[0]) > 100
         client = default_http_client.client
         assert len(client.get_open_channels()) == 0
+        ticker.success = True
 
-    ticker.root.after(6000, post)
+    ticker.success = False
+    ticker.root.after(5000, post)
     ticker.run()
+    assert ticker.success
