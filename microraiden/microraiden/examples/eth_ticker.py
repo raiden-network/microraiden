@@ -106,7 +106,6 @@ class ETHTickerClient(ttk.Frame):
         log.info('Shutting down gracefully.')
         self.running = False
         self.root.destroy()
-        self.httpclient.stop()
         # Sloppy handling of thread joining but works for this small demo.
         while self.active_query:
             gevent.sleep(1)

@@ -25,7 +25,6 @@ class DefaultHTTPClient(HTTPClient):
         self.retry_interval = retry_interval
         self.initial_deposit = initial_deposit
         self.topup_deposit = topup_deposit
-        self.channel = None  # type: 'Channel'
 
     def on_insufficient_confirmations(
             self,
@@ -54,19 +53,20 @@ class DefaultHTTPClient(HTTPClient):
             balance_sig = decode_hex(balance_sig)
         last_balance = int(response.headers.get(HTTPHeaders.SENDER_BALANCE))
 
+        channel = self.get_channel(url)
         verified = balance_sig and is_same_address(
             verify_balance_proof(
-                self.channel.receiver,
-                self.channel.block,
+                channel.receiver,
+                channel.block,
                 last_balance,
                 balance_sig,
                 self.client.channel_manager_address
             ),
-            self.channel.sender
+            channel.sender
         )
 
         if verified:
-            if last_balance == self.channel.balance:
+            if last_balance == channel.balance:
                 log.error(
                     'Server tried to disguise the last unconfirmed payment as a confirmed payment.'
                 )
@@ -77,12 +77,12 @@ class DefaultHTTPClient(HTTPClient):
                         last_balance
                     )
                 )
-                self.channel.update_balance(last_balance)
+                channel.update_balance(last_balance)
         else:
             log.debug(
                 'Server did not provide proof for a different channel balance. Reverting to 0.'
             )
-            self.channel.update_balance(0)
+            channel.update_balance(0)
 
         return self.on_payment_requested(method, url, response, **kwargs)
 
@@ -99,27 +99,29 @@ class DefaultHTTPClient(HTTPClient):
 
         log.debug('Preparing payment of price {} to {}.'.format(price, receiver))
 
-        if not self.channel or not self.channel.is_suitable(price):
-            channel = self.client.get_suitable_channel(
+        channel = self.get_channel(url)
+        if not channel or not channel.is_suitable(price):
+            new_channel = self.client.get_suitable_channel(
                 receiver, price, self.initial_deposit, self.topup_deposit
             )
 
-            if self.channel and channel != self.channel:
+            if channel and new_channel != channel:
                 # This should only happen if there are multiple open channels to the target.
                 log.warning(
                     'Channels switched. Previous balance proofs not applicable to new channel.'
                 )
 
-            self.channel = channel
+            channel = new_channel
+            self.set_channel(url, channel)
 
-        if not self.channel:
+        if not channel:
             log.error("No channel could be created or sufficiently topped up.")
             return False
 
-        self.channel.create_transfer(price)
+        channel.create_transfer(price)
         log.debug(
             'Sending new balance proof. New channel balance: {}/{}'
-            .format(self.channel.balance, self.channel.deposit)
+            .format(channel.balance, channel.deposit)
         )
 
         return True

@@ -59,10 +59,12 @@ def test_full_cycle_success(
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
     assert request.headers['RDN-Balance'] == '7'
-    assert default_http_client.channel.balance == 7
-    balance_sig_hex = encode_hex(default_http_client.channel.balance_sig)
+
+    channel = default_http_client.get_channel(url)
+    assert channel.balance == 7
+    balance_sig_hex = encode_hex(channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert default_http_client.channel.balance_sig
+    assert channel.balance_sig
     assert response.text == 'success'
 
 
@@ -128,10 +130,12 @@ def test_full_cycle_adapt_balance(
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
     assert request.headers['RDN-Balance'] == '10'
-    assert default_http_client.channel.balance == 10
-    balance_sig_hex = encode_hex(default_http_client.channel.balance_sig)
+
+    channel = default_http_client.get_channel(url)
+    assert channel.balance == 10
+    balance_sig_hex = encode_hex(channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert default_http_client.channel.balance_sig
+    assert channel.balance_sig
     assert response.text == 'success'
 
 
@@ -177,8 +181,10 @@ def test_full_cycle_error_500(
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
     assert request.headers['RDN-Balance'] == '3'
-    assert default_http_client.channel.balance == 3
-    balance_sig_hex = encode_hex(default_http_client.channel.balance_sig)
+
+    channel = default_http_client.get_channel(url)
+    assert channel.balance == 3
+    balance_sig_hex = encode_hex(channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
 
     # Third cycle, retry naively.
@@ -187,9 +193,9 @@ def test_full_cycle_error_500(
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
     assert request.headers['RDN-Balance'] == '3'
-    assert default_http_client.channel.balance == 3
+    assert channel.balance == 3
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert default_http_client.channel.balance_sig
+    assert channel.balance_sig
     assert response.text == 'success'
 
 
@@ -234,10 +240,12 @@ def test_full_cycle_success_post(
     assert request.method == 'POST'
     assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
     assert request.headers['RDN-Balance'] == '7'
-    assert default_http_client.channel.balance == 7
-    balance_sig_hex = encode_hex(default_http_client.channel.balance_sig)
+
+    channel = default_http_client.get_channel(url)
+    assert channel.balance == 7
+    balance_sig_hex = encode_hex(channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert default_http_client.channel.balance_sig
+    assert channel.balance_sig
     assert response.text == 'success'
 
 
@@ -268,7 +276,8 @@ def test_cheating_client(
         DefaultHTTPClient.on_invalid_amount(self, method, url, response, **kwargs)
         # on_invalid_amount will already prepare the next payment which we don't execute anymore,
         # so revert that.
-        self.channel.update_balance(self.channel.balance - price)
+        channel = self.get_channel(url)
+        channel.update_balance(channel.balance - price)
         return False
 
     default_http_client.on_invalid_amount = types.MethodType(
@@ -315,7 +324,7 @@ def test_default_http_client(
     assert len(open_channels) == 1
 
     channel = open_channels[0]
-    assert channel == default_http_client.channel
+    assert channel == default_http_client.get_channel(url)
     assert channel.balance_sig
     assert channel.balance < channel.deposit
     assert channel.sender == sender_address
@@ -337,7 +346,7 @@ def test_default_http_client_topup(
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
     channel1 = open_channels[0]
-    assert channel1 == default_http_client.channel
+    assert channel1 == default_http_client.get_channel(url)
     assert channel1.balance_sig
     assert channel1.balance == channel1.deposit
 
@@ -346,7 +355,7 @@ def test_default_http_client_topup(
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
     channel2 = open_channels[0]
-    assert channel2 == default_http_client.channel
+    assert channel2 == default_http_client.get_channel(url)
     assert channel2.balance_sig
     assert channel2.balance < channel2.deposit
     assert channel1 == channel2

@@ -5,6 +5,7 @@ import requests
 from eth_utils import encode_hex, decode_hex, is_same_address
 from munch import Munch
 from requests import Response
+from urllib.parse import urlparse
 
 from microraiden.client import Channel
 from microraiden.header import HTTPHeaders
@@ -16,15 +17,13 @@ log = logging.getLogger(__name__)
 class HTTPClient(object):
     def __init__(self, client: Client) -> None:
         self.client = client
-        self.channel = None  # type: Channel
-        self.running = False
+        self.endpoint_to_channel = {}
 
     def request(self, method: str, url: str, **kwargs):
         self.on_init(method, url, **kwargs)
-        self.running = True
         retry = True
         response = None
-        while self.running and retry:
+        while retry:
             response, retry = self._request_resource(method, url, **kwargs)
 
         self.on_exit(method, url, response, **kwargs)
@@ -48,9 +47,11 @@ class HTTPClient(object):
     def delete(self, url: str, **kwargs):
         return self.request('DELETE', url, **kwargs)
 
-    def stop(self):
-        log.debug('Stopping HTTP client.')
-        self.running = False
+    @staticmethod
+    def get_endpoint(url: str) -> str:
+        url_parts = urlparse(url)
+        assert url_parts.scheme, 'No protocol scheme specified.'
+        return '://'.join(url_parts[:2])
 
     @staticmethod
     def close_channel(endpoint_url: str, channel: Channel):
@@ -66,9 +67,17 @@ class HTTPClient(object):
         else:
             log.error('No closing signature received: {}'.format(response.text))
 
-    def close_active_channel(self, endpoint_url: str):
-        if self.channel:
-            self.close_channel(endpoint_url, self.channel)
+    def get_channel(self, url: str) -> Channel:
+        return self.endpoint_to_channel.get(self.get_endpoint(url))
+
+    def set_channel(self, url: str, channel: Channel):
+        self.endpoint_to_channel[self.get_endpoint(url)] = channel
+
+    def close_active_channel(self, url: str):
+        endpoint = self.get_endpoint(url)
+        channel = self.get_channel(url)
+        if channel:
+            self.close_channel(endpoint, channel)
 
     def _request_resource(self, method: str, url: str, **kwargs) -> Tuple[Any, bool]:
         """
@@ -77,12 +86,13 @@ class HTTPClient(object):
         """
         headers = Munch()
         headers.contract_address = self.client.channel_manager_address
-        if self.channel:
-            headers.balance = str(self.channel.balance)
-            headers.balance_signature = encode_hex(self.channel.balance_sig)
-            headers.sender_address = self.channel.sender
-            headers.receiver_address = self.channel.receiver
-            headers.open_block = str(self.channel.block)
+        channel = self.get_channel(url)
+        if channel:
+            headers.balance = str(channel.balance)
+            headers.balance_signature = encode_hex(channel.balance_sig)
+            headers.sender_address = channel.sender
+            headers.receiver_address = channel.receiver
+            headers.open_block = str(channel.block)
 
         response = requests.request(method, url, headers=HTTPHeaders.serialize(headers))
         headers = HTTPHeaders.deserialize(response.headers)
