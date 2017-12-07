@@ -3,6 +3,9 @@ import sys
 import gevent
 import logging
 
+from ethereum.exceptions import InsufficientBalance
+import microraiden.config as config
+
 
 class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
@@ -20,11 +23,19 @@ class Blockchain(gevent.Greenlet):
         self.is_connected = gevent.event.Event()
         self.sync_chunk_size = sync_chunk_size
         self.running = False
+        #  insufficient_balance
+        #  - set to true if for some reason tx can't be send
+        #  - set to false when all pending closes are settled
+        #  - used to dispute/close channels that are in CHALLENGED state after manager
+        #     has ether to spend again
+        self.insufficient_balance = False
 
     def _run(self):
         self.running = True
         self.log.info('starting blockchain polling (interval %ss)', self.poll_interval)
         while self.running:
+            if self.insufficient_balance:
+                self.insufficient_balance_recover()
             try:
                 self._update()
                 self.is_connected.set()
@@ -192,7 +203,14 @@ class Blockchain(gevent.Greenlet):
                 continue
             self.log.debug('received ChannelCloseRequested event (sender %s, block number %s)',
                            sender, open_block_number)
-            self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
+            try:
+                self.cm.event_channel_close_requested(sender, open_block_number, balance, timeout)
+            except InsufficientBalance:
+                self.log.fatal('Insufficient ETH balance of the receiver. '
+                               "Can't close the channel. "
+                               'Will retry once the balance is sufficient')
+                self.insufficient_balance = True
+                # TODO: recover
 
         # update head hash and number
         try:
@@ -213,3 +231,15 @@ class Blockchain(gevent.Greenlet):
         )
         if not self.wait_sync_event.is_set() and new_unconfirmed_head_number == current_block:
             self.wait_sync_event.set()
+
+    def insufficient_balance_recover(self):
+        balance = self.web3.eth.getBalance(self.cm.receiver)
+        if balance < config.PROXY_BALANCE_LIMIT:
+            return
+        try:
+            self.cm.close_pending_channels()
+            self.insufficient_balance = False
+        except InsufficientBalance:
+            self.log.fatal('Insufficient balance when trying to'
+                           'close pending channels. (balance=%d)'
+                           % balance)
