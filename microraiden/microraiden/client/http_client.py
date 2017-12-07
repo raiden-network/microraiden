@@ -94,8 +94,13 @@ class HTTPClient(object):
             headers.receiver_address = channel.receiver
             headers.open_block = str(channel.block)
 
-        response = requests.request(method, url, headers=HTTPHeaders.serialize(headers))
-        headers = HTTPHeaders.deserialize(response.headers)
+        headers = HTTPHeaders.serialize(headers)
+        if 'headers' in kwargs:
+            kwargs['headers'] = {**headers, **kwargs['headers']}
+        else:
+            kwargs['headers'] = headers
+        response = requests.request(method, url, **kwargs)
+        response_headers = HTTPHeaders.deserialize(response.headers)
 
         if self.on_http_response(method, url, response, **kwargs) is False:
             return None, False  # user requested abort
@@ -104,19 +109,19 @@ class HTTPClient(object):
             return response, self.on_success(method, url, response, **kwargs)
 
         elif response.status_code == requests.codes.PAYMENT_REQUIRED:
-            if 'insuf_confs' in headers:
+            if 'insuf_confs' in response_headers:
                 return None, self.on_insufficient_confirmations(method, url, response, **kwargs)
 
-            elif 'insuf_funds' in headers:
+            elif 'insuf_funds' in response_headers:
                 return None, self.on_insufficient_funds(method, url, response, **kwargs)
 
-            elif 'contract_address' not in headers or not is_same_address(
-                headers.contract_address,
+            elif 'contract_address' not in response_headers or not is_same_address(
+                response_headers.contract_address,
                 self.client.channel_manager_address
             ):
                 return None, self.on_invalid_contract_address(method, url, response, **kwargs)
 
-            elif 'invalid_amount' in headers:
+            elif 'invalid_amount' in response_headers:
                 return None, self.on_invalid_amount(method, url, response, **kwargs)
 
             else:

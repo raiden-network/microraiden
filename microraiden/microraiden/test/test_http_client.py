@@ -227,13 +227,14 @@ def test_full_cycle_success_post(
             {'status_code': 402, 'headers': headers1},
             {'status_code': 200, 'headers': headers2, 'text': 'success'}
         ])
-        response = default_http_client.post(url)
+        response = default_http_client.post(url, json={'somefield': 'somevalue'})
 
     # First cycle, request price.
     request = server_mock.request_history[0]
     assert request.path == '/something'
     assert request.method == 'POST'
     assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
+    assert request.json()['somefield'] == 'somevalue'
 
     # Second cycle, pay price.
     request = server_mock.request_history[1]
@@ -241,6 +242,64 @@ def test_full_cycle_success_post(
     assert request.method == 'POST'
     assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
     assert request.headers['RDN-Balance'] == '7'
+    assert request.json()['somefield'] == 'somevalue'
+
+    channel = default_http_client.get_channel(url)
+    assert channel.balance == 7
+    balance_sig_hex = encode_hex(channel.balance_sig)
+    assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
+    assert channel.balance_sig
+    assert response.text == 'success'
+
+
+def test_custom_headers(
+        default_http_client: DefaultHTTPClient,
+        api_endpoint_address: str,
+        token_contract_address,
+        channel_manager_contract_address,
+        receiver_address
+):
+    default_http_client.initial_deposit = lambda x: x
+
+    with requests_mock.mock() as server_mock:
+        headers1 = Munch()
+        headers1.token_address = token_contract_address
+        headers1.contract_address = channel_manager_contract_address
+        headers1.receiver_address = receiver_address
+        headers1.price = '7'
+
+        headers2 = Munch()
+        headers2.cost = '7'
+
+        headers1 = HTTPHeaders.serialize(headers1)
+        headers2 = HTTPHeaders.serialize(headers2)
+
+        url = 'http://{}/something'.format(api_endpoint_address)
+        server_mock.get(url, [
+            {'status_code': 402, 'headers': headers1},
+            {'status_code': 200, 'headers': headers2, 'text': 'success'}
+        ])
+        response = default_http_client.get(url, headers={
+            'someheader': 'somevalue',
+            # This should override the actual balance but doesn't actually make sense.
+            'RDN-Balance': '5'
+        })
+
+    # First cycle, request price.
+    request = server_mock.request_history[0]
+    assert request.path == '/something'
+    assert request.method == 'GET'
+    assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
+    assert request.headers['RDN-Balance'] == '5'
+    assert request.headers['someheader'] == 'somevalue'
+
+    # Second cycle, pay price.
+    request = server_mock.request_history[1]
+    assert request.path == '/something'
+    assert request.method == 'GET'
+    assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
+    assert request.headers['RDN-Balance'] == '5'
+    assert request.headers['someheader'] == 'somevalue'
 
     channel = default_http_client.get_channel(url)
     assert channel.balance == 7
