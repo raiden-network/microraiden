@@ -252,7 +252,7 @@ def test_full_cycle_success_post(
 def test_cheating_client(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
     """this test scenario where client sends less funds than what is requested
         by the server. In such case, a "RDN-Invalid-Amount=1" header should
@@ -291,20 +291,19 @@ def test_cheating_client(
 
     default_http_client.invalid_amount_received = 0
 
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
     # correct amount
     default_http_client.price_adjust = 0
-    response = default_http_client.get(url)
+    response = default_http_client.get(http_doggo_url)
     check_response(response)
     assert default_http_client.invalid_amount_received == 0
     # underpay
     default_http_client.price_adjust = -1
-    response = default_http_client.get(url)
+    response = default_http_client.get(http_doggo_url)
     assert response is None
     assert default_http_client.invalid_amount_received == 1
     # overpay
     default_http_client.price_adjust = 1
-    response = default_http_client.get(url)
+    response = default_http_client.get(http_doggo_url)
     assert response is None
     assert default_http_client.invalid_amount_received == 2
 
@@ -314,17 +313,16 @@ def test_default_http_client(
         default_http_client: DefaultHTTPClient,
         sender_address,
         receiver_address,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
-    check_response(default_http_client.get(url))
+    check_response(default_http_client.get(http_doggo_url))
 
     client = default_http_client.client
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
 
     channel = open_channels[0]
-    assert channel == default_http_client.get_channel(url)
+    assert channel == default_http_client.get_channel(http_doggo_url)
     assert channel.balance_sig
     assert channel.balance < channel.deposit
     assert channel.sender == sender_address
@@ -334,28 +332,27 @@ def test_default_http_client(
 def test_default_http_client_topup(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
 
     # Create a channel that has just enough capacity for one transfer.
     default_http_client.initial_deposit = lambda x: 0
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
-    check_response(default_http_client.get(url))
+    check_response(default_http_client.get(http_doggo_url))
 
     client = default_http_client.client
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
     channel1 = open_channels[0]
-    assert channel1 == default_http_client.get_channel(url)
+    assert channel1 == default_http_client.get_channel(http_doggo_url)
     assert channel1.balance_sig
     assert channel1.balance == channel1.deposit
 
     # Do another payment. Topup should occur.
-    check_response(default_http_client.get(url))
+    check_response(default_http_client.get(http_doggo_url))
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
     channel2 = open_channels[0]
-    assert channel2 == default_http_client.get_channel(url)
+    assert channel2 == default_http_client.get_channel(http_doggo_url)
     assert channel2.balance_sig
     assert channel2.balance < channel2.deposit
     assert channel1 == channel2
@@ -364,13 +361,11 @@ def test_default_http_client_topup(
 def test_default_http_client_close(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
     client = default_http_client.client
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
-    check_response(default_http_client.get(url))
-    url = 'http://{}'.format(api_endpoint_address)
-    default_http_client.close_active_channel(url)
+    check_response(default_http_client.get(http_doggo_url))
+    default_http_client.close_active_channel(http_doggo_url)
     open_channels = client.get_open_channels()
     assert len(open_channels) == 0
 
@@ -380,12 +375,11 @@ def test_default_http_client_existing_channel(
         default_http_client: DefaultHTTPClient,
         receiver_privkey,
         receiver_address,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
     client = default_http_client.client
     channel = client.open_channel(receiver_address, 50)
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
-    check_response(default_http_client.get(url))
+    check_response(default_http_client.get(http_doggo_url))
     assert channel.balance == 2
     assert channel.deposit == 50
 
@@ -394,13 +388,12 @@ def test_default_http_client_existing_channel_topup(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
         receiver_address,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
     client = default_http_client.client
     default_http_client.topup_deposit = lambda x: 13
     channel = client.open_channel(receiver_address, 1)
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
-    check_response(default_http_client.get(url))
+    check_response(default_http_client.get(http_doggo_url))
     assert channel.balance == 2
     assert channel.deposit == 13
 
@@ -408,10 +401,9 @@ def test_default_http_client_existing_channel_topup(
 def test_coop_close(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
-    check_response(default_http_client.get(url))
+    check_response(default_http_client.get(http_doggo_url))
 
     client = default_http_client.client
     open_channels = client.get_open_channels()
@@ -435,24 +427,21 @@ def test_coop_close(
 def test_ssl_client(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
-        api_endpoint_address: str
+        https_doggo_url: str
 ):
-    url = 'https://{}/doggo.jpg'.format(api_endpoint_address)
     with disable_ssl_check():
-        check_response(default_http_client.get(url))
+        check_response(default_http_client.get(https_doggo_url))
     with pytest.raises(SSLError):
-        check_response(default_http_client.get(url))
+        check_response(default_http_client.get(https_doggo_url))
 
 
 def test_status_codes(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,
-        api_endpoint_address: str
+        http_doggo_url: str
 ):
     patch_on_http_response(default_http_client, abort_on=[404])
-    url = 'http://{}/doggo.jpg'.format(api_endpoint_address)
-    default_http_client.get(url)
+    default_http_client.get(http_doggo_url)
     assert default_http_client.last_response.status_code == 200
-    url = 'http://{}/does-not-exist'.format(api_endpoint_address)
-    default_http_client.get(url)
+    default_http_client.get(http_doggo_url[:-1])
     assert default_http_client.last_response.status_code == 404

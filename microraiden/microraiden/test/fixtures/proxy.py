@@ -46,5 +46,15 @@ def doggo_proxy(channel_manager,
 
 
 @pytest.fixture
+def http_doggo_url(api_endpoint_address) -> str:
+    return 'http://{}/doggo.jpg'.format(api_endpoint_address)
+
+
+@pytest.fixture
+def https_doggo_url(api_endpoint_address) -> str:
+    return 'https://{}/doggo.jpg'.format(api_endpoint_address)
+
+
+@pytest.fixture
 def users_db():
     return login.userDB
