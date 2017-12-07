@@ -6,6 +6,9 @@
 
 ## Smart Contract
 
+Current version: `0.1.0`. Verifiable with `RaidenMicroTransferChannels.call().version()`.
+Note that a new µRaiden release might include changing the Ethereum address used for the smart contract, in case we need to deploy an improved contract version.
+
 The `RaidenMicroTransferChannels` contract has been deployed on the main net: https://etherscan.io/address/0x4d6e0922e6b703f0fdf92745343a9b83eb656402
 
 The following parameters were used:
