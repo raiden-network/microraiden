@@ -6,7 +6,7 @@ from eth_utils import is_same_address, decode_hex
 from requests import Response
 
 from microraiden.header import HTTPHeaders
-from microraiden.client import Channel, Client
+from microraiden.client import Client
 from microraiden.crypto import verify_balance_proof
 from .http_client import HTTPClient
 
@@ -25,7 +25,7 @@ class DefaultHTTPClient(HTTPClient):
         self.retry_interval = retry_interval
         self.initial_deposit = initial_deposit
         self.topup_deposit = topup_deposit
-        self.channel = None  # type: Channel
+        self.channel = None  # type: 'Channel'
 
     def on_insufficient_confirmations(
             self,

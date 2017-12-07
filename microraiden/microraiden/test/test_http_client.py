@@ -193,6 +193,54 @@ def test_full_cycle_error_500(
     assert response.text == 'success'
 
 
+def test_full_cycle_success_post(
+        default_http_client: DefaultHTTPClient,
+        api_endpoint_address: str,
+        token_contract_address,
+        channel_manager_contract_address,
+        receiver_address
+):
+    default_http_client.initial_deposit = lambda x: x
+
+    with requests_mock.mock() as server_mock:
+        headers1 = Munch()
+        headers1.token_address = token_contract_address
+        headers1.contract_address = channel_manager_contract_address
+        headers1.receiver_address = receiver_address
+        headers1.price = '7'
+
+        headers2 = Munch()
+        headers2.cost = '7'
+
+        headers1 = HTTPHeaders.serialize(headers1)
+        headers2 = HTTPHeaders.serialize(headers2)
+
+        url = 'http://{}/something'.format(api_endpoint_address)
+        server_mock.post(url, [
+            {'status_code': 402, 'headers': headers1},
+            {'status_code': 200, 'headers': headers2, 'text': 'success'}
+        ])
+        response = default_http_client.post(url)
+
+    # First cycle, request price.
+    request = server_mock.request_history[0]
+    assert request.path == '/something'
+    assert request.method == 'POST'
+    assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
+
+    # Second cycle, pay price.
+    request = server_mock.request_history[1]
+    assert request.path == '/something'
+    assert request.method == 'POST'
+    assert request.headers['RDN-Contract-Address'] == channel_manager_contract_address
+    assert request.headers['RDN-Balance'] == '7'
+    assert default_http_client.channel.balance == 7
+    balance_sig_hex = encode_hex(default_http_client.channel.balance_sig)
+    assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
+    assert default_http_client.channel.balance_sig
+    assert response.text == 'success'
+
+
 def test_cheating_client(
         doggo_proxy,
         default_http_client: DefaultHTTPClient,

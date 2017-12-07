@@ -1,4 +1,3 @@
-import json
 from tkinter import ttk
 import tkinter
 import logging
