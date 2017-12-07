@@ -10,6 +10,7 @@ from requests.exceptions import SSLError
 
 from microraiden import HTTPHeaders
 from microraiden import DefaultHTTPClient
+from microraiden.contract_proxy import ChannelContractProxy, ContractProxy
 from microraiden.test.utils.client import patch_on_http_response
 from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
@@ -445,3 +446,43 @@ def test_status_codes(
     assert default_http_client.last_response.status_code == 200
     default_http_client.get(http_doggo_url[:-1])
     assert default_http_client.last_response.status_code == 404
+
+
+def test_requests(
+    sender_privkey: str,
+    client_contract_proxy: ChannelContractProxy,
+    client_token_proxy: ContractProxy,
+    revert_chain,
+    api_endpoint_address: str,
+    token_contract_address,
+    channel_manager_contract_address,
+    receiver_address
+):
+    import microraiden.requests
+    microraiden.requests.init(
+        privkey=sender_privkey,
+        channel_manager_proxy=client_contract_proxy,
+        token_proxy=client_token_proxy,
+    )
+
+    with requests_mock.mock() as server_mock:
+        headers1 = Munch()
+        headers1.token_address = token_contract_address
+        headers1.contract_address = channel_manager_contract_address
+        headers1.receiver_address = receiver_address
+        headers1.price = '7'
+
+        headers2 = Munch()
+        headers2.cost = '7'
+
+        headers1 = HTTPHeaders.serialize(headers1)
+        headers2 = HTTPHeaders.serialize(headers2)
+
+        url = 'http://{}/something'.format(api_endpoint_address)
+        server_mock.get(url, [
+            {'status_code': 402, 'headers': headers1},
+            {'status_code': 200, 'headers': headers2, 'text': 'success'}
+        ])
+        response = microraiden.requests.get(url)
+
+    assert response.text == 'success'

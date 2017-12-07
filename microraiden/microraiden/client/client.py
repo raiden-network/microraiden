@@ -1,8 +1,6 @@
 import logging
-import os
 from typing import List
 
-import click
 from eth_utils import decode_hex, is_same_address
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
@@ -30,7 +28,6 @@ class Client:
             privkey: str = None,
             key_path: str = None,
             key_password_path: str = None,
-            datadir: str = click.get_app_dir('microraiden'),
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
             web3: Web3 = None,
             channel_manager_proxy: ChannelContractProxy = None,
@@ -42,7 +39,6 @@ class Client:
 
         # Plain copy initializations.
         self.privkey = privkey
-        self.datadir = datadir
         self.channel_manager_address = channel_manager_address
         self.web3 = web3
         self.channel_manager_proxy = channel_manager_proxy
@@ -52,9 +48,6 @@ class Client:
         if not privkey:
             self.privkey = get_private_key(key_path, key_password_path)
             assert self.privkey is not None
-
-        os.makedirs(datadir, exist_ok=True)
-        assert os.path.isdir(datadir)
 
         self.account = privkey_to_addr(self.privkey)
         self.channels = []  # type: List[Channel]
