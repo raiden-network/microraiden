@@ -7,15 +7,13 @@ from munch import Munch
 from microraiden import HTTPHeaders, Client
 from microraiden.proxy.content import PaywalledContent
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
-from microraiden.test.utils.client import close_channel_cooperatively
 
 
 def test_static_price(
         empty_proxy: PaywalledProxy,
         api_endpoint_address: str,
         client: Client,
-        wait_for_blocks,
-        receiver_privkey: str
+        wait_for_blocks
 ):
     proxy = empty_proxy
     endpoint_url = "http://" + api_endpoint_address
@@ -32,7 +30,7 @@ def test_static_price(
 
     channel = client.get_suitable_channel(headers.receiver_address, 3)
     wait_for_blocks(6)
-    channel.balance = 3
+    channel.update_balance(3)
 
     headers = Munch()
     headers.balance = str(channel.balance)
@@ -45,15 +43,12 @@ def test_static_price(
     assert response.status_code == 200
     assert response.text.strip() == '"SUCCESS"'
 
-    close_channel_cooperatively(channel, receiver_privkey, client.channel_manager_address, 0)
-
 
 def test_dynamic_price(
         empty_proxy: PaywalledProxy,
         api_endpoint_address: str,
         client: Client,
-        wait_for_blocks,
-        receiver_privkey: str
+        wait_for_blocks
 ):
     proxy = empty_proxy
     endpoint_url = "http://" + api_endpoint_address
@@ -96,7 +91,7 @@ def test_dynamic_price(
 
     channel = client.get_suitable_channel(headers.receiver_address, 2)
     wait_for_blocks(6)
-    channel.balance = 2
+    channel.update_balance(2)
 
     headers = Munch()
     headers.balance = str(channel.balance)
@@ -108,5 +103,3 @@ def test_dynamic_price(
     response = requests.get(endpoint_url + '/resource_5', headers=headers)
     assert response.status_code == 200
     assert response.text.strip() == '"5"'
-
-    close_channel_cooperatively(channel, receiver_privkey, client.channel_manager_address, 0)

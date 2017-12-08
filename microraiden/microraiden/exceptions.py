@@ -26,6 +26,10 @@ class StateFileException(MicroRaidenException):
     pass
 
 
+class InvalidContractVersion(MicroRaidenException):
+    pass
+
+
 class StateContractAddrMismatch(StateFileException):
     pass
 

@@ -62,24 +62,19 @@ def client(
         sender_privkey: str,
         client_contract_proxy: ChannelContractProxy,
         client_token_proxy: ContractProxy,
-        datadir: str
+        clean_channels: bool,
+        receiver_privkey: str,
+        revert_chain
 ):
     client = Client(
         privkey=sender_privkey,
         channel_manager_proxy=client_contract_proxy,
-        token_proxy=client_token_proxy,
-        datadir=datadir
+        token_proxy=client_token_proxy
     )
+    if clean_channels:
+        close_all_channels_cooperatively(client, receiver_privkey, balance=0)
+
     yield client
-    client.close()
 
-
-@pytest.fixture
-def clean_channels(client: Client, receiver_privkey: str, channel_manager_contract_address: str):
-    close_all_channels_cooperatively(
-        client, receiver_privkey, channel_manager_contract_address, balance=0
-    )
-    yield
-    close_all_channels_cooperatively(
-        client, receiver_privkey, channel_manager_contract_address, balance=0
-    )
+    if clean_channels:
+        close_all_channels_cooperatively(client, receiver_privkey, balance=0)

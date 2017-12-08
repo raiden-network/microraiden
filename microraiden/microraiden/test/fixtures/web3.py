@@ -55,18 +55,30 @@ def deploy_token_contract(web3, deployer_address, token_abi, token_bytecode):
     return token
 
 
-def deploy_channel_manager_contract(web3, deployer_address, channel_manager_abi,
-                                    channel_manager_bytecode, token_contract_address):
+def deploy_channel_manager_contract(
+        web3,
+        deployer_address,
+        channel_manager_abi,
+        channel_manager_bytecode,
+        token_contract_address
+):
     ChannelManager = web3.eth.contract(abi=channel_manager_abi, bytecode=channel_manager_bytecode)
     txhash = ChannelManager.deploy({'from': deployer_address}, args=[token_contract_address, 30])
     contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
     web3.testing.mine(1)
+
     return ChannelManager(contract_address)
 
 
 @pytest.fixture(scope='session')
-def token_contract_address(use_tester, web3, deployer_address, token_abi, token_bytecode,
-                           channel_manager_abi):
+def token_contract_address(
+        use_tester,
+        web3,
+        deployer_address,
+        token_abi,
+        token_bytecode,
+        channel_manager_abi
+):
     if use_tester:
         contract = deploy_token_contract(web3, deployer_address, token_abi, token_bytecode)
         return contract.address
@@ -82,16 +94,20 @@ def token_contract_address(use_tester, web3, deployer_address, token_abi, token_
 def channel_manager_contract_address(use_tester, web3, deployer_address, channel_manager_abi,
                                      channel_manager_bytecode, token_contract_address):
     if use_tester:
-        contract = deploy_channel_manager_contract(web3, deployer_address, channel_manager_abi,
-                                                   channel_manager_bytecode,
-                                                   token_contract_address)
+        contract = deploy_channel_manager_contract(
+            web3,
+            deployer_address,
+            channel_manager_abi,
+            channel_manager_bytecode,
+            token_contract_address
+        )
         return contract.address
     else:
         return CHANNEL_MANAGER_ADDRESS
 
 
 @pytest.fixture(scope='session')
-def web3(request, use_tester, deployer_address, mine_sync_event):
+def web3(use_tester, deployer_address, mine_sync_event):
     if use_tester:
         provider = EthereumTesterProvider()
         web3 = Web3(provider)
@@ -139,18 +155,18 @@ def web3(request, use_tester, deployer_address, mine_sync_event):
         ethereum.tester.accounts.append(decode_hex(FAUCET_ADDRESS))
         ethereum.tester.keys.append(decode_hex(FAUCET_PRIVKEY))
 
-        def remove_faucet_account():
-            ethereum.tester.accounts.remove(decode_hex(FAUCET_ADDRESS))
-            ethereum.tester.keys.remove(decode_hex(FAUCET_PRIVKEY))
-        request.addfinalizer(remove_faucet_account)
-
         # make faucet rich
         web3.eth.sendTransaction({'to': FAUCET_ADDRESS, 'value': FAUCET_ALLOWANCE})
 
     else:
         rpc = RPCProvider('localhost', 8545)
-        return Web3(rpc)
-    return web3
+        web3 = Web3(rpc)
+
+    yield web3
+
+    if use_tester:
+        ethereum.tester.accounts.remove(decode_hex(FAUCET_ADDRESS))
+        ethereum.tester.keys.remove(decode_hex(FAUCET_PRIVKEY))
 
 
 @pytest.fixture(scope='session')
@@ -181,8 +197,12 @@ def wait_for_transaction(wait):
 
 
 @pytest.fixture(scope='session')
-def make_channel_manager_proxy(web3, channel_manager_contract_address, channel_manager_abi,
-                               use_tester):
+def make_channel_manager_proxy(
+        web3,
+        channel_manager_contract_address,
+        channel_manager_abi,
+        use_tester
+):
     def channel_manager_proxy_factory(privkey):
         return ChannelContractProxy(
             web3,
@@ -206,7 +226,16 @@ def make_token_proxy(web3, token_contract_address, token_abi, use_tester):
             GAS_PRICE, GAS_LIMIT,
             use_tester
         )
+
     return token_proxy_factory
+
+
+@pytest.fixture
+def revert_chain(web3: Web3, use_tester: bool):
+    if use_tester:
+        snapshot_id = web3.testing.snapshot()
+        yield
+        web3.testing.revert(snapshot_id)
 
 
 @pytest.fixture

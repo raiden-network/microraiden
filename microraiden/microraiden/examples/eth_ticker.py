@@ -1,4 +1,3 @@
-import json
 from tkinter import ttk
 import tkinter
 import logging
@@ -74,8 +73,6 @@ class ETHTickerClient(ttk.Frame):
             self.client = Client(sender_privkey)
             self.httpclient = DefaultHTTPClient(
                 self.client,
-                'localhost',
-                5000,
                 initial_deposit=lambda x: 10 * x,
                 topup_deposit=lambda x: 5 * x
             )
@@ -93,10 +90,9 @@ class ETHTickerClient(ttk.Frame):
             return
         self.active_query = True
 
-        response = self.httpclient.run('ETHUSD')
+        response = self.httpclient.get('http://localhost:5000/ETHUSD')
         if response:
-            ticker = json.loads(response.decode())
-            price = float(ticker['last_price'])
+            price = float(response.json()['last_price'])
             log.info('New price received: {:.2f} USD'.format(price))
             self.pricevar.set('{:.2f} USD'.format(price))
         else:
@@ -110,13 +106,11 @@ class ETHTickerClient(ttk.Frame):
         log.info('Shutting down gracefully.')
         self.running = False
         self.root.destroy()
-        self.httpclient.stop()
         # Sloppy handling of thread joining but works for this small demo.
         while self.active_query:
             gevent.sleep(1)
 
-        self.httpclient.close_active_channel()
-        self.client.close()
+        self.httpclient.close_active_channel('http://localhost:5000')
 
 
 @click.command()

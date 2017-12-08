@@ -30,6 +30,7 @@ def test_close_simple(client, channel_manager, web3, wait_for_blocks):
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
         contract_proxy.contract.call().getChannelInfo(*channel_id)
+
     wait_for_blocks(1)
 
 
@@ -94,7 +95,7 @@ def test_close_invalid_close(client, channel_manager, web3, wait_for_blocks):
     channel_manager.register_payment(sender, channel.block, 2,
                                      encode_hex(channel.create_transfer(2)))
     # cheat
-    channel.balance = 0
+    channel.update_balance(0)
     channel.create_transfer(1)
     channel.close()
 

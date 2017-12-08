@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest
+ethereum-tester
+requests_mock

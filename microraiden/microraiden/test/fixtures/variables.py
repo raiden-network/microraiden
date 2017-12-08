@@ -29,6 +29,11 @@ def use_tester(request):
     return request.config.getoption('use_tester')
 
 
+@pytest.fixture(scope='session')
+def clean_channels(request):
+    return request.config.getoption('clean_channels')
+
+
 @pytest.fixture
 def api_endpoint():
     """address of a paywall proxy"""
