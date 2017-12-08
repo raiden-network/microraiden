@@ -186,7 +186,4 @@ class HTTPClient(object):
     def on_http_error(self, method: str, url: str, response: Response, **kwargs):
         """Triggered under the default behavior when the server returns anything other than a 402
         or 200."""
-        log.warning(
-            'Unexpected server error, status code {}. Retrying.'.format(response.status_code)
-        )
-        return True
+        return False

@@ -125,3 +125,12 @@ class DefaultHTTPClient(HTTPClient):
         )
 
         return True
+
+    def on_http_error(self, method: str, url: str, response: Response, **kwargs):
+        log.warning(
+            'Unexpected server error, status code {}. Retrying in {} seconds.'.format(
+                response.status_code, self.retry_interval
+            )
+        )
+        time.sleep(self.retry_interval)
+        return True
