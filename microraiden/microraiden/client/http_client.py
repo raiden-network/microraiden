@@ -19,7 +19,7 @@ class HTTPClient(object):
         self.client = client
         self.endpoint_to_channel = {}
 
-    def request(self, method: str, url: str, **kwargs):
+    def request(self, method: str, url: str, **kwargs) -> Response:
         self.on_init(method, url, **kwargs)
         retry = True
         response = None
@@ -29,22 +29,22 @@ class HTTPClient(object):
         self.on_exit(method, url, response, **kwargs)
         return response
 
-    def head(self, url: str, **kwargs):
+    def head(self, url: str, **kwargs) -> Response:
         return self.request('HEAD', url, **kwargs)
 
-    def get(self, url: str, **kwargs):
+    def get(self, url: str, **kwargs) -> Response:
         return self.request('GET', url, **kwargs)
 
-    def post(self, url: str, **kwargs):
+    def post(self, url: str, **kwargs) -> Response:
         return self.request('POST', url, **kwargs)
 
-    def put(self, url: str, **kwargs):
+    def put(self, url: str, **kwargs) -> Response:
         return self.request('PUT', url, **kwargs)
 
-    def patch(self, url: str, **kwargs):
+    def patch(self, url: str, **kwargs) -> Response:
         return self.request('PATCH', url, **kwargs)
 
-    def delete(self, url: str, **kwargs):
+    def delete(self, url: str, **kwargs) -> Response:
         return self.request('DELETE', url, **kwargs)
 
     @staticmethod
