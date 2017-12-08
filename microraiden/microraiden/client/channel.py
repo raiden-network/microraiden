@@ -72,6 +72,7 @@ class Channel:
                 'Insufficient tokens available for the specified topup ({}/{})'
                 .format(token_balance, deposit)
             )
+            return None
 
         log.info('Topping up channel to {} created at block #{} by {} tokens.'.format(
             self.receiver, self.block, deposit

@@ -1,3 +1,5 @@
+from web3 import Web3
+
 from microraiden import Client
 from microraiden.client import Channel
 from microraiden.crypto import sign_balance_proof, sign_close
@@ -87,3 +89,22 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
 
     client.sync_channels()
     assert c not in client.channels
+
+
+def test_open_channel_insufficient_tokens(client: Client, web3: Web3, receiver_address: str):
+    balance_of = client.token_proxy.contract.call().balanceOf(client.account)
+    tx_count_pre = web3.eth.getTransactionCount(client.account)
+    channel = client.open_channel(receiver_address, balance_of + 1)
+    tx_count_post = web3.eth.getTransactionCount(client.account)
+    assert channel is None
+    assert tx_count_post == tx_count_pre
+
+
+def test_topup_channel_insufficient_tokens(client: Client, web3: Web3, receiver_address: str):
+    balance_of = client.token_proxy.contract.call().balanceOf(client.account)
+    channel = client.open_channel(receiver_address, 1)
+
+    tx_count_pre = web3.eth.getTransactionCount(client.account)
+    assert channel.topup(balance_of) is None
+    tx_count_post = web3.eth.getTransactionCount(client.account)
+    assert tx_count_post == tx_count_pre

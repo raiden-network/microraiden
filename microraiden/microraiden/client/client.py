@@ -178,6 +178,7 @@ class Client:
                 'Insufficient tokens available for the specified deposit ({}/{})'
                 .format(token_balance, deposit)
             )
+            return None
 
         current_block = self.web3.eth.blockNumber
         log.info('Creating channel to {} with an initial deposit of {} @{}'.format(
