@@ -40,6 +40,9 @@ class PaywalledProxy:
                  flask_app=None,
                  paywall_html_dir=None,
                  paywall_js_dir=None):
+        #  this doesn't work atm, due to test teardown problems
+        #  it's not a critical error, but it should be fixed
+        #  gevent.get_hub().SYSTEM_ERROR += (BaseException, )
         paywall_html_dir = paywall_html_dir or config.HTML_DIR
         paywall_js_dir = paywall_js_dir or config.JSLIB_DIR
         assert isinstance(channel_manager, ChannelManager)
@@ -137,6 +140,7 @@ class PaywalledProxy:
     @staticmethod
     def gevent_error_handler(context, exc_info):
         e = exc_info[1]
+        # recover if HTTP request is done to a HTTPS endpoint
         if isinstance(e, ssl.SSLError) and e.reason == 'HTTP_REQUEST':
             return
         gevent.get_hub().handle_system_error(exc_info[0], exc_info[1])

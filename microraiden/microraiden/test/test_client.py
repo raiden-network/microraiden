@@ -1,5 +1,4 @@
-import filelock
-import pytest
+from web3 import Web3
 
 from microraiden import Client
 from microraiden.client import Channel
@@ -7,7 +6,7 @@ from microraiden.crypto import sign_balance_proof, sign_close
 from microraiden.test.utils.client import close_channel_cooperatively
 
 
-def test_client(client: Client, receiver_privkey, receiver_address):
+def test_client(client: Client, receiver_address):
     """test if contract calls go through"""
 
     c = client.open_channel(receiver_address, 10)
@@ -22,8 +21,6 @@ def test_client(client: Client, receiver_privkey, receiver_address):
 
     ev = c.close()
     assert ev is not None
-
-    close_channel_cooperatively(c, receiver_privkey, client.channel_manager_address)
 
 
 def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
@@ -51,7 +48,7 @@ def test_integrity(client: Client, receiver_address):
     assert not c.is_valid()
 
     # Proper balance update with sig update.
-    c.balance = 2
+    c.update_balance(2)
     assert c.is_valid()
 
     # Random sig.
@@ -59,13 +56,14 @@ def test_integrity(client: Client, receiver_address):
     assert not c.is_valid()
 
     # Balance exceeds deposit.
-    c.balance = 100
+    c.update_balance(100)
     assert not c.is_valid()
 
 
 def test_sync(client: Client, receiver_address, receiver_privkey):
-    c = client.get_suitable_channel(receiver_address, 5)
+    c = client.get_suitable_channel(receiver_address, 5, initial_deposit=lambda x: x)
     assert c in client.channels
+    assert c.deposit == 5
     assert len(client.channels) == 1
 
     # Check if channel is still valid after sync.
@@ -73,46 +71,40 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
     assert c in client.channels
     assert len(client.channels) == 1
 
+    # Check if client handles topup events on sync.
+    c_topup = client.get_suitable_channel(receiver_address, 7, topup_deposit=lambda x: 2)
+    assert c_topup == c
+    assert len(client.channels) == 1
+    assert c.deposit == 7
+
     # Check if channel can be resynced after data loss.
     client.channels = []
-    client.store_channels()
     client.sync_channels()
-
-    # Check if channel is forgotten on resync after closure.
     assert len(client.channels) == 1
     c = client.channels[0]
-    close_channel_cooperatively(c, receiver_privkey, client.channel_manager_address)
+    assert c.deposit == 7
+
+    # Check if channel is forgotten on resync after closure.
+    close_channel_cooperatively(c, receiver_privkey)
 
     client.sync_channels()
     assert c not in client.channels
 
 
-def test_filelock(
-        sender_privkey,
-        client_contract_proxy,
-        client_token_proxy,
-        datadir,
-        channel_manager_contract_address,
-        token_contract_address
-):
-    kwargs = {
-        'privkey': sender_privkey,
-        'channel_manager_proxy': client_contract_proxy,
-        'token_proxy': client_token_proxy,
-        'datadir': datadir,
-        'channel_manager_address': channel_manager_contract_address,
-    }
-    client = Client(**kwargs)
-    client.close()
+def test_open_channel_insufficient_tokens(client: Client, web3: Web3, receiver_address: str):
+    balance_of = client.token_proxy.contract.call().balanceOf(client.account)
+    tx_count_pre = web3.eth.getTransactionCount(client.account)
+    channel = client.open_channel(receiver_address, balance_of + 1)
+    tx_count_post = web3.eth.getTransactionCount(client.account)
+    assert channel is None
+    assert tx_count_post == tx_count_pre
 
-    client = Client(**kwargs)
-    with pytest.raises(filelock.Timeout):
-        Client(**kwargs)
-    client.close()
 
-    with Client(**kwargs):
-        pass
+def test_topup_channel_insufficient_tokens(client: Client, web3: Web3, receiver_address: str):
+    balance_of = client.token_proxy.contract.call().balanceOf(client.account)
+    channel = client.open_channel(receiver_address, 1)
 
-    with Client(**kwargs):
-        with pytest.raises(filelock.Timeout):
-            Client(**kwargs)
+    tx_count_pre = web3.eth.getTransactionCount(client.account)
+    assert channel.topup(balance_of) is None
+    tx_count_post = web3.eth.getTransactionCount(client.account)
+    assert tx_count_post == tx_count_pre

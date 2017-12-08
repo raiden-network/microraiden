@@ -7,10 +7,13 @@ except ImportError:
 
 with open('requirements.txt') as requirements:
     reqs = requirements.read().split()
-    config = {
-        'packages': [],
-        'scripts': [],
-        'name': 'rmp-server',
-        'install_requires': reqs
-    }
-    setup(**config)
+with open('requirements-dev.txt') as requirements_dev:
+    reqs += requirements_dev.read().split()[2:]
+
+config = {
+    'packages': [],
+    'scripts': [],
+    'name': 'microraiden',
+    'install_requires': reqs
+}
+setup(**config)

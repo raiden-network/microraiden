@@ -31,40 +31,19 @@ class Channel:
         self.receiver = receiver.lower()
         self.deposit = deposit
         self.block = block
-        self.balance = balance
+        self.update_balance(balance)
         self.state = state
 
         assert self.block is not None
         assert self._balance_sig
 
-    @staticmethod
-    def deserialize(client, channels_raw: dict):
-        return [
-            Channel(client, craw['sender'], craw['receiver'], craw['block'], craw['balance'])
-            for craw in channels_raw
-        ]
-
-    @staticmethod
-    def serialize(channels):
-        return [
-            {
-                'sender': c.sender,
-                'receiver': c.receiver,
-                'block': c.block,
-                'balance': c.balance
-
-            } for c in channels
-        ]
-
     @property
     def balance(self):
         return self._balance
 
-    @balance.setter
-    def balance(self, value):
+    def update_balance(self, value):
         self._balance = value
         self._balance_sig = self.sign()
-        self.client.store_channels()
 
     @property
     def balance_sig(self):
@@ -93,6 +72,7 @@ class Channel:
                 'Insufficient tokens available for the specified topup ({}/{})'
                 .format(token_balance, deposit)
             )
+            return None
 
         log.info('Topping up channel to {} created at block #{} by {} tokens.'.format(
             self.receiver, self.block, deposit
@@ -105,7 +85,7 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for topup confirmation event...')
+        log.debug('Waiting for topup confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_topped_up_event_blocking(
             self.sender,
             self.receiver,
@@ -115,9 +95,8 @@ class Channel:
         )
 
         if event:
-            log.info('Successfully topped up channel in block {}.'.format(event['blockNumber']))
+            log.debug('Successfully topped up channel in block {}.'.format(event['blockNumber']))
             self.deposit += deposit
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -137,24 +116,23 @@ class Channel:
         current_block = self.client.web3.eth.blockNumber
 
         if balance is not None:
-            self.balance = balance
+            self.update_balance(balance)
 
         tx = self.client.channel_manager_proxy.create_signed_transaction(
             'uncooperativeClose', [self.receiver, self.block, self.balance, self.balance_sig]
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for close confirmation event...')
+        log.debug('Waiting for close confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_close_requested_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully sent channel close request in block {}.'.format(
+            log.debug('Successfully sent channel close request in block {}.'.format(
                 event['blockNumber']
             ))
             self.state = Channel.State.settling
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -183,15 +161,14 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for settle confirmation event...')
+        log.debug('Waiting for settle confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_settle_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully closed channel in block {}.'.format(event['blockNumber']))
+            log.debug('Successfully closed channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -227,16 +204,15 @@ class Channel:
         )
         self.client.web3.eth.sendRawTransaction(tx)
 
-        log.info('Waiting for settle confirmation event...')
+        log.debug('Waiting for settle confirmation event...')
         event = self.client.channel_manager_proxy.get_channel_settle_event_blocking(
             self.sender, self.receiver, self.block, current_block + 1
         )
 
         if event:
-            log.info('Successfully settled channel in block {}.'.format(event['blockNumber']))
+            log.debug('Successfully settled channel in block {}.'.format(event['blockNumber']))
             self.state = Channel.State.closed
             self.client.channels.remove(self)
-            self.client.store_channels()
             return event
         else:
             log.error('No event received.')
@@ -255,7 +231,7 @@ class Channel:
             )
             return None
 
-        log.info('Signing new transfer of value {} on channel to {} created at block #{}.'.format(
+        log.debug('Signing new transfer of value {} on channel to {} created at block #{}.'.format(
             value, self.receiver, self.block
         ))
 
@@ -263,9 +239,7 @@ class Channel:
             log.error('Channel must be open to create a transfer.')
             return None
 
-        self.balance += value
-
-        self.client.store_channels()
+        self.update_balance(self.balance + value)
 
         return self.balance_sig
 

@@ -16,12 +16,13 @@ def proxy_state_filename():
 
 
 @pytest.fixture
-def empty_proxy(channel_manager: ChannelManager, wait_for_blocks):
+def empty_proxy(channel_manager: ChannelManager, wait_for_blocks, use_tester: bool):
     app = PaywalledProxy(channel_manager)
     app.run()
 
-    # Waiting only required on tester chains due to monkey patching.
-    wait_for_blocks(1)
+    if use_tester:
+        # Waiting only required on tester chains due to monkey-patched channel manager.
+        wait_for_blocks(1)
 
     yield app
     app.stop()
@@ -42,6 +43,16 @@ def doggo_proxy(channel_manager,
     app.run(ssl_context=ssl_context)
     yield app
     app.stop()
+
+
+@pytest.fixture
+def http_doggo_url(api_endpoint_address) -> str:
+    return 'http://{}/doggo.jpg'.format(api_endpoint_address)
+
+
+@pytest.fixture
+def https_doggo_url(api_endpoint_address) -> str:
+    return 'https://{}/doggo.jpg'.format(api_endpoint_address)
 
 
 @pytest.fixture
