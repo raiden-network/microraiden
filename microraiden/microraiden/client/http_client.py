@@ -96,7 +96,8 @@ class HTTPClient(object):
 
         headers = HTTPHeaders.serialize(headers)
         if 'headers' in kwargs:
-            kwargs['headers'] = {**headers, **kwargs['headers']}
+            headers.update(kwargs['headers'])
+            kwargs['headers'] = headers
         else:
             kwargs['headers'] = headers
         response = requests.request(method, url, **kwargs)

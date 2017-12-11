@@ -23,9 +23,9 @@ from microraiden.proxy.resources import (
     ChannelManagementStats,
 )
 
-from microraiden.proxy.content import PaywallDatabase, PaywalledContent
 from microraiden.proxy.resources.expensive import LightClientProxy
 from microraiden.config import API_PATH
+from microraiden.proxy.resources.paywall_decorator import Paywall
 
 
 import logging
@@ -62,21 +62,11 @@ class PaywalledProxy:
         self.rest_server = None
         self.server_greenlet = None
 
-        self.paywall_db = PaywallDatabase()
         self.channel_manager = channel_manager
         self.channel_manager.start()
 
         self.light_client_proxy = LightClientProxy(safe_join(paywall_html_dir, "index.html"))
-
-        cfg = {
-            'contract_address': channel_manager.state.contract_address,
-            'receiver_address': channel_manager.receiver,
-            'channel_manager': self.channel_manager,
-            'paywall_db': self.paywall_db,
-            'light_client_proxy': self.light_client_proxy
-        }
-        # paywall
-        self.api.add_resource(Expensive, "/<path:content>", resource_class_kwargs=cfg)
+        self.paywall = Paywall(channel_manager, self.light_client_proxy)
 
         # REST interface
         self.api.add_resource(ChannelManagementLogin, API_PATH + "/login")
@@ -99,12 +89,6 @@ class PaywalledProxy:
                               API_PATH + "/stats",
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementRoot, "/cm")
-
-    def add_content(self, content):
-        assert isinstance(content, PaywalledContent)
-        if content.light_client_proxy is None:
-            content.light_client_proxy = self.light_client_proxy
-        self.paywall_db.add_content(content)
 
     def run(self, host='localhost', port=5000, debug=False, ssl_context=None):
         assert ssl_context is None or len(ssl_context) == 2
@@ -148,3 +132,14 @@ class PaywalledProxy:
         if isinstance(e, ssl.SSLError) and e.reason == 'HTTP_REQUEST':
             return
         gevent.get_hub().handle_system_error(exc_info[0], exc_info[1])
+
+    def add_paywalled_resource(self, cls: Expensive, url: str, price: int, *args, **kwargs):
+        cfg = {
+            'channel_manager': self.channel_manager,
+            'light_client_proxy': self.light_client_proxy,
+            'price': price,
+            'paywall': self.paywall
+        }
+        if 'resource_class_kwargs' in kwargs:
+            cfg.update(kwargs.pop('resource_class_kwargs'))
+        return self.api.add_resource(cls, url, resource_class_kwargs=cfg, *args, **kwargs)

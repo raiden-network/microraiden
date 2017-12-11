@@ -15,7 +15,7 @@ from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
 
 def check_response(response: Response):
-    assert response and response.text == '"HI I AM A DOGGO"\n'
+    assert response and response.text == 'HI I AM A DOGGO'
 
 
 def test_full_cycle_success(

@@ -11,6 +11,7 @@ from .login import (
     ChannelManagementLogin,
     ChannelManagementLogout,
 )
+from .proxy_url import PaywalledProxyUrl
 
 __all__ = (
     Expensive,
@@ -22,4 +23,5 @@ __all__ = (
     ChannelManagementStats,
     ChannelManagementLogin,
     ChannelManagementLogout,
+    PaywalledProxyUrl
 )
