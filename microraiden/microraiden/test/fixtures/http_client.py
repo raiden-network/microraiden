@@ -1,13 +1,14 @@
 import pytest
 import logging
 import types
-from microraiden import DefaultHTTPClient
+from microraiden import DefaultHTTPClient, Client
+import microraiden.requests
 
 log = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def default_http_client(client):
+def default_http_client(client: Client):
     # patch request_resource of this instance in order to advance blocks when doing requests
     def request_patched(self: DefaultHTTPClient, method: str, url: str, **kwargs):
         if self.client.channel_manager_proxy.tester_mode:
@@ -18,3 +19,8 @@ def default_http_client(client):
     http_client = DefaultHTTPClient(client, retry_interval=0.1)
     http_client._request_resource = types.MethodType(request_patched, http_client)
     yield http_client
+
+
+@pytest.fixture
+def init_microraiden_requests(default_http_client: DefaultHTTPClient):
+    microraiden.requests.init(http_client=default_http_client)

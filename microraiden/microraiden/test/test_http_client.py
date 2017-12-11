@@ -10,7 +10,6 @@ from requests.exceptions import SSLError
 
 from microraiden import HTTPHeaders
 from microraiden import DefaultHTTPClient
-from microraiden.contract_proxy import ChannelContractProxy, ContractProxy
 from microraiden.test.utils.client import patch_on_http_response
 from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
@@ -508,9 +507,7 @@ def test_status_codes(
 
 
 def test_requests(
-    sender_privkey: str,
-    client_contract_proxy: ChannelContractProxy,
-    client_token_proxy: ContractProxy,
+    init_microraiden_requests,
     revert_chain,
     api_endpoint_address: str,
     token_contract_address,
@@ -518,11 +515,6 @@ def test_requests(
     receiver_address
 ):
     import microraiden.requests
-    microraiden.requests.init(
-        privkey=sender_privkey,
-        channel_manager_proxy=client_contract_proxy,
-        token_proxy=client_token_proxy,
-    )
 
     with requests_mock.mock() as server_mock:
         headers1 = Munch()

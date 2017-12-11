@@ -12,7 +12,7 @@ def test_client(client: Client, receiver_address):
     c = client.open_channel(receiver_address, 10)
     assert c is not None
 
-    sig = c.create_transfer(4)
+    sig = c.create_transfer(5)
     assert sig is not None
 
     ev = c.topup(10)

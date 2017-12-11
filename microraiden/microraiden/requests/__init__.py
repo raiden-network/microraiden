@@ -3,15 +3,16 @@ from typing import Callable
 from requests import Response
 from web3 import Web3
 
-from microraiden import DefaultHTTPClient, Client
+from microraiden import DefaultHTTPClient, Client, HTTPClient
 from microraiden.config import CHANNEL_MANAGER_ADDRESS, CONTRACT_METADATA
 from microraiden.contract_proxy import ChannelContractProxy, ContractProxy
 
-client = None
-http_client = None
+_http_client = None
 
 
 def init(
+    http_client: HTTPClient = None,
+    client_: Client = None,
     privkey: str = None,
     key_path: str = None,
     key_password_path: str = None,
@@ -24,34 +25,43 @@ def init(
     initial_deposit: Callable[[int], int] = lambda price: 10 * price,
     topup_deposit: Callable[[int], int] = lambda price: 5 * price
 ):
-    global client
-    global http_client
-    client = Client(
-        privkey=privkey,
-        key_path=key_path,
-        key_password_path=key_password_path,
-        channel_manager_address=channel_manager_address,
-        web3=web3,
-        channel_manager_proxy=channel_manager_proxy,
-        token_proxy=token_proxy,
-        contract_metadata=contract_metadata
-    )
-    http_client = DefaultHTTPClient(
-        client=client,
-        retry_interval=retry_interval,
-        initial_deposit=initial_deposit,
-        topup_deposit=topup_deposit
-    )
+    """
+    TODO: document which of these arguments are actually needed in different use cases.
+    """
+    global _http_client
+
+    if http_client is None:
+        if client_ is None:
+            client = Client(
+                privkey=privkey,
+                key_path=key_path,
+                key_password_path=key_password_path,
+                channel_manager_address=channel_manager_address,
+                web3=web3,
+                channel_manager_proxy=channel_manager_proxy,
+                token_proxy=token_proxy,
+                contract_metadata=contract_metadata
+            )
+        else:
+            client = client_
+        _http_client = DefaultHTTPClient(
+            client=client,
+            retry_interval=retry_interval,
+            initial_deposit=initial_deposit,
+            topup_deposit=topup_deposit
+        )
+    else:
+        _http_client = http_client
 
 
 def _check_init():
-    assert http_client, 'microraiden.requests has not been initialized. ' \
-                        'Please call microraiden.requests.init() first.'
+    assert _http_client, 'microraiden.requests has not been initialized. ' \
+                         'Please call microraiden.requests.init() first.'
 
 
 def request(method: str, url: str, **kwargs) -> Response:
     _check_init()
-    return http_client.request(method, url, **kwargs)
+    return _http_client.request(method, url, **kwargs)
 
 
 def head(url: str, **kwargs) -> Response:
