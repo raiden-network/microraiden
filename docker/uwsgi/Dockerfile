@@ -1,22 +1,16 @@
-FROM ubuntu:16.04
-MAINTAINER André Vitor de Lima Matos <andre.vmatos@gmail.com>
+FROM python:3
+MAINTAINER André Vitor de Lima Matos <andre@brainbot.com>
 
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && \
-    apt-get install -y \
-        build-essential python3 python3-dev python3-pip \
-        libpq-dev && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN useradd -ms /bin/bash user -u 1000 -U && mkdir /app
+COPY ./app/requirements.txt /app/requirements.txt
 
-COPY app/requirements.txt /requirements.txt
-RUN pip3 install -r /requirements.txt
-RUN UWSGI_PROFILE=gevent pip3 install uwsgi
-RUN useradd -ms /bin/bash user -u 1000 -U
+RUN pip install --no-cache-dir -r /app/requirements.txt && \
+    UWSGI_PROFILE=gevent pip install --no-cache-dir uwsgi
 
-RUN mkdir /app && chown -R user:user /app
+COPY ./app/ /app/
+RUN chown -R user:user /app
 WORKDIR /app
-
-COPY app.ini /app.ini
+USER user
 
 EXPOSE 9000
-ENTRYPOINT ["uwsgi", "--gevent", "100", "--ini", "/app.ini"]
+ENTRYPOINT ["uwsgi", "--socket", ":9000", "--master", "--pidfile", "/tmp/uwsgi.pid"]

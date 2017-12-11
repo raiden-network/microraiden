@@ -22,25 +22,8 @@ import gevent
 from bs4 import BeautifulSoup
 from flask import make_response
 import io
-from microraiden.examples.demo_proxy.fortunes import PaywalledFortune
+from microraiden.proxy.content import PaywalledProxyUrl
 from microraiden.config import JSLIB_DIR, JSPREFIX_URL, TKN_DECIMALS
-
-
-class MyPaywalledFortune(PaywalledFortune):
-    def __init__(self, path, cost, filepath):
-        super(MyPaywalledFortune, self).__init__(path, cost, filepath)
-        with io.open('web/fortunes_tmpl.html', 'r', encoding='utf8') as fp:
-            self.soup_tmpl = BeautifulSoup(fp.read(), 'html.parser')
-
-    def get(self, url):
-        headers = {'Content-Type': 'text/html; charset=utf-8'}
-        text = self.fortunes.get()
-        return make_response(self.generate_html(text), 200, headers)
-
-    def generate_html(self, text):
-        div = self.soup_tmpl.find('div', {"id": "fortunes-text"})
-        div.h1.string = text
-        return str(self.soup_tmpl)
 
 
 #
@@ -78,12 +61,10 @@ microraiden_app = make_paywalled_proxy(config.PRIVATE_KEY,
                                        web3=web3,
                                        flask_app=app)
 # add some content
-microraiden_app.add_content(MyPaywalledFortune("fortunes_en",
-                                               1 * TKN_DECIMALS,
-                                               "microraiden/data/fortunes"))
-microraiden_app.add_content(MyPaywalledFortune("fortunes_cn",
-                                               1 * TKN_DECIMALS,
-                                               "microraiden/data/chinese"))
+microraiden_app.add_content(PaywalledProxyUrl(".*",
+                                              1 * TKN_DECIMALS,
+                                              "http://en.wikipedia.org/",
+                                              [r"wiki/.*"]))
 
 # only after blockchain is fully synced the app is ready to serve requests
 microraiden_app.channel_manager.wait_sync()

@@ -49,7 +49,11 @@ class PaywalledProxy:
         assert isinstance(paywall_html_dir, str)
 
         if not flask_app:
-            self.app = Flask(__name__, static_url_path='/js', static_folder=paywall_js_dir)
+            self.app = Flask(
+                __name__,
+                static_url_path=config.JSPREFIX_URL,
+                static_folder=paywall_js_dir
+            )
         else:
             assert isinstance(flask_app, Flask)
             self.app = flask_app
