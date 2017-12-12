@@ -12,7 +12,7 @@ _http_client = None
 
 def init(
     http_client: HTTPClient = None,
-    client_: Client = None,
+    client: Client = None,
     privkey: str = None,
     key_path: str = None,
     key_password_path: str = None,
@@ -31,7 +31,7 @@ def init(
     global _http_client
 
     if http_client is None:
-        if client_ is None:
+        if client is None:
             client = Client(
                 privkey=privkey,
                 key_path=key_path,
@@ -42,8 +42,6 @@ def init(
                 token_proxy=token_proxy,
                 contract_metadata=contract_metadata
             )
-        else:
-            client = client_
         _http_client = DefaultHTTPClient(
             client=client,
             retry_interval=retry_interval,
