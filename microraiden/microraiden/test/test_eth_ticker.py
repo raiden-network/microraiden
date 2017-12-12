@@ -7,12 +7,12 @@ from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
 @pytest.mark.needs_xorg
 def test_eth_ticker(
-        doggo_proxy: PaywalledProxy,
+        empty_proxy: PaywalledProxy,
         default_http_client: DefaultHTTPClient,
         sender_privkey: str,
         receiver_privkey: str,
 ):
-    proxy = ETHTickerProxy(receiver_privkey, proxy=doggo_proxy)
+    proxy = ETHTickerProxy(receiver_privkey, proxy=empty_proxy)
     ticker = ETHTickerClient(sender_privkey, httpclient=default_http_client)
 
     def post():
