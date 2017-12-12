@@ -32,7 +32,7 @@ class Expensive(Resource):
         super(Expensive, self).__init__()
         assert isinstance(channel_manager, ChannelManager)
         assert price is None or callable(price) or price > 0
-        self.contract_address = channel_manager.contract_proxy.contract.address
+        self.contract_address = channel_manager.channel_manager_contract.address
         self.receiver_address = channel_manager.receiver
         assert is_address(self.contract_address)
         assert is_address(self.receiver_address)

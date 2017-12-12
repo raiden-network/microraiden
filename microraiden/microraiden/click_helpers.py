@@ -6,7 +6,7 @@ import sys
 #  does not have PYTHONPATH set properly if you start the
 #  app with python -m microraiden.
 #
-from microraiden.crypto import privkey_to_addr
+from microraiden.utils import privkey_to_addr
 import logging
 import requests
 

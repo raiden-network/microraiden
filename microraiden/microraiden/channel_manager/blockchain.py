@@ -4,18 +4,29 @@ import gevent
 import logging
 
 from ethereum.exceptions import InsufficientBalance
+from web3 import Web3
+from web3.contract import Contract
+from web3.exceptions import BadFunctionCallOutput
+
 import microraiden.config as config
+from microraiden.utils import get_logs
 
 
 class Blockchain(gevent.Greenlet):
     """Class that watches the blockchain and relays events to the channel manager."""
     poll_interval = 2
 
-    def __init__(self, web3, contract_proxy, channel_manager, n_confirmations,
-                 sync_chunk_size=100 * 1000):
+    def __init__(
+            self,
+            web3: Web3,
+            channel_manager_contract: Contract,
+            channel_manager,
+            n_confirmations,
+            sync_chunk_size=100 * 1000
+    ):
         gevent.Greenlet.__init__(self)
         self.web3 = web3
-        self.contract_proxy = contract_proxy
+        self.channel_manager_contract = channel_manager_contract
         self.cm = channel_manager
         self.n_confirmations = n_confirmations
         self.log = logging.getLogger('blockchain')
@@ -43,8 +54,10 @@ class Blockchain(gevent.Greenlet):
                     gevent.sleep(self.poll_interval)
             except requests.exceptions.ConnectionError as e:
                 endpoint = self.web3.currentProvider.endpoint_uri
-                self.log.warn("Ethereum node (%s) refused connection. Retrying in %d seconds." %
-                              (endpoint, self.poll_interval))
+                self.log.warning(
+                    'Ethereum node (%s) refused connection. Retrying in %d seconds.' %
+                    (endpoint, self.poll_interval)
+                )
                 gevent.sleep(self.poll_interval)
                 self.is_connected.clear()
         self.log.info('stopped blockchain polling')
@@ -98,35 +111,50 @@ class Blockchain(gevent.Greenlet):
         filters_confirmed = {
             'from_block': self.cm.state.confirmed_head_number + 1,
             'to_block': new_confirmed_head_number,
-            'filters': {
+            'argument_filters': {
                 '_receiver': self.cm.state.receiver
             }
         }
         filters_unconfirmed = {
             'from_block': self.cm.state.unconfirmed_head_number + 1,
             'to_block': new_unconfirmed_head_number,
-            'filters': {
+            'argument_filters': {
                 '_receiver': self.cm.state.receiver
             }
         }
-        self.log.debug('filtering for events u:%s-%s c:%s-%s @%d',
-                       filters_unconfirmed['from_block'], filters_unconfirmed['to_block'],
-                       filters_confirmed['from_block'], filters_confirmed['to_block'],
-                       current_block)
+        self.log.debug(
+            'filtering for events u:%s-%s c:%s-%s @%d',
+            filters_unconfirmed['from_block'],
+            filters_unconfirmed['to_block'],
+            filters_confirmed['from_block'],
+            filters_confirmed['to_block'],
+            current_block
+        )
 
         # unconfirmed channel created
-        logs = self.contract_proxy.get_channel_created_logs(**filters_unconfirmed)
+        logs = get_logs(
+            self.channel_manager_contract,
+            'ChannelCreated',
+            **filters_unconfirmed
+        )
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
-            self.log.debug('received unconfirmed ChannelOpened event (sender %s, block number %s)',
-                           sender, open_block_number)
+            self.log.debug(
+                'received unconfirmed ChannelCreated event (sender %s, block number %s)',
+                sender,
+                open_block_number
+            )
             self.cm.unconfirmed_event_channel_opened(sender, open_block_number, deposit)
 
         # channel created
-        logs = self.contract_proxy.get_channel_created_logs(**filters_confirmed)
+        logs = get_logs(
+            self.channel_manager_contract,
+            'ChannelCreated',
+            **filters_confirmed
+        )
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
@@ -137,7 +165,11 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_opened(sender, open_block_number, deposit)
 
         # unconfirmed channel top ups
-        logs = self.contract_proxy.get_channel_topup_logs(**filters_unconfirmed)
+        logs = get_logs(
+            self.channel_manager_contract,
+            'ChannelToppedUp',
+            **filters_unconfirmed
+        )
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             txhash = log['transactionHash']
@@ -158,7 +190,11 @@ class Blockchain(gevent.Greenlet):
             )
 
         # confirmed channel top ups
-        logs = self.contract_proxy.get_channel_topup_logs(**filters_confirmed)
+        logs = get_logs(
+            self.channel_manager_contract,
+            'ChannelToppedUp',
+            **filters_confirmed
+        )
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             txhash = log['transactionHash']
@@ -174,7 +210,11 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_topup(sender, open_block_number, txhash, added_deposit)
 
         # channel settled event
-        logs = self.contract_proxy.get_channel_settled_logs(**filters_confirmed)
+        logs = get_logs(
+            self.channel_manager_contract,
+            'ChannelSettled',
+            **filters_confirmed
+        )
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
@@ -184,7 +224,11 @@ class Blockchain(gevent.Greenlet):
             self.cm.event_channel_settled(sender, open_block_number)
 
         # channel close requested
-        logs = self.contract_proxy.get_channel_close_requested_logs(**filters_confirmed)
+        logs = get_logs(
+            self.channel_manager_contract,
+            'ChannelCloseRequested',
+            **filters_confirmed
+        )
         for log in logs:
             assert log['args']['_receiver'] == self.cm.state.receiver
             sender = log['args']['_sender']
@@ -192,10 +236,14 @@ class Blockchain(gevent.Greenlet):
             if (sender, open_block_number) not in self.cm.channels:
                 continue
             balance = log['args']['_balance']
-            timeout = self.contract_proxy.get_settle_timeout(
-                sender, self.cm.state.receiver, open_block_number)
-            if timeout is None:
-                self.log.warn(
+            try:
+                timeout = self.channel_manager_contract.call().getChannelInfo(
+                    sender,
+                    self.cm.state.receiver,
+                    open_block_number
+                )[2]
+            except BadFunctionCallOutput:
+                self.log.warning(
                     'received ChannelCloseRequested event for a channel that doesn\'t '
                     'exist or has been closed already (sender=%s open_block_number=%d)'
                     % (sender, open_block_number))

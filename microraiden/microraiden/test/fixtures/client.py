@@ -1,9 +1,8 @@
 import pytest
+from web3 import Web3
 
 from microraiden import Client
-from microraiden.config import GAS_LIMIT
-from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
-from microraiden.crypto import privkey_to_addr
+from microraiden.utils import privkey_to_addr
 from microraiden.test.utils.client import close_all_channels_cooperatively
 
 
@@ -28,48 +27,19 @@ def datadir(tmpdir):
 
 
 @pytest.fixture
-def client_contract_proxy(
-        web3,
-        sender_privkey,
-        channel_manager_contract_address,
-        channel_manager_abi,
-        use_tester
-):
-    return ChannelContractProxy(
-        web3,
-        sender_privkey,
-        channel_manager_contract_address,
-        channel_manager_abi,
-        int(20e9), GAS_LIMIT,
-        use_tester
-    )
-
-
-@pytest.fixture
-def client_token_proxy(web3, sender_privkey, token_contract_address, token_abi, use_tester):
-    return ContractProxy(
-        web3,
-        sender_privkey,
-        token_contract_address,
-        token_abi,
-        int(20e9), GAS_LIMIT,
-        use_tester
-    )
-
-
-@pytest.fixture
 def client(
         sender_privkey: str,
-        client_contract_proxy: ChannelContractProxy,
-        client_token_proxy: ContractProxy,
+        channel_manager_address: str,
+        web3: Web3,
         clean_channels: bool,
         receiver_privkey: str,
+        patched_contract,
         revert_chain
 ):
     client = Client(
-        privkey=sender_privkey,
-        channel_manager_proxy=client_contract_proxy,
-        token_proxy=client_token_proxy
+        private_key=sender_privkey,
+        channel_manager_address=channel_manager_address,
+        web3=web3
     )
     if clean_channels:
         close_all_channels_cooperatively(client, receiver_privkey, balance=0)

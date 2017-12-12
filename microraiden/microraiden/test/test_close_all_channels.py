@@ -4,13 +4,21 @@ from eth_utils import (
     encode_hex,
 )
 from ethereum.tester import TransactionFailed
+from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 
+from microraiden import Client
+from microraiden.channel_manager import ChannelManager
 from microraiden.close_all_channels import close_open_channels
 
 
-def test_close_simple(client, channel_manager, web3, wait_for_blocks):
-    sender = client.account
+def test_close_simple(
+        client: Client,
+        channel_manager: ChannelManager,
+        web3: Web3,
+        wait_for_blocks
+):
+    sender = client.core.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -21,21 +29,31 @@ def test_close_simple(client, channel_manager, web3, wait_for_blocks):
     channel_manager.stop()  # don't update state from this point on
     channel_manager.join()
     state = channel_manager.state
-    contract_proxy = channel_manager.contract_proxy
     tx_count_before = web3.eth.getTransactionCount(receiver)
-    close_open_channels(state, contract_proxy, 10, wait=lambda: wait_for_blocks(1))
+    close_open_channels(
+        channel_manager.private_key,
+        state,
+        channel_manager.channel_manager_contract,
+        10,
+        wait=lambda: wait_for_blocks(1)
+    )
     tx_count_after = web3.eth.getTransactionCount(receiver)
     assert tx_count_after == tx_count_before + 1
 
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
-        contract_proxy.contract.call().getChannelInfo(*channel_id)
+        channel_manager.channel_manager_contract.call().getChannelInfo(*channel_id)
 
     wait_for_blocks(1)
 
 
-def test_close_topup(client, channel_manager, web3, wait_for_blocks):
-    sender = client.account
+def test_close_topup(
+        client: Client,
+        channel_manager: ChannelManager,
+        web3: Web3,
+        wait_for_blocks
+):
+    sender = client.core.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -48,20 +66,30 @@ def test_close_topup(client, channel_manager, web3, wait_for_blocks):
     channel_manager.stop()  # don't update state from this point on
     channel_manager.join()
     state = channel_manager.state
-    contract_proxy = channel_manager.contract_proxy
     tx_count_before = web3.eth.getTransactionCount(receiver)
-    close_open_channels(state, contract_proxy, 10, wait=lambda: wait_for_blocks(1))
+    close_open_channels(
+        channel_manager.private_key,
+        state,
+        channel_manager.channel_manager_contract,
+        10,
+        wait=lambda: wait_for_blocks(1)
+    )
     tx_count_after = web3.eth.getTransactionCount(receiver)
     assert tx_count_after == tx_count_before + 1
 
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
-        contract_proxy.contract.call().getChannelInfo(*channel_id)
+        channel_manager.channel_manager_contract.call().getChannelInfo(*channel_id)
     wait_for_blocks(1)
 
 
-def test_close_valid_close(client, channel_manager, web3, wait_for_blocks):
-    sender = client.account
+def test_close_valid_close(
+        client: Client,
+        channel_manager: ChannelManager,
+        web3: Web3,
+        wait_for_blocks
+):
+    sender = client.core.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -73,21 +101,31 @@ def test_close_valid_close(client, channel_manager, web3, wait_for_blocks):
     channel_manager.stop()  # don't update state from this point on
     channel_manager.join()
     state = channel_manager.state
-    contract_proxy = channel_manager.contract_proxy
 
     tx_count_before = web3.eth.getTransactionCount(receiver)
-    close_open_channels(state, contract_proxy, 10, wait=lambda: wait_for_blocks(1))
+    close_open_channels(
+        channel_manager.private_key,
+        state,
+        channel_manager.channel_manager_contract,
+        10,
+        wait=lambda: wait_for_blocks(1)
+    )
     tx_count_after = web3.eth.getTransactionCount(receiver)
     assert tx_count_after == tx_count_before + 1
 
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
-        contract_proxy.contract.call().getChannelInfo(*channel_id)
+        channel_manager.channel_manager_contract.call().getChannelInfo(*channel_id)
     wait_for_blocks(1)
 
 
-def test_close_invalid_close(client, channel_manager, web3, wait_for_blocks):
-    sender = client.account
+def test_close_invalid_close(
+        client: Client,
+        channel_manager: ChannelManager,
+        web3: Web3,
+        wait_for_blocks
+):
+    sender = client.core.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -102,21 +140,31 @@ def test_close_invalid_close(client, channel_manager, web3, wait_for_blocks):
     channel_manager.stop()  # don't update state from this point on
     channel_manager.join()
     state = channel_manager.state
-    contract_proxy = channel_manager.contract_proxy
 
     tx_count_before = web3.eth.getTransactionCount(receiver)
-    close_open_channels(state, contract_proxy, 10, wait=lambda: wait_for_blocks(1))
+    close_open_channels(
+        channel_manager.private_key,
+        state,
+        channel_manager.channel_manager_contract,
+        10,
+        wait=lambda: wait_for_blocks(1)
+    )
     tx_count_after = web3.eth.getTransactionCount(receiver)
     assert tx_count_after == tx_count_before + 1
 
     with pytest.raises((BadFunctionCallOutput, TransactionFailed)):
         channel_id = (channel.sender, channel.receiver, channel.block)
-        contract_proxy.contract.call().getChannelInfo(*channel_id)
+        channel_manager.channel_manager_contract.call().getChannelInfo(*channel_id)
     wait_for_blocks(1)
 
 
-def test_close_settled(client, channel_manager, web3, wait_for_blocks):
-    sender = client.account
+def test_close_settled(
+        client: Client,
+        channel_manager: ChannelManager,
+        web3: Web3,
+        wait_for_blocks
+):
+    sender = client.core.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -130,10 +178,15 @@ def test_close_settled(client, channel_manager, web3, wait_for_blocks):
     channel_manager.stop()  # don't update state from this point on
     channel_manager.join()
     state = channel_manager.state
-    contract_proxy = channel_manager.contract_proxy
 
     tx_count_before = web3.eth.getTransactionCount(receiver)
-    close_open_channels(state, contract_proxy, 10, wait=lambda: wait_for_blocks(1))
+    close_open_channels(
+        channel_manager.private_key,
+        state,
+        channel_manager.channel_manager_contract,
+        10,
+        wait=lambda: wait_for_blocks(1)
+    )
     tx_count_after = web3.eth.getTransactionCount(receiver)
     assert tx_count_after == tx_count_before
     wait_for_blocks(1)

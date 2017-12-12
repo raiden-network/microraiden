@@ -11,7 +11,8 @@ from eth_utils import (
     is_same_address,
 )
 from ethereum.tester import TransactionFailed
-from web3 import Web3, HTTPProvider
+from web3 import Web3, HTTPProvider, RPCProvider
+from web3.contract import Contract
 from web3.exceptions import BadFunctionCallOutput
 
 from microraiden import (
@@ -19,10 +20,9 @@ from microraiden import (
     utils,
 )
 from microraiden.channel_manager import ChannelManagerState
-from microraiden.make_helpers import make_contract_proxy
-from microraiden.crypto import privkey_to_addr
+from microraiden.utils import create_signed_contract_transaction, privkey_to_addr
 from microraiden.exceptions import StateFileException
-
+from microraiden.make_helpers import make_channel_manager_contract
 
 log = logging.getLogger('close_all_channels')
 
@@ -55,11 +55,13 @@ log = logging.getLogger('close_all_channels')
     default=None,
     help='Ethereum address of the channel manager contract'
 )
-def main(rpc_provider,
-         private_key,
-         private_key_password_file,
-         state_file,
-         channel_manager_address):
+def main(
+        rpc_provider: RPCProvider,
+        private_key: str,
+        private_key_password_file: str,
+        state_file: str,
+        channel_manager_address: str
+):
     private_key = utils.get_private_key(private_key, private_key_password_file)
     if private_key is None:
         sys.exit(1)
@@ -74,7 +76,7 @@ def main(rpc_provider,
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.eth.defaultAccount = receiver_address
-    contract_proxy = make_contract_proxy(web3, private_key, config.CHANNEL_MANAGER_ADDRESS)
+    channel_manager_contract = make_channel_manager_contract(web3, config.CHANNEL_MANAGER_ADDRESS)
 
     try:
         click.echo('Loading state file from {}'.format(state_file))
@@ -92,13 +94,17 @@ def main(rpc_provider,
 
     click.echo('Closing all open channels with valid balance proofs for '
                'receiver {}'.format(receiver_address))
-    close_open_channels(state, contract_proxy)
+    close_open_channels(private_key, state, channel_manager_contract)
 
 
-def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: gevent.sleep(1)):
-    contract = contract_proxy.contract
-    web3 = contract_proxy.web3
-
+def close_open_channels(
+        private_key: str,
+        state: ChannelManagerState,
+        channel_manager_contract: Contract,
+        repetitions=None,
+        wait=lambda: gevent.sleep(1)
+):
+    web3 = channel_manager_contract.web3
     channels_with_balance_proof = [
         c for c in state.channels.values() if c.last_signature is not None
     ]
@@ -118,7 +124,7 @@ def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: ge
             # lookup channel on block chain
             channel_id = (channel.sender, channel.receiver, channel.open_block_number)
             try:
-                channel_info = contract.call().getChannelInfo(*channel_id)
+                channel_info = channel_manager_contract.call().getChannelInfo(*channel_id)
             except (BadFunctionCallOutput, TransactionFailed):
                 n_non_existant += 1
                 continue
@@ -130,13 +136,17 @@ def close_open_channels(state, contract_proxy, repetitions=None, wait=lambda: ge
 
             # send close if open or settling with wrong balance, unless already done
             if not close_sent and is_valid:
-                tx_params = [
-                    channel.receiver,
-                    channel.open_block_number,
-                    channel.balance,
-                    decode_hex(channel.last_signature)
-                ]
-                raw_tx = contract_proxy.create_signed_transaction('uncooperativeClose', tx_params)
+                raw_tx = create_signed_contract_transaction(
+                    private_key,
+                    channel_manager_contract,
+                    'uncooperativeClose',
+                    [
+                        channel.receiver,
+                        channel.open_block_number,
+                        channel.balance,
+                        decode_hex(channel.last_signature)
+                    ]
+                )
                 tx_hash = web3.eth.sendRawTransaction(raw_tx)
                 log.info('sending close tx (hash: {})'.format(tx_hash))
                 pending_txs[channel.sender, channel.open_block_number] = tx_hash

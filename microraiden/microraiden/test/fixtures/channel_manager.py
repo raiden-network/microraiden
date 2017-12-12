@@ -37,17 +37,17 @@ def start_channel_manager(channel_manager, use_tester, mine_sync_event):
 def channel_manager(
         web3,
         receiver_privkey,
-        make_channel_manager_proxy,
+        channel_manager_contract,
         token_contract,
         use_tester,
         mine_sync_event,
         state_db_path,
+        patched_contract,
         revert_chain
 ):
-    contract_proxy = make_channel_manager_proxy(receiver_privkey)
     manager = ChannelManager(
         web3,
-        contract_proxy,
+        channel_manager_contract,
         token_contract,
         receiver_privkey,
         n_confirmations=5,

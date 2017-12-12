@@ -1,11 +1,9 @@
 import os
 from eth_utils import denoms
-from microraiden.crypto import privkey_to_addr
+from microraiden.utils import privkey_to_addr
 
 CHANNEL_MANAGER_ADDRESS = '0xeb244b0502a2d3867e5cab2347c6e1cdeb5e1eef'
 API_PATH = "/api/1"
-GAS_LIMIT = 200000
-GAS_PRICE = 5 * denoms.gwei
 
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 HTML_DIR = os.path.join(MICRORAIDEN_DIR, 'microraiden', 'webui')

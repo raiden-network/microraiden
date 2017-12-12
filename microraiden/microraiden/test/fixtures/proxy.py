@@ -42,11 +42,11 @@ def empty_proxy(channel_manager: ChannelManager, wait_for_blocks, use_tester: bo
 
 
 @pytest.fixture
-def doggo_proxy(channel_manager,
-                receiver_privkey,
-                proxy_state_filename,
-                proxy_ssl,
-                proxy_ssl_certs):
+def doggo_proxy(
+        channel_manager: ChannelManager,
+        proxy_ssl: bool,
+        proxy_ssl_certs
+):
     app = PaywalledProxy(channel_manager)
     app.add_paywalled_resource(ExpensiveKitten, '/kitten.jpg', 1)
     app.add_paywalled_resource(ExpensiveDoggo, '/doggo.jpg', 2)

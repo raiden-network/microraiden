@@ -7,7 +7,7 @@ from requests import Response
 
 from microraiden.header import HTTPHeaders
 from microraiden.client import Client
-from microraiden.crypto import verify_balance_proof
+from microraiden.utils import verify_balance_proof
 from .http_client import HTTPClient
 
 log = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class DefaultHTTPClient(HTTPClient):
                 channel.block,
                 last_balance,
                 balance_sig,
-                self.client.channel_manager_address
+                self.client.core.channel_manager.address
             ),
             channel.sender
         )

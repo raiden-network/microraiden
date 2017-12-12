@@ -85,7 +85,7 @@ class HTTPClient(object):
         channel state.
         """
         headers = Munch()
-        headers.contract_address = self.client.channel_manager_address
+        headers.contract_address = self.client.core.channel_manager.address
         channel = self.get_channel(url)
         if channel:
             headers.balance = str(channel.balance)
@@ -118,7 +118,7 @@ class HTTPClient(object):
 
             elif 'contract_address' not in response_headers or not is_same_address(
                 response_headers.contract_address,
-                self.client.channel_manager_address
+                self.client.core.channel_manager.address
             ):
                 return None, self.on_invalid_contract_address(method, url, response, **kwargs)
 

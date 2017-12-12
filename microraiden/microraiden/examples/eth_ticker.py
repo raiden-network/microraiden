@@ -7,7 +7,7 @@ import click
 import os
 
 from microraiden import Client, DefaultHTTPClient
-from microraiden.crypto import privkey_to_addr
+from microraiden.utils import privkey_to_addr
 from microraiden.config import CHANNEL_MANAGER_ADDRESS, TKN_DECIMALS
 from microraiden.proxy import PaywalledProxy
 from microraiden.proxy.resources import PaywalledProxyUrl

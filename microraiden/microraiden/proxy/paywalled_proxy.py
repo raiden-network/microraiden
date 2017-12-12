@@ -35,11 +35,13 @@ log = logging.getLogger(__name__)
 
 
 class PaywalledProxy:
-    def __init__(self,
-                 channel_manager,
-                 flask_app=None,
-                 paywall_html_dir=None,
-                 paywall_js_dir=None):
+    def __init__(
+            self,
+            channel_manager: ChannelManager,
+            flask_app=None,
+            paywall_html_dir=None,
+            paywall_js_dir=None
+    ):
         #  this doesn't work atm, due to test teardown problems
         #  it's not a critical error, but it should be fixed
         #  gevent.get_hub().SYSTEM_ERROR += (BaseException, )

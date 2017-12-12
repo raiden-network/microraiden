@@ -1,9 +1,9 @@
 import pytest  # noqa: F401
 from coincurve import PublicKey
 from eth_utils import encode_hex, decode_hex
+from web3.contract import Contract
 
-from microraiden.contract_proxy import ChannelContractProxy
-from microraiden.crypto import (
+from microraiden.utils import (
     privkey_to_addr,
     keccak256_hex,
     sign,
@@ -15,7 +15,10 @@ from microraiden.crypto import (
     keccak256,
     addr_from_sig,
     eth_verify,
-    eth_sign_typed_data_message_eip, eth_sign_typed_data_eip, pack)
+    eth_sign_typed_data_message_eip,
+    eth_sign_typed_data_eip,
+    pack
+)
 
 SENDER_PRIVATE_KEY = '0xa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0'
 SENDER_ADDR = privkey_to_addr(SENDER_PRIVATE_KEY)
@@ -131,30 +134,27 @@ def test_eth_sign_typed_data_eip():
     assert encode_hex(sig) == sig_expected
 
 
-def test_get_balance_message(channel_manager_contract_address: str):
-    msg = get_balance_message(RECEIVER_ADDR, 310214, 14, channel_manager_contract_address)
+def test_get_balance_message(channel_manager_address: str):
+    msg = get_balance_message(RECEIVER_ADDR, 310214, 14, channel_manager_address)
     assert encode_hex(msg) == '0x030600a234c173e696c945642673a00720f591bea0741589a3cb0cb09a898ce1'
 
 
-def test_sign_balance_proof_contract(
-        client_contract_proxy: ChannelContractProxy,
-        channel_manager_contract_address: str
-):
+def test_sign_balance_proof_contract(channel_manager_contract: Contract):
     sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract_address
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract.address
     )
-    sender_recovered = client_contract_proxy.contract.call().verifyBalanceProof(
+    sender_recovered = channel_manager_contract.call().verifyBalanceProof(
         RECEIVER_ADDR, 37, 15, sig
     )
     assert sender_recovered == SENDER_ADDR
 
 
-def test_verify_balance_proof(channel_manager_contract_address: str):
+def test_verify_balance_proof(channel_manager_address: str):
     sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 315123, 8, channel_manager_contract_address
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 315123, 8, channel_manager_address
     )
     assert verify_balance_proof(
-        RECEIVER_ADDR, 315123, 8, sig, channel_manager_contract_address
+        RECEIVER_ADDR, 315123, 8, sig, channel_manager_address
     ) == SENDER_ADDR
 
 
@@ -171,22 +171,22 @@ def test_eth_sign_v27():
     assert eth_verify(sig, 'hello v=27') == SENDER_ADDR
 
 
-def test_verify_balance_proof_v0(channel_manager_contract_address: str):
+def test_verify_balance_proof_v0(channel_manager_address: str):
     sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_contract_address
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_address
     )
     sig = sig[:-1] + b'\x00'
     assert verify_balance_proof(
-        RECEIVER_ADDR, 312524, 11, sig, channel_manager_contract_address
+        RECEIVER_ADDR, 312524, 11, sig, channel_manager_address
     ) == SENDER_ADDR
 
 
-def test_verify_balance_proof_v27(channel_manager_contract_address: str):
+def test_verify_balance_proof_v27(channel_manager_address: str):
     # Should be default but test anyway.
     sig = sign_balance_proof(
-        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_contract_address
+        SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_address
     )
     sig = sig[:-1] + b'\x1b'
     assert verify_balance_proof(
-        RECEIVER_ADDR, 312524, 11, sig, channel_manager_contract_address
+        RECEIVER_ADDR, 312524, 11, sig, channel_manager_address
     ) == SENDER_ADDR

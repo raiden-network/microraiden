@@ -5,19 +5,16 @@ from eth_utils import decode_hex, is_same_address
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
-from microraiden.utils import get_private_key
-from microraiden.config import (
-    CHANNEL_MANAGER_ADDRESS,
-    GAS_LIMIT,
-    GAS_PRICE,
-    CONTRACT_METADATA
+from microraiden.utils import (
+    get_private_key,
+    get_logs,
+    get_event_blocking,
+    create_signed_contract_transaction
 )
-from microraiden.contract_proxy import ContractProxy, ChannelContractProxy
-from microraiden.crypto import privkey_to_addr
-from .channel import Channel
-from microraiden.config import TOKEN_ABI_NAME
 
-CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
+from microraiden.config import CHANNEL_MANAGER_ADDRESS
+from microraiden.client.core import Core
+from microraiden.client.channel import Channel
 
 log = logging.getLogger(__name__)
 
@@ -25,69 +22,28 @@ log = logging.getLogger(__name__)
 class Client:
     def __init__(
             self,
-            privkey: str = None,
+            private_key: str = None,
             key_path: str = None,
             key_password_path: str = None,
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
-            web3: Web3 = None,
-            channel_manager_proxy: ChannelContractProxy = None,
-            token_proxy: ContractProxy = None,
-            contract_metadata: dict = CONTRACT_METADATA
+            web3: Web3 = None
     ) -> None:
-        assert privkey or key_path
-        assert not privkey or isinstance(privkey, str)
-
-        # Plain copy initializations.
-        self.privkey = privkey
-        self.channel_manager_address = channel_manager_address
-        self.web3 = web3
-        self.channel_manager_proxy = channel_manager_proxy
-        self.token_proxy = token_proxy
+        assert private_key or key_path
+        assert not private_key or isinstance(private_key, str)
 
         # Load private key from file if none is specified on command line.
-        if not privkey:
-            self.privkey = get_private_key(key_path, key_password_path)
-            assert self.privkey is not None
+        if not private_key:
+            private_key = get_private_key(key_path, key_password_path)
+            assert private_key is not None
 
-        self.account = privkey_to_addr(self.privkey)
         self.channels = []  # type: List[Channel]
 
         # Create web3 context if none is provided, either by using the proxies' context or creating
         # a new one.
         if not web3:
-            if channel_manager_proxy:
-                self.web3 = channel_manager_proxy.web3
-                self.channel_manager_address = channel_manager_proxy.address
-            elif token_proxy:
-                self.web3 = token_proxy.web3
-            else:
-                self.web3 = Web3(RPCProvider())
+            web3 = Web3(RPCProvider())
 
-        # Create missing contract proxies.
-        if not channel_manager_proxy:
-            channel_manager_abi = contract_metadata[CHANNEL_MANAGER_ABI_NAME]['abi']
-            self.channel_manager_proxy = ChannelContractProxy(
-                self.web3,
-                self.privkey,
-                channel_manager_address,
-                channel_manager_abi,
-                GAS_PRICE,
-                GAS_LIMIT
-            )
-
-        token_address = self.channel_manager_proxy.contract.call().token()
-        if not token_proxy:
-            token_abi = contract_metadata[TOKEN_ABI_NAME]['abi']
-            self.token_proxy = ContractProxy(
-                self.web3, self.privkey, token_address, token_abi, GAS_PRICE, GAS_LIMIT
-            )
-        else:
-            assert is_same_address(self.token_proxy.address, token_address)
-
-        assert self.web3
-        assert self.channel_manager_proxy
-        assert self.token_proxy
-        assert self.channel_manager_proxy.web3 == self.web3 == self.token_proxy.web3
+        self.core = Core(private_key, web3, channel_manager_address)
 
         self.sync_channels()
 
@@ -100,11 +56,27 @@ class Client:
         with channel information available on the blockchain to make up for local data loss.
         Naturally, balance signatures cannot be recovered from the blockchain.
         """
-        filters = {'_sender': self.account}
-        create = self.channel_manager_proxy.get_channel_created_logs(filters=filters)
-        close = self.channel_manager_proxy.get_channel_close_requested_logs(filters=filters)
-        settle = self.channel_manager_proxy.get_channel_settled_logs(filters=filters)
-        topup = self.channel_manager_proxy.get_channel_topped_up_logs(filters=filters)
+        filters = {'_sender': self.core.address}
+        create = get_logs(
+            self.core.channel_manager,
+            'ChannelCreated',
+            argument_filters=filters
+        )
+        topup = get_logs(
+            self.core.channel_manager,
+            'ChannelToppedUp',
+            argument_filters=filters
+        )
+        close = get_logs(
+            self.core.channel_manager,
+            'ChannelCloseRequested',
+            argument_filters=filters
+        )
+        settle = get_logs(
+            self.core.channel_manager,
+            'ChannelSettled',
+            argument_filters=filters
+        )
 
         channel_key_to_channel = {}
 
@@ -112,7 +84,7 @@ class Client:
             sender = event['args']['_sender']
             receiver = event['args']['_receiver']
             block = event['args'].get('_open_block_number', event['blockNumber'])
-            assert sender == self.account
+            assert sender == self.core.address
             return channel_key_to_channel.get((sender, receiver, block), None)
 
         for c in self.channels:
@@ -124,13 +96,14 @@ class Client:
                 c.deposit = e['args']['_deposit']
             else:
                 c = Channel(
-                    self,
+                    self.core,
                     e['args']['_sender'],
                     e['args']['_receiver'],
                     e['blockNumber'],
-                    e['args']['_deposit']
+                    e['args']['_deposit'],
+                    on_settle=lambda channel: self.channels.remove(channel)
                 )
-                assert c.sender == self.account
+                assert c.sender == self.core.address
                 channel_key_to_channel[(c.sender, c.receiver, c.block)] = c
 
         for e in topup:
@@ -165,7 +138,7 @@ class Client:
         assert isinstance(deposit, int)
         assert deposit > 0
 
-        token_balance = self.token_proxy.contract.call().balanceOf(self.account)
+        token_balance = self.core.token.call().balanceOf(self.core.address)
         if token_balance < deposit:
             log.error(
                 'Insufficient tokens available for the specified deposit ({}/{})'
@@ -173,30 +146,45 @@ class Client:
             )
             return None
 
-        current_block = self.web3.eth.blockNumber
+        current_block = self.core.web3.eth.blockNumber
         log.info('Creating channel to {} with an initial deposit of {} @{}'.format(
             receiver_address, deposit, current_block
         ))
 
         data = decode_hex(receiver_address)
-        tx = self.token_proxy.create_signed_transaction(
-            'transfer', [self.channel_manager_address, deposit, data]
+        tx = create_signed_contract_transaction(
+            self.core.private_key,
+            self.core.token,
+            'transfer',
+            [
+                self.core.channel_manager.address,
+                deposit,
+                data
+            ]
         )
-        self.web3.eth.sendRawTransaction(tx)
+        self.core.web3.eth.sendRawTransaction(tx)
 
         log.debug('Waiting for channel creation event on the blockchain...')
-        event = self.channel_manager_proxy.get_channel_created_event_blocking(
-            self.account, receiver_address, current_block + 1
+        filters = {
+            '_sender': self.core.address,
+            '_receiver': receiver_address
+        }
+        event = get_event_blocking(
+            self.core.channel_manager,
+            'ChannelCreated',
+            from_block=current_block + 1,
+            argument_filters=filters
         )
 
         if event:
             log.debug('Event received. Channel created in block {}.'.format(event['blockNumber']))
             channel = Channel(
-                self,
+                self.core,
                 event['args']['_sender'],
                 event['args']['_receiver'],
                 event['blockNumber'],
-                event['args']['_deposit']
+                event['args']['_deposit'],
+                on_settle=lambda c: self.channels.remove(c)
             )
             self.channels.append(channel)
         else:
@@ -212,7 +200,7 @@ class Client:
         """
         return [
             c for c in self.channels
-            if is_same_address(c.sender, self.account.lower()) and
+            if is_same_address(c.sender, self.core.address) and
             (not receiver or is_same_address(c.receiver, receiver)) and
             c.state == Channel.State.open
         ]

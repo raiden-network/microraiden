@@ -87,9 +87,9 @@ class Paywall(object):
                  ):
         super().__init__()
         assert isinstance(channel_manager, ChannelManager)
-        assert is_address(channel_manager.contract_proxy.contract.address)
+        assert is_address(channel_manager.channel_manager_contract.address)
         assert is_address(channel_manager.receiver)
-        self.contract_address = channel_manager.contract_proxy.contract.address
+        self.contract_address = channel_manager.channel_manager_contract.address
         self.receiver_address = channel_manager.receiver
         self.channel_manager = channel_manager
         self.light_client_proxy = light_client_proxy

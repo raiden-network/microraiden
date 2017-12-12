@@ -5,7 +5,7 @@ from requests import Response
 
 from microraiden.client import Channel
 from microraiden import Client, DefaultHTTPClient
-from microraiden.crypto import privkey_to_addr, sign_close
+from microraiden.utils import privkey_to_addr, sign_close
 
 
 def close_all_channels(client: Client):

@@ -4,8 +4,7 @@ from requests import Response
 from web3 import Web3
 
 from microraiden import DefaultHTTPClient, Client, HTTPClient
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, CONTRACT_METADATA
-from microraiden.contract_proxy import ChannelContractProxy, ContractProxy
+from microraiden.config import CHANNEL_MANAGER_ADDRESS
 
 _http_client = None
 
@@ -18,9 +17,6 @@ def init(
     key_password_path: str = None,
     channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
     web3: Web3 = None,
-    channel_manager_proxy: ChannelContractProxy = None,
-    token_proxy: ContractProxy = None,
-    contract_metadata: dict = CONTRACT_METADATA,
     retry_interval: float = 5,
     initial_deposit: Callable[[int], int] = lambda price: 10 * price,
     topup_deposit: Callable[[int], int] = lambda price: 5 * price
@@ -33,14 +29,11 @@ def init(
     if http_client is None:
         if client is None:
             client = Client(
-                privkey=privkey,
+                private_key=privkey,
                 key_path=key_path,
                 key_password_path=key_password_path,
                 channel_manager_address=channel_manager_address,
-                web3=web3,
-                channel_manager_proxy=channel_manager_proxy,
-                token_proxy=token_proxy,
-                contract_metadata=contract_metadata
+                web3=web3
             )
         _http_client = DefaultHTTPClient(
             client=client,

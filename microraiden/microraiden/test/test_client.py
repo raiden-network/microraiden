@@ -2,7 +2,7 @@ from web3 import Web3
 
 from microraiden import Client
 from microraiden.client import Channel
-from microraiden.crypto import sign_balance_proof, sign_close
+from microraiden.utils import sign_balance_proof, sign_close
 from microraiden.test.utils.client import close_channel_cooperatively
 
 
@@ -39,7 +39,11 @@ def test_integrity(client: Client, receiver_address):
     c = client.get_suitable_channel(receiver_address, 5)
     assert c.balance == 0
     assert c.balance_sig == sign_balance_proof(
-        client.privkey, receiver_address, c.block, 0, client.channel_manager_address
+        client.core.private_key,
+        receiver_address,
+        c.block,
+        0,
+        client.core.channel_manager.address
     )
     assert c.is_valid()
 
@@ -92,19 +96,19 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
 
 
 def test_open_channel_insufficient_tokens(client: Client, web3: Web3, receiver_address: str):
-    balance_of = client.token_proxy.contract.call().balanceOf(client.account)
-    tx_count_pre = web3.eth.getTransactionCount(client.account)
+    balance_of = client.core.token.call().balanceOf(client.core.address)
+    tx_count_pre = web3.eth.getTransactionCount(client.core.address)
     channel = client.open_channel(receiver_address, balance_of + 1)
-    tx_count_post = web3.eth.getTransactionCount(client.account)
+    tx_count_post = web3.eth.getTransactionCount(client.core.address)
     assert channel is None
     assert tx_count_post == tx_count_pre
 
 
 def test_topup_channel_insufficient_tokens(client: Client, web3: Web3, receiver_address: str):
-    balance_of = client.token_proxy.contract.call().balanceOf(client.account)
+    balance_of = client.core.token.call().balanceOf(client.core.address)
     channel = client.open_channel(receiver_address, 1)
 
-    tx_count_pre = web3.eth.getTransactionCount(client.account)
+    tx_count_pre = web3.eth.getTransactionCount(client.core.address)
     assert channel.topup(balance_of) is None
-    tx_count_post = web3.eth.getTransactionCount(client.account)
+    tx_count_post = web3.eth.getTransactionCount(client.core.address)
     assert tx_count_post == tx_count_pre

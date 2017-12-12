@@ -36,6 +36,8 @@ TKN_DECIMALS = 10**18  # token decimals
 # ethereum node RPC interface should be available here
 WEB3_PROVIDER_DEFAULT = "http://127.0.0.1:8545"
 
+# name of the channel manager contract
+CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 # name of the token contract
 TOKEN_ABI_NAME = 'CustomToken'
 # compiled contracts path
