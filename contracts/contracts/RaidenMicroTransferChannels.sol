@@ -10,7 +10,7 @@ contract RaidenMicroTransferChannels {
      *  Data structures
      */
 
-    // Number of blocks to wait from a uncooperativeClose initiated by the sender
+    // Number of blocks to wait from an uncooperativeClose initiated by the sender
     // in order to give the receiver a chance to respond with a balance proof
     // in case the sender cheats. After the challenge period, the sender can settle
     // and delete the channel.
@@ -172,8 +172,8 @@ contract RaidenMicroTransferChannels {
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
     }
 
-    /// @notice Function called when any of the parties wants to close the channel and settle;
-    /// receiver needs a balance proof to immediately settle, sender triggers a challenge period.
+    /// @notice Function called when any of the parties wants to close the channel and settle.
+    /// Receiver needs a balance proof to immediately settle, sender triggers a challenge period.
     /// @param _receiver_address The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
@@ -196,8 +196,8 @@ contract RaidenMicroTransferChannels {
         }
     }
 
-    /// @notice Function called by the sender, when he has a closing signature from the receiver;
-    /// channel is closed immediately.
+    /// @notice Function called by the sender, when he has a closing signature from the receiver
+    /// and channel is closed immediately.
     /// @param _receiver_address The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
