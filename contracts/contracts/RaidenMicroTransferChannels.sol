@@ -392,6 +392,7 @@ contract RaidenMicroTransferChannels {
 
         // Mark channel as closed
         closing_requests[key].settle_block_number = uint32(block.number) + challenge_period;
+        require(closing_requests[key].settle_block_number > block.number);
         closing_requests[key].closing_balance = _balance;
         ChannelCloseRequested(msg.sender, _receiver_address, _open_block_number, _balance);
     }
