@@ -8,6 +8,9 @@ from microraiden import HTTPHeaders, Client
 from microraiden.proxy.resources import Expensive
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class StaticPriceResource(Expensive):
     def get(self, url):
@@ -99,6 +102,8 @@ def test_dynamic_price(
     url_to_price = {}  # type: Dict
 
     def price_fn(url: str):
+        if int(url.split('_')[-1]) == 0:
+            return 0
         if url in url_to_price:
             price = url_to_price[url]
         else:
@@ -127,6 +132,10 @@ def test_dynamic_price(
     assert response.status_code == 402
     headers = HTTPHeaders.deserialize(response.headers)
     assert int(headers.price) == 1
+
+    response = requests.get(endpoint_url + '/resource_0')
+    assert response.status_code == 200
+    assert response.text.strip() == '0'
 
     channel = client.get_suitable_channel(headers.receiver_address, 2)
     wait_for_blocks(6)
