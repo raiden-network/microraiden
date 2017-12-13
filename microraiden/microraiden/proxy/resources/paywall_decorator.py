@@ -94,7 +94,7 @@ class Paywall(object):
         self.channel_manager = channel_manager
         self.light_client_proxy = light_client_proxy
 
-    def access(self, func, price, *args, **kwargs):
+    def access(self, resource, method, *args, **kwargs):
         if self.channel_manager.node_online() is False:
             return "Ethereum node is not responding", 502
         if self.channel_manager.get_eth_balance() < config.PROXY_BALANCE_LIMIT:
@@ -105,14 +105,20 @@ class Paywall(object):
             return str(e), 409
         accepts_html = r'text/html' in request.headers.get('Accept', '')
         headers = {}
-        if callable(price):
-            price = price(request.path)
+
+        if callable(resource.price):
+            price = resource.price(
+                request.path,
+                *resource.price_args,
+                **resource.price_kwargs)
+        else:
+            price = resource.price
 
         # payment required
         if price > 0:
             paywall, headers = self.paywall_check(price, data)
             if paywall and accepts_html is True:
-                reply_data = func.__self__.get_paywall(request.path)
+                reply_data = resource.get_paywall(request.path)
                 return self.reply_webui(reply_data, headers)
             elif paywall:
                 return self.reply_payment_required(price,
@@ -121,7 +127,7 @@ class Paywall(object):
                                                    gen_ui=accepts_html)
 
         # all ok, return actual content
-        resp = func(request.path, *args, **kwargs)
+        resp = method(request.path, *args, **kwargs)
         if isinstance(resp, Response):
             return resp
         else:
@@ -221,9 +227,9 @@ def paywall_decorator(func):
     def wrapper(*args, **kwargs):
         self = func.__self__  # get instance of the bound method
         return self.paywall.access(
+            self,
             func,
             *args,
-            price=self.price,
             **kwargs
         )
     return wrapper

@@ -100,8 +100,12 @@ def test_dynamic_price(
 
     price_cycle = cycle([1, 2, 3, 4, 5])
     url_to_price = {}  # type: Dict
+    price_args = (3.14159265,)
+    price_kwargs = {'bar': 9814072356}
 
-    def price_fn(url: str):
+    def price_fn(url: str, foo, *args, **kwargs):
+        assert foo in price_args
+        assert kwargs['bar'] == price_kwargs['bar']
         if int(url.split('_')[-1]) == 0:
             return 0
         if url in url_to_price:
@@ -111,7 +115,12 @@ def test_dynamic_price(
             url_to_price[url] = price
         return price
 
-    proxy.add_paywalled_resource(DynamicPriceResource, '/resource_<int:res_id>', price_fn)
+    proxy.add_paywalled_resource(
+        DynamicPriceResource,
+        '/resource_<int:res_id>',
+        price_fn,
+        price_args=price_args,
+        price_kwargs=price_kwargs)
 
     response = requests.get(endpoint_url + '/resource_3')
     assert response.status_code == 402

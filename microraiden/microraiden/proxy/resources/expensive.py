@@ -27,7 +27,9 @@ class Expensive(Resource):
                  channel_manager: ChannelManager,
                  light_client_proxy=None,
                  paywall=None,
-                 price: int = 0
+                 price: int = 0,
+                 price_args: tuple = (),
+                 price_kwargs: dict = {}
                  ) -> None:
         super(Expensive, self).__init__()
         assert isinstance(channel_manager, ChannelManager)
@@ -39,6 +41,8 @@ class Expensive(Resource):
         self.channel_manager = channel_manager
         self.light_client_proxy = light_client_proxy
         self.price = price
+        self.price_args = price_args
+        self.price_kwargs = price_kwargs
         self.paywall = paywall
 
     def get_paywall(self, url):

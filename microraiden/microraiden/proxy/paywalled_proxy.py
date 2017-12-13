@@ -142,4 +142,8 @@ class PaywalledProxy:
         }
         if 'resource_class_kwargs' in kwargs:
             cfg.update(kwargs.pop('resource_class_kwargs'))
+        if 'price_args' in kwargs:
+            cfg['price_args'] = kwargs.pop('price_args')
+        if 'price_kwargs' in kwargs:
+            cfg['price_kwargs'] = kwargs.pop('price_kwargs')
         return self.api.add_resource(cls, url, resource_class_kwargs=cfg, *args, **kwargs)
