@@ -104,19 +104,21 @@ class Paywall(object):
         except ValueError as e:
             return str(e), 409
         accepts_html = r'text/html' in request.headers.get('Accept', '')
+        headers = {}
         if callable(price):
             price = price(request.path)
 
         # payment required
-        paywall, headers = self.paywall_check(price, data)
-        if paywall and accepts_html is True:
-            reply_data = func.__self__.get_paywall(request.path)
-            return self.reply_webui(reply_data, headers)
-        elif paywall:
-            return self.reply_payment_required(price,
-                                               reply_data='',
-                                               headers=headers,
-                                               gen_ui=accepts_html)
+        if price > 0:
+            paywall, headers = self.paywall_check(price, data)
+            if paywall and accepts_html is True:
+                reply_data = func.__self__.get_paywall(request.path)
+                return self.reply_webui(reply_data, headers)
+            elif paywall:
+                return self.reply_payment_required(price,
+                                                   reply_data='',
+                                                   headers=headers,
+                                                   gen_ui=accepts_html)
 
         # all ok, return actual content
         resp = func(request.path, *args, **kwargs)
