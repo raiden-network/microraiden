@@ -126,3 +126,4 @@ You can use the configuration for the above default example for creating your ow
  * Components Overview: [/docs/dev_overview.md](/docs/dev_overview.md)
  * µRaiden Service Setup: [/microraiden/README.md](/microraiden/README.md)
  * Smart Contracts Setup: [/contracts/README.md](/contracts/README.md)
+ * JS/TS client library: [NPM package README.md](/microraiden/microraiden/webui/microraiden/README.md)
