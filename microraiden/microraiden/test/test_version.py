@@ -34,13 +34,14 @@ def test_version(web3,
     channel_manager_contract = make_channel_manager_proxy(receiver1_privkey)
 
     # this one should not raise
-    ChannelManager(
+    cm = ChannelManager(
         web3,
         channel_manager_contract,
         token_contract,
         receiver1_privkey,
         state_filename=":memory:"
     )
+    cm.stop()
     # now we patch it
     channel_manager_contract.contract = FakeChannelManagerContract(receiver1_privkey)
 

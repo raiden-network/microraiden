@@ -12,12 +12,11 @@ def test_eth_ticker(
         sender_privkey: str,
         receiver_privkey: str,
 ):
-    proxy = ETHTickerProxy(receiver_privkey, proxy=empty_proxy)
+    proxy = ETHTickerProxy(receiver_privkey, proxy=empty_proxy) # noqa
     ticker = ETHTickerClient(sender_privkey, httpclient=default_http_client)
 
     def post():
         ticker.close()
-        proxy.stop()
 
         # This test fails if ETH price is below 100 USD. But why even bother anymore if it does?
         assert float(ticker.pricevar.get().split()[0]) > 100

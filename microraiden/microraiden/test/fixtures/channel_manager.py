@@ -20,6 +20,7 @@ def start_channel_manager(channel_manager, use_tester, mine_sync_event):
         def stop_patched(self: ChannelManager):
             mine_sync_event.set()
             ChannelManager.stop(self)
+            self.stop = types.MethodType(ChannelManager.stop, self)
 
         channel_manager.stop = types.MethodType(
             stop_patched, channel_manager)
