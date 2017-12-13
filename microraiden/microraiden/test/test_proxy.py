@@ -7,6 +7,7 @@ from munch import Munch
 from microraiden import HTTPHeaders, Client
 from microraiden.proxy.resources import Expensive
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
+from flask import request
 
 import logging
 log = logging.getLogger(__name__)
@@ -31,12 +32,28 @@ class DynamicPriceResource(Expensive):
         return res_id, 200
 
 
-def assert_method(method, url, headers, channel, expected_reply):
+class DynamicMethodResource(StaticPriceResource):
+    def __init__(self, foo, bar=12345, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        assert foo == 42
+        assert bar == 9814072356
+
+    def price(self):
+        prices = {
+            'GET': 1,
+            'POST': 2,
+            'PUT': 3,
+            'DELETE': 4
+        }
+        return prices[request.method]
+
+
+def assert_method(method, url, headers, channel, expected_reply, expected_price=3):
     # test POST
     response = method(url, headers=headers)
     assert response.status_code == 402
     headers = HTTPHeaders.deserialize(response.headers)
-    assert int(headers.price) == 3
+    assert int(headers.price) == expected_price
 
     channel.update_balance(int(headers.sender_balance) + int(headers.price))
 
@@ -100,12 +117,9 @@ def test_dynamic_price(
 
     price_cycle = cycle([1, 2, 3, 4, 5])
     url_to_price = {}  # type: Dict
-    price_args = (3.14159265,)
-    price_kwargs = {'bar': 9814072356}
 
-    def price_fn(url: str, foo, *args, **kwargs):
-        assert foo in price_args
-        assert kwargs['bar'] == price_kwargs['bar']
+    def price_fn():
+        url = request.path
         if int(url.split('_')[-1]) == 0:
             return 0
         if url in url_to_price:
@@ -118,9 +132,8 @@ def test_dynamic_price(
     proxy.add_paywalled_resource(
         DynamicPriceResource,
         '/resource_<int:res_id>',
-        price_fn,
-        price_args=price_args,
-        price_kwargs=price_kwargs)
+        price=price_fn
+    )
 
     response = requests.get(endpoint_url + '/resource_3')
     assert response.status_code == 402
@@ -160,3 +173,53 @@ def test_dynamic_price(
     response = requests.get(endpoint_url + '/resource_5', headers=headers)
     assert response.status_code == 200
     assert response.text.strip() == '5'
+
+
+def test_method_price(
+        empty_proxy: PaywalledProxy,
+        api_endpoint_address: str,
+        client: Client,
+        wait_for_blocks
+):
+    proxy = empty_proxy
+    endpoint_url = "http://" + api_endpoint_address
+
+    proxy.add_paywalled_resource(
+        DynamicMethodResource,
+        '/resource',
+        resource_class_args=(42,),
+        resource_class_kwargs={'bar': 9814072356})
+
+    # test GET
+    response = requests.get(endpoint_url + '/resource')
+    assert response.status_code == 402
+    headers = HTTPHeaders.deserialize(response.headers)
+    assert int(headers.price) == 1
+
+    channel = client.get_suitable_channel(headers.receiver_address, 1 + 2 + 3 + 4)
+    wait_for_blocks(6)
+    channel.update_balance(int(headers.price))
+
+    headers = Munch()
+    headers.balance = str(channel.balance)
+    headers.balance_signature = encode_hex(channel.balance_sig)
+    headers.sender_address = channel.sender
+    headers.open_block = str(channel.block)
+    headers = HTTPHeaders.serialize(headers)
+
+    response = requests.get(endpoint_url + '/resource', headers=headers)
+    assert response.status_code == 200
+    assert response.text.strip() == 'GET'
+
+    assert_method(requests.post,
+                  endpoint_url + '/resource',
+                  headers, channel, 'POST',
+                  expected_price=2)
+    assert_method(requests.put,
+                  endpoint_url + '/resource',
+                  headers, channel, 'PUT',
+                  expected_price=3)
+    assert_method(requests.delete,
+                  endpoint_url + '/resource',
+                  headers, channel, 'DEL',
+                  expected_price=4)

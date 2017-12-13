@@ -27,23 +27,25 @@ class Expensive(Resource):
                  channel_manager: ChannelManager,
                  light_client_proxy=None,
                  paywall=None,
-                 price: int = 0,
-                 price_args: tuple = (),
-                 price_kwargs: dict = {}
+                 price: None = None,
                  ) -> None:
         super(Expensive, self).__init__()
         assert isinstance(channel_manager, ChannelManager)
-        assert callable(price) or price > 0
+        assert price is None or callable(price) or price > 0
         self.contract_address = channel_manager.contract_proxy.contract.address
         self.receiver_address = channel_manager.receiver
         assert is_address(self.contract_address)
         assert is_address(self.receiver_address)
         self.channel_manager = channel_manager
         self.light_client_proxy = light_client_proxy
-        self.price = price
-        self.price_args = price_args
-        self.price_kwargs = price_kwargs
+        self._price = price
         self.paywall = paywall
 
     def get_paywall(self, url):
         return self.light_client_proxy.get(url)
+
+    def price(self):
+        if callable(self._price):
+            return self._price()
+        else:
+            return self._price

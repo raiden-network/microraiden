@@ -106,13 +106,7 @@ class Paywall(object):
         accepts_html = r'text/html' in request.headers.get('Accept', '')
         headers = {}
 
-        if callable(resource.price):
-            price = resource.price(
-                request.path,
-                *resource.price_args,
-                **resource.price_kwargs)
-        else:
-            price = resource.price
+        price = resource.price()
 
         # payment required
         if price > 0:

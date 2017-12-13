@@ -133,7 +133,7 @@ class PaywalledProxy:
             return
         gevent.get_hub().handle_system_error(exc_info[0], exc_info[1])
 
-    def add_paywalled_resource(self, cls: Expensive, url: str, price: int, *args, **kwargs):
+    def add_paywalled_resource(self, cls: Expensive, url: str, price: int=None, *args, **kwargs):
         cfg = {
             'channel_manager': self.channel_manager,
             'light_client_proxy': self.light_client_proxy,
@@ -142,8 +142,4 @@ class PaywalledProxy:
         }
         if 'resource_class_kwargs' in kwargs:
             cfg.update(kwargs.pop('resource_class_kwargs'))
-        if 'price_args' in kwargs:
-            cfg['price_args'] = kwargs.pop('price_args')
-        if 'price_kwargs' in kwargs:
-            cfg['price_kwargs'] = kwargs.pop('price_kwargs')
         return self.api.add_resource(cls, url, resource_class_kwargs=cfg, *args, **kwargs)
