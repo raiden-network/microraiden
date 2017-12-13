@@ -2,7 +2,9 @@ import logging
 from enum import Enum
 
 from eth_utils import decode_hex, is_same_address
-from microraiden.crypto import sign_balance_proof, verify_closing_sig
+from microraiden.crypto import (
+    sign_balance_proof, verify_closing_sig, keccak256
+)
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +42,10 @@ class Channel:
     @property
     def balance(self):
         return self._balance
+
+    @property
+    def key(self) -> bytes:
+        keccak256(self.sender, self.receiver, self.block)
 
     def update_balance(self, value):
         self._balance = value
