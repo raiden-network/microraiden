@@ -53,8 +53,11 @@ class ETHTickerClient(ttk.Frame):
     def __init__(
             self,
             sender_privkey: str,
-            httpclient: DefaultHTTPClient = None
+            httpclient: DefaultHTTPClient = None,
+            poll_interval: float = 5
     ) -> None:
+        self.poll_interval = poll_interval
+
         self.root = tkinter.Tk()
         ttk.Frame.__init__(self, self.root)
         self.root.title('µRaiden ETH Ticker')
@@ -79,7 +82,7 @@ class ETHTickerClient(ttk.Frame):
 
     def run(self):
         self.running = True
-        self.root.after(1000, self.query_price)
+        self.root.after(0, self.query_price)
         self.root.mainloop()
 
     def query_price(self):
@@ -96,7 +99,7 @@ class ETHTickerClient(ttk.Frame):
             log.warning('No response.')
 
         if self.running:
-            self.root.after(5000, self.query_price)
+            self.root.after(int(self.poll_interval * 1000), self.query_price)
         self.active_query = False
 
     def close(self):
