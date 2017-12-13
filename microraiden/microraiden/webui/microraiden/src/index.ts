@@ -6,36 +6,83 @@ declare const localStorage; // possibly missing
 
 
 // helper types
+
+/**
+ * [[MicroRaiden.channel.proof]] data type
+ */
 export interface MicroProof {
+  /**
+   * Balance value, shifted by token decimals
+   */
   balance: BigNumber;
+  /**
+   * Balance signature
+   */
   sign?: string;
 }
 
+/**
+ * [[MicroRaiden.channel]] state data blueprint
+ */
 export interface MicroChannel {
-  /* MicroRaiden.channel data structure */
+  /**
+   * Sender/client's account address
+   */
   account: string;
+  /**
+   * Receiver/server's account address
+   */
   receiver: string;
+  /**
+   * Open channel block number
+   */
   block: number;
+  /**
+   * Current balance proof
+   */
   proof: MicroProof;
+  /**
+   * Next balance proof, persisted with [[MicroRaiden.confirmPayment]]
+   */
   next_proof?: MicroProof;
+  /**
+   * Cooperative close signature from receiver
+   */
   close_sign?: string;
 }
 
+/**
+ * [[MicroRaiden.getChannelInfo]] result
+ */
 export interface MicroChannelInfo {
-  /* MicroRaiden.getChannelInfo result */
+  /**
+   * Current channel state, one of 'opened', 'closed' or 'settled'
+   */
   state: string;
+  /**
+   * Block of current state (opened=open block number,
+   * closed=channel close requested block number, settled=settlement block number)
+   */
   block: number;
+  /**
+   * Current channel deposited sum
+   */
   deposit: BigNumber;
 }
 
+/**
+ * [[MicroRaiden.getTokenInfo]] result
+ */
 export interface MicroTokenInfo {
-  /* MicroRaiden.getTokenInfo result */
   name: string;
   symbol: string;
   decimals: number;
   balance: BigNumber;
 }
 
+/**
+ * Array member type to be sent to eth_signTypedData
+ */
 interface MsgParam {
   type: string;
   name: string;
@@ -44,13 +91,27 @@ interface MsgParam {
 
 
 // utils
+
+/**
+ * Convert a callback-based func to return a promise
+ *
+ * It'll return a function which, when called, will pass all received
+ * parameters to the wrapped method, and return a promise which will be
+ * resolved which callback data passed as last parameter
+ *
+ * @param obj  A object containing the method to be called
+ * @param method  A method name of obj to be promisified
+ * @returns  A method wrapper which returns a promise
+ */
 function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> {
-  /* Convert a callback-based func to return a promise */
   return (...params) =>
     new Promise((resolve, reject) =>
       obj[method](...params, (err, res) => err ? reject(err) : resolve(res)));
 }
 
+/**
+ * Promise-based deferred class
+ */
 class Deferred<T> {
   resolve: (res: T) => void;
   reject: (err: Error) => void;
@@ -60,6 +121,15 @@ class Deferred<T> {
   });
 }
 
+/**
+ * Encode strings and numbers as hex, left-padded, if required.
+ *
+ * 0x prefix not added,
+ *
+ * @param val  Value to be hex-encoded
+ * @param zPadLength  Left-pad with zeroes to this number of characters
+ * @returns  hex-encoded value
+ */
 function encodeHex(val: string|number|BigNumber, zPadLength?: number): string {
   /* Encode a string or number as hexadecimal, without '0x' prefix */
   if (typeof val === 'number' || val instanceof BigNumber ) {
@@ -73,15 +143,48 @@ function encodeHex(val: string|number|BigNumber, zPadLength?: number): string {
 }
 
 
-// main class
+/**
+ * Main MicroRaiden client class
+ *
+ * Contains all methods to interact with a MicroRaiden channel through a web3
+ * instance.
+ */
 export class MicroRaiden {
+  /**
+   * Web3 instance
+   */
   web3: Web3;
+  /**
+   * Currently set channel info. May be loaded through [[loadStoredChannel]],
+   * [[loadChannelFromBlockchain]], or stored and set manually with [[setChannel]]
+   */
   channel: MicroChannel;
+  /**
+   * Token contract instance
+   */
   token: Web3.ContractInstance;
+  /**
+   * Channel manager contract instance
+   */
   contract: Web3.ContractInstance;
+  /**
+   * Token decimals
+   */
   decimals: number = 0;
+  /**
+   * Challenge period for uncooperative close, setup in channel manager
+   */
   challenge: number;
 
+  /**
+   * MicroRaiden constructor
+   *
+   * @param web3  Web3 http url, or object with currentProvider property
+   * @param contractAddr  Channel manager contract address
+   * @param contractABI  Channel manager ABI
+   * @param tokenAddr  Token address, must be the same setup in channel manager
+   * @param tokenABI  Token ABI
+   */
   constructor(
     web3: string | { currentProvider: any },
     contractAddr: string,
@@ -105,21 +208,39 @@ export class MicroRaiden {
   }
 
   // utils
-  num2tkn(value: number|string): BigNumber {
-    /* Convert number to BigNumber compatible with configured token,
-     * taking in account the token decimals */
-    return new BigNumber(value).shift(this.decimals);
+
+  /**
+   * Convert number to BigNumber
+   *
+   * Takes into account configured token, taking in account the token decimals
+   *
+   * @param value  Number or numeric-string to be converted
+   * @returns  BigNumber representation of value * 10^decimals
+   */
+  num2tkn(value?: number|string): BigNumber {
+    return new BigNumber(value || 0).shift(this.decimals);
   }
 
+  /**
+   * Convert BigNumber to number
+   *
+   * Takes into account configured token, taking in account the token decimals
+   * Caution: it may add imprecisions due to javascript's native number limitations
+   *
+   * @param bal  Value to be converted
+   * @returns  JS's native number representation of bal
+   */
   tkn2num(bal: BigNumber): number {
-    /* Convert BigNumber to number compatible with configured token,
-     * taking in account the token decimals */
     return (new BigNumber(bal)).shift(-this.decimals).toNumber();
   }
 
+  /**
+   * Watch for a particular transaction hash to have given confirmations
+   *
+   * @param txHash  Transaction hash to wait for
+   * @param confirmations  Number of confirmations to wait after tx is mined
+   * @returns  Promise to mined receipt of transaction */
   private async waitTx(txHash: string, confirmations?: number): Promise<Web3.TransactionReceipt> {
-    /* Watch for a particular transaction hash to have given confirmations
-     * Return promise to mined receipt of transaction */
     confirmations = +confirmations || 0;
 
     const defer = new Deferred<Web3.TransactionReceipt>();
@@ -146,12 +267,15 @@ export class MicroRaiden {
     return defer.promise;
   }
 
+  /**
+   * Get contract's configured challenge's period
+   *
+   * As it calls the contract method, can be used for validating that
+   * contract's address has code in current network
+   *
+   * @returns  Promise to challenge period number, in blocks
+   */
   async getChallengePeriod(): Promise<number> {
-    /* Get contract's configured challenge's period
-     * As it calls the contract method, can be used for
-     * validating that contract's address has code in current network
-     * Returns promise to challenge period number, in blocks
-     */
     this.challenge = (await promisify<BigNumber>(
       this.contract.challenge_period,
       'call'
@@ -160,31 +284,43 @@ export class MicroRaiden {
   }
 
   // instance methods
-  loadStoredChannel(account: string, receiver: string): void {
-    /* If localStorage is available, try to load a channel from it,
-     * indexed by given account and receiver */
+
+  /**
+   * If localStorage is available, try to load a channel from it
+   *
+   * Indexed by given account and receiver
+   *
+   * @param account  Sender/client's account address
+   * @param receiver  Receiver/server's account address
+   * @returns  True if a channel data was found, false otherwise
+   */
+  loadStoredChannel(account: string, receiver: string): boolean {
     if (!localStorage) {
       delete this.channel;
-      return;
+      return false;
     }
     const key = [account, receiver].join('|');
     const value = localStorage.getItem(key);
     if (value) {
       const channel = JSON.parse(value);
       if (!channel || !channel.proof || !channel.proof.balance) {
-        return;
+        return false;
       }
       channel.proof.balance = new BigNumber(channel.proof.balance);
       if (channel.next_proof)
         channel.next_proof.balance = new BigNumber(channel.next_proof.balance);
       this.channel = channel;
+      return true;
     } else {
       delete this.channel;
+      return false;
     }
   }
 
+  /**
+   * Forget current channel and remove it from localStorage, if available
+   */
   forgetStoredChannel(): void {
-    /* Forget current channel and remove it from localStorage, if available */
     if (!this.channel) {
       return;
     }
@@ -195,8 +331,70 @@ export class MicroRaiden {
     delete this.channel;
   }
 
+  /**
+   * Scan the blockchain for an open channel, and load it with 0 balance
+   *
+   * The 0 balance may be overwritten with [[setBalance]] if
+   * server replies with a updated balance on first request.
+   * It should ask user for signing the zero-balance proof
+   * Throws/reject if no open channel was found
+   *
+   * @param account  Sender/client's account address
+   * @param receiver  Receiver/server's account address
+   * @returns  Promise to channel info, if a channel was found
+   */
+  async loadChannelFromBlockchain(account: string, receiver: string): Promise<MicroChannel> {
+    const openEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelCreated({
+      _sender: account,
+      _receiver: receiver,
+    }, {
+      fromBlock: 0,
+      toBlock: 'latest'
+    }), 'get')();
+    if (!openEvents || openEvents.length === 0) {
+      throw new Error('No channel found for this account');
+    }
+
+    const minBlock = openEvents[0].blockNumber;
+    const [ closeEvents, settleEvents ] = await Promise.all([
+      promisify<{ blockNumber: number }[]>(this.contract.ChannelCloseRequested({
+        _sender: account,
+        _receiver: receiver,
+      }, {
+        fromBlock: minBlock,
+        toBlock: 'latest'
+      }), 'get')(),
+      promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
+        _sender: account,
+        _receiver: receiver,
+      }, {
+        fromBlock: minBlock,
+        toBlock: 'latest'
+      }), 'get')(),
+    ]);
+
+    const closedBlocks = closeEvents.concat(settleEvents).map((ev) => ev.blockNumber),
+          stillOpen = openEvents.filter((ev) => closedBlocks.indexOf(ev.blockNumber) < 0);
+    if (stillOpen.length === 0) {
+      throw new Error('No open channels found');
+    }
+    this.setChannel({
+      account,
+      receiver,
+      block: stillOpen[0].blockNumber,
+      proof: { balance: new BigNumber(0) },
+    });
+    return this.channel;
+  }
+
+  /**
+   * Set [[channel]] info
+   *
+   * Can be used to externally [re]store an externally persisted channel info
+   *
+   * @param channel  Channel info to be set
+   */
   setChannel(channel: MicroChannel): void {
-    /* Set channel info. Can be used to externally [re]store channel info */
     this.channel = channel;
     if (localStorage) {
       const key = [this.channel.account, this.channel.receiver].join('|');
@@ -204,26 +402,38 @@ export class MicroRaiden {
     }
   }
 
+  /**
+   * Health check for currently configured channel info
+   *
+   * @returns  True if channel is valid, false otherwise
+   */
   isChannelValid(): boolean {
-    /* Health check for currently configured channel info */
     if (!this.channel || !this.channel.receiver || !this.channel.block
-      || !this.channel.proof || isNaN(this.channel.proof.balance)
-      || !this.channel.account) {
+      || !this.channel.proof || !this.channel.account) {
       return false;
     }
     return true;
   }
 
+
+  /**
+   * Get available accounts from web3 providers
+   *
+   * @returns Promise to accounts addresses array
+   */
   async getAccounts(): Promise<string[]> {
-    /* Get available accounts from web3 providers.
-     * Returns promise to accounts addresses array */
     return await promisify<string[]>(this.web3.eth, 'getAccounts')();
   }
 
+  /**
+   * Get token details such as name, symbol and decimals.
+   *
+   * If account is provided, returns also account balance for this token.
+   *
+   * @param account  Address to be queried for current token balance
+   * @returns  Promise to [[MicroTokenInfo]] data
+   */
   async getTokenInfo(account?: string): Promise<MicroTokenInfo> {
-    /* Get token details such as name, symbol and decimals.
-     * If account is provided, returns also account balance for this token.
-     * Returns promise to MicroTokenInfo object */
     const [name, symbol, decimals, balance] = await Promise.all([
       promisify<string>(this.token.name, 'call')(),
       promisify<string>(this.token.symbol, 'call')(),
@@ -234,10 +444,13 @@ export class MicroRaiden {
     return { name, symbol, decimals, balance };
   }
 
+  /**
+   * Get channel details such as current state (one of opened, closed or
+   * settled), block in which it was set and current deposited amount
+   *
+   * @returns Promise to [[MicroChannelInfo]] data
+   */
   async getChannelInfo(): Promise<MicroChannelInfo> {
-    /* Get channel details such as current state (one of opened, closed or
-     * settled), block in which it was set and current deposited amount
-     * Returns promise to MicroChannelInfo object */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -294,10 +507,18 @@ export class MicroRaiden {
     };
   }
 
+  /**
+   * Open a channel for account to receiver, depositing some tokens on it
+   *
+   * Should work with both ERC20/ERC223 tokens.
+   * Replaces current [[channel]] data
+   *
+   * @param account  Sender/client's account address
+   * @param receiver  Receiver/server's account address
+   * @param deposit  Tokens to be initially deposited in the channel
+   * @returns  Promise to [[MicroChannel]] info object
+   */
   async openChannel(account: string, receiver: string, deposit: BigNumber): Promise<MicroChannel> {
-    /* Open a channel for account to receiver, depositing some tokens in it.
-     * Should work with both ERC20/ERC223 tokens.
-     * Returns promise to MicroChannel info object */
     if (this.isChannelValid()) {
       console.warn('Already valid channel will be forgotten:', this.channel);
     }
@@ -358,10 +579,15 @@ export class MicroRaiden {
     return this.channel;
   }
 
+  /**
+   * Top up current channel, by depositing some [more] tokens to it
+   *
+   * Should work with both ERC20/ERC223 tokens
+   *
+   * @param deposit  Tokens to be deposited in the channel
+   * @returns  Promise to tx block number
+   */
   async topUpChannel(deposit: BigNumber): Promise<number> {
-    /* Top up current channel, by depositing some tokens to it
-     * Should work with both ERC20/ERC223 tokens
-     * Returns promise block number */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -409,13 +635,19 @@ export class MicroRaiden {
     return receipt.blockNumber;
   }
 
+  /**
+   * Close current channel
+   *
+   * Optional parameter is signed cooperative close from receiver, if available.
+   * If cooperative close was successful, channel is already settled after this
+   * method is resolved.
+   * Else, it enters 'closed' state, and should be settled after settlement
+   * period, configured in contract.
+   *
+   * @param receiverSign  Cooperative-close signature from receiver
+   * @returns  Promise to block number in which channel was closed
+   */
   async closeChannel(receiverSign?: string): Promise<number> {
-    /* Close current channel.
-     * Optional parameter is signed cooperative close from receiver.
-     * If cooperative close was successful, channel is already settled after.
-     * Else, it enters 'closed' state, and may be settled after settlement
-     * period configured in contract.
-     * Returns promise to block number in which channel was closed */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -463,11 +695,14 @@ export class MicroRaiden {
     return receipt.blockNumber;
   }
 
+  /**
+   * If channel was not cooperatively closed, and after settlement period,
+   * this function settles the channel, distributing the tokens to sender and
+   * receiver.
+   *
+   * @returns  Promise to block number of settlement tx
+   */
   async settleChannel(): Promise<number> {
-    /* If channel was not cooperatively closed, and after settlement period,
-     * this function settles the channel, distributing the tokens to sender and
-     * receiver.
-     * Returns promise to blockNumber of settlement tx */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -485,9 +720,13 @@ export class MicroRaiden {
     return receipt.blockNumber;
   }
 
+  /**
+   * Ask user for signing a string with (personal|eth)_sign
+   *
+   * @param msg  Data to be signed
+   * @returns Promise to signature
+   */
   async signMessage(msg: string): Promise<string> {
-    /* Ask user for signing a string.
-     * Returns a promise for signed data */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -509,12 +748,22 @@ export class MicroRaiden {
     return sign;
   }
 
+  /**
+   * Ask user for signing a channel balance
+   *
+   * Notice it's the final balance, not the increment, and that the new
+   * balance is set in [[channel.next_proof]], requiring a
+   * [[confirmPayment]] call to persist it, after successful
+   * request.
+   * Implementation can choose to call confirmPayment right after this call
+   * resolves, assuming request will be successful after payment is signed.
+   * Tries to use eth_signTypedData (from EIP712), tries to use personal sign
+   * if it fails.
+   *
+   * @param proof  Balance proof to be signed
+   * @returns  Promise to signature
+   */
   async signNewProof(proof?: MicroProof): Promise<MicroProof> {
-    /* Ask user for signing a channel balance.
-     * Notice it's the final balance, not the increment, and that the new
-     * balance is set in channel data in next_*, requiring confirmPayment
-     * call to persist it, after successful request.
-     * Returns promise to signed data */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -592,13 +841,16 @@ export class MicroRaiden {
     return proof;
   }
 
+  /**
+   * Ask user for signing a payment, which is previous balance incremented of
+   * amount.
+   *
+   * Warnings from [[signNewProof]] applies
+   *
+   * @param amount  Amount to increment in current balance
+   * @returns  Promise to signature
+   */
   async incrementBalanceAndSign(amount: BigNumber): Promise<MicroProof> {
-    /* Ask user for signing a new balance, which is previous balance added
-     * of a given amount.
-     * Notice that it doesn't replace signed balance proof, but next_* balance
-     * proof. You must call confirmPayment with the signature after confirming
-     * successful request, to persist it.
-     * Returns promise to signed data */
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -617,9 +869,14 @@ export class MicroRaiden {
     return await this.signNewProof(proof);
   }
 
+  /**
+   * Persists [[channel.next_proof]] to [[channel.proof]]
+   *
+   * This method must be used after successful payment request,
+   * or right after [[signNewProof]] is resolved,
+   * if implementation don't care for request status
+   */
   confirmPayment(proof: MicroProof): void {
-    /* This method must be used after successful payment request.
-     * It will persist this.channel's next_{balance,sign} to balance,sign */
     if (!this.channel.next_proof
       || !this.channel.next_proof.sign
       || this.channel.next_proof.sign !== proof.sign) {
@@ -634,10 +891,89 @@ export class MicroRaiden {
     this.setChannel(channel);
   }
 
+  /**
+   * Reset the current channel balance.
+   *
+   * Used mainly when server replies a balance out-of-sync with current state
+   * Caution: it sets the balance without verifying it. If possible, prefer
+   * [[verifyProof]]
+   *
+   * @param value  Balance value to be set
+   */
+  setBalance(value: BigNumber): void {
+    if (this.channel.proof.balance.eq(value)) {
+      return;
+    }
+    const channel = Object.assign(
+      {},
+      this.channel,
+      { proof: { balance: value }, next_proof: undefined },
+    );
+    delete channel.next_proof;
+    this.setChannel(channel);
+  }
+
+  /**
+   * Verify and set given proof as current, if valid
+   *
+   * Used mainly when server replies with an updated balance proof.
+   *
+   * @param proof  Balance proof, containing balance and sign
+   * @returns  True if balance is valid and correct, false otherwise
+   */
+  verifyProof(proof: MicroProof): boolean {
+    if (!proof.sign) {
+      throw new Error('Proof must contain a signature and its respective balance');
+    }
+    const params: MsgParam[] = [
+      {
+        name: 'receiver',
+        type: 'address',
+        value: this.channel.receiver,
+      },
+      {
+        name: 'block_created',
+        type: 'uint32',
+        value: '' + this.channel.block,
+      },
+      {
+        name: 'balance',
+        type: 'uint192',
+        value: proof.balance.toString(),
+      },
+      {
+        name: 'contract',
+        type: 'address',
+        value: this.contract.address,
+      },
+    ];
+    let sign: string;
+    const recovered = recoverTypedSignature({ data: params, sig: proof.sign });
+    console.log('verify signTypedData =', params, sign, recovered);
+
+    // recovered data from proof must be equal current account
+    if (recovered !== this.channel.account) {
+      return false;
+    }
+
+    const channel = Object.assign(
+      {},
+      this.channel,
+      { proof, next_proof: undefined },
+    );
+    delete channel.next_proof;
+    this.setChannel(channel);
+    return true;
+  }
+
+  /**
+   * For testing. Send 0.1 ETH to mint method of contract.
+   * On TKN tests, it'll issue 50 TKNs to the sender's account.
+   *
+   * @param account  Sender's account address
+   * @returns Promise to mint tx receipt
+   */
   async buyToken(account: string): Promise<Web3.TransactionReceipt> {
-    /* For testing. Send 0.1 ETH to mint method of contract.
-     * On TKN tests, it'll yield 50 TKNs.
-     * Returns promise to tx receipt */
     const txHash = await promisify<string>(this.token.mint, 'sendTransaction')({
       from: account,
       value: this.web3.toWei(0.1, 'ether')
