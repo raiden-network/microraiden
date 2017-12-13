@@ -16,7 +16,7 @@ class LightClientProxy:
         with open(index_html) as fp:
             self.data = fp.read()
 
-    def get(self):
+    def get(self, url):
         return self.data
 
 

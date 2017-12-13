@@ -51,7 +51,6 @@ def doggo_proxy(channel_manager,
     app.add_paywalled_resource(ExpensiveKitten, '/kitten.jpg', 1)
     app.add_paywalled_resource(ExpensiveDoggo, '/doggo.jpg', 2)
     app.add_paywalled_resource(ExpensiveTeapot, '/teapot.jpg', 3)
-#    app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
     ssl_context = proxy_ssl_certs if proxy_ssl else None
     app.run(ssl_context=ssl_context)
     yield app
