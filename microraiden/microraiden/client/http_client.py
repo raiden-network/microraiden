@@ -101,7 +101,6 @@ class HTTPClient(object):
         else:
             kwargs['headers'] = headers
         response = requests.request(method, url, **kwargs)
-        response_headers = HTTPHeaders.deserialize(response.headers)
 
         if self.on_http_response(method, url, response, **kwargs) is False:
             return None, False  # user requested abort
@@ -110,19 +109,22 @@ class HTTPClient(object):
             return response, self.on_success(method, url, response, **kwargs)
 
         elif response.status_code == requests.codes.PAYMENT_REQUIRED:
-            if 'insuf_confs' in response_headers:
+            if HTTPHeaders.NONEXISTING_CHANNEL in response.headers:
+                return None, self.on_nonexisting_channel(method, url, response, **kwargs)
+
+            elif HTTPHeaders.INSUF_CONFS in response.headers:
                 return None, self.on_insufficient_confirmations(method, url, response, **kwargs)
 
-            elif 'insuf_funds' in response_headers:
+            elif HTTPHeaders.INSUF_FUNDS in response.headers:
                 return None, self.on_insufficient_funds(method, url, response, **kwargs)
 
-            elif 'contract_address' not in response_headers or not is_same_address(
-                response_headers.contract_address,
+            elif HTTPHeaders.CONTRACT_ADDRESS not in response.headers or not is_same_address(
+                response.headers.get(HTTPHeaders.CONTRACT_ADDRESS),
                 self.client.context.channel_manager.address
             ):
                 return None, self.on_invalid_contract_address(method, url, response, **kwargs)
 
-            elif 'invalid_amount' in response_headers:
+            elif HTTPHeaders.INVALID_AMOUNT in response.headers:
                 return None, self.on_invalid_amount(method, url, response, **kwargs)
 
             else:
@@ -144,11 +146,16 @@ class HTTPClient(object):
         return False
 
     def on_insufficient_funds(self, method: str, url: str, response: Response, **kwargs) -> bool:
-        log.error(
-            'Server was unable to verify the transfer - Insufficient funds of the balance proof '
-            'or possibly an unconfirmed or unregistered topup.'
-        )
-        return False
+        return True
+
+    def on_nonexisting_channel(
+            self,
+            method: str,
+            url: str,
+            response: Response,
+            **kwargs
+    ):
+        return True
 
     def on_insufficient_confirmations(
             self,

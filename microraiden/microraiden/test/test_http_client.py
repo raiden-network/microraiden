@@ -1,5 +1,6 @@
 import json
 import types
+from unittest import mock
 
 import pytest
 import requests_mock
@@ -536,3 +537,71 @@ def test_requests(
         response = microraiden.requests.get(url)
 
     assert response.text == 'success'
+
+
+def test_error_handling(
+        default_http_client: DefaultHTTPClient,
+        api_endpoint_address: str,
+        token_address: str,
+        channel_manager_address: str,
+        receiver_address: str
+):
+    nonexisting_channel_mock = mock.patch.object(
+        default_http_client,
+        'on_nonexisting_channel',
+        wraps=default_http_client.on_nonexisting_channel
+    ).start()
+    insufficient_confirmations_mock = mock.patch.object(
+        default_http_client,
+        'on_insufficient_confirmations',
+        wraps=default_http_client.on_insufficient_confirmations
+    ).start()
+    insufficient_funds_mock = mock.patch.object(
+        default_http_client,
+        'on_insufficient_funds',
+        wraps=default_http_client.on_insufficient_funds
+    ).start()
+    invalid_contract_address_mock = mock.patch.object(
+        default_http_client,
+        'on_invalid_contract_address',
+        wraps=default_http_client.on_invalid_contract_address
+    ).start()
+
+    with requests_mock.mock() as server_mock:
+        headers = {
+            HTTPHeaders.TOKEN_ADDRESS: token_address,
+            HTTPHeaders.CONTRACT_ADDRESS: channel_manager_address,
+            HTTPHeaders.RECEIVER_ADDRESS: receiver_address,
+            HTTPHeaders.PRICE: '3'
+        }
+        headers = [headers.copy() for i in range(5)]
+
+        i = 0
+
+        i += 1
+        headers[i][HTTPHeaders.NONEXISTING_CHANNEL] = '1'
+
+        i += 1
+        headers[i][HTTPHeaders.INSUF_CONFS] = '1'
+
+        i += 1
+        headers[i][HTTPHeaders.INSUF_FUNDS] = '1'
+
+        i += 1
+        headers[i][HTTPHeaders.CONTRACT_ADDRESS] = '0x' + '12' * 20
+
+        url = 'http://{}/something'.format(api_endpoint_address)
+        server_mock.get(url, [
+            {'status_code': 402, 'headers': headers[0]},
+            {'status_code': 402, 'headers': headers[1]},
+            {'status_code': 402, 'headers': headers[2]},
+            {'status_code': 402, 'headers': headers[3]},
+            {'status_code': 402, 'headers': headers[4]}
+        ])
+        response = default_http_client.get(url)
+
+    assert response is None
+    assert nonexisting_channel_mock.call_count == 1
+    assert insufficient_confirmations_mock.call_count == 1
+    assert insufficient_funds_mock.call_count == 1
+    assert invalid_contract_address_mock.call_count == 1
