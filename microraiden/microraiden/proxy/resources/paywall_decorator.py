@@ -6,7 +6,6 @@ from flask_restful.utils import unpack
 
 from microraiden.channel_manager import (
     ChannelManager,
-    Channel,
 )
 from microraiden.exceptions import (
     NoOpenChannel,
@@ -115,10 +114,7 @@ class Paywall(object):
                 reply_data = resource.get_paywall(request.path)
                 return self.reply_webui(reply_data, headers)
             elif paywall:
-                return self.reply_payment_required(price,
-                                                   reply_data='',
-                                                   headers=headers,
-                                                   gen_ui=accepts_html)
+                return make_response('', 402, headers)
 
         # all ok, return actual content
         resp = method(request.path, *args, **kwargs)
@@ -133,8 +129,9 @@ class Paywall(object):
         """Check if the resource can be sent to the client.
         Returns (is_paywalled: Bool, http_headers: dict)
         """
+        headers = self.generate_headers(price)
         if not data.balance_signature:
-            return True, {}
+            return True, headers
 
         # try to get an existing channel
         try:
@@ -142,13 +139,26 @@ class Paywall(object):
                 data.sender_address, data.open_block_number,
                 data.balance, data.balance_signature)
         except InsufficientConfirmations as e:
-            return True, {header.INSUF_CONFS: "1"}
+            headers.update({header.INSUF_CONFS: "1"})
+            return True, headers
         except NoOpenChannel as e:
-            return True, {header.NONEXISTING_CHANNEL: 1},
+            headers.update({header.NONEXISTING_CHANNEL: "1"})
+            return True, headers
         except (InvalidBalanceAmount, InvalidBalanceProof):
-            return True, {header.INVALID_PROOF: 1}
+            headers.update({header.INVALID_PROOF: 1})
+            return True, headers
 
-        headers = self.generate_headers(channel, price)
+        # set headers to reflect channel state
+        assert channel.sender is not None
+        assert channel.balance >= 0
+        headers.update(
+            {
+                header.SENDER_ADDRESS: channel.sender,
+                header.SENDER_BALANCE: channel.balance
+            })
+        if channel.last_signature is not None:
+            headers.update({header.BALANCE_SIGNATURE: channel.last_signature})
+
         amount_sent = data.balance - channel.balance
 
         if amount_sent != 0 and amount_sent != price:
@@ -171,34 +181,18 @@ class Paywall(object):
         return False, headers
 
     # when are these generated?
-    def generate_headers(self, channel: Channel, price):
-        assert channel.sender is not None
-        assert channel.balance >= 0
+    def generate_headers(self, price: int):
+        assert price > 0
+        """Generate basic headers that are sent back for every request"""
         headers = {
             header.GATEWAY_PATH: config.API_PATH,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.CONTRACT_ADDRESS: self.contract_address,
+            header.TOKEN_ADDRESS: self.channel_manager.get_token_address(),
             header.PRICE: price,
-            header.SENDER_ADDRESS: channel.sender,
-            header.SENDER_BALANCE: channel.balance,
+            'Content-Type': 'text/json'
         }
-        if channel.last_signature is not None:
-            headers.update({header.BALANCE_SIGNATURE: channel.last_signature})
         return headers
-
-    def reply_payment_required(self, price, reply_data='', headers=None, gen_ui=False):
-        if headers is None:
-            headers = {}
-        assert isinstance(headers, dict)
-        assert isinstance(gen_ui, bool)
-        headers.update({
-            header.GATEWAY_PATH: config.API_PATH,
-            header.CONTRACT_ADDRESS: self.contract_address,
-            header.RECEIVER_ADDRESS: self.receiver_address,
-            header.PRICE: price,
-            header.TOKEN_ADDRESS: self.channel_manager.get_token_address()
-        })
-        return make_response(reply_data, 402, headers)
 
     def reply_webui(self, reply_data='', headers: dict={}):
         headers.update({
