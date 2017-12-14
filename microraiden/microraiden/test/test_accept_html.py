@@ -21,7 +21,7 @@ def test_accept_html(doggo_proxy, api_endpoint_address, wait_for_blocks):
 
 
 def test_accept_json(doggo_proxy, api_endpoint_address, wait_for_blocks):
-    # default mode is to receive text/json
+    # default mode is to receive application/json
     endpoint_url = "http://" + api_endpoint_address
     wait_for_blocks(1)
     rv = requests.get(endpoint_url + "/doggo.jpg")
@@ -30,6 +30,6 @@ def test_accept_json(doggo_proxy, api_endpoint_address, wait_for_blocks):
     assert header.CONTRACT_ADDRESS in rv.headers
     assert header.GATEWAY_PATH in rv.headers
     assert header.PRICE in rv.headers
-    assert rv.headers['Content-Type'] == 'text/json'
+    assert rv.headers['Content-Type'] == 'application/json'
     assert rv.status_code == 402
     assert '<html' not in rv.text
