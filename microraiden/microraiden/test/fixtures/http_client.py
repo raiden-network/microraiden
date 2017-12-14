@@ -13,7 +13,7 @@ def default_http_client(client: Client, use_tester: bool):
     def request_patched(self: DefaultHTTPClient, method: str, url: str, **kwargs):
         if use_tester:
             log.info('Mining new block.')
-            self.client.core.web3.testing.mine(1)
+            self.client.context.web3.testing.mine(1)
         return DefaultHTTPClient._request_resource(self, method, url, **kwargs)
 
     http_client = DefaultHTTPClient(client, retry_interval=0.1)

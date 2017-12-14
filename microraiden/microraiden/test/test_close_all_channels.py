@@ -18,7 +18,7 @@ def test_close_simple(
         web3: Web3,
         wait_for_blocks
 ):
-    sender = client.core.address
+    sender = client.context.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -53,7 +53,7 @@ def test_close_topup(
         web3: Web3,
         wait_for_blocks
 ):
-    sender = client.core.address
+    sender = client.context.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -89,7 +89,7 @@ def test_close_valid_close(
         web3: Web3,
         wait_for_blocks
 ):
-    sender = client.core.address
+    sender = client.context.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -125,7 +125,7 @@ def test_close_invalid_close(
         web3: Web3,
         wait_for_blocks
 ):
-    sender = client.core.address
+    sender = client.context.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)
@@ -164,7 +164,7 @@ def test_close_settled(
         web3: Web3,
         wait_for_blocks
 ):
-    sender = client.core.address
+    sender = client.context.address
     receiver = channel_manager.receiver
 
     channel = client.open_channel(receiver, 10)

@@ -60,7 +60,7 @@ class DefaultHTTPClient(HTTPClient):
                 channel.block,
                 last_balance,
                 balance_sig,
-                self.client.core.channel_manager.address
+                self.client.context.channel_manager.address
             ),
             channel.sender
         )

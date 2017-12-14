@@ -13,7 +13,7 @@ from microraiden.utils import (
 )
 
 from microraiden.config import CHANNEL_MANAGER_ADDRESS
-from microraiden.client.core import Core
+from microraiden.client.context import Context
 from microraiden.client.channel import Channel
 
 log = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class Client:
         if not web3:
             web3 = Web3(RPCProvider())
 
-        self.core = Core(private_key, web3, channel_manager_address)
+        self.context = Context(private_key, web3, channel_manager_address)
 
         self.sync_channels()
 
@@ -56,24 +56,24 @@ class Client:
         with channel information available on the blockchain to make up for local data loss.
         Naturally, balance signatures cannot be recovered from the blockchain.
         """
-        filters = {'_sender': self.core.address}
+        filters = {'_sender': self.context.address}
         create = get_logs(
-            self.core.channel_manager,
+            self.context.channel_manager,
             'ChannelCreated',
             argument_filters=filters
         )
         topup = get_logs(
-            self.core.channel_manager,
+            self.context.channel_manager,
             'ChannelToppedUp',
             argument_filters=filters
         )
         close = get_logs(
-            self.core.channel_manager,
+            self.context.channel_manager,
             'ChannelCloseRequested',
             argument_filters=filters
         )
         settle = get_logs(
-            self.core.channel_manager,
+            self.context.channel_manager,
             'ChannelSettled',
             argument_filters=filters
         )
@@ -84,7 +84,7 @@ class Client:
             sender = event['args']['_sender']
             receiver = event['args']['_receiver']
             block = event['args'].get('_open_block_number', event['blockNumber'])
-            assert sender == self.core.address
+            assert sender == self.context.address
             return channel_key_to_channel.get((sender, receiver, block), None)
 
         for c in self.channels:
@@ -96,14 +96,14 @@ class Client:
                 c.deposit = e['args']['_deposit']
             else:
                 c = Channel(
-                    self.core,
+                    self.context,
                     e['args']['_sender'],
                     e['args']['_receiver'],
                     e['blockNumber'],
                     e['args']['_deposit'],
                     on_settle=lambda channel: self.channels.remove(channel)
                 )
-                assert c.sender == self.core.address
+                assert c.sender == self.context.address
                 channel_key_to_channel[(c.sender, c.receiver, c.block)] = c
 
         for e in topup:
@@ -138,7 +138,7 @@ class Client:
         assert isinstance(deposit, int)
         assert deposit > 0
 
-        token_balance = self.core.token.call().balanceOf(self.core.address)
+        token_balance = self.context.token.call().balanceOf(self.context.address)
         if token_balance < deposit:
             log.error(
                 'Insufficient tokens available for the specified deposit ({}/{})'
@@ -146,31 +146,31 @@ class Client:
             )
             return None
 
-        current_block = self.core.web3.eth.blockNumber
+        current_block = self.context.web3.eth.blockNumber
         log.info('Creating channel to {} with an initial deposit of {} @{}'.format(
             receiver_address, deposit, current_block
         ))
 
         data = decode_hex(receiver_address)
         tx = create_signed_contract_transaction(
-            self.core.private_key,
-            self.core.token,
+            self.context.private_key,
+            self.context.token,
             'transfer',
             [
-                self.core.channel_manager.address,
+                self.context.channel_manager.address,
                 deposit,
                 data
             ]
         )
-        self.core.web3.eth.sendRawTransaction(tx)
+        self.context.web3.eth.sendRawTransaction(tx)
 
         log.debug('Waiting for channel creation event on the blockchain...')
         filters = {
-            '_sender': self.core.address,
+            '_sender': self.context.address,
             '_receiver': receiver_address
         }
         event = get_event_blocking(
-            self.core.channel_manager,
+            self.context.channel_manager,
             'ChannelCreated',
             from_block=current_block + 1,
             argument_filters=filters
@@ -179,7 +179,7 @@ class Client:
         if event:
             log.debug('Event received. Channel created in block {}.'.format(event['blockNumber']))
             channel = Channel(
-                self.core,
+                self.context,
                 event['args']['_sender'],
                 event['args']['_receiver'],
                 event['blockNumber'],
@@ -200,7 +200,7 @@ class Client:
         """
         return [
             c for c in self.channels
-            if is_same_address(c.sender, self.core.address) and
+            if is_same_address(c.sender, self.context.address) and
             (not receiver or is_same_address(c.receiver, receiver)) and
             c.state == Channel.State.open
         ]

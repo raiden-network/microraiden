@@ -4,8 +4,7 @@ from microraiden.config import CONTRACT_METADATA, TOKEN_ABI_NAME, CHANNEL_MANAGE
 from microraiden.utils import privkey_to_addr
 
 
-class Core():
-    # FIXME: Find a better name for this class.
+class Context(object):
     def __init__(
             self,
             private_key: str,

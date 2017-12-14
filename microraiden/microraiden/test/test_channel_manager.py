@@ -350,7 +350,7 @@ def test_challenge(
     confirmed_open_channel.close()
     # should challenge and immediately settle
     for waited_blocks in count():
-        logs = get_logs(client.core.token, 'Transfer', from_block=block_before - 1)
+        logs = get_logs(client.context.token, 'Transfer', from_block=block_before - 1)
         if logs:
             break
         wait_for_blocks(1)

@@ -4,7 +4,7 @@ from enum import Enum
 from eth_utils import decode_hex, is_same_address
 from typing import Callable
 
-from microraiden.client.core import Core
+from microraiden.client.context import Context
 from microraiden.utils import (
     get_event_blocking,
     create_signed_contract_transaction,
@@ -24,7 +24,7 @@ class Channel:
 
     def __init__(
             self,
-            core: Core,
+            core: Context,
             sender: str,
             receiver: str,
             block: int,
