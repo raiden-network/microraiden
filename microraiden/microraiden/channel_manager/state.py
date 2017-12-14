@@ -267,9 +267,9 @@ class ChannelManagerState(object):
         """Helper function to serialize one row of `channels` table into a channel object
         """
         channel = Channel(self.receiver, result['sender'],
-                          result['deposit'],
+                          int(result['deposit']),
                           result['open_block_number'])
-        channel.balance = result['balance']
+        channel.balance = int(result['balance'])
         channel.state = ChannelState(result['state'])
         channel.last_signature = result['last_signature']
         channel.settle_timeout = result['settle_timeout']

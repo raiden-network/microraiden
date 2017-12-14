@@ -7,7 +7,7 @@ from microraiden.proxy.resources.login import auth
 from eth_utils import encode_hex
 
 from microraiden.channel_manager import Channel, ChannelManager
-from microraiden.exceptions import NoOpenChannel
+from microraiden.exceptions import NoOpenChannel, InvalidBalanceProof
 
 
 class ChannelManagementRoot(Resource):
@@ -150,7 +150,7 @@ class ChannelManagementChannelInfo(Resource):
                 sender_address,
                 opening_block,
                 args.balance)
-        except NoOpenChannel as e:
+        except (NoOpenChannel, InvalidBalanceProof) as e:
             return str(e), 400
         except KeyError:
             return "Channel not found", 404

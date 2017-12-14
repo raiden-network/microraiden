@@ -1,28 +1,14 @@
 import click
 import os
-from flask import make_response
 import logging
 
 from microraiden.click_helpers import main, pass_app
-from microraiden.proxy.content import (
-    PaywalledContent,
-)
 from microraiden.config import TKN_DECIMALS
-from .fortunes import PaywalledFortune
-
-
-def get_doggo(_):
-    doggo_str = """
-         |\_/|
-         | @ @   Woof!
-         |   <>              _
-         |  _/\------____ ((| |))
-         |               `--' |
-     ____|_       ___|   |___.'
-    /_/_____/____/_______|
-    """
-    headers = {"Content-type": 'text/ascii'}
-    return make_response(doggo_str, 200, headers)
+from microraiden.examples.demo_resources import (
+    PaywalledDoggo,
+    PaywalledFortune,
+    PaywalledTeapot
+)
 
 
 @main.command()
@@ -39,11 +25,10 @@ def get_doggo(_):
 @pass_app
 def start(app, host, port):
     fortunes_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../data/fortunes'))
-    app.add_content(PaywalledContent("doggo", 2 * TKN_DECIMALS, get_doggo))
-    app.add_content(PaywalledFortune("wisdom", 1 * TKN_DECIMALS, fortunes_path))
-    app.add_content(PaywalledContent("teapot",
-                                     3 * TKN_DECIMALS,
-                                     lambda _: ("HI I AM A TEAPOT", 418)))
+    app.add_paywalled_resource(PaywalledDoggo, '/doggo.txt', price=2 * TKN_DECIMALS)
+    app.add_paywalled_resource(PaywalledFortune, '/wisdom', 1 * TKN_DECIMALS,
+                               resource_class_args=(fortunes_path,))
+    app.add_paywalled_resource(PaywalledTeapot, '/teapot', 3 * TKN_DECIMALS)
     app.run(host=host, port=port, debug=True)  # nosec
     app.join()
 

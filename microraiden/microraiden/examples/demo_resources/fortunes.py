@@ -1,5 +1,5 @@
 import random
-from microraiden.proxy.content import PaywalledContent
+from microraiden.proxy.resources import Expensive
 from flask import make_response
 import io
 
@@ -29,9 +29,9 @@ class Fortunes:
         return random.choice(self.quotes)  # nosec
 
 
-class PaywalledFortune(PaywalledContent):
-    def __init__(self, path, price, filepath):
-        super(PaywalledFortune, self).__init__(path, price)
+class PaywalledFortune(Expensive):
+    def __init__(self, filepath, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fortunes = Fortunes(filepath)
 
     def get(self, url):

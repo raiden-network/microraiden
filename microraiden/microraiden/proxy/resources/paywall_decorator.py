@@ -119,6 +119,7 @@ class Paywall(object):
         # all ok, return actual content
         resp = method(request.path, *args, **kwargs)
         if isinstance(resp, Response):
+            resp.headers.extend(headers)
             return resp
         else:
             data, code, resource_headers = unpack(resp)
@@ -199,14 +200,9 @@ class Paywall(object):
             "Content-Type": "text/html",
         })
         reply = make_response(reply_data, 402, headers)
-        for hdr in (header.GATEWAY_PATH,
-                    header.CONTRACT_ADDRESS,
-                    header.RECEIVER_ADDRESS,
-                    header.PRICE,
-                    header.NONEXISTING_CHANNEL,
-                    header.TOKEN_ADDRESS):
-            if hdr in headers:
-                reply.set_cookie(hdr, str(headers[hdr]))
+        for k, v in headers.items():
+            if k.startswith('RDN-'):
+                reply.set_cookie(k, str(v))
         return reply
 
 
