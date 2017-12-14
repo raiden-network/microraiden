@@ -190,7 +190,7 @@ class Paywall(object):
             header.CONTRACT_ADDRESS: self.contract_address,
             header.TOKEN_ADDRESS: self.channel_manager.get_token_address(),
             header.PRICE: price,
-            'Content-Type': 'text/json'
+            'Content-Type': 'application/json'
         }
         return headers
 
