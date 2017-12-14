@@ -1,4 +1,5 @@
 import json
+import re
 import types
 from unittest import mock
 
@@ -11,6 +12,7 @@ from requests.exceptions import SSLError
 
 from microraiden import HTTPHeaders
 from microraiden import DefaultHTTPClient
+from microraiden.client import Channel
 from microraiden.test.utils.client import patch_on_http_response
 from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
@@ -537,6 +539,52 @@ def test_requests(
         response = microraiden.requests.get(url)
 
     assert response.text == 'success'
+
+
+def test_cooperative_close_denied(
+        default_http_client: DefaultHTTPClient,
+        api_endpoint_address: str,
+        token_address: str,
+        channel_manager_address: str,
+        receiver_address: str
+):
+    cooperative_close_denied_mock = mock.patch.object(
+        default_http_client,
+        'on_cooperative_close_denied',
+        wraps=default_http_client.on_cooperative_close_denied
+    ).start()
+
+    with requests_mock.mock() as server_mock:
+        headers = {
+            HTTPHeaders.TOKEN_ADDRESS: token_address,
+            HTTPHeaders.CONTRACT_ADDRESS: channel_manager_address,
+            HTTPHeaders.RECEIVER_ADDRESS: receiver_address,
+            HTTPHeaders.PRICE: '3'
+        }
+        headers = [headers.copy() for i in range(2)]
+
+        i = 0
+
+        i += 1
+        headers[i][HTTPHeaders.COST] = '3'
+
+        url = 'http://{}/something'.format(api_endpoint_address)
+        server_mock.get(url, [
+            {'status_code': 402, 'headers': headers[0]},
+            {'status_code': 200, 'headers': headers[1], 'text': 'success'},
+        ])
+        channel_url = re.compile(
+            'http://{}/api/1/channels/0x.{{40}}/\d+'.format(api_endpoint_address)
+        )
+        server_mock.delete(channel_url, [
+            {'status_code': 403}
+        ])
+        response = default_http_client.get(url)
+        default_http_client.close_active_channel('http://' + api_endpoint_address)
+
+    assert response.text == 'success'
+    assert cooperative_close_denied_mock.call_count == 1
+    assert default_http_client.client.channels[0].state == Channel.State.settling
 
 
 def test_error_handling(

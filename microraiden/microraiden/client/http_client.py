@@ -53,8 +53,7 @@ class HTTPClient(object):
         assert url_parts.scheme, 'No protocol scheme specified.'
         return '://'.join(url_parts[:2])
 
-    @staticmethod
-    def close_channel(endpoint_url: str, channel: Channel):
+    def close_channel(self, endpoint_url: str, channel: Channel):
         log.debug(
             'Requesting closing signature from server for balance {} on channel {}/{}/{}.'
             .format(channel.balance, channel.sender, channel.sender, channel.block)
@@ -65,7 +64,7 @@ class HTTPClient(object):
             closing_sig = response.json()['close_signature']
             channel.close_cooperatively(decode_hex(closing_sig))
         else:
-            log.error('No closing signature received: {}'.format(response.text))
+            self.on_cooperative_close_denied(endpoint_url, channel, response)
 
     def get_channel(self, url: str) -> Channel:
         return self.endpoint_to_channel.get(self.get_endpoint(url))
@@ -184,6 +183,10 @@ class HTTPClient(object):
 
     def on_payment_requested(self, method: str, url: str, response: Response, **kwargs):
         return True
+
+    def on_cooperative_close_denied(self, endpoint_url: str, channel: Channel, response: Response):
+        log.warning('No closing signature received. Closing noncooperatively on a balance of 0.')
+        channel.close(0)
 
     def on_http_response(self, method: str, url: str, response: Response, **kwargs):
         """Called whenever server returns a reply.
