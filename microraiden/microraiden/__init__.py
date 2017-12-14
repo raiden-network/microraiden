@@ -7,8 +7,7 @@ import requests # noqa
 
 from .client import (
     Client,
-    HTTPClient,
-    DefaultHTTPClient
+    Session
 )
 
 from .header import (
@@ -17,7 +16,6 @@ from .header import (
 
 __all__ = [
     Client,
-    HTTPClient,
-    DefaultHTTPClient,
+    Session,
     HTTPHeaders
 ]

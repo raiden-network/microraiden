@@ -6,7 +6,7 @@ import gevent
 import click
 import os
 
-from microraiden import Client, DefaultHTTPClient
+from microraiden import Session
 from microraiden.utils import privkey_to_addr
 from microraiden.config import CHANNEL_MANAGER_ADDRESS, TKN_DECIMALS
 from microraiden.proxy import PaywalledProxy
@@ -53,7 +53,7 @@ class ETHTickerClient(ttk.Frame):
     def __init__(
             self,
             sender_privkey: str,
-            httpclient: DefaultHTTPClient = None,
+            session: Session = None,
             poll_interval: float = 5
     ) -> None:
         self.poll_interval = poll_interval
@@ -66,16 +66,14 @@ class ETHTickerClient(ttk.Frame):
         self.pricevar = tkinter.StringVar(value='0.00 USD')
         ttk.Label(self, textvariable=self.pricevar, font=('Helvetica', '72')).pack()
 
-        if httpclient:
-            self.httpclient = httpclient
-            self.client = httpclient.client
-        else:
-            self.client = Client(sender_privkey)
-            self.httpclient = DefaultHTTPClient(
-                self.client,
-                initial_deposit=lambda x: 10 * x,
-                topup_deposit=lambda x: 5 * x
+        if session is None:
+            self.session = Session(
+                private_key=sender_privkey,
+                close_channel_on_exit=True,
+                endpoint_url='http://localhost:5000'
             )
+        else:
+            self.session = session
 
         self.active_query = False
         self.running = False
@@ -90,7 +88,7 @@ class ETHTickerClient(ttk.Frame):
             return
         self.active_query = True
 
-        response = self.httpclient.get('http://localhost:5000/ETHUSD')
+        response = self.session.get('http://localhost:5000/ETHUSD')
         if response:
             price = float(response.json()['last_price'])
             log.info('New price received: {:.2f} USD'.format(price))
@@ -110,7 +108,7 @@ class ETHTickerClient(ttk.Frame):
         while self.active_query:
             gevent.sleep(1)
 
-        self.httpclient.close_active_channel('http://localhost:5000')
+        self.session.close()
 
 
 @click.command()

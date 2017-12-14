@@ -2,7 +2,7 @@ import pytest  # noqa: F401
 from _pytest.monkeypatch import MonkeyPatch
 from flask import jsonify
 
-from microraiden import DefaultHTTPClient
+from microraiden import Session
 from microraiden.examples.eth_ticker import ETHTickerClient, ETHTickerProxy
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 from microraiden.proxy.resources import PaywalledProxyUrl
@@ -11,7 +11,7 @@ from microraiden.proxy.resources import PaywalledProxyUrl
 @pytest.mark.needs_xorg
 def test_eth_ticker(
         empty_proxy: PaywalledProxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         sender_privkey: str,
         receiver_privkey: str,
         monkeypatch: MonkeyPatch
@@ -27,16 +27,16 @@ def test_eth_ticker(
     monkeypatch.setattr(PaywalledProxyUrl, 'get', get_patched)
 
     ETHTickerProxy(receiver_privkey, proxy=empty_proxy)
-    ticker = ETHTickerClient(sender_privkey, httpclient=default_http_client, poll_interval=0.5)
+    ticker = ETHTickerClient(sender_privkey, session=session, poll_interval=0.5)
 
     def post():
         ticker.close()
 
         assert ticker.pricevar.get() == '683.16 USD'
-        client = default_http_client.client
-        assert len(client.get_open_channels()) == 0
+        assert len(session.client.get_open_channels()) == 0
         ticker.success = True
 
+    session.close_channel_on_exit = True
     ticker.success = False
     ticker.root.after(1500, post)
     ticker.run()

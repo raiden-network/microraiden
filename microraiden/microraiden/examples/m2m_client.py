@@ -4,7 +4,7 @@ import logging
 
 import click
 
-from microraiden import DefaultHTTPClient
+from microraiden import Session
 from microraiden.client.channel import Channel
 from microraiden import Client
 
@@ -49,7 +49,7 @@ def run(api_endpoint, api_port, **kwargs):
         key: value for key, value in kwargs.items() if value and key not in exclude_kwargs
     }
     with Client(**kwargs_client) as client:
-        m2mclient = DefaultHTTPClient(client, api_endpoint, api_port)
+        m2mclient = Session(client, api_endpoint, api_port)
         resource = m2mclient.run('doggo.jpg')
         log.info('Response: {}'.format(resource))
 

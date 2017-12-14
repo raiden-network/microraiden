@@ -4,7 +4,7 @@ from eth_utils import is_same_address
 from requests import Response
 
 from microraiden.client import Channel
-from microraiden import Client, DefaultHTTPClient
+from microraiden import Client, Session
 from microraiden.utils import privkey_to_addr, sign_close
 
 
@@ -35,7 +35,7 @@ def close_all_channels_cooperatively(
         close_channel_cooperatively(channel, privkey_receiver, balance)
 
 
-def patch_on_http_response(default_http_client: DefaultHTTPClient, abort_on=[]):
+def patch_on_http_response(default_http_client: Session, abort_on=[]):
     def patched(self, method: str, url: str, response: Response, **kwargs):
         self.last_response = response
         return (response.status_code not in abort_on)

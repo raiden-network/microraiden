@@ -6,13 +6,13 @@ import datetime
 import gevent
 from eth_utils import encode_hex
 
-from microraiden import DefaultHTTPClient
+from microraiden import Session
 
 log = logging.getLogger(__name__)
 
 
 @pytest.mark.skip(reason="it takes too long")
-def test_resource_request(doggo_proxy, default_http_client: DefaultHTTPClient):
+def test_resource_request(doggo_proxy, default_http_client: Session):
     requests = 1000
     default_http_client.initial_deposit = lambda x: (requests + 1) * x
 

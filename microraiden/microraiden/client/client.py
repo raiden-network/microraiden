@@ -28,11 +28,10 @@ class Client:
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
             web3: Web3 = None
     ) -> None:
-        assert private_key or key_path
-        assert not private_key or isinstance(private_key, str)
+        assert private_key is not None or key_path is not None
 
         # Load private key from file if none is specified on command line.
-        if not private_key:
+        if private_key is None:
             private_key = get_private_key(key_path, key_password_path)
             assert private_key is not None
 
@@ -46,9 +45,6 @@ class Client:
         self.context = Context(private_key, web3, channel_manager_address)
 
         self.sync_channels()
-
-    def __enter__(self):
-        return self
 
     def sync_channels(self):
         """

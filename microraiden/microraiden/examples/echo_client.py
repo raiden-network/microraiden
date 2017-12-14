@@ -4,7 +4,7 @@ This is dummy code showing how the minimal app could look like.
 import click
 import re
 from microraiden import Client
-from microraiden import DefaultHTTPClient
+from microraiden import Session
 import logging
 import requests
 
@@ -26,7 +26,7 @@ import requests
 def run(key_path, key_password_path, resource):
     # create the client
     with Client(key_path=key_path, key_password_path=key_password_path) as client:
-        m2mclient = DefaultHTTPClient(
+        m2mclient = Session(
             client,
             'localhost',
             5000

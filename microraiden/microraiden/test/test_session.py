@@ -9,12 +9,12 @@ from eth_utils import encode_hex
 from munch import Munch
 from requests import Response
 from requests.exceptions import SSLError
+from web3 import Web3
 
 from microraiden import HTTPHeaders
-from microraiden import DefaultHTTPClient
+from microraiden import Session
 from microraiden.client import Channel
 from microraiden.test.utils.client import patch_on_http_response
-from microraiden.test.utils.disable_ssl_check import disable_ssl_check
 
 
 def check_response(response: Response):
@@ -22,13 +22,13 @@ def check_response(response: Response):
 
 
 def test_full_cycle_success(
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         api_endpoint_address: str,
         token_address: str,
         channel_manager_address: str,
         receiver_address: str
 ):
-    default_http_client.initial_deposit = lambda x: x
+    session.initial_deposit = lambda x: x
 
     with requests_mock.mock() as server_mock:
         headers1 = Munch()
@@ -48,7 +48,7 @@ def test_full_cycle_success(
             {'status_code': 402, 'headers': headers1},
             {'status_code': 200, 'headers': headers2, 'text': 'success'}
         ])
-        response = default_http_client.get(url)
+        response = session.get(url)
 
     # First cycle, request price.
     request = server_mock.request_history[0]
@@ -63,23 +63,22 @@ def test_full_cycle_success(
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
     assert request.headers['RDN-Balance'] == '7'
 
-    channel = default_http_client.get_channel(url)
-    assert channel.balance == 7
-    balance_sig_hex = encode_hex(channel.balance_sig)
+    assert session.channel.balance == 7
+    balance_sig_hex = encode_hex(session.channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert channel.balance_sig
+    assert session.channel.balance_sig
     assert response.text == 'success'
 
 
 def test_full_cycle_adapt_balance(
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         api_endpoint_address: str,
         token_address: str,
         channel_manager_address: str,
         receiver_address: str
 ):
     # Simulate a lost balance signature.
-    client = default_http_client.client
+    client = session.client
     channel = client.get_suitable_channel(receiver_address, 10, initial_deposit=lambda x: 2 * x)
     channel.create_transfer(3)
     lost_balance_sig = channel.balance_sig
@@ -111,7 +110,7 @@ def test_full_cycle_adapt_balance(
             {'status_code': 200, 'headers': headers3, 'text': 'success'}
         ])
 
-        response = default_http_client.get(url)
+        response = session.get(url)
 
     # First cycle, request price.
     request = server_mock.request_history[0]
@@ -134,22 +133,21 @@ def test_full_cycle_adapt_balance(
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
     assert request.headers['RDN-Balance'] == '10'
 
-    channel = default_http_client.get_channel(url)
-    assert channel.balance == 10
-    balance_sig_hex = encode_hex(channel.balance_sig)
+    assert session.channel.balance == 10
+    balance_sig_hex = encode_hex(session.channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert channel.balance_sig
+    assert session.channel.balance_sig
     assert response.text == 'success'
 
 
 def test_full_cycle_error_500(
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         api_endpoint_address: str,
         token_address: str,
         channel_manager_address: str,
         receiver_address: str
 ):
-    default_http_client.initial_deposit = lambda x: x
+    session.initial_deposit = lambda x: x
 
     with requests_mock.mock() as server_mock:
         headers1 = Munch()
@@ -170,7 +168,7 @@ def test_full_cycle_error_500(
             {'status_code': 500, 'headers': {}},
             {'status_code': 200, 'headers': headers2, 'text': 'success'}
         ])
-        response = default_http_client.get(url)
+        response = session.get(url)
 
     # First cycle, request price.
     request = server_mock.request_history[0]
@@ -185,9 +183,8 @@ def test_full_cycle_error_500(
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
     assert request.headers['RDN-Balance'] == '3'
 
-    channel = default_http_client.get_channel(url)
-    assert channel.balance == 3
-    balance_sig_hex = encode_hex(channel.balance_sig)
+    assert session.channel.balance == 3
+    balance_sig_hex = encode_hex(session.channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
 
     # Third cycle, retry naively.
@@ -196,20 +193,20 @@ def test_full_cycle_error_500(
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
     assert request.headers['RDN-Balance'] == '3'
-    assert channel.balance == 3
+    assert session.channel.balance == 3
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert channel.balance_sig
+    assert session.channel.balance_sig
     assert response.text == 'success'
 
 
 def test_full_cycle_success_post(
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         api_endpoint_address: str,
         token_address: str,
         channel_manager_address: str,
         receiver_address: str
 ):
-    default_http_client.initial_deposit = lambda x: x
+    session.initial_deposit = lambda x: x
 
     with requests_mock.mock() as server_mock:
         headers1 = Munch()
@@ -229,7 +226,7 @@ def test_full_cycle_success_post(
             {'status_code': 402, 'headers': headers1},
             {'status_code': 200, 'headers': headers2, 'text': 'success'}
         ])
-        response = default_http_client.post(url, json={'somefield': 'somevalue'})
+        response = session.post(url, json={'somefield': 'somevalue'})
 
     # First cycle, request price.
     request = server_mock.request_history[0]
@@ -246,22 +243,21 @@ def test_full_cycle_success_post(
     assert request.headers['RDN-Balance'] == '7'
     assert request.json()['somefield'] == 'somevalue'
 
-    channel = default_http_client.get_channel(url)
-    assert channel.balance == 7
-    balance_sig_hex = encode_hex(channel.balance_sig)
+    assert session.channel.balance == 7
+    balance_sig_hex = encode_hex(session.channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert channel.balance_sig
+    assert session.channel.balance_sig
     assert response.text == 'success'
 
 
 def test_custom_headers(
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         api_endpoint_address: str,
         token_address: str,
         channel_manager_address: str,
         receiver_address: str
 ):
-    default_http_client.initial_deposit = lambda x: x
+    session.initial_deposit = lambda x: x
 
     with requests_mock.mock() as server_mock:
         headers1 = Munch()
@@ -281,7 +277,7 @@ def test_custom_headers(
             {'status_code': 402, 'headers': headers1},
             {'status_code': 200, 'headers': headers2, 'text': 'success'}
         ])
-        response = default_http_client.get(url, headers={
+        response = session.get(url, headers={
             'someheader': 'somevalue',
             # This should override the actual balance but doesn't actually make sense.
             'RDN-Balance': '5'
@@ -303,17 +299,16 @@ def test_custom_headers(
     assert request.headers['RDN-Balance'] == '5'
     assert request.headers['someheader'] == 'somevalue'
 
-    channel = default_http_client.get_channel(url)
-    assert channel.balance == 7
-    balance_sig_hex = encode_hex(channel.balance_sig)
+    assert session.channel.balance == 7
+    balance_sig_hex = encode_hex(session.channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert channel.balance_sig
+    assert session.channel.balance_sig
     assert response.text == 'success'
 
 
 def test_cheating_client(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         http_doggo_url: str
 ):
     """this test scenario where client sends less funds than what is requested
@@ -321,7 +316,7 @@ def test_cheating_client(
         be sent in a server's reply
     """
     def patched_payment(
-            self: DefaultHTTPClient,
+            self: Session,
             method: str,
             url: str,
             response: Response,
@@ -330,143 +325,142 @@ def test_cheating_client(
         response.headers[HTTPHeaders.PRICE] = str(
             int(response.headers[HTTPHeaders.PRICE]) + self.price_adjust
         )
-        return DefaultHTTPClient.on_payment_requested(self, method, url, response, **kwargs)
+        return Session.on_payment_requested(self, method, url, response, **kwargs)
 
     def patched_on_invalid_amount(self, method: str, url: str, response: Response, **kwargs):
         self.invalid_amount_received += 1
         price = int(response.headers[HTTPHeaders.PRICE])
-        DefaultHTTPClient.on_invalid_amount(self, method, url, response, **kwargs)
+        Session.on_invalid_amount(self, method, url, response, **kwargs)
         # on_invalid_amount will already prepare the next payment which we don't execute anymore,
         # so revert that.
-        channel = self.get_channel(url)
-        channel.update_balance(channel.balance - price)
+        self.channel.update_balance(self.channel.balance - price)
         return False
 
-    default_http_client.on_invalid_amount = types.MethodType(
+    session.on_invalid_amount = types.MethodType(
         patched_on_invalid_amount,
-        default_http_client
+        session
     )
-    default_http_client.on_payment_requested = types.MethodType(
+    session.on_payment_requested = types.MethodType(
         patched_payment,
-        default_http_client
+        session
     )
 
-    default_http_client.invalid_amount_received = 0
+    session.invalid_amount_received = 0
 
     # correct amount
-    default_http_client.price_adjust = 0
-    response = default_http_client.get(http_doggo_url)
+    session.price_adjust = 0
+    response = session.get(http_doggo_url)
     check_response(response)
-    assert default_http_client.invalid_amount_received == 0
+    assert session.invalid_amount_received == 0
     # underpay
-    default_http_client.price_adjust = -1
-    response = default_http_client.get(http_doggo_url)
+    session.price_adjust = -1
+    response = session.get(http_doggo_url)
     assert response is None
-    assert default_http_client.invalid_amount_received == 1
+    assert session.invalid_amount_received == 1
     # overpay
-    default_http_client.price_adjust = 1
-    response = default_http_client.get(http_doggo_url)
+    session.price_adjust = 1
+    response = session.get(http_doggo_url)
     assert response is None
-    assert default_http_client.invalid_amount_received == 2
+    assert session.invalid_amount_received == 2
 
 
-def test_default_http_client(
+def test_session(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         sender_address: str,
         receiver_address: str,
         http_doggo_url: str
 ):
-    check_response(default_http_client.get(http_doggo_url))
+    check_response(session.get(http_doggo_url))
 
-    client = default_http_client.client
+    client = session.client
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
 
     channel = open_channels[0]
-    assert channel == default_http_client.get_channel(http_doggo_url)
+    assert channel == session.channel
     assert channel.balance_sig
     assert channel.balance < channel.deposit
     assert channel.sender == sender_address
     assert channel.receiver == receiver_address
 
 
-def test_default_http_client_topup(
+def test_session_topup(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         http_doggo_url: str
 ):
 
     # Create a channel that has just enough capacity for one transfer.
-    default_http_client.initial_deposit = lambda x: 0
-    check_response(default_http_client.get(http_doggo_url))
+    session.initial_deposit = lambda x: 0
+    check_response(session.get(http_doggo_url))
 
-    client = default_http_client.client
+    client = session.client
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
     channel1 = open_channels[0]
-    assert channel1 == default_http_client.get_channel(http_doggo_url)
+    assert channel1 == session.channel
     assert channel1.balance_sig
     assert channel1.balance == channel1.deposit
 
     # Do another payment. Topup should occur.
-    check_response(default_http_client.get(http_doggo_url))
+    check_response(session.get(http_doggo_url))
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
     channel2 = open_channels[0]
-    assert channel2 == default_http_client.get_channel(http_doggo_url)
+    assert channel2 == session.channel
     assert channel2.balance_sig
     assert channel2.balance < channel2.deposit
     assert channel1 == channel2
 
 
-def test_default_http_client_close(
+def test_session_close(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         http_doggo_url: str
 ):
-    client = default_http_client.client
-    check_response(default_http_client.get(http_doggo_url))
-    default_http_client.close_active_channel(http_doggo_url)
+    client = session.client
+    check_response(session.get(http_doggo_url))
+    session.close_channel()
     open_channels = client.get_open_channels()
     assert len(open_channels) == 0
 
 
-def test_default_http_client_existing_channel(
+def test_session_existing_channel(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         receiver_address: str,
         http_doggo_url: str
 ):
-    client = default_http_client.client
+    client = session.client
     channel = client.open_channel(receiver_address, 50)
-    check_response(default_http_client.get(http_doggo_url))
+    check_response(session.get(http_doggo_url))
     assert channel.balance == 2
     assert channel.deposit == 50
 
 
-def test_default_http_client_existing_channel_topup(
+def test_session_existing_channel_topup(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         receiver_address: str,
         http_doggo_url: str
 ):
-    client = default_http_client.client
-    default_http_client.topup_deposit = lambda x: 13
+    client = session.client
+    session.topup_deposit = lambda x: 13
     channel = client.open_channel(receiver_address, 1)
-    check_response(default_http_client.get(http_doggo_url))
+    check_response(session.get(http_doggo_url))
     assert channel.balance == 2
     assert channel.deposit == 13
 
 
 def test_coop_close(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         http_doggo_url: str
 ):
-    check_response(default_http_client.get(http_doggo_url))
+    check_response(session.get(http_doggo_url))
 
-    client = default_http_client.client
+    client = session.client
     open_channels = client.get_open_channels()
     assert len(open_channels) == 1
 
@@ -487,34 +481,35 @@ def test_coop_close(
 @pytest.mark.parametrize('proxy_ssl', [1])
 def test_ssl_client(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         https_doggo_url: str
 ):
-    with disable_ssl_check():
-        check_response(default_http_client.get(https_doggo_url))
     with pytest.raises(SSLError):
-        check_response(default_http_client.get(https_doggo_url))
+        check_response(session.get(https_doggo_url))
+    check_response(session.get(https_doggo_url, verify=False))
 
 
 def test_status_codes(
         doggo_proxy,
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         http_doggo_url: str
 ):
-    patch_on_http_response(default_http_client, abort_on=[404])
-    default_http_client.get(http_doggo_url)
-    assert default_http_client.last_response.status_code == 200
-    default_http_client.get(http_doggo_url[:-1])
-    assert default_http_client.last_response.status_code == 404
+    patch_on_http_response(session, abort_on=[404])
+    session.get(http_doggo_url)
+    assert session.last_response.status_code == 200
+    session.get(http_doggo_url[:-1])
+    assert session.last_response.status_code == 404
 
 
 def test_requests(
-    init_microraiden_requests,
-    revert_chain,
+    patched_contract,
+    web3: Web3,
+    sender_privkey: str,
     api_endpoint_address: str,
     token_address: str,
     channel_manager_address: str,
-    receiver_address: str
+    receiver_address: str,
+    revert_chain
 ):
     import microraiden.requests
 
@@ -536,22 +531,28 @@ def test_requests(
             {'status_code': 402, 'headers': headers1},
             {'status_code': 200, 'headers': headers2, 'text': 'success'}
         ])
-        response = microraiden.requests.get(url)
+        response = microraiden.requests.get(
+            url,
+            retry_interval=0.1,
+            private_key=sender_privkey,
+            web3=web3,
+            channel_manager_address=channel_manager_address
+        )
 
     assert response.text == 'success'
 
 
 def test_cooperative_close_denied(
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         api_endpoint_address: str,
         token_address: str,
         channel_manager_address: str,
         receiver_address: str
 ):
     cooperative_close_denied_mock = mock.patch.object(
-        default_http_client,
+        session,
         'on_cooperative_close_denied',
-        wraps=default_http_client.on_cooperative_close_denied
+        wraps=session.on_cooperative_close_denied
     ).start()
 
     with requests_mock.mock() as server_mock:
@@ -575,40 +576,40 @@ def test_cooperative_close_denied(
         server_mock.delete(channel_url, [
             {'status_code': 403}
         ])
-        response = default_http_client.get(url)
-        default_http_client.close_active_channel('http://' + api_endpoint_address)
+        response = session.get(url)
+        session.close_channel()
 
     assert response.text == 'success'
     assert cooperative_close_denied_mock.call_count == 1
-    assert default_http_client.client.channels[0].state == Channel.State.settling
+    assert session.client.channels[0].state == Channel.State.settling
 
 
 def test_error_handling(
-        default_http_client: DefaultHTTPClient,
+        session: Session,
         api_endpoint_address: str,
         token_address: str,
         channel_manager_address: str,
         receiver_address: str
 ):
     nonexisting_channel_mock = mock.patch.object(
-        default_http_client,
+        session,
         'on_nonexisting_channel',
-        wraps=default_http_client.on_nonexisting_channel
+        wraps=session.on_nonexisting_channel
     ).start()
     insufficient_confirmations_mock = mock.patch.object(
-        default_http_client,
+        session,
         'on_insufficient_confirmations',
-        wraps=default_http_client.on_insufficient_confirmations
+        wraps=session.on_insufficient_confirmations
     ).start()
     insufficient_funds_mock = mock.patch.object(
-        default_http_client,
+        session,
         'on_insufficient_funds',
-        wraps=default_http_client.on_insufficient_funds
+        wraps=session.on_insufficient_funds
     ).start()
     invalid_contract_address_mock = mock.patch.object(
-        default_http_client,
+        session,
         'on_invalid_contract_address',
-        wraps=default_http_client.on_invalid_contract_address
+        wraps=session.on_invalid_contract_address
     ).start()
 
     with requests_mock.mock() as server_mock:
@@ -632,7 +633,7 @@ def test_error_handling(
             {'status_code': 402, 'headers': headers[3]},
             {'status_code': 402, 'headers': headers[4]}
         ])
-        response = default_http_client.get(url)
+        response = session.get(url)
 
     assert response is None
     assert nonexisting_channel_mock.call_count == 1
