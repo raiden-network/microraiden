@@ -122,6 +122,16 @@ class Deferred<T> {
 }
 
 /**
+ * Async sleep: returns a promise which will resolve after timeout
+ *
+ * @param timeout  Timeout before promise is resolved, in milliseconds
+ * @returns  Promise which will be resolved after timeout
+ */
+function asyncSleep(timeout: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, timeout));
+}
+
+/**
  * Encode strings and numbers as hex, left-padded, if required.
  *
  * 0x prefix not added,
@@ -242,29 +252,23 @@ export class MicroRaiden {
    * @returns  Promise to mined receipt of transaction */
   private async waitTx(txHash: string, confirmations?: number): Promise<Web3.TransactionReceipt> {
     confirmations = +confirmations || 0;
-
-    const defer = new Deferred<Web3.TransactionReceipt>();
     const blockStart = await promisify<number>(this.web3.eth, 'getBlockNumber')();
 
-    const intervalId = setInterval(async () => {
+    do {
       const [ receipt, block ] = await Promise.all([
         await promisify<Web3.TransactionReceipt>(this.web3.eth, 'getTransactionReceipt')(txHash),
         await promisify<number>(this.web3.eth, 'getBlockNumber')(),
       ]);
+
       if (!receipt || !receipt.blockNumber) {
         console.log('Waiting tx..', block - blockStart);
-        return;
       } else if (block - receipt.blockNumber < confirmations) {
         console.log('Waiting confirmations...', block - receipt.blockNumber);
-        return;
+      } else {
+        return receipt;
       }
-
-      // Tx is finished
-      clearInterval(intervalId);
-      return defer.resolve(receipt);
-    }, 2e3); // poll every 2secs
-
-    return defer.promise;
+      await asyncSleep(2e3);
+    } while (true);
   }
 
   /**
@@ -280,6 +284,8 @@ export class MicroRaiden {
       this.contract.challenge_period,
       'call'
     )()).toNumber();
+    if (!(this.challenge > 0))
+      throw new Error('Invalid challenge');
     return this.challenge;
   }
 

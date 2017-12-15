@@ -45,7 +45,10 @@ function pageReady(contractABI, tokenABI) {
     autoSign = !!_autoSign;
 
     $accounts.empty();
-    uraiden.getAccounts()
+    // use challenge period to assert configured channel
+    // is valid in current provider's network
+    uraiden.getChallengePeriod()
+      .then(function() { return uraiden.getAccounts(); })
       .then(function(accounts) {
         if (!accounts || !accounts.length) {
           throw new Error('No account');
@@ -60,7 +63,10 @@ function pageReady(contractABI, tokenABI) {
         });
       })
       .catch(function(err) {
-        mainSwitch("#no_accounts");
+        if (err.message && err.message.includes('account'))
+          mainSwitch("#no_accounts");
+        else
+          mainSwitch("#invalid_contract");
         // retry after 1s
         setTimeout(refreshAccounts, 1000);
       });
