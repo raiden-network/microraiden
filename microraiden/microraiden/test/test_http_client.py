@@ -574,21 +574,11 @@ def test_error_handling(
             HTTPHeaders.RECEIVER_ADDRESS: receiver_address,
             HTTPHeaders.PRICE: '3'
         }
-        headers = [headers.copy() for i in range(5)]
-
-        i = 0
-
-        i += 1
-        headers[i][HTTPHeaders.NONEXISTING_CHANNEL] = '1'
-
-        i += 1
-        headers[i][HTTPHeaders.INSUF_CONFS] = '1'
-
-        i += 1
-        headers[i][HTTPHeaders.INSUF_FUNDS] = '1'
-
-        i += 1
-        headers[i][HTTPHeaders.CONTRACT_ADDRESS] = '0x' + '12' * 20
+        headers = [headers.copy() for _ in range(5)]
+        headers[1][HTTPHeaders.NONEXISTING_CHANNEL] = '1'
+        headers[2][HTTPHeaders.INSUF_CONFS] = '1'
+        headers[3][HTTPHeaders.INSUF_FUNDS] = '1'
+        headers[4][HTTPHeaders.CONTRACT_ADDRESS] = '0x' + '12' * 20
 
         url = 'http://{}/something'.format(api_endpoint_address)
         server_mock.get(url, [
