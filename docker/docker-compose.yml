@@ -1,24 +1,24 @@
 version: '2'
 services:
     web3:
-        image: parity/parity:v1.8.3
+        image: parity/parity:v1.8.4
+        restart: always
         volumes:
-            - ~/.local/share/io.parity.ethereum:/mnt
+            - ~/.local/share/io.parity.ethereum.ropsten:/mnt
         ports:
             - "127.0.0.1:8080:8080"
             - "127.0.0.1:8180:8180"
             - "127.0.0.1:8545:8545"
             - "127.0.0.1:8546:8546"
-            - "172.17.0.1:8545:8545"
-            - "172.17.0.1:8180:8180"
         logging:
             options:
                 max-file: "1"
                 max-size: "1g"
-        command: --base-path /mnt --unsafe-expose --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --rpcaddr 0.0.0.0
+        command: --base-path /mnt --chain ropsten --geth --no-warp --unsafe-expose --ntp-servers pool.ntp.org
 
     nginx:
         build: ./nginx
+        restart: always
         ports:
             - "80:80"
             - "443:443"
@@ -26,11 +26,11 @@ services:
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
             - ./letsencrypt/etc:/etc/letsencrypt:ro
             - ./letsencrypt/html:/tmp/letsencrypt:ro
-            - ../microraiden/microraiden/webui:/app/web/html:ro
-            - ./uwsgi/app/web/:/app/web/landing:ro
+            - ../microraiden/microraiden/webui/:/app/web/:ro
+            - ./uwsgi/:/app/landing/:ro
         links:
-            - uwsgi
-        #network_mode: bridge
+            - demo
+            - wikidemo
         logging:
             options:
                 max-file: "1"
@@ -38,11 +38,11 @@ services:
         environment:
             - LE_RENEW_HOOK=docker kill -s HUP @CONTAINER_NAME@
 
-    uwsgi:
+    demo:
         build: ./uwsgi
+        restart: always
         volumes:
-            - ./uwsgi/app:/app:ro
-            - ./uwsgi/files:/files
+            - ./files/demo/:/home/user/.config/microraiden
             - ../microraiden/microraiden:/app/microraiden:ro
             - ../key.json:/tmp/key.json:ro
             - ../pw.txt:/tmp/password.txt:ro
@@ -50,20 +50,29 @@ services:
             options:
                 max-file: "1"
                 max-size: "1g"
-        #network_mode: bridge
-        #external_links:
-        #    - microraiden_web3_1:web3
+        entrypoint: python3
         command:
-            - --gevent
-            - "100"
-            - --module
-            - app:app
+            - -m
+            - microraiden.examples.demo_proxy
+            - --rpc-provider
+            - "http://web3:8545"
+            - --private-key
+            - "/tmp/key.json"
+            - --private-key-password-file
+            - "/tmp/password.txt"
+            - --channel-manager-address
+            - "0x6c4A0f93a21fb711adA78F68083577ab541b9620"
+            - start
+            - --host
+            - "0.0.0.0"
+            - --port
+            - "9000"
 
-    uwsgi_wiki:
+    wikidemo:
         build: ./uwsgi
+        restart: always
         volumes:
-            - ./uwsgi_wiki/app:/app:ro
-            - ./uwsgi_wiki/files:/files
+            - ./files/wikidemo/:/home/user/.config/microraiden
             - ../microraiden/microraiden:/app/microraiden:ro
             - ../key.json:/tmp/key.json:ro
             - ../pw.txt:/tmp/password.txt:ro
@@ -71,14 +80,23 @@ services:
             options:
                 max-file: "1"
                 max-size: "1g"
-        #network_mode: bridge
-        #external_links:
-        #    - microraiden_web3_1:web3
+        entrypoint: python3
         command:
-            - --gevent
-            - "100"
-            - --module
-            - app:app
+            - -m
+            - microraiden.examples.wikipaydia
+            - --rpc-provider
+            - http://web3:8545
+            - --private-key
+            - /tmp/key.json
+            - --private-key-password-file
+            - /tmp/password.txt
+            - --channel-manager-address
+            - "0x6c4A0f93a21fb711adA78F68083577ab541b9620"
+            - start
+            - --host
+            - "0.0.0.0"
+            - --port
+            - "9000"
 
     letsencrypt:
         image: kvaps/letsencrypt-webroot

@@ -1,7 +1,8 @@
 import random
 from microraiden.proxy.resources import Expensive
-from flask import make_response
+from flask import make_response, request, render_template_string
 import io
+import os
 
 import logging
 log = logging.getLogger(__name__)
@@ -33,7 +34,24 @@ class PaywalledFortune(Expensive):
     def __init__(self, filepath, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fortunes = Fortunes(filepath)
+        with open(os.path.join(os.path.dirname(__file__), 'templates', 'fortunes.html')) as fp:
+            self.template = fp.read()
 
     def get(self, url):
-        headers = {'Content-Type': 'text/plain; charset=utf-8'}
-        return make_response(self.fortunes.get(), 200, headers)
+        fortune = self.fortunes.get()
+        if 'text/html' in request.accept_mimetypes:
+            if '―' in fortune:
+                fortune, author = [f.strip() for f in fortune.rsplit('―', 1)]
+            else:
+                fortune, author = fortune, ''
+            fortune = fortune.replace('\n', ' ').strip()
+            headers = {'Content-Type': 'text/html; charset=utf-8'}
+            return render_template_string(
+                self.template,
+                fortune=fortune,
+                author=author,
+                back_url='/',
+            ), 200, headers
+        else:
+            headers = {'Content-Type': 'text/plain; charset=utf-8'}
+            return make_response(fortune, 200, headers)
