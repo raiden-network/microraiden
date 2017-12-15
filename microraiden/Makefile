@@ -11,3 +11,9 @@ ssl_cert:
 
 flake8:
 	flake8 microraiden/
+
+clean:
+	python setup.py clean --all
+
+mrproper:
+	rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info
