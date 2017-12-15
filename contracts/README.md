@@ -215,7 +215,7 @@ bytes32 balance_message_hash = keccak256(
   keccak256(_receiver_address, _open_block_number, _balance, address(this))
 );
 
-# balance_message_hash is signed by the Sender with MetaMasky
+# balance_message_hash is signed by the Sender with MetaMask
 balance_msg_sig
 
 # Data is sent to the Receiver (receiver, open_block_number, balance, balance_msg_sig)
