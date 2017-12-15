@@ -1,4 +1,3 @@
-import pytest
 import time
 import logging
 import datetime
@@ -11,24 +10,23 @@ from microraiden import Session
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.skip(reason="it takes too long")
-def test_resource_request(doggo_proxy, default_http_client: Session):
-    requests = 1000
-    default_http_client.initial_deposit = lambda x: (requests + 1) * x
+def test_resource_request(doggo_proxy, http_doggo_url: str, session: Session):
+    n_requests = 10
+    session.initial_deposit = lambda x: (n_requests + 1) * x
 
     # First transfer creates channel on-chain => exclude from profiling.
-    response = default_http_client.run('doggo.jpg')
-    assert response.decode().strip() == '"HI I AM A DOGGO"'
+    response = session.get(http_doggo_url)
+    assert response.text == 'HI I AM A DOGGO'
 
     t_start = time.time()
-    for i in range(requests):
+    for i in range(n_requests):
         log.debug('Transfer {}'.format(i))
-        response = default_http_client.run('doggo.jpg')
-        assert response.decode().strip() == '"HI I AM A DOGGO"'
+        response = session.get(http_doggo_url)
+        assert response.text == 'HI I AM A DOGGO'
     t_diff = time.time() - t_start
 
     log.info("{} requests in {} ({} rps)".format(
-        requests, datetime.timedelta(seconds=t_diff), requests / t_diff)
+        n_requests, datetime.timedelta(seconds=t_diff), n_requests / t_diff)
     )
 
 
