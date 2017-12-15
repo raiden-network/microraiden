@@ -66,10 +66,11 @@ function pageReady(contractABI, tokenABI) {
       });
   }
 
-  function signRetry() {
+  function signRetry(amount) {
     autoSign = false;
-    uraiden.incrementBalanceAndSign(uRaidenParams.amount)
+    uraiden.incrementBalanceAndSign(!isNaN(amount) ? amount : uRaidenParams.amount)
       .then(function(proof) {
+        uraiden.confirmPayment(proof);
         $('.channel_present_sign').removeClass('green-btn')
         console.log("SIGNED!", proof);
         Cookies.set("RDN-Sender-Address", uraiden.channel.account);
@@ -78,13 +79,7 @@ function pageReady(contractABI, tokenABI) {
         Cookies.set("RDN-Balance-Signature", proof.sign);
         Cookies.remove("RDN-Nonexisting-Channel");
         mainSwitch("#channel_loading");
-        $.get(location.href).then(function(data, status, xhr) {
-          uraiden.confirmPayment(proof);
-          $('html').html(data);
-        }, function(xhr, status, error) {
-          errorDialog("An error ocurred re-sending request", xhr.statusText);
-          refreshAccounts();
-        });
+        location.reload();
       })
       .catch(function(err) {
         if (err.message && err.message.includes('Insuficient funds')) {
@@ -126,60 +121,78 @@ function pageReady(contractABI, tokenABI) {
     var account = $event.target.value;
 
     uraiden.loadStoredChannel(account, uRaidenParams.receiver);
-
-    uraiden.getTokenInfo(account)
-      .then(function(token) {
-        $('.tkn-name').text(token.name);
-        $('.tkn-symbol').text(token.symbol);
-        $('.tkn-balance').attr("value", uraiden.tkn2num(token.balance) + ' ' + token.symbol);
-        $('.tkn-decimals')
-          .attr("min", Math.pow(10, -token.decimals).toFixed(token.decimals));
-        $("#amount").text(uraiden.tkn2num(uRaidenParams["amount"]));
-
-        if (uraiden.isChannelValid() &&
-            uraiden.channel.account === $event.target.value &&
-            uraiden.channel.receiver === uRaidenParams.receiver) {
-
-          return uraiden.getChannelInfo()
-            .then(function(info) {
-              if (Cookies.get("RDN-Nonexisting-Channel")) {
-                Cookies.remove("RDN-Nonexisting-Channel");
-                window.alert("Server won't accept this channel.\n" +
-                  "Please, close+settle+forget, and open a new channel");
-                $('#channel_present .channel_present_sign').attr("disabled", true);
-                autoSign = false;
-              }
-              return info;
-            })
-            .catch(function(err) {
-              console.error(err);
-              return { state: "error", deposit: uraiden.num2tkn(0) };
-            })
-            .then(function(info) {
-              $('#channel_present .on-state.on-state-' + info.state).show();
-              $('#channel_present .on-state:not(.on-state-'+ info.state + ')').hide();
-
-              var remaining = 0;
-              if (info.deposit.gt(0) && uraiden.channel && uraiden.channel.proof
-                  && uraiden.channel.proof.balance.isFinite()) {
-                remaining = info.deposit.sub(uraiden.channel.proof.balance);
-              }
-              $("#channel_present #channel_present_balance").text(uraiden.tkn2num(remaining));
-              $("#channel_present #channel_present_deposit").attr(
-                "value", uraiden.tkn2num(info.deposit));
-              $(".btn-bar").show()
-              if (info.state === 'opened' && autoSign) {
-                signRetry();
-              }
-              mainSwitch("#channel_present");
-            });
-        } else {
-          mainSwitch("#channel_missing");
-        }
-      })
-      .catch(function(err) {
-         console.error('Error getting token info', err);
+    if (uraiden.isChannelValid() && Cookies.get("RDN-Balance-Signature")) {
+      uraiden.verifyProof({
+        balance: new microraiden.BigNumber(Cookies.get("RDN-Sender-Balance")),
+        sign: Cookies.get("RDN-Balance-Signature"),
       });
+    }
+
+    (uraiden.isChannelValid() ?
+      Promise.reject(uraiden.channel) :
+      uraiden.loadChannelFromBlockchain(account, uRaidenParams.receiver)
+    ).then(
+      function() { // resolved == loadFromBlockchain successful, retry page with balance=0
+        signRetry(0);
+        throw new Error('loadChannelFromBlockchain successful');
+      },
+      function() { // rejected == isChannelValid or loadChannelFromBlockchain didn't find anything,
+        // continue normal loading, for channel creation
+        return uraiden.getTokenInfo(account);
+      }
+    ).then(function(token) {
+      $('.tkn-name').text(token.name);
+      $('.tkn-symbol').text(token.symbol);
+      $('.tkn-balance').attr("value", uraiden.tkn2num(token.balance) + ' ' + token.symbol);
+      $('.tkn-decimals')
+        .attr("min", Math.pow(10, -token.decimals).toFixed(token.decimals));
+      $("#amount").text(uraiden.tkn2num(uRaidenParams["amount"]));
+
+      if (uraiden.isChannelValid() &&
+          uraiden.channel.account === $event.target.value &&
+          uraiden.channel.receiver === uRaidenParams.receiver) {
+
+        return uraiden.getChannelInfo()
+          .then(function(info) {
+            if (Cookies.get("RDN-Nonexisting-Channel")) {
+              Cookies.remove("RDN-Nonexisting-Channel");
+              window.alert("Server won't accept this channel.\n" +
+                "Please, close+settle+forget, and open a new channel");
+              $('#channel_present .channel_present_sign').attr("disabled", true);
+              autoSign = false;
+            }
+            return info;
+          })
+          .catch(function(err) {
+            console.error(err);
+            return { state: "error", deposit: uraiden.num2tkn(0) };
+          })
+          .then(function(info) {
+            $('#channel_present .on-state.on-state-' + info.state).show();
+            $('#channel_present .on-state:not(.on-state-'+ info.state + ')').hide();
+
+            var remaining = 0;
+            if (info.deposit.gt(0) && uraiden.channel && uraiden.channel.proof
+                && uraiden.channel.proof.balance.isFinite()) {
+              remaining = info.deposit.sub(uraiden.channel.proof.balance);
+            }
+            $("#channel_present #channel_present_balance").text(uraiden.tkn2num(remaining));
+            $("#channel_present #channel_present_deposit").attr(
+              "value", uraiden.tkn2num(info.deposit));
+            $(".btn-bar").show()
+            if (info.state === 'opened' && autoSign) {
+              signRetry();
+            }
+            mainSwitch("#channel_present");
+          });
+      } else {
+        mainSwitch("#channel_missing");
+      }
+    },
+    function(err) {
+      console.error('Error getting token info', err);
+      throw err;
+    });
   });
 
   $("#channel_missing_deposit").bind("input", function($event) {
