@@ -2,11 +2,11 @@ from flask_restful import Resource, reqparse
 import json
 from collections import defaultdict
 
-from microraiden.crypto import sign_close
+from microraiden.utils import sign_close
 from microraiden.proxy.resources.login import auth
 from eth_utils import encode_hex
 
-from microraiden.channel_manager import Channel
+from microraiden.channel_manager import Channel, ChannelManager
 from microraiden.exceptions import NoOpenChannel
 
 
@@ -17,7 +17,7 @@ class ChannelManagementRoot(Resource):
 
 
 class ChannelManagementStats(Resource):
-    def __init__(self, channel_manager):
+    def __init__(self, channel_manager: ChannelManager):
         super(ChannelManagementStats, self).__init__()
         self.channel_manager = channel_manager
 
@@ -32,7 +32,7 @@ class ChannelManagementStats(Resource):
                 pending_channels.append(v)
             else:
                 open_channels.append(v)
-        contract_address = self.channel_manager.contract_proxy.contract.address
+        contract_address = self.channel_manager.channel_manager_contract.address
         return {'balance_sum': self.channel_manager.get_locked_balance(),
                 'deposit_sum': deposit_sum,
                 'open_channels': len(open_channels),
@@ -42,13 +42,13 @@ class ChannelManagementStats(Resource):
                 'token_address': self.channel_manager.token_contract.address,
                 'contract_address': contract_address,
                 'receiver_address': self.channel_manager.receiver,
-                'manager_abi': self.channel_manager.contract_proxy.abi,
+                'manager_abi': self.channel_manager.channel_manager_contract.abi,
                 'token_abi': self.channel_manager.token_contract.abi
                 }
 
 
 class ChannelManagementListChannels(Resource):
-    def __init__(self, channel_manager):
+    def __init__(self, channel_manager: ChannelManager):
         super(ChannelManagementListChannels, self).__init__()
         self.channel_manager = channel_manager
 

@@ -1,20 +1,14 @@
+import getpass
+import json
+import logging
+
 import os
 import stat
-import json
-import getpass
-import logging
+
+from eth_utils import is_hex, decode_hex, encode_hex
 from ethereum import keys
-from eth_utils import (
-    decode_hex,
-    encode_hex,
-    is_hex,
-)
 
 log = logging.getLogger(__name__)
-
-
-def parse_balance_proof_msg(proxy, receiver, open_block_number, balance, signature):
-    return proxy.verifyBalanceProof(receiver, open_block_number, balance, signature)
 
 
 def check_permission_safety(path):

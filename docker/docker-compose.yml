@@ -1,7 +1,7 @@
 version: '2'
 services:
-    parity:
-        image: parity/parity:nightly
+    web3:
+        image: parity/parity:v1.8.3
         volumes:
             - ~/.local/share/io.parity.ethereum:/mnt
         ports:
@@ -15,7 +15,7 @@ services:
             options:
                 max-file: "1"
                 max-size: "1g"
-        command: --base-path /mnt --unsafe-expose --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --rpcaddr 0.0.0.0  
+        command: --base-path /mnt --unsafe-expose --geth --chain kovan --force-ui --reseal-min-period 0 --jsonrpc-cors http://localhost --jsonrpc-apis web3,eth,net,parity,traces,rpc,personal --rpcaddr 0.0.0.0
 
     nginx:
         build: ./nginx
@@ -28,10 +28,9 @@ services:
             - ./letsencrypt/html:/tmp/letsencrypt:ro
             - ../microraiden/microraiden/webui:/app/web/html:ro
             - ./uwsgi/app/web/:/app/web/landing:ro
-            - ./files:/app/files:ro
-            - ./files/tmp:/app/files/tmp
         links:
             - uwsgi
+        #network_mode: bridge
         logging:
             options:
                 max-file: "1"
@@ -41,17 +40,45 @@ services:
 
     uwsgi:
         build: ./uwsgi
-        depends_on:
-            - parity
         volumes:
             - ./uwsgi/app:/app:ro
-            - ./files:/files
-            - ./uwsgi/app.ini:/app.ini:ro
-            - ../microraiden/microraiden/:/app/microraiden:ro
+            - ./uwsgi/files:/files
+            - ../microraiden/microraiden:/app/microraiden:ro
+            - ../key.json:/tmp/key.json:ro
+            - ../pw.txt:/tmp/password.txt:ro
         logging:
             options:
                 max-file: "1"
                 max-size: "1g"
+        #network_mode: bridge
+        #external_links:
+        #    - microraiden_web3_1:web3
+        command:
+            - --gevent
+            - "100"
+            - --module
+            - app:app
+
+    uwsgi_wiki:
+        build: ./uwsgi
+        volumes:
+            - ./uwsgi_wiki/app:/app:ro
+            - ./uwsgi_wiki/files:/files
+            - ../microraiden/microraiden:/app/microraiden:ro
+            - ../key.json:/tmp/key.json:ro
+            - ../pw.txt:/tmp/password.txt:ro
+        logging:
+            options:
+                max-file: "1"
+                max-size: "1g"
+        #network_mode: bridge
+        #external_links:
+        #    - microraiden_web3_1:web3
+        command:
+            - --gevent
+            - "100"
+            - --module
+            - app:app
 
     letsencrypt:
         image: kvaps/letsencrypt-webroot
@@ -62,7 +89,7 @@ services:
         links:
             - nginx
         environment:
-            - DOMAINS=demo.micro.raiden.network
+            - DOMAINS=demo.micro.raiden.network wikidemo.micro.raiden.network
             - EMAIL=info@brainbot.com
             - WEBROOT_PATH=/tmp/letsencrypt
             - EXP_LIMIT=30

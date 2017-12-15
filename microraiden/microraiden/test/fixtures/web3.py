@@ -4,19 +4,17 @@ import gevent
 import types
 
 import rlp
+from _pytest.monkeypatch import MonkeyPatch
 from eth_utils import decode_hex
 from ethereum.transactions import Transaction
 import ethereum.tester
 from populus.wait import Wait
 
-from microraiden.contract_proxy import (
-    ChannelContractProxy,
-    ContractProxy,
-)
 from web3 import Web3, EthereumTesterProvider
+from web3.contract import Contract
 from web3.providers.rpc import RPCProvider
 
-from microraiden.crypto import (
+from microraiden.utils import (
     addr_from_sig,
     keccak256,
 )
@@ -24,11 +22,11 @@ from microraiden.test.config import (
     CHANNEL_MANAGER_ADDRESS,
     FAUCET_ADDRESS,
     FAUCET_PRIVKEY,
-    GAS_PRICE,
-    GAS_LIMIT,
     FAUCET_ALLOWANCE,
     INITIAL_TOKEN_SUPPLY
 )
+from microraiden.utils.contract import DEFAULT_TIMEOUT, DEFAULT_RETRY_INTERVAL
+import microraiden.utils.contract
 
 
 @pytest.fixture(scope='session')
@@ -55,23 +53,8 @@ def deploy_token_contract(web3, deployer_address, token_abi, token_bytecode):
     return token
 
 
-def deploy_channel_manager_contract(
-        web3,
-        deployer_address,
-        channel_manager_abi,
-        channel_manager_bytecode,
-        token_contract_address
-):
-    ChannelManager = web3.eth.contract(abi=channel_manager_abi, bytecode=channel_manager_bytecode)
-    txhash = ChannelManager.deploy({'from': deployer_address}, args=[token_contract_address, 30])
-    contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
-    web3.testing.mine(1)
-
-    return ChannelManager(contract_address)
-
-
 @pytest.fixture(scope='session')
-def token_contract_address(
+def token_address(
         use_tester,
         web3,
         deployer_address,
@@ -83,23 +66,44 @@ def token_contract_address(
         contract = deploy_token_contract(web3, deployer_address, token_abi, token_bytecode)
         return contract.address
     else:
-        channel_manager_contract = web3.eth.contract(
+        channel_manager = web3.eth.contract(
             abi=channel_manager_abi,
             address=CHANNEL_MANAGER_ADDRESS
         )
-        return channel_manager_contract.call().token()
+        return channel_manager.call().token()
+
+
+def deploy_channel_manager_contract(
+        web3,
+        deployer_address,
+        channel_manager_abi,
+        channel_manager_bytecode,
+        token_address
+):
+    ChannelManager = web3.eth.contract(abi=channel_manager_abi, bytecode=channel_manager_bytecode)
+    txhash = ChannelManager.deploy({'from': deployer_address}, args=[token_address, 30])
+    contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
+    web3.testing.mine(1)
+
+    return ChannelManager(contract_address)
 
 
 @pytest.fixture(scope='session')
-def channel_manager_contract_address(use_tester, web3, deployer_address, channel_manager_abi,
-                                     channel_manager_bytecode, token_contract_address):
+def channel_manager_address(
+        use_tester,
+        web3,
+        deployer_address,
+        channel_manager_abi,
+        channel_manager_bytecode,
+        token_address
+):
     if use_tester:
         contract = deploy_channel_manager_contract(
             web3,
             deployer_address,
             channel_manager_abi,
             channel_manager_bytecode,
-            token_contract_address
+            token_address
         )
         return contract.address
     else:
@@ -107,7 +111,7 @@ def channel_manager_contract_address(use_tester, web3, deployer_address, channel
 
 
 @pytest.fixture(scope='session')
-def web3(use_tester, deployer_address, mine_sync_event):
+def web3(use_tester, mine_sync_event):
     if use_tester:
         provider = EthereumTesterProvider()
         web3 = Web3(provider)
@@ -169,6 +173,39 @@ def web3(use_tester, deployer_address, mine_sync_event):
         ethereum.tester.keys.remove(decode_hex(FAUCET_PRIVKEY))
 
 
+@pytest.fixture
+def patched_contract(use_tester: bool, monkeypatch: MonkeyPatch, web3: Web3):
+    if use_tester:
+        def patched_get_logs_raw(contract: Contract, filter_params):
+            filter_ = contract.web3.eth.filter(filter_params)
+            response = contract.web3.eth.getFilterLogs(filter_.filter_id)
+            contract.web3.eth.uninstallFilter(filter_.filter_id)
+            return response
+
+        def patched_wait_for_event(wait: float):
+            web3.testing.mine(1)
+
+        def patched_wait_for_transaction(
+            web3: Web3,
+            tx_hash: str,
+            timeout: int = DEFAULT_TIMEOUT,
+            polling_interval: int = DEFAULT_RETRY_INTERVAL
+        ):
+            web3.testing.mine(1)
+            tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
+            if tx_receipt is None:
+                raise TimeoutError('Transaction {} was not mined.'.format(tx_hash))
+            return tx_receipt
+
+        monkeypatch.setattr(microraiden.utils.contract, '_get_logs_raw', patched_get_logs_raw)
+        monkeypatch.setattr(microraiden.utils.contract, '_wait', patched_wait_for_event)
+        monkeypatch.setattr(
+            microraiden.utils.contract,
+            'wait_for_transaction',
+            patched_wait_for_transaction
+        )
+
+
 @pytest.fixture(scope='session')
 def wait(web3, kovan_block_time):
     poll_interval = kovan_block_time / 2
@@ -196,40 +233,6 @@ def wait_for_transaction(wait):
     return wait_for_transaction
 
 
-@pytest.fixture(scope='session')
-def make_channel_manager_proxy(
-        web3,
-        channel_manager_contract_address,
-        channel_manager_abi,
-        use_tester
-):
-    def channel_manager_proxy_factory(privkey):
-        return ChannelContractProxy(
-            web3,
-            privkey,
-            channel_manager_contract_address,
-            channel_manager_abi,
-            GAS_PRICE, GAS_LIMIT,
-            use_tester
-        )
-    return channel_manager_proxy_factory
-
-
-@pytest.fixture(scope='session')
-def make_token_proxy(web3, token_contract_address, token_abi, use_tester):
-    def token_proxy_factory(privkey):
-        return ContractProxy(
-            web3,
-            privkey,
-            token_contract_address,
-            token_abi,
-            GAS_PRICE, GAS_LIMIT,
-            use_tester
-        )
-
-    return token_proxy_factory
-
-
 @pytest.fixture
 def revert_chain(web3: Web3, use_tester: bool):
     if use_tester:
@@ -238,6 +241,11 @@ def revert_chain(web3: Web3, use_tester: bool):
         web3.testing.revert(snapshot_id)
 
 
-@pytest.fixture
-def token_contract(web3, token_contract_address, token_abi):
-    return web3.eth.contract(abi=token_abi, address=token_contract_address)
+@pytest.fixture(scope='session')
+def token_contract(web3: Web3, token_address: str, token_abi):
+    return web3.eth.contract(abi=token_abi, address=token_address)
+
+
+@pytest.fixture(scope='session')
+def channel_manager_contract(web3: Web3, channel_manager_address: str, channel_manager_abi):
+    return web3.eth.contract(abi=channel_manager_abi, address=channel_manager_address)

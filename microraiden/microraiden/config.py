@@ -28,12 +28,16 @@ MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 HTML_DIR = os.path.join(MICRORAIDEN_DIR, 'microraiden', 'webui')
 # javascript library for microraiden
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')
+# url prefix for jslib dir
+JSPREFIX_URL = '/js'
 # decimals of the token. Any price that's set for the proxy resources is multiplied by this.
 TKN_DECIMALS = 10**18  # token decimals
 
 # ethereum node RPC interface should be available here
 WEB3_PROVIDER_DEFAULT = "http://127.0.0.1:8545"
 
+# name of the channel manager contract
+CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
 # name of the token contract
 TOKEN_ABI_NAME = 'CustomToken'
 # compiled contracts path

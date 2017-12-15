@@ -4,6 +4,7 @@ import json
 import gevent
 
 from microraiden.config import API_PATH
+from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
 
 def test_resources(doggo_proxy, api_endpoint_address, users_db):
@@ -58,7 +59,7 @@ def test_resources(doggo_proxy, api_endpoint_address, users_db):
     assert rv.status_code == 401
 
 
-def test_stats(doggo_proxy, api_endpoint_address):
+def test_stats(doggo_proxy: PaywalledProxy, api_endpoint_address):
     api_path = "http://" + api_endpoint_address + API_PATH
 
     rv = requests.get(api_path + "/stats")
@@ -72,5 +73,5 @@ def test_stats(doggo_proxy, api_endpoint_address):
     assert stats['receiver_address'] == doggo_proxy.channel_manager.receiver
     token_address = doggo_proxy.channel_manager.token_contract.address
     assert stats['token_address'] == token_address
-    contract_address = doggo_proxy.channel_manager.contract_proxy.contract.address
+    contract_address = doggo_proxy.channel_manager.channel_manager_contract.address
     assert stats['contract_address'] == contract_address

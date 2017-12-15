@@ -2,12 +2,25 @@ import pytest
 
 from microraiden.channel_manager import ChannelManager
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
-from microraiden.proxy.content import (
-    PaywalledContent,
-)
+from microraiden.proxy.resources import Expensive
 import microraiden.proxy.resources.login as login
 import logging
 log = logging.getLogger(__name__)
+
+
+class ExpensiveKitten(Expensive):
+    def get(self, path):
+        return "HI I AM A KITTEN"
+
+
+class ExpensiveDoggo(Expensive):
+    def get(self, path):
+        return "HI I AM A DOGGO"
+
+
+class ExpensiveTeapot(Expensive):
+    def get(self, path):
+        return "HI I AM A TEAPOT", 418
 
 
 @pytest.fixture
@@ -29,16 +42,15 @@ def empty_proxy(channel_manager: ChannelManager, wait_for_blocks, use_tester: bo
 
 
 @pytest.fixture
-def doggo_proxy(channel_manager,
-                receiver_privkey,
-                proxy_state_filename,
-                proxy_ssl,
-                proxy_ssl_certs):
+def doggo_proxy(
+        channel_manager: ChannelManager,
+        proxy_ssl: bool,
+        proxy_ssl_certs
+):
     app = PaywalledProxy(channel_manager)
-    app.add_content(PaywalledContent("kitten.jpg", 1, lambda _: ("HI I AM A KITTEN", 200)))
-    app.add_content(PaywalledContent("doggo.jpg", 2, lambda _: ("HI I AM A DOGGO", 200)))
-    app.add_content(PaywalledContent("teapot.jpg", 3, lambda _: ("HI I AM A TEAPOT", 418)))
-#    app.add_content(PaywalledFile("test.txt", 10, "/tmp/test.txt"))
+    app.add_paywalled_resource(ExpensiveKitten, '/kitten.jpg', 1)
+    app.add_paywalled_resource(ExpensiveDoggo, '/doggo.jpg', 2)
+    app.add_paywalled_resource(ExpensiveTeapot, '/teapot.jpg', 3)
     ssl_context = proxy_ssl_certs if proxy_ssl else None
     app.run(ssl_context=ssl_context)
     yield app

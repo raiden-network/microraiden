@@ -7,10 +7,10 @@ import click
 import os
 
 from microraiden import Client, DefaultHTTPClient
-from microraiden.crypto import privkey_to_addr
+from microraiden.utils import privkey_to_addr
 from microraiden.config import CHANNEL_MANAGER_ADDRESS, TKN_DECIMALS
-from microraiden.proxy.content import PaywalledProxyUrl
-from microraiden.proxy.paywalled_proxy import PaywalledProxy
+from microraiden.proxy import PaywalledProxy
+from microraiden.proxy.resources import PaywalledProxyUrl
 from microraiden.make_helpers import make_paywalled_proxy
 
 log = logging.getLogger(__name__)
@@ -25,28 +25,25 @@ def start_proxy(receiver_privkey: str) -> PaywalledProxy:
         os.makedirs(app_dir)
 
     app = make_paywalled_proxy(receiver_privkey, os.path.join(app_dir, state_file_name))
-    app.add_content(PaywalledProxyUrl(
-        "[A-Z]{6}",
-        1 * TKN_DECIMALS,
-        'http://api.bitfinex.com/v1/pubticker/',
-        [r'[A-Z]{6}']
-    ))
     app.run()
     return app
 
 
 class ETHTickerProxy:
-    def __init__(self, privkey: str, proxy: PaywalledProxy = None):
+    def __init__(self, privkey: str, proxy: PaywalledProxy = None) -> None:
         if proxy:
             self.app = proxy
-            self.app.add_content(PaywalledProxyUrl(
-                "[A-Z]{6}",
-                1 * TKN_DECIMALS,
-                'http://api.bitfinex.com/v1/pubticker/',
-                [r'[A-Z]{6}']
-            ))
         else:
             self.app = start_proxy(privkey)
+        cfg = {'resource_class_kwargs': {
+               'domain': 'http://api.bitfinex.com/v1/pubticker/'}
+               }
+        self.app.add_paywalled_resource(
+            PaywalledProxyUrl,
+            '/<string:ticker>',
+            1 * TKN_DECIMALS,
+            **cfg
+        )
 
     def stop(self):
         self.app.stop()
@@ -56,8 +53,11 @@ class ETHTickerClient(ttk.Frame):
     def __init__(
             self,
             sender_privkey: str,
-            httpclient: DefaultHTTPClient = None
-    ):
+            httpclient: DefaultHTTPClient = None,
+            poll_interval: float = 5
+    ) -> None:
+        self.poll_interval = poll_interval
+
         self.root = tkinter.Tk()
         ttk.Frame.__init__(self, self.root)
         self.root.title('µRaiden ETH Ticker')
@@ -82,7 +82,7 @@ class ETHTickerClient(ttk.Frame):
 
     def run(self):
         self.running = True
-        self.root.after(1000, self.query_price)
+        self.root.after(0, self.query_price)
         self.root.mainloop()
 
     def query_price(self):
@@ -99,7 +99,7 @@ class ETHTickerClient(ttk.Frame):
             log.warning('No response.')
 
         if self.running:
-            self.root.after(5000, self.query_price)
+            self.root.after(int(self.poll_interval * 1000), self.query_price)
         self.active_query = False
 
     def close(self):
