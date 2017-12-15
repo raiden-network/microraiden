@@ -1,9 +1,13 @@
+import pytest
+from _pytest.monkeypatch import MonkeyPatch
+from py._path.local import LocalPath
 from web3 import Web3
 
 from microraiden import Client
 from microraiden.client import Channel
 from microraiden.utils import sign_balance_proof, sign_close
 from microraiden.test.utils.client import close_channel_cooperatively
+import microraiden.utils.private_key
 
 
 def test_client(client: Client, receiver_address):
@@ -112,3 +116,63 @@ def test_topup_channel_insufficient_tokens(client: Client, web3: Web3, receiver_
     assert channel.topup(balance_of) is None
     tx_count_post = web3.eth.getTransactionCount(client.context.address)
     assert tx_count_post == tx_count_pre
+
+
+def test_client_private_key_path(
+        patched_contract,
+        monkeypatch: MonkeyPatch,
+        sender_privkey: str,
+        tmpdir: LocalPath,
+        web3: Web3,
+        channel_manager_address: str
+):
+    def check_permission_safety_patched(path: str):
+        return True
+
+    monkeypatch.setattr(
+        microraiden.utils.private_key,
+        'check_permission_safety',
+        check_permission_safety_patched
+    )
+
+    privkey_file = tmpdir.join('private_key.txt')
+    privkey_file.write(sender_privkey)
+
+    with pytest.raises(AssertionError):
+        Client(
+            private_key='0xthis_is_not_a_private_key',
+            channel_manager_address=channel_manager_address,
+            web3=web3
+        )
+
+    with pytest.raises(AssertionError):
+        Client(
+            private_key='0xcorrect_length_but_still_not_a_private_key_12345678901234567',
+            channel_manager_address=channel_manager_address,
+            web3=web3
+        )
+
+    with pytest.raises(AssertionError):
+        Client(
+            private_key='/nonexisting/path',
+            channel_manager_address=channel_manager_address,
+            web3=web3
+        )
+
+    Client(
+        private_key=sender_privkey,
+        channel_manager_address=channel_manager_address,
+        web3=web3
+    )
+
+    Client(
+        private_key=sender_privkey[2:],
+        channel_manager_address=channel_manager_address,
+        web3=web3
+    )
+
+    Client(
+        private_key=str(tmpdir.join('private_key.txt')),
+        channel_manager_address=channel_manager_address,
+        web3=web3
+    )

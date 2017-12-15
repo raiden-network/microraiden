@@ -1,7 +1,8 @@
 import logging
 from typing import List
 
-from eth_utils import decode_hex, is_same_address
+import os
+from eth_utils import decode_hex, is_same_address, is_hex, remove_0x_prefix
 from web3 import Web3
 from web3.providers.rpc import RPCProvider
 
@@ -23,17 +24,18 @@ class Client:
     def __init__(
             self,
             private_key: str = None,
-            key_path: str = None,
             key_password_path: str = None,
             channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
             web3: Web3 = None
     ) -> None:
-        assert private_key is not None or key_path is not None
+        is_hex_key = is_hex(private_key) and len(remove_0x_prefix(private_key)) == 64
+        is_path = os.path.exists(private_key)
+        assert is_hex_key or is_path, 'Private key must either be a hex key or a file path.'
 
         # Load private key from file if none is specified on command line.
-        if private_key is None:
-            private_key = get_private_key(key_path, key_password_path)
-            assert private_key is not None
+        if is_path:
+            private_key = get_private_key(private_key, key_password_path)
+            assert private_key is not None, 'Could not load private key from file.'
 
         self.channels = []  # type: List[Channel]
 
