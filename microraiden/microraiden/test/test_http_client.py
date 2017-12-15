@@ -561,12 +561,8 @@ def test_cooperative_close_denied(
             HTTPHeaders.RECEIVER_ADDRESS: receiver_address,
             HTTPHeaders.PRICE: '3'
         }
-        headers = [headers.copy() for i in range(2)]
-
-        i = 0
-
-        i += 1
-        headers[i][HTTPHeaders.COST] = '3'
+        headers = [headers.copy() for _ in range(2)]
+        headers[1][HTTPHeaders.COST] = '3'
 
         url = 'http://{}/something'.format(api_endpoint_address)
         server_mock.get(url, [
