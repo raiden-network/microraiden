@@ -14,6 +14,7 @@ import subprocess
 import distutils
 import os
 from setuptools import Command
+from microraiden.config import MICRORAIDEN_VERSION
 
 DESCRIPTION = 'µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.'
 
@@ -61,7 +62,7 @@ class CompileWebUI(Command):
 
 
 config = {
-    'version': '0.0.5',
+    'version': MICRORAIDEN_VERSION,
     'scripts': [],
     'name': 'microraiden',
     'author': 'Brainbot AG',
@@ -69,7 +70,7 @@ config = {
     'description': DESCRIPTION,
     'url': 'https://github.com/raiden-network/microraiden/',
     'include_package_data': True,
-    'license': 'BSD',
+    'license': 'MIT',
     'keywords': 'raiden ethereum microraiden blockchain',
     'install_requires': reqs,
     'packages': find_packages(exclude=['test']),
@@ -80,7 +81,7 @@ config = {
     'classifiers': [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
@@ -89,4 +90,5 @@ config = {
         'compile_webui': CompileWebUI,
     },
 }
+
 setup(**config)
