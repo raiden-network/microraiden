@@ -355,12 +355,12 @@ def test_cheating_client(
     # underpay
     session.price_adjust = -1
     response = session.get(http_doggo_url)
-    assert response is None
+    assert response.status_code == 402
     assert session.invalid_amount_received == 1
     # overpay
     session.price_adjust = 1
     response = session.get(http_doggo_url)
-    assert response is None
+    assert response.status_code == 402
     assert session.invalid_amount_received == 2
 
 
@@ -635,7 +635,7 @@ def test_error_handling(
         ])
         response = session.get(url)
 
-    assert response is None
+    assert response.status_code == 402
     assert nonexisting_channel_mock.call_count == 1
     assert insufficient_confirmations_mock.call_count == 1
     assert insufficient_funds_mock.call_count == 1

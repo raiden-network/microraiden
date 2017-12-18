@@ -131,34 +131,39 @@ class Session(requests.Session):
         response = requests.Session.request(self, method, url, **kwargs)
 
         if self.on_http_response(method, url, response, **kwargs) is False:
-            return None, False  # user requested abort
+            return response, False  # user requested abort
 
         if response.status_code == requests.codes.OK:
             return response, self.on_success(method, url, response, **kwargs)
 
         elif response.status_code == requests.codes.PAYMENT_REQUIRED:
             if HTTPHeaders.NONEXISTING_CHANNEL in response.headers:
-                return None, self.on_nonexisting_channel(method, url, response, **kwargs)
+                return response, self.on_nonexisting_channel(method, url, response, **kwargs)
 
             elif HTTPHeaders.INSUF_CONFS in response.headers:
-                return None, self.on_insufficient_confirmations(method, url, response, **kwargs)
+                return response, self.on_insufficient_confirmations(
+                    method,
+                    url,
+                    response,
+                    **kwargs
+                )
 
             elif HTTPHeaders.INSUF_FUNDS in response.headers:
-                return None, self.on_insufficient_funds(method, url, response, **kwargs)
+                return response, self.on_insufficient_funds(method, url, response, **kwargs)
 
             elif HTTPHeaders.CONTRACT_ADDRESS not in response.headers or not is_same_address(
                 response.headers.get(HTTPHeaders.CONTRACT_ADDRESS),
                 self.client.context.channel_manager.address
             ):
-                return None, self.on_invalid_contract_address(method, url, response, **kwargs)
+                return response, self.on_invalid_contract_address(method, url, response, **kwargs)
 
             elif HTTPHeaders.INVALID_AMOUNT in response.headers:
-                return None, self.on_invalid_amount(method, url, response, **kwargs)
+                return response, self.on_invalid_amount(method, url, response, **kwargs)
 
             else:
-                return None, self.on_payment_requested(method, url, response, **kwargs)
+                return response, self.on_payment_requested(method, url, response, **kwargs)
         else:
-            return None, self.on_http_error(method, url, response, **kwargs)
+            return response, self.on_http_error(method, url, response, **kwargs)
 
     def on_nonexisting_channel(
             self,
