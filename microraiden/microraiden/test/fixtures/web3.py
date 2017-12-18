@@ -81,7 +81,7 @@ def deploy_channel_manager_contract(
         token_address
 ):
     ChannelManager = web3.eth.contract(abi=channel_manager_abi, bytecode=channel_manager_bytecode)
-    txhash = ChannelManager.deploy({'from': deployer_address}, args=[token_address, 30])
+    txhash = ChannelManager.deploy({'from': deployer_address}, args=[token_address, 500])
     contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
     web3.testing.mine(1)
 
