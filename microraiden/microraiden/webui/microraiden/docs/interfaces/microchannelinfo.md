@@ -15,7 +15,7 @@
 
 **●  block**:  *`number`* 
 
-*Defined in [index.ts:66](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L66)*
+*Defined in [index.ts:66](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L66)*
 
 
 
@@ -32,7 +32,7 @@ ___
 
 **●  deposit**:  *`BigNumber`* 
 
-*Defined in [index.ts:70](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L70)*
+*Defined in [index.ts:70](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L70)*
 
 
 
@@ -49,7 +49,7 @@ ___
 
 **●  state**:  *`string`* 
 
-*Defined in [index.ts:61](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L61)*
+*Defined in [index.ts:61](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L61)*
 
 
 

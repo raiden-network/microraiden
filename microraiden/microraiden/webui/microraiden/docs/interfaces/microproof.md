@@ -5,7 +5,7 @@
 # Interface: MicroProof
 
 
-[[MicroRaiden.channel.proof]] data type
+[MicroChannel.proof](microchannel.md#proof) data type
 
 
 ## Properties
@@ -15,7 +15,7 @@
 
 **●  balance**:  *`BigNumber`* 
 
-*Defined in [index.ts:17](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L17)*
+*Defined in [index.ts:17](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L17)*
 
 
 
@@ -32,7 +32,7 @@ ___
 
 **●  sign**:  *`string`* 
 
-*Defined in [index.ts:21](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L21)*
+*Defined in [index.ts:21](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L21)*
 
 
 

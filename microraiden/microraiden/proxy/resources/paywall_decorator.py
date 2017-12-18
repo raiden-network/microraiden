@@ -102,8 +102,10 @@ class Paywall(object):
             data = RequestData(request.headers, request.cookies)
         except ValueError as e:
             return str(e), 409
-        accepts = request.headers.get('Accept', '')
-        accepts_html = r'text/html' in accepts or r'*/*' in accepts
+        accepts_html = (
+            'text/html' in request.accept_mimetypes and
+            request.accept_mimetypes.best != '*/*'
+        )
         headers = {}
 
         price = resource.price()

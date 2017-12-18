@@ -27,6 +27,7 @@
 
 ### Functions
 
+* [asyncSleep](#asyncsleep)
 * [encodeHex](#encodehex)
 * [promisify](#promisify)
 
@@ -40,7 +41,7 @@
 
 **●  localStorage**:  *`any`* 
 
-*Defined in [index.ts:5](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L5)*
+*Defined in [index.ts:5](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L5)*
 
 
 
@@ -50,6 +51,41 @@ ___
 
 
 # Functions
+<a id="asyncsleep"></a>
+
+###  asyncSleep
+
+► **asyncSleep**(timeout: *`number`*): `Promise`.<`void`>
+
+
+
+*Defined in [index.ts:130](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L130)*
+
+
+
+Async sleep: returns a promise which will resolve after timeout
+
+
+**Parameters:**
+
+| Param | Type | Description |
+| ------ | ------ | ------ |
+| timeout | `number`   |  Timeout before promise is resolved, in milliseconds |
+
+
+
+
+
+**Returns:** `Promise`.<`void`>
+Promise which will be resolved after timeout
+
+
+
+
+
+
+___
+
 <a id="encodehex"></a>
 
 ###  encodeHex
@@ -58,7 +94,7 @@ ___
 
 
 
-*Defined in [index.ts:133](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L133)*
+*Defined in [index.ts:143](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L143)*
 
 
 
@@ -96,7 +132,7 @@ ___
 
 
 
-*Defined in [index.ts:106](https://github.com/raiden-network/microraiden/blob/767bd8f/microraiden/microraiden/webui/microraiden/src/index.ts#L106)*
+*Defined in [index.ts:106](https://github.com/raiden-network/microraiden/blob/99a659d/microraiden/microraiden/webui/microraiden/src/index.ts#L106)*
 
 
 
