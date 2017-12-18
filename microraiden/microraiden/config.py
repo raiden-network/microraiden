@@ -48,7 +48,7 @@ with open(os.path.join(MICRORAIDEN_DIR, 'microraiden', CONTRACTS_ABI_JSON)) as m
 
 # required version of the deployed contract at CHANNEL_MANAGER_ADDRESS.
 # Proxy will refuse to start if the versions do not match.
-CHANNEL_MANAGER_CONTRACT_VERSION = "1.0.0"
+CHANNEL_MANAGER_CONTRACT_VERSION = "0.1.0"
 #  proxy will stop serving requests if receiver balance is below PROXY_BALANCE_LIMIT
 PROXY_BALANCE_LIMIT = 10**6
 
