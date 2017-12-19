@@ -144,4 +144,6 @@ class PaywalledProxy:
         }
         if 'resource_class_kwargs' in kwargs:
             cfg.update(kwargs.pop('resource_class_kwargs'))
+        if 'endpoint' not in kwargs:
+            kwargs['endpoint'] = url.replace('/', '_')
         return self.api.add_resource(cls, url, resource_class_kwargs=cfg, *args, **kwargs)
