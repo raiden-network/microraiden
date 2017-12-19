@@ -213,6 +213,7 @@ contract RaidenMicroTransferChannels {
     {
         bytes32 key = getKey(msg.sender, _receiver_address, _open_block_number);
 
+        require(channels[key].open_block_number > 0);
         require(closing_requests[key].settle_block_number == 0);
         require(_balance <= channels[key].deposit);
 
