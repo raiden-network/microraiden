@@ -1,7 +1,7 @@
 import pytest
 from ethereum import tester
 from utils import sign
-from tests.utils import balance_proof_hash
+from tests.utils import balance_proof_hash, closing_message_hash
 from tests.fixtures import (
     owner_index,
     owner,
@@ -152,11 +152,7 @@ def test_verifyBalanceProof(get_accounts, token_instance, uraiden_instance):
     block = 4804175
     balance = 22000000000000000000
 
-    message_hash = sign.eth_signed_typed_data_message(
-        ('address', ('uint', 32), ('uint', 192), 'address'),
-        ('receiver', 'block_created', 'balance', 'contract'),
-        (receiver, block, balance, uraiden.address)
-    )
+    message_hash = balance_proof_hash(receiver, block, balance, uraiden.address)
     balance_msg_sig, signer = sign.check(message_hash, tester.k2)
     assert signer == A
 
@@ -205,11 +201,7 @@ def test_verifyClosingSignature(get_accounts, token_instance, uraiden_instance):
     block = 4804175
     balance = 22000000000000000000
 
-    message_hash = sign.eth_signed_typed_data_message(
-        ('address', ('uint', 32), ('uint', 192), 'address'),
-        ('sender', 'block_created', 'balance', 'contract'),
-        (sender, block, balance, uraiden.address)
-    )
+    message_hash = closing_message_hash(sender, block, balance, uraiden.address)
     balance_msg_sig, signer = sign.check(message_hash, tester.k2)
     assert signer == A
 

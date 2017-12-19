@@ -297,8 +297,20 @@ contract RaidenMicroTransferChannels {
         // ! Note that EIP712 might change how hashing is done, triggering a
         // new contract deployment with updated code.
         bytes32 message_hash = keccak256(
-          keccak256('address receiver', 'uint32 block_created', 'uint192 balance', 'address contract'),
-          keccak256(_receiver_address, _open_block_number, _balance, address(this))
+            keccak256(
+                'string messageID',
+                'address receiver',
+                'uint32 block_created',
+                'uint192 balance',
+                'address contract'
+            ),
+            keccak256(
+                'Sender balance proof signature',
+                _receiver_address,
+                _open_block_number,
+                _balance,
+                address(this)
+            )
         );
 
         // Derive address from signature
@@ -330,8 +342,20 @@ contract RaidenMicroTransferChannels {
         // ! Note that EIP712 might change how hashing is done, triggering a
         // new contract deployment with updated code.
         bytes32 message_hash = keccak256(
-          keccak256('address sender', 'uint32 block_created', 'uint192 balance', 'address contract'),
-          keccak256(_sender_address, _open_block_number, _balance, address(this))
+            keccak256(
+                'string messageID',
+                'address sender',
+                'uint32 block_created',
+                'uint192 balance',
+                'address contract'
+            ),
+            keccak256(
+                'Receiver closing signature',
+                _sender_address,
+                _open_block_number,
+                _balance,
+                address(this)
+            )
         );
 
         // Derive address from signature

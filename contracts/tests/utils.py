@@ -3,17 +3,17 @@ from utils.sign import eth_signed_typed_data_message
 
 def balance_proof_hash(receiver, block, balance, contract):
     return eth_signed_typed_data_message(
-        ('address', ('uint', 32), ('uint', 192), 'address'),
-        ('receiver', 'block_created', 'balance', 'contract'),
-        (receiver, block, balance, contract)
+        ('string', 'address', ('uint', 32), ('uint', 192), 'address'),
+        ('messageID', 'receiver', 'block_created', 'balance', 'contract'),
+        ('Sender balance proof signature', receiver, block, balance, contract)
     )
 
 
 def closing_message_hash(sender, block, balance, contract):
     return eth_signed_typed_data_message(
-        ('address', ('uint', 32), ('uint', 192), 'address'),
-        ('sender', 'block_created', 'balance', 'contract'),
-        (sender, block, balance, contract)
+        ('string', 'address', ('uint', 32), ('uint', 192), 'address'),
+        ('messageID', 'sender', 'block_created', 'balance', 'contract'),
+        ('Receiver closing signature', sender, block, balance, contract)
     )
 
 
