@@ -234,7 +234,8 @@ def test_uncooperative_close_state(
         channel_params,
         uraiden_instance,
         get_channel,
-        get_block):
+        get_block,
+        print_gas):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
@@ -249,6 +250,8 @@ def test_uncooperative_close_state(
     assert channel_info[2] == get_block(txn_hash) + contract_params['challenge_period']
     # closing_balance
     assert channel_info[3] == balance
+
+    print_gas(txn_hash, 'uncooperativeClose')
 
 
 def test_uncooperative_close_event(
@@ -784,7 +787,8 @@ def test_settle_state(
         contract_params,
         uraiden_instance,
         token_instance,
-        get_channel):
+        get_channel,
+        print_gas):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
     deposit = channel_params['deposit']
@@ -802,7 +806,7 @@ def test_settle_state(
     sender_pre_balance = token_instance.call().balanceOf(sender)
     contract_pre_balance = token_instance.call().balanceOf(uraiden_instance.address)
 
-    uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
+    txn_hash = uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
 
     # Check post closing balances
     receiver_post_balance = receiver_pre_balance + balance
@@ -826,6 +830,8 @@ def test_settle_state(
     # Cannot be called another time
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
+
+    print_gas(txn_hash, 'settle')
 
 
 def test_settle_event(
