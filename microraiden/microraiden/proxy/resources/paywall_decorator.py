@@ -121,12 +121,26 @@ class Paywall(object):
 
         # all ok, return actual content
         resp = method(request.path, *args, **kwargs)
+
+        # merge headers, resource headers take precedence
+        headers_lower = {key.lower(): value for key, value in headers.items()}
+        lower_to_case = {key.lower(): key for key in headers}
+
+        if isinstance(resp, Response):
+            resource_headers = (key for key, value in resp.headers)
+        else:
+            data, code, resource_headers = unpack(resp)
+
+        for key in resource_headers:
+            key_lower = key.lower()
+            if key_lower in headers_lower:
+                headers.pop(lower_to_case[key_lower])
+
         if isinstance(resp, Response):
             resp.headers.extend(headers)
             return resp
         else:
-            data, code, resource_headers = unpack(resp)
-            resource_headers.update(headers)
+            headers.update(resource_headers)
             return make_response(str(data), code, resource_headers)
 
     def paywall_check(self, price, data):
