@@ -25,8 +25,7 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
-    get_channel,
-    event_handler
+    get_channel
 )
 # from tests.test_channel_create import get_channel
 
