@@ -3,6 +3,7 @@ from ethereum import tester
 from tests.fixtures import (
     channel_deposit_bugbounty_limit,
     contract_params,
+    channel_params,
     owner_index,
     owner,
     create_accounts,
@@ -40,7 +41,7 @@ def test_channel_topup_223(
     ev_handler = event_handler(uraiden_instance)
     (sender, receiver, A, B) = get_accounts(4)
     channel_deposit = 700
-    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)
+    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)[:3]
     (sender, receiver, open_block_number) = channel
     top_up_deposit = 14
 
@@ -82,7 +83,7 @@ def test_channel_topup_223_bounty_limit(
     token = token_instance
     (sender, receiver, A) = get_accounts(3)
     channel_deposit = 1
-    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)
+    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)[:3]
     (sender, receiver, open_block_number) = channel
 
     top_up_data = receiver[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
@@ -134,7 +135,7 @@ def test_channel_topup_20(
     ev_handler = event_handler(uraiden_instance)
     (sender, receiver, A) = get_accounts(3)
     channel_deposit = 999
-    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)
+    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)[:3]
     (sender, receiver, open_block_number) = channel
     top_up_deposit = 14
 
@@ -200,7 +201,7 @@ def test_channel_topup_20_bounty_limit(
     token = token_instance
     (sender, receiver, A) = get_accounts(3)
     channel_deposit = 1
-    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)
+    channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)[:3]
     (sender, receiver, open_block_number) = channel
 
     # See how many tokens we need to reach channel_deposit_bugbounty_limit
