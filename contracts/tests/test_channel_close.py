@@ -2,7 +2,6 @@ import pytest
 from ethereum import tester
 from utils import sign
 from tests.utils import balance_proof_hash, closing_message_hash
-from utils.utils import sol_sha3
 from tests.fixtures import (
     contract_params,
     channel_params,
@@ -41,67 +40,149 @@ def test_uncooperative_close_call(channel_params, uraiden_instance, get_channel)
     balance = channel_params['balance']
 
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(0x0, open_block_number, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            0x0,
+            open_block_number,
+            balance
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(fake_address, open_block_number, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            fake_address,
+            open_block_number,
+            balance
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, -2, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            -2,
+            balance
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, MAX_UINT32 + 1, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            MAX_UINT32 + 1,
+            balance
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, -2)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            open_block_number,
+            -2
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, MAX_UINT + 1)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            open_block_number,
+            MAX_UINT + 1
+        )
 
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
 
 
-def test_uncooperative_close_fail_no_channel(channel_params, get_accounts, uraiden_instance, get_channel):
+def test_uncooperative_close_fail_no_channel(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        get_channel):
     A = get_accounts(1, 5)[0]
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
     # Should fail if called by anyone else than the sender
-    #with pytest.raises(tester.TransactionFailed):
-    #    uraiden_instance.transact({"from": receiver}).uncooperativeClose(receiver, open_block_number, balance)
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": A}).uncooperativeClose(receiver, open_block_number, balance)
+        uraiden_instance.transact({"from": receiver}).uncooperativeClose(
+            receiver,
+            open_block_number,
+            balance
+        )
+    with pytest.raises(tester.TransactionFailed):
+        uraiden_instance.transact({"from": A}).uncooperativeClose(
+            receiver,
+            open_block_number,
+            balance
+        )
 
     # Should fail if the channel does not exist
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(A, open_block_number, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            A,
+            open_block_number,
+            balance
+        )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number - 1, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            open_block_number - 1,
+            balance
+        )
 
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
 
 
-def test_uncooperative_close_fail_big_balance(channel_params, get_accounts, uraiden_instance, token_instance, get_channel):
+def test_uncooperative_close_fail_big_balance(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        get_channel):
     (sender, receiver, open_block_number) = get_channel()[:3]
-    balance = channel_params['balance']
     deposit = channel_params['deposit']
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, deposit + 1)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            open_block_number,
+            deposit + 1
+        )
 
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, deposit)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        deposit
+    )
 
 
-def test_uncooperative_close_fail_in_challenge_period(channel_params, get_accounts, uraiden_instance, token_instance, get_channel):
+def test_uncooperative_close_fail_in_challenge_period(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        get_channel):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
     # Should fail if the channel is already in a challenge period
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
 
     channel_info = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_info[2] > 0  # settle_block_number
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            open_block_number,
+            balance
+        )
 
 
-def test_uncooperative_close_fail_uint32_overflow(web3, channel_params, get_uraiden_contract, token_instance, get_channel):
+def test_uncooperative_close_fail_uint32_overflow(
+        web3,
+        channel_params,
+        get_uraiden_contract,
+        token_instance,
+        get_channel):
     challenge_period = MAX_UINT32 - 20
     uraiden_instance = get_uraiden_contract(
         [token_instance.address, challenge_period]
@@ -115,10 +196,19 @@ def test_uncooperative_close_fail_uint32_overflow(web3, channel_params, get_urai
     assert web3.eth.getBlock('latest')['number'] + challenge_period == MAX_UINT32
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+        uraiden_instance.transact({"from": sender}).uncooperativeClose(
+            receiver,
+            open_block_number,
+            balance
+        )
 
 
-def test_uncooperative_close_uint32_overflow(web3, channel_params, get_uraiden_contract, token_instance, get_channel):
+def test_uncooperative_close_uint32_overflow(
+        web3,
+        channel_params,
+        get_uraiden_contract,
+        token_instance,
+        get_channel):
     challenge_period = MAX_UINT32 - 20
     uraiden_instance = get_uraiden_contract(
         [token_instance.address, challenge_period]
@@ -132,27 +222,50 @@ def test_uncooperative_close_uint32_overflow(web3, channel_params, get_uraiden_c
 
     assert web3.eth.getBlock('latest')['number'] + challenge_period == MAX_UINT32 - 1
 
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
 
 
-def test_uncooperative_close_state(contract_params, channel_params, uraiden_instance, get_channel, get_block):
+def test_uncooperative_close_state(
+        contract_params,
+        channel_params,
+        uraiden_instance,
+        get_channel,
+        get_block):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
-    txn_hash = uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    txn_hash = uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
 
     channel_info = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
-    assert channel_info[2] == get_block(txn_hash) + contract_params['challenge_period']  # settle_block_number
-    assert channel_info[3] ==  balance  # closing_balance
+    # settle_block_number
+    assert channel_info[2] == get_block(txn_hash) + contract_params['challenge_period']
+    # closing_balance
+    assert channel_info[3] == balance
 
 
-def test_uncooperative_close_event(channel_params, uraiden_instance, get_channel, event_handler):
+def test_uncooperative_close_event(
+        channel_params,
+        uraiden_instance,
+        get_channel,
+        event_handler):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
     ev_handler = event_handler(uraiden_instance)
 
-    txn_hash = uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    txn_hash = uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
 
     ev_handler.add(txn_hash, uraiden_events['closed'], checkClosedEvent(
         sender,
@@ -168,45 +281,138 @@ def test_cooperative_close_call(channel_params, uraiden_instance, get_channel):
     balance = channel_params['balance']
 
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(0x0, open_block_number, balance, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            0x0,
+            open_block_number,
+            balance,
+            balance_msg_sig,
+            closing_sig
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(fake_address, open_block_number, balance, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            fake_address,
+            open_block_number,
+            balance,
+            balance_msg_sig,
+            closing_sig
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, -2, balance, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            -2,
+            balance,
+            balance_msg_sig,
+            closing_sig
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, MAX_UINT32 + 1, balance, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            MAX_UINT32 + 1,
+            balance,
+            balance_msg_sig,
+            closing_sig
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, -2, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            -2,
+            balance_msg_sig,
+            closing_sig
+        )
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, MAX_UINT + 1, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            MAX_UINT + 1,
+            balance_msg_sig,
+            closing_sig
+        )
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, bytearray(), closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance,
+            bytearray(),
+            closing_sig
+        )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, bytearray())
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance,
+            balance_msg_sig,
+            bytearray()
+        )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, bytearray(64), closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance,
+            bytearray(64),
+            closing_sig
+        )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, bytearray(64))
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance,
+            balance_msg_sig,
+            bytearray(64)
+        )
 
-    uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    uraiden_instance.transact({"from": sender}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
 
-def test_cooperative_close_fail_no_channel(channel_params, get_accounts, uraiden_instance, get_channel):
+def test_cooperative_close_fail_no_channel(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        get_channel):
     A = get_accounts(1, 5)[0]
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
 
     # Should fail if the channel does not exist
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(A, open_block_number, balance, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            A,
+            open_block_number,
+            balance,
+            balance_msg_sig,
+            closing_sig
+        )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number - 1, balance, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number - 1,
+            balance,
+            balance_msg_sig,
+            closing_sig
+        )
 
-    uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    uraiden_instance.transact({"from": sender}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
 
-def test_cooperative_close_fail_wrong_balance(channel_params, get_accounts, uraiden_instance, token_instance, get_channel):
+def test_cooperative_close_fail_wrong_balance(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        get_channel):
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
     deposit = channel_params['deposit']
@@ -229,20 +435,48 @@ def test_cooperative_close_fail_wrong_balance(channel_params, get_accounts, urai
 
     # Wrong balance as an argument
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance + 1, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance + 1,
+            balance_msg_sig,
+            closing_sig
+        )
 
     # Sender signs wrong balance
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig_fake, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance,
+            balance_msg_sig_fake,
+            closing_sig
+        )
 
     # Receiver signs wrong balance
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig_fake)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance,
+            balance_msg_sig,
+            closing_sig_fake
+        )
 
-    uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    uraiden_instance.transact({"from": sender}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
 
-def test_cooperative_close_fail_diff_receiver(channel_params, get_accounts, uraiden_instance, get_channel):
+def test_cooperative_close_fail_diff_receiver(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        get_channel):
     A = get_accounts(1, 5)[0]
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
@@ -258,10 +492,21 @@ def test_cooperative_close_fail_diff_receiver(channel_params, get_accounts, urai
     # Should fail if someone tries to use a closing signature from another receiver
     # with the same sender, block, balance
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).cooperativeClose(A, open_block_number, balance, balance_msg_sig_A, closing_sig)
+        uraiden_instance.transact({"from": sender}).cooperativeClose(
+            A,
+            open_block_number,
+            balance,
+            balance_msg_sig_A,
+            closing_sig
+        )
 
 
-def test_cooperative_close_call_receiver(channel_params, get_accounts, uraiden_instance, get_channel, print_gas):
+def test_cooperative_close_call_receiver(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        get_channel,
+        print_gas):
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
 
@@ -279,15 +524,25 @@ def test_cooperative_close_call_receiver(channel_params, get_accounts, uraiden_i
         balance,
         closing_sig
     )
-    assert receiver == receiver
+    assert receiver_verified == receiver
 
     # Cooperative close can be called by anyone
-    txn_hash = uraiden_instance.transact({"from": receiver}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    txn_hash = uraiden_instance.transact({"from": receiver}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
     print_gas(txn_hash, 'cooperativeClose')
 
 
-def test_cooperative_close_call_sender(channel_params, get_accounts, uraiden_instance, get_channel):
+def test_cooperative_close_call_sender(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        get_channel):
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
 
@@ -305,13 +560,23 @@ def test_cooperative_close_call_sender(channel_params, get_accounts, uraiden_ins
         balance,
         closing_sig
     )
-    assert receiver == receiver
+    assert receiver_verified == receiver
 
     # Cooperative close can be called by anyone
-    uraiden_instance.transact({"from": sender}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    uraiden_instance.transact({"from": sender}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
 
-def test_cooperative_close_call_delegate(channel_params, get_accounts, uraiden_instance, get_channel):
+def test_cooperative_close_call_delegate(
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        get_channel):
     A = get_accounts(1, 5)[0]
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
@@ -330,13 +595,26 @@ def test_cooperative_close_call_delegate(channel_params, get_accounts, uraiden_i
         balance,
         closing_sig
     )
-    assert receiver == receiver
+    assert receiver_verified == receiver
 
     # Cooperative close can be called by anyone
-    uraiden_instance.transact({"from": A}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    uraiden_instance.transact({"from": A}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
 
-def test_cooperative_close_state(web3, contract_params, channel_params, uraiden_instance, token_instance, get_channel, get_block):
+def test_cooperative_close_state(
+        web3,
+        contract_params,
+        channel_params,
+        uraiden_instance,
+        token_instance,
+        get_channel,
+        get_block):
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
     deposit = channel_params['deposit']
@@ -347,7 +625,13 @@ def test_cooperative_close_state(web3, contract_params, channel_params, uraiden_
     contract_pre_balance = token_instance.call().balanceOf(uraiden_instance.address)
 
     # Cooperative close can be called by anyone
-    uraiden_instance.transact({"from": receiver}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    uraiden_instance.transact({"from": receiver}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
     # Check post closing balances
     receiver_post_balance = receiver_pre_balance + balance
@@ -370,16 +654,32 @@ def test_cooperative_close_state(web3, contract_params, channel_params, uraiden_
 
     # Cannot be called another time
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": receiver}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+        uraiden_instance.transact({"from": receiver}).cooperativeClose(
+            receiver,
+            open_block_number,
+            balance,
+            balance_msg_sig,
+            closing_sig
+        )
 
 
-def test_cooperative_close_event(channel_params, uraiden_instance, get_channel, event_handler):
+def test_cooperative_close_event(
+        channel_params,
+        uraiden_instance,
+        get_channel,
+        event_handler):
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
 
     ev_handler = event_handler(uraiden_instance)
 
-    txn_hash = uraiden_instance.transact({"from": receiver}).cooperativeClose(receiver, open_block_number, balance, balance_msg_sig, closing_sig)
+    txn_hash = uraiden_instance.transact({"from": receiver}).cooperativeClose(
+        receiver,
+        open_block_number,
+        balance,
+        balance_msg_sig,
+        closing_sig
+    )
 
     ev_handler.add(txn_hash, uraiden_events['settled'], checkClosedEvent(
         sender,
@@ -389,12 +689,14 @@ def test_cooperative_close_event(channel_params, uraiden_instance, get_channel, 
     )
     ev_handler.check()
 
-    # TODO:
-    # with pytest.raises(Exception):
-    #    ev_handler.add(txn_hash, uraiden_events['closed'], checkClosedEvent(sender, receiver, open_block_number, balance))
 
-
-def test_settle_call(web3, contract_params, channel_params, uraiden_instance, token_instance, get_channel):
+def test_settle_call(
+        web3,
+        contract_params,
+        channel_params,
+        uraiden_instance,
+        token_instance,
+        get_channel):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
@@ -402,7 +704,11 @@ def test_settle_call(web3, contract_params, channel_params, uraiden_instance, to
         uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
 
     # Trigger a challenge period
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
     web3.testing.mine(contract_params['challenge_period'] + 1)
 
     with pytest.raises(TypeError):
@@ -417,12 +723,21 @@ def test_settle_call(web3, contract_params, channel_params, uraiden_instance, to
     uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
 
 
-def test_settle_no_channel(web3, contract_params, channel_params, uraiden_instance, get_channel):
+def test_settle_no_channel(
+        web3,
+        contract_params,
+        channel_params,
+        uraiden_instance,
+        get_channel):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
     # Trigger a challenge period
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
     web3.testing.mine(contract_params['challenge_period'] + 1)
 
     with pytest.raises(tester.TransactionFailed):
@@ -435,12 +750,21 @@ def test_settle_no_channel(web3, contract_params, channel_params, uraiden_instan
     uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
 
 
-def test_settle_fail_in_challenge(web3, contract_params, channel_params, uraiden_instance, get_channel):
+def test_settle_fail_in_challenge(
+        web3,
+        contract_params,
+        channel_params,
+        uraiden_instance,
+        get_channel):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
     # Trigger a challenge period
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
 
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
@@ -454,13 +778,23 @@ def test_settle_fail_in_challenge(web3, contract_params, channel_params, uraiden
     uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
 
 
-def test_settle_state(web3, channel_params, contract_params, uraiden_instance, token_instance, get_channel):
+def test_settle_state(
+        web3,
+        channel_params,
+        contract_params,
+        uraiden_instance,
+        token_instance,
+        get_channel):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
     deposit = channel_params['deposit']
 
     # Trigger a challenge period
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
     web3.testing.mine(contract_params['challenge_period'] + 1)
 
     # Keep track of pre closing balances
@@ -494,14 +828,24 @@ def test_settle_state(web3, channel_params, contract_params, uraiden_instance, t
         uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
 
 
-def test_settle_event(web3, channel_params, contract_params, uraiden_instance, get_channel, event_handler):
+def test_settle_event(
+        web3,
+        channel_params,
+        contract_params,
+        uraiden_instance,
+        get_channel,
+        event_handler):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = channel_params['balance']
 
     ev_handler = event_handler(uraiden_instance)
 
     # Trigger a challenge period
-    uraiden_instance.transact({"from": sender}).uncooperativeClose(receiver, open_block_number, balance)
+    uraiden_instance.transact({"from": sender}).uncooperativeClose(
+        receiver,
+        open_block_number,
+        balance
+    )
     web3.testing.mine(contract_params['challenge_period'] + 1)
 
     txn_hash = uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
