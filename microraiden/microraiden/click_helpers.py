@@ -9,6 +9,7 @@ import sys
 from microraiden.utils import privkey_to_addr
 import logging
 import requests
+from gevent import sleep
 
 log = logging.getLogger(__name__)
 
@@ -99,24 +100,26 @@ def main(
         state_file = os.path.join(app_dir, state_file_name)
 
     config.paywall_html_dir = paywall_info
-    web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
-    try:
-        app = make_paywalled_proxy(private_key, state_file,
-                                   contract_address=channel_manager_address,
-                                   web3=web3)
-    except StateFileLocked as ex:
-        log.fatal('Another uRaiden process is already running (%s)!' % str(ex))
-        sys.exit(1)
-    except InsecureStateFile as ex:
-        msg = ('The permission bits of the state file (%s) are set incorrectly (others can '
-               'read or write) or you are not the owner. For reasons of security, '
-               'startup is aborted.' % state_file)
-        log.fatal(msg)
-        sys.exit(1)
-    except NetworkIdMismatch as ex:
-        log.fatal(str(ex))
-        sys.exit(1)
-    except requests.exceptions.ConnectionError as ex:
-        log.fatal("Ethereum node refused connection: %s" % str(ex))
-        sys.exit(1)
+    while True:
+        try:
+            web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
+            app = make_paywalled_proxy(private_key, state_file,
+                                       contract_address=channel_manager_address,
+                                       web3=web3)
+        except StateFileLocked as ex:
+            log.warning('Another uRaiden process is already running (%s)!' % str(ex))
+        except InsecureStateFile as ex:
+            msg = ('The permission bits of the state file (%s) are set incorrectly (others can '
+                   'read or write) or you are not the owner. For reasons of security, '
+                   'startup is aborted.' % state_file)
+            log.fatal(msg)
+            raise
+        except NetworkIdMismatch as ex:
+            log.fatal(str(ex))
+            raise
+        except requests.exceptions.ConnectionError as ex:
+            log.warning("Ethereum node refused connection: %s" % str(ex))
+        else:
+            break
+        sleep(config.SLEEP_RELOAD)
     ctx.obj = app
