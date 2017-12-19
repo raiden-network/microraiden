@@ -194,3 +194,56 @@ def test_verifyBalanceProof(get_accounts, token_instance, uraiden_instance):
         balance_msg_sig
     )
     assert signature_address != signer
+
+
+def test_verifyClosingSignature(get_accounts, token_instance, uraiden_instance):
+    (A, B) = get_accounts(2)
+    token = token_instance
+    uraiden = uraiden_instance
+
+    sender = '0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb'
+    block = 4804175
+    balance = 22000000000000000000
+
+    message_hash = sign.eth_signed_typed_data_message(
+        ('address', ('uint', 32), ('uint', 192), 'address'),
+        ('sender', 'block_created', 'balance', 'contract'),
+        (sender, block, balance, uraiden.address)
+    )
+    balance_msg_sig, signer = sign.check(message_hash, tester.k2)
+    assert signer == A
+
+    signature_address = uraiden.call().verifyClosingSignature(
+        sender,
+        block,
+        balance,
+        balance_msg_sig
+    )
+    assert signature_address == signer
+
+    # Wrong sender
+    signature_address = uraiden.call().verifyClosingSignature(
+        B,
+        block,
+        balance,
+        balance_msg_sig
+    )
+    assert signature_address != signer
+
+    # Wrong block
+    signature_address = uraiden.call().verifyClosingSignature(
+        sender,
+        10,
+        balance,
+        balance_msg_sig
+    )
+    assert signature_address != signer
+
+    # Wrong balance
+    signature_address = uraiden.call().verifyClosingSignature(
+        sender,
+        block,
+        20,
+        balance_msg_sig
+    )
+    assert signature_address != signer

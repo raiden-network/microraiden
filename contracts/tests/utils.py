@@ -9,6 +9,14 @@ def balance_proof_hash(receiver, block, balance, contract):
     )
 
 
+def closing_message_hash(sender, block, balance, contract):
+    return eth_signed_typed_data_message(
+        ('address', ('uint', 32), ('uint', 192), 'address'),
+        ('sender', 'block_created', 'balance', 'contract'),
+        (sender, block, balance, contract)
+    )
+
+
 def print_logs(contract, event, name=''):
     transfer_filter_past = contract.pastEvents(event)
     past_events = transfer_filter_past.get()
