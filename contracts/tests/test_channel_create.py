@@ -15,7 +15,7 @@ from tests.fixtures import (
     event_handler,
     fake_address,
     empty_address,
-    MAX_UINT,
+    MAX_UINT256,
     MAX_UINT192
 )
 from tests.fixtures_uraiden import (
@@ -48,7 +48,7 @@ def test_channel_223_create(owner, get_accounts, uraiden_instance, token_instanc
     with pytest.raises(TypeError):
         token_instance.transact({"from": sender}).transfer(
             uraiden_instance.address,
-            MAX_UINT + 1,
+            MAX_UINT256 + 1,
             txdata
         )
     with pytest.raises(tester.TransactionFailed):

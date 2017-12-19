@@ -5,7 +5,7 @@ from utils.logs import LogHandler
 print_the_logs = False
 
 
-MAX_UINT = 2 ** 256 - 1
+MAX_UINT256 = 2 ** 256 - 1
 MAX_UINT192 = 2 ** 192 - 1
 MAX_UINT32 = 2 ** 32 - 1
 fake_address = '0x03432'

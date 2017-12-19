@@ -18,8 +18,6 @@ from tests.fixtures import (
     print_gas,
     txn_gas,
     get_block,
-    MAX_UINT,
-    MAX_UINT192
 )
 from tests.fixtures_uraiden import (
     token_contract,

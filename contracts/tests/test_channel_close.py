@@ -16,7 +16,7 @@ from tests.fixtures import (
     get_block,
     event_handler,
     fake_address,
-    MAX_UINT,
+    MAX_UINT256,
     MAX_UINT32,
     MAX_UINT192,
     uraiden_events
@@ -73,7 +73,7 @@ def test_uncooperative_close_call(channel_params, uraiden_instance, get_channel)
         uraiden_instance.transact({"from": sender}).uncooperativeClose(
             receiver,
             open_block_number,
-            MAX_UINT + 1
+            MAX_UINT256 + 1
         )
 
     uraiden_instance.transact({"from": sender}).uncooperativeClose(
@@ -324,7 +324,7 @@ def test_cooperative_close_call(channel_params, uraiden_instance, get_channel):
         uraiden_instance.transact({"from": sender}).cooperativeClose(
             receiver,
             open_block_number,
-            MAX_UINT + 1,
+            MAX_UINT256 + 1,
             balance_msg_sig,
             closing_sig
         )

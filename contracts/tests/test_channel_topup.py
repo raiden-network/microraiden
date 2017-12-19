@@ -15,7 +15,7 @@ from tests.fixtures import (
     get_block,
     event_handler,
     fake_address,
-    MAX_UINT,
+    MAX_UINT256,
     MAX_UINT192,
     uraiden_events
 )
