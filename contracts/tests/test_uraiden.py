@@ -1,6 +1,6 @@
 import pytest
 from ethereum import tester
-from eth_utils import encode_hex
+from eth_utils import encode_hex, is_same_address
 from tests.fixtures import (
     channel_deposit_bugbounty_limit,
     uraiden_contract_version,
@@ -66,8 +66,8 @@ def test_uraiden_init(
         get_uraiden_contract([fake_token.address, challenge_period_min, []])
 
     uraiden = get_uraiden_contract([token.address, 2 ** 32 - 1, []])
-    assert uraiden.call().owner_address() == owner
-    assert uraiden.call().token() == token.address
+    assert is_same_address(uraiden.call().owner_address(), owner)
+    assert is_same_address(uraiden.call().token(), token.address)
     assert uraiden.call().challenge_period() == 2 ** 32 - 1
     assert token.call().balanceOf(uraiden.address) == 0
     assert web3.eth.getBalance(uraiden.address) == 0
@@ -78,8 +78,8 @@ def test_uraiden_init(
 
 def test_variable_access(owner, uraiden_contract, token_instance, contract_params):
     uraiden = uraiden_contract(token_instance)
-    assert uraiden.call().owner_address() == owner
-    assert uraiden.call().token() == token_instance.address
+    assert is_same_address(uraiden.call().owner_address(), owner)
+    assert is_same_address(uraiden.call().token(), token_instance.address)
     assert uraiden.call().challenge_period() == contract_params['challenge_period']
     assert uraiden.call().version() == uraiden_contract_version
     assert uraiden.call().channel_deposit_bugbounty_limit() == channel_deposit_bugbounty_limit

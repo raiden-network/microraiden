@@ -50,24 +50,7 @@ def test_ecrecover_output(web3, ecverify_test_contract):
     # We have to simulate mining because ecrecover consumes a lot of gas for precompiled contracts
     # on private chains.
     web3.testing.mine(30)
-    with pytest.raises(tester.TransactionFailed):
-        ecverify_test_contract.call().verify_ecrecover_output(
-            balance_message_hash,
-            r,
-            encode_hex(bytearray()),
-            v
-        )
 
-    web3.testing.mine(30)
-    with pytest.raises(tester.TransactionFailed):
-        ecverify_test_contract.call().verify_ecrecover_output(
-            balance_message_hash,
-            encode_hex(bytearray()),
-            s,
-            v
-        )
-
-    web3.testing.mine(30)
     ecverify_test_contract.call().verify_ecrecover_output(
         balance_message_hash,
         r,
