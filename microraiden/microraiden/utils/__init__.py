@@ -38,6 +38,11 @@ from .private_key import (
     get_private_key
 )
 
+from .misc import (
+    get_function_kwargs,
+    pop_function_kwargs
+)
+
 __all__ = [
     generate_privkey,
     pubkey_to_addr,
@@ -71,5 +76,8 @@ __all__ = [
     wait_for_transaction,
 
     check_permission_safety,
-    get_private_key
+    get_private_key,
+
+    get_function_kwargs,
+    pop_function_kwargs
 ]

@@ -1,24 +1,12 @@
-import inspect
-
 from requests import Response
 
 from microraiden import Session, Client
+from microraiden.utils import pop_function_kwargs
 
 
 def request(method: str, url: str, **kwargs) -> Response:
-    session_kwargs = {
-        kw: arg for kw, arg in kwargs.items()
-        if kw in inspect.signature(Session.__init__).parameters
-    }
-    client_kwargs = {
-        kw: arg for kw, arg in kwargs.items()
-        if kw in inspect.signature(Client.__init__).parameters
-    }
-
-    for kw in session_kwargs:
-        kwargs.pop(kw)
-    for kw in client_kwargs:
-        kwargs.pop(kw)
+    session_kwargs = pop_function_kwargs(kwargs, Session.__init__)
+    client_kwargs = pop_function_kwargs(kwargs, Client.__init__)
 
     session_kwargs.update(client_kwargs)
 
