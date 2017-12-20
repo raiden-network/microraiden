@@ -6,6 +6,7 @@ from tests.fixtures import (
     uraiden_contract_version,
     challenge_period_min,
     contract_params,
+    channel_params,
     owner_index,
     owner,
     create_accounts,
@@ -17,8 +18,6 @@ from tests.fixtures import (
     print_gas,
     txn_gas,
     get_block,
-    MAX_UINT,
-    MAX_UINT192
 )
 from tests.fixtures_uraiden import (
     token_contract,
@@ -91,7 +90,7 @@ def test_function_access(
     get_channel):
     (A, B, C, D) = get_accounts(4)
     uraiden_instance2 = uraiden_contract()
-    channel = get_channel(uraiden_instance, token_instance, 100, A, B)
+    channel = get_channel(uraiden_instance, token_instance, 100, A, B)[:3]
     (sender, receiver, open_block_number) = channel
 
     uraiden_instance.call().getKey(*channel)
@@ -99,7 +98,7 @@ def test_function_access(
 
     # even if TransactionFailed , this means the function is public / external
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact().verifyBalanceProof(receiver, open_block_number, 10, bytearray(65))
+        uraiden_instance.transact().extractBalanceProofSignature(receiver, open_block_number, 10, bytearray(65))
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().tokenFallback(sender, 10, bytearray(20))
     with pytest.raises(tester.TransactionFailed):
@@ -107,7 +106,7 @@ def test_function_access(
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().topUpERC20(receiver, open_block_number, 10)
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact().uncooperativeClose(receiver, open_block_number, 10, bytearray(65))
+        uraiden_instance.transact().uncooperativeClose(receiver, open_block_number, 10)
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().cooperativeClose(receiver, open_block_number, 10, bytearray(65), bytearray(65))
     with pytest.raises(tester.TransactionFailed):
@@ -144,7 +143,7 @@ def test_version(
 
 def test_get_channel_info(web3, get_accounts, uraiden_instance, token_instance, get_channel):
     (A, B, C, D) = get_accounts(4)
-    channel = get_channel(uraiden_instance, token_instance, 100, C, D)
+    channel = get_channel(uraiden_instance, token_instance, 100, C, D)[:3]
     (sender, receiver, open_block_number) = channel
 
     with pytest.raises(tester.TransactionFailed):

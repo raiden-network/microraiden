@@ -2,8 +2,12 @@ import pytest
 from utils.logs import LogHandler
 
 
-MAX_UINT = 2 ** 256 - 1
+print_the_logs = False
+
+
+MAX_UINT256 = 2 ** 256 - 1
 MAX_UINT192 = 2 ** 192 - 1
+MAX_UINT32 = 2 ** 32 - 1
 fake_address = '0x03432'
 empty_address = '0x0000000000000000000000000000000000000000'
 passphrase = '0'
@@ -27,6 +31,23 @@ contract_args = [
         'challenge_period': 502
     }
 ]
+channel_values = [
+    {
+        'deposit': 450,
+        'balance': 0,
+        'type': '20'
+    },
+    {
+        'deposit': 100 * 10 ** 18,
+        'balance': 55 * 10 ** 18,
+        'type': '223'
+    },
+    {
+        'deposit': 100 * 10 ** 18,
+        'balance': 100 * 10 ** 18,
+        'type': '223'
+    }
+]
 
 
 uraiden_events = {
@@ -42,6 +63,11 @@ def contract_params(request):
     return request.param
 
 
+@pytest.fixture(params=channel_values)
+def channel_params(request):
+    return request.param
+
+
 @pytest.fixture()
 def owner_index():
     return 1
@@ -54,8 +80,9 @@ def owner(web3, owner_index):
 
 @pytest.fixture()
 def get_accounts(web3, owner_index, create_accounts):
-    def get(number):
-        index_start = owner_index + 1
+    def get(number, index_start=None):
+        if not index_start:
+            index_start = owner_index + 1
         accounts_len = len(web3.eth.accounts)
         index_end = min(number + index_start, accounts_len)
         accounts = web3.eth.accounts[index_start:index_end]

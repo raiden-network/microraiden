@@ -1,7 +1,7 @@
 import pytest
 from ethereum import tester
 from utils import sign
-from tests.utils import balance_proof_hash
+from tests.utils import balance_proof_hash, closing_message_hash
 from tests.fixtures import (
     owner_index,
     owner,
@@ -143,7 +143,7 @@ def test_sign(web3, ecverify_test_contract):
     assert verified_address == signer
 
 
-def test_verifyBalanceProof(get_accounts, token_instance, uraiden_instance):
+def test_extract_balance_proof_signature(get_accounts, token_instance, uraiden_instance):
     (A, B) = get_accounts(2)
     token = token_instance
     uraiden = uraiden_instance
@@ -152,15 +152,11 @@ def test_verifyBalanceProof(get_accounts, token_instance, uraiden_instance):
     block = 4804175
     balance = 22000000000000000000
 
-    message_hash = sign.eth_signed_typed_data_message(
-        ('address', ('uint', 32), ('uint', 192), 'address'),
-        ('receiver', 'block_created', 'balance', 'contract'),
-        (receiver, block, balance, uraiden.address)
-    )
+    message_hash = balance_proof_hash(receiver, block, balance, uraiden.address)
     balance_msg_sig, signer = sign.check(message_hash, tester.k2)
     assert signer == A
 
-    signature_address = uraiden.call().verifyBalanceProof(
+    signature_address = uraiden.call().extractBalanceProofSignature(
         receiver,
         block,
         balance,
@@ -169,7 +165,7 @@ def test_verifyBalanceProof(get_accounts, token_instance, uraiden_instance):
     assert signature_address == signer
 
     # Wrong receiver
-    signature_address = uraiden.call().verifyBalanceProof(
+    signature_address = uraiden.call().extractBalanceProofSignature(
         B,
         block,
         balance,
@@ -178,7 +174,7 @@ def test_verifyBalanceProof(get_accounts, token_instance, uraiden_instance):
     assert signature_address != signer
 
     # Wrong block
-    signature_address = uraiden.call().verifyBalanceProof(
+    signature_address = uraiden.call().extractBalanceProofSignature(
         receiver,
         10,
         balance,
@@ -187,8 +183,57 @@ def test_verifyBalanceProof(get_accounts, token_instance, uraiden_instance):
     assert signature_address != signer
 
     # Wrong balance
-    signature_address = uraiden.call().verifyBalanceProof(
+    signature_address = uraiden.call().extractBalanceProofSignature(
         receiver,
+        block,
+        20,
+        balance_msg_sig
+    )
+    assert signature_address != signer
+
+
+def test_extract_closing_signature(get_accounts, token_instance, uraiden_instance):
+    (A, B) = get_accounts(2)
+    token = token_instance
+    uraiden = uraiden_instance
+
+    sender = '0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb'
+    block = 4804175
+    balance = 22000000000000000000
+
+    message_hash = closing_message_hash(sender, block, balance, uraiden.address)
+    balance_msg_sig, signer = sign.check(message_hash, tester.k2)
+    assert signer == A
+
+    signature_address = uraiden.call().extractClosingSignature(
+        sender,
+        block,
+        balance,
+        balance_msg_sig
+    )
+    assert signature_address == signer
+
+    # Wrong sender
+    signature_address = uraiden.call().extractClosingSignature(
+        B,
+        block,
+        balance,
+        balance_msg_sig
+    )
+    assert signature_address != signer
+
+    # Wrong block
+    signature_address = uraiden.call().extractClosingSignature(
+        sender,
+        10,
+        balance,
+        balance_msg_sig
+    )
+    assert signature_address != signer
+
+    # Wrong balance
+    signature_address = uraiden.call().extractClosingSignature(
+        sender,
         block,
         20,
         balance_msg_sig
