@@ -298,7 +298,7 @@ contract RaidenMicroTransferChannels {
         // new contract deployment with updated code.
         bytes32 message_hash = keccak256(
             keccak256(
-                'string messageID',
+                'string message_id',
                 'address receiver',
                 'uint32 block_created',
                 'uint192 balance',
@@ -343,7 +343,7 @@ contract RaidenMicroTransferChannels {
         // new contract deployment with updated code.
         bytes32 message_hash = keccak256(
             keccak256(
-                'string messageID',
+                'string message_id',
                 'address sender',
                 'uint32 block_created',
                 'uint192 balance',

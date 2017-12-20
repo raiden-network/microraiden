@@ -4,7 +4,7 @@ from utils.sign import eth_signed_typed_data_message
 def balance_proof_hash(receiver, block, balance, contract):
     return eth_signed_typed_data_message(
         ('string', 'address', ('uint', 32), ('uint', 192), 'address'),
-        ('messageID', 'receiver', 'block_created', 'balance', 'contract'),
+        ('message_id', 'receiver', 'block_created', 'balance', 'contract'),
         ('Sender balance proof signature', receiver, block, balance, contract)
     )
 
@@ -12,7 +12,7 @@ def balance_proof_hash(receiver, block, balance, contract):
 def closing_message_hash(sender, block, balance, contract):
     return eth_signed_typed_data_message(
         ('string', 'address', ('uint', 32), ('uint', 192), 'address'),
-        ('messageID', 'sender', 'block_created', 'balance', 'contract'),
+        ('message_id', 'sender', 'block_created', 'balance', 'contract'),
         ('Receiver closing signature', sender, block, balance, contract)
     )
 

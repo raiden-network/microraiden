@@ -68,7 +68,6 @@ def channel_params(request):
     return request.param
 
 
-
 @pytest.fixture()
 def owner_index():
     return 1
