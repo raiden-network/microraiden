@@ -18,7 +18,7 @@ export interface MicroProof {
   /**
    * Balance signature
    */
-  sign?: string;
+  sig?: string;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface MicroChannel {
   /**
    * Cooperative close signature from receiver
    */
-  close_sign?: string;
+  closing_sig?: string;
 }
 
 /**
@@ -269,6 +269,36 @@ export class MicroRaiden {
       }
       await asyncSleep(2e3);
     } while (true);
+  }
+
+  private getBalanceProofSignatureParams(proof: MicroProof): MsgParam[] {
+    return [
+      {
+        name: 'message_id',
+        type: 'string',
+        value: 'Sender balance proof signature',
+      },
+      {
+        name: 'receiver',
+        type: 'address',
+        value: this.channel.receiver,
+      },
+      {
+        name: 'block_created',
+        type: 'uint32',
+        value: '' + this.channel.block,
+      },
+      {
+        name: 'balance',
+        type: 'uint192',
+        value: proof.balance.toString(),
+      },
+      {
+        name: 'contract',
+        type: 'address',
+        value: this.contract.address,
+      },
+    ];
   }
 
   /**
@@ -662,10 +692,10 @@ export class MicroRaiden {
    * Else, it enters 'closed' state, and should be settled after settlement
    * period, configured in contract.
    *
-   * @param receiverSign  Cooperative-close signature from receiver
+   * @param closingSig  Cooperative-close signature from receiver
    * @returns  Promise to block number in which channel was closed
    */
-  async closeChannel(receiverSign?: string): Promise<number> {
+  async closeChannel(closingSig?: string): Promise<number> {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -674,38 +704,37 @@ export class MicroRaiden {
       throw new Error('Tried closing already closed channel');
     }
 
-    if (this.channel.close_sign) {
-      receiverSign = this.channel.close_sign;
-    } else if (receiverSign) {
+    if (this.channel.closing_sig) {
+      closingSig = this.channel.closing_sig;
+    } else if (closingSig) {
       this.setChannel(Object.assign(
         {},
         this.channel,
-        { close_sign: receiverSign },
+        { closing_sig: closingSig },
       ));
     }
-    console.log(`Closing channel. Cooperative = ${receiverSign}`);
+    console.log(`Closing channel. Cooperative = ${closingSig}`);
 
 
     let proof: MicroProof;
-    if (!this.channel.proof.sign) {
+    if (!this.channel.proof.sig) {
       proof = await this.signNewProof(this.channel.proof);
     } else {
       proof = this.channel.proof;
     }
 
-    const txHash = receiverSign ?
+    const txHash = closingSig ?
       await promisify<string>(this.contract.cooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
         proof.balance,
-        proof.sign,
-        receiverSign,
+        proof.sig,
+        closingSig,
         { from: this.channel.account }) :
       await promisify<string>(this.contract.uncooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
         proof.balance,
-        proof.sign,
         { from: this.channel.account });
 
     console.log('closeTxHash', txHash);
@@ -751,19 +780,19 @@ export class MicroRaiden {
     const hex = msg.startsWith('0x') ? msg : ( '0x' + encodeHex(msg) );
     console.log(`Signing "${msg}" => ${hex}, account: ${this.channel.account}`);
 
-    let sign: string;
+    let sig: string;
     try {
-      sign = await promisify<string>(this.web3.personal, 'sign')(hex, this.channel.account);
+      sig = await promisify<string>(this.web3.personal, 'sign')(hex, this.channel.account);
     } catch (err) {
       if (err.message &&
         (err.message.includes('Method not found') ||
           err.message.includes('is not a function'))) {
-        sign = await promisify<string>(this.web3.eth, 'sign')(this.channel.account, hex);
+        sig = await promisify<string>(this.web3.eth, 'sign')(this.channel.account, hex);
       } else {
         throw err;
       }
     }
-    return sign;
+    return sig;
   }
 
   /**
@@ -789,33 +818,12 @@ export class MicroRaiden {
     if (!proof) {
       proof = this.channel.proof;
     }
-    if (proof.sign) {
+    if (proof.sig) {
       return proof;
     }
 
-    const params: MsgParam[] = [
-      {
-        name: 'receiver',
-        type: 'address',
-        value: this.channel.receiver,
-      },
-      {
-        name: 'block_created',
-        type: 'uint32',
-        value: '' + this.channel.block,
-      },
-      {
-        name: 'balance',
-        type: 'uint192',
-        value: proof.balance.toString(),
-      },
-      {
-        name: 'contract',
-        type: 'address',
-        value: this.contract.address,
-      },
-    ];
-    let sign: string;
+    const params = this.getBalanceProofSignatureParams(proof);
+    let sig: string;
     try {
       const result = await promisify<{ result: string, error: Error }>(
         this.web3.currentProvider, 'sendAsync'
@@ -826,7 +834,7 @@ export class MicroRaiden {
       });
       if (result.error)
         throw result.error;
-      sign = result.result;
+      sig = result.result;
     } catch (err) {
       if (err.message && err.message.includes('User denied')) {
         throw err;
@@ -834,13 +842,13 @@ export class MicroRaiden {
       console.log('Error on signTypedData', err);
       const hash = typedSignatureHash(params);
       // ask for signing of the hash
-      sign = await this.signMessage(hash);
+      sig = await this.signMessage(hash);
     }
     //debug
-    const recovered = recoverTypedSignature({ data: params, sig: sign  });
-    console.log('signTypedData =', sign, recovered);
+    const recovered = recoverTypedSignature({ data: params, sig });
+    console.log('signTypedData =', sig, recovered);
 
-    proof.sign = sign;
+    proof.sig = sig;
 
     // return signed message
     if (proof.balance.equals(this.channel.proof.balance)) {
@@ -896,8 +904,8 @@ export class MicroRaiden {
    */
   confirmPayment(proof: MicroProof): void {
     if (!this.channel.next_proof
-      || !this.channel.next_proof.sign
-      || this.channel.next_proof.sign !== proof.sign) {
+      || !this.channel.next_proof.sig
+      || this.channel.next_proof.sig !== proof.sig) {
       throw new Error('Invalid provided or stored next signature');
     }
     const channel = Object.assign(
@@ -936,37 +944,16 @@ export class MicroRaiden {
    *
    * Used mainly when server replies with an updated balance proof.
    *
-   * @param proof  Balance proof, containing balance and sign
+   * @param proof  Balance proof, containing balance and signatue
    * @returns  True if balance is valid and correct, false otherwise
    */
   verifyProof(proof: MicroProof): boolean {
-    if (!proof.sign) {
+    if (!proof.sig) {
       throw new Error('Proof must contain a signature and its respective balance');
     }
-    const params: MsgParam[] = [
-      {
-        name: 'receiver',
-        type: 'address',
-        value: this.channel.receiver,
-      },
-      {
-        name: 'block_created',
-        type: 'uint32',
-        value: '' + this.channel.block,
-      },
-      {
-        name: 'balance',
-        type: 'uint192',
-        value: proof.balance.toString(),
-      },
-      {
-        name: 'contract',
-        type: 'address',
-        value: this.contract.address,
-      },
-    ];
-    const recovered = recoverTypedSignature({ data: params, sig: proof.sign });
-    console.log('verify signTypedData =', params, proof.sign, recovered);
+    const params = this.getBalanceProofSignatureParams(proof);
+    const recovered = recoverTypedSignature({ data: params, sig: proof.sig });
+    console.log('verify signTypedData =', params, proof.sig, recovered);
 
     // recovered data from proof must be equal current account
     if (recovered !== this.channel.account) {

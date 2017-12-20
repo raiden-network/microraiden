@@ -76,13 +76,12 @@ function pageReady(contractABI, tokenABI) {
     autoSign = false;
     uraiden.incrementBalanceAndSign(!isNaN(amount) ? amount : uRaidenParams.amount)
       .then(function(proof) {
-        uraiden.confirmPayment(proof);
         $('.channel_present_sign').removeClass('green-btn')
         console.log("SIGNED!", proof);
         Cookies.set("RDN-Sender-Address", uraiden.channel.account);
         Cookies.set("RDN-Open-Block", uraiden.channel.block);
         Cookies.set("RDN-Sender-Balance", proof.balance.toString());
-        Cookies.set("RDN-Balance-Signature", proof.sign);
+        Cookies.set("RDN-Balance-Signature", proof.sig);
         Cookies.remove("RDN-Nonexisting-Channel");
         mainSwitch("#channel_loading");
         location.reload();
@@ -107,8 +106,8 @@ function pageReady(contractABI, tokenABI) {
       });
   }
 
-  function closeChannel(closeSign) {
-    return uraiden.closeChannel(closeSign)
+  function closeChannel(closingSig) {
+    return uraiden.closeChannel(closingSig)
       .then(function(res) {
         console.log("CLOSED", res);
         refreshAccounts();
@@ -130,7 +129,7 @@ function pageReady(contractABI, tokenABI) {
     if (uraiden.isChannelValid() && Cookies.get("RDN-Balance-Signature")) {
       uraiden.verifyProof({
         balance: new microraiden.BigNumber(Cookies.get("RDN-Sender-Balance")),
-        sign: Cookies.get("RDN-Balance-Signature"),
+        sig: Cookies.get("RDN-Balance-Signature"),
       });
     }
 
@@ -234,8 +233,8 @@ function pageReady(contractABI, tokenABI) {
     }
     mainSwitch("#channel_opening");
     // if cooperative close signature exists, use it (api will fail)
-    if (uraiden.channel.close_sign) {
-      return closeChannel(uraiden.channel.close_sign);
+    if (uraiden.channel.closing_sig) {
+      return closeChannel(uraiden.channel.closing_sig);
     }
     // signNewProof without balance, sign (if needed) and return current balance
     return uraiden.signNewProof(null)
@@ -254,13 +253,13 @@ function pageReady(contractABI, tokenABI) {
           data: JSON.stringify({ 'balance': proof.balance.toNumber() }),
         })
         .done(function(result) {
-          var closeSign = null;
+          var closingSig = null;
           if (result && typeof result === 'object' && result['close_signature']) {
-            closeSign = result['close_signature'];
+            closingSig = result['close_signature'];
           } else {
             console.warn('Invalid cooperative-close response', result);
           }
-          return closeChannel(closeSign);
+          return closeChannel(closingSig);
         })
         .fail(function(request, msg, error) {
           console.warn('Error calling cooperative-close', request, msg, error);
