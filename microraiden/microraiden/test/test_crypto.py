@@ -142,7 +142,7 @@ def test_sign_balance_proof_contract(channel_manager_contract: Contract):
     sender_recovered = channel_manager_contract.call().extractBalanceProofSignature(
         RECEIVER_ADDR, 37, 15, sig
     )
-    assert sender_recovered == SENDER_ADDR
+    assert sender_recovered.lower() == SENDER_ADDR
 
 
 def test_verify_balance_proof(channel_manager_address: str):

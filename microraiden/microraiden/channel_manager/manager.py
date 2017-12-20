@@ -64,8 +64,8 @@ class ChannelManager(gevent.Greenlet):
         self.token_contract = token_contract
         self.n_confirmations = n_confirmations
         self.log = logging.getLogger('channel_manager')
-        network_id = web3.version.network
-        assert privkey_to_addr(self.private_key) == self.receiver.lower()
+        network_id = int(web3.version.network)
+        assert is_same_address(privkey_to_addr(self.private_key), self.receiver.lower())
 
         # check contract version
         self.check_contract_version()

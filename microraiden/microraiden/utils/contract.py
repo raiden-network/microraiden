@@ -6,12 +6,10 @@ from eth_utils import decode_hex, encode_hex
 from ethereum.transactions import Transaction
 from web3 import Web3
 from web3.contract import Contract
-from web3.formatters import input_filter_params_formatter, log_array_formatter
-from web3.utils.events import get_event_data
-from web3.utils.filters import construct_event_filter_params
 
 from microraiden.config import GAS_PRICE, GAS_LIMIT
 from microraiden.utils import privkey_to_addr, sign_transaction
+from microraiden.utils.populus_compat import LogFilter
 
 DEFAULT_TIMEOUT = 60
 DEFAULT_RETRY_INTERVAL = 3
@@ -40,7 +38,7 @@ def create_signed_transaction(
         gas_price=gas_price,
         gas_limit=gas_limit
     )
-    sign_transaction(tx, private_key, web3.version.network)
+    sign_transaction(tx, private_key, int(web3.version.network))
     return encode_hex(rlp.encode(tx))
 
 
@@ -83,7 +81,7 @@ def create_signed_contract_transaction(
         gas_price=gas_price,
         gas_limit=gas_limit
     )
-    sign_transaction(tx, private_key, contract.web3.version.network)
+    sign_transaction(tx, private_key, int(contract.web3.version.network))
     return encode_hex(rlp.encode(tx))
 
 
@@ -132,21 +130,16 @@ def get_logs(
     if argument_filters is None:
         argument_filters = {}
 
-    filter_params = input_filter_params_formatter(construct_event_filter_params(
-        event_abi,
-        argument_filters=argument_filters,
-        address=contract.address,
-        fromBlock=from_block,
-        toBlock=to_block
-    )[1])
-
-    response = _get_logs_raw(contract, filter_params)
-
-    logs = log_array_formatter(response)
-    logs = [dict(log) for log in logs]
-    for log in logs:
-        log['args'] = get_event_data(event_abi, log)['args']
-    return logs
+    tmp_filter = LogFilter(
+        contract.web3,
+        [event_abi],
+        contract.address,
+        event_name,
+        from_block,
+        to_block,
+        argument_filters
+    )
+    return tmp_filter.get_logs()
 
 
 def _get_logs_raw(contract: Contract, filter_params: Dict[str, Any]):

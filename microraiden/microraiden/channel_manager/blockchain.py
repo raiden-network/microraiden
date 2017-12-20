@@ -7,6 +7,7 @@ from ethereum.exceptions import InsufficientBalance
 from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import BadFunctionCallOutput
+from eth_utils import is_same_address
 
 import microraiden.config as config
 from microraiden.utils import get_logs
@@ -138,7 +139,7 @@ class Blockchain(gevent.Greenlet):
             **filters_unconfirmed
         )
         for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
+            assert log['args']['_receiver'].lower() == self.cm.state.receiver
             sender = log['args']['_sender']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
@@ -156,7 +157,7 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
+            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
             sender = log['args']['_sender']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
@@ -171,9 +172,9 @@ class Blockchain(gevent.Greenlet):
             **filters_unconfirmed
         )
         for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
+            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
             txhash = log['transactionHash']
-            sender = log['args']['_sender']
+            sender = log['args']['_sender'].lower()
             open_block_number = log['args']['_open_block_number']
             added_deposit = log['args']['_added_deposit']
             self.log.debug(
@@ -196,9 +197,9 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
+            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
             txhash = log['transactionHash']
-            sender = log['args']['_sender']
+            sender = log['args']['_sender'].lower()
             open_block_number = log['args']['_open_block_number']
             added_deposit = log['args']['_added_deposit']
             self.log.debug(
@@ -216,7 +217,7 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
+            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
             sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             self.log.debug('received ChannelSettled event (sender %s, block number %s)',
@@ -230,8 +231,8 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert log['args']['_receiver'] == self.cm.state.receiver
-            sender = log['args']['_sender']
+            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
+            sender = log['args']['_sender'].lower()
             open_block_number = log['args']['_open_block_number']
             if (sender, open_block_number) not in self.cm.channels:
                 continue

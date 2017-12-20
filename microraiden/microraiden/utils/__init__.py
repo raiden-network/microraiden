@@ -79,5 +79,5 @@ __all__ = [
     get_private_key,
 
     get_function_kwargs,
-    pop_function_kwargs
+    pop_function_kwargs,
 ]
