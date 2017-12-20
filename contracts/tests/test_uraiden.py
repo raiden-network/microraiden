@@ -1,5 +1,6 @@
 import pytest
 from ethereum import tester
+from eth_utils import encode_hex
 from tests.fixtures import (
     channel_deposit_bugbounty_limit,
     uraiden_contract_version,
@@ -101,9 +102,14 @@ def test_function_access(
 
     # even if TransactionFailed , this means the function is public / external
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact().extractBalanceProofSignature(receiver, open_block_number, 10, bytearray(65))
+        uraiden_instance.transact().extractBalanceProofSignature(
+            receiver,
+            open_block_number,
+            10,
+            encode_hex(bytearray(65))
+        )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact().tokenFallback(sender, 10, bytearray(20))
+        uraiden_instance.transact().tokenFallback(sender, 10, encode_hex(bytearray(20)))
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({'from': C}).createChannel(D, 10)
     with pytest.raises(tester.TransactionFailed):
@@ -111,7 +117,13 @@ def test_function_access(
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().uncooperativeClose(receiver, open_block_number, 10)
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact().cooperativeClose(receiver, open_block_number, 10, bytearray(65), bytearray(65))
+        uraiden_instance.transact().cooperativeClose(
+            receiver,
+            open_block_number,
+            10,
+            encode_hex(bytearray(65)),
+            encode_hex(bytearray(65))
+        )
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().settle(receiver, open_block_number)
 
@@ -120,11 +132,11 @@ def test_function_access(
     with pytest.raises(ValueError):
         uraiden_instance.transact().createChannelPrivate(*channel)
     with pytest.raises(ValueError):
-        uraiden_instance.transact().topUpPrivate(channel.sender, channel.receiver, channel.open_block_number, 10)
+        uraiden_instance.transact().topUpPrivate(*channel, 10)
     with pytest.raises(ValueError):
         uraiden_instance.transact().initChallengePeriod(receiver, open_block_number, 10)
     with pytest.raises(ValueError):
-        uraiden_instance.transact().settleChannel(channel.sender, channel.receiver, channel.balance, 10)
+        uraiden_instance.transact().settleChannel(*channel, 10)
 
 
 def test_version(

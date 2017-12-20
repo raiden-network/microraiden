@@ -1,7 +1,7 @@
 from web3 import Web3
 from populus.utils.wait import wait_for_transaction_receipt
 from eth_utils import keccak, is_0x_prefixed, decode_hex
-from web3.utils.compat import (
+from web3.utils.threads import (
     Timeout,
 )
 
