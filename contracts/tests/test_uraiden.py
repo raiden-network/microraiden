@@ -120,11 +120,11 @@ def test_function_access(
     with pytest.raises(ValueError):
         uraiden_instance.transact().createChannelPrivate(*channel)
     with pytest.raises(ValueError):
-        uraiden_instance.transact().topUpPrivate(*channel, 10)
+        uraiden_instance.transact().topUpPrivate(channel.sender, channel.receiver, channel.open_block_number, 10)
     with pytest.raises(ValueError):
         uraiden_instance.transact().initChallengePeriod(receiver, open_block_number, 10)
     with pytest.raises(ValueError):
-        uraiden_instance.transact().settleChannel(*channel, 10)
+        uraiden_instance.transact().settleChannel(channel.sender, channel.receiver, channel.balance, 10)
 
 
 def test_version(
