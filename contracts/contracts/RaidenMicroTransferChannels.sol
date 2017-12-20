@@ -189,10 +189,10 @@ contract RaidenMicroTransferChannels {
         external
     {
         // Derive sender address from signed balance proof
-        address sender = verifyBalanceProof(_receiver_address, _open_block_number, _balance, _balance_msg_sig);
+        address sender = extractBalanceProofSignature(_receiver_address, _open_block_number, _balance, _balance_msg_sig);
 
         // Derive receiver address from closing signature
-        address receiver = verifyClosingSignature(sender, _open_block_number, _balance, _closing_sig);
+        address receiver = extractClosingSignature(sender, _open_block_number, _balance, _closing_sig);
         require(receiver == _receiver_address);
 
         // Both signatures have been verified and the channel can be settled.
@@ -281,7 +281,7 @@ contract RaidenMicroTransferChannels {
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @param _balance_msg_sig The balance message signed by the sender.
     /// @return Address of the balance proof signer.
-    function verifyBalanceProof(
+    function extractBalanceProofSignature(
         address _receiver_address,
         uint32 _open_block_number,
         uint192 _balance,
@@ -326,7 +326,7 @@ contract RaidenMicroTransferChannels {
     /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// @param _closing_sig The receiver's signed balance message, containing the sender's address.
     /// @return Address of the closing signature signer.
-    function verifyClosingSignature(
+    function extractClosingSignature(
         address _sender_address,
         uint32 _open_block_number,
         uint192 _balance,

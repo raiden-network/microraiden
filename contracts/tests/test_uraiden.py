@@ -98,7 +98,7 @@ def test_function_access(
 
     # even if TransactionFailed , this means the function is public / external
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact().verifyBalanceProof(receiver, open_block_number, 10, bytearray(65))
+        uraiden_instance.transact().extractBalanceProofSignature(receiver, open_block_number, 10, bytearray(65))
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().tokenFallback(sender, 10, bytearray(20))
     with pytest.raises(tester.TransactionFailed):

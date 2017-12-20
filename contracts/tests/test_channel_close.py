@@ -513,7 +513,7 @@ def test_cooperative_close_call_receiver(
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
 
-    sender_verified = uraiden_instance.call().verifyBalanceProof(
+    sender_verified = uraiden_instance.call().extractBalanceProofSignature(
         receiver,
         open_block_number,
         balance,
@@ -521,7 +521,7 @@ def test_cooperative_close_call_receiver(
     )
     assert sender_verified == sender
 
-    receiver_verified = uraiden_instance.call().verifyClosingSignature(
+    receiver_verified = uraiden_instance.call().extractClosingSignature(
         sender,
         open_block_number,
         balance,
@@ -549,7 +549,7 @@ def test_cooperative_close_call_sender(
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
 
-    sender_verified = uraiden_instance.call().verifyBalanceProof(
+    sender_verified = uraiden_instance.call().extractBalanceProofSignature(
         receiver,
         open_block_number,
         balance,
@@ -557,7 +557,7 @@ def test_cooperative_close_call_sender(
     )
     assert sender_verified == sender
 
-    receiver_verified = uraiden_instance.call().verifyClosingSignature(
+    receiver_verified = uraiden_instance.call().extractClosingSignature(
         sender,
         open_block_number,
         balance,
@@ -584,7 +584,7 @@ def test_cooperative_close_call_delegate(
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
 
-    sender_verified = uraiden_instance.call().verifyBalanceProof(
+    sender_verified = uraiden_instance.call().extractBalanceProofSignature(
         receiver,
         open_block_number,
         balance,
@@ -592,7 +592,7 @@ def test_cooperative_close_call_delegate(
     )
     assert sender_verified == sender
 
-    receiver_verified = uraiden_instance.call().verifyClosingSignature(
+    receiver_verified = uraiden_instance.call().extractClosingSignature(
         sender,
         open_block_number,
         balance,
