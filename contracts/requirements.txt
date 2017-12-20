@@ -1,3 +1,4 @@
+populus>=2.2.0
 ethereum<2.0.0,>=1.6.1
 web3>=v4.0.0-beta.4
 pytest==3.2.0
