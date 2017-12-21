@@ -139,23 +139,24 @@ def test_create_token_fallback_uint_conversion(
     # Open a channel with tokenFallback
     # uint192 deposit = uint192(_deposit), where _deposit is uint256
     with pytest.raises(tester.TransactionFailed):
-        txn_hash = token.transact({"from": sender}).transfer(
+        token.transact({"from": sender}).transfer(
             uraiden.address,
             MAX_UINT192 + 1,
             txdata
         )
     with pytest.raises(tester.TransactionFailed):
-        txn_hash = token.transact({"from": sender}).transfer(
+        token.transact({"from": sender}).transfer(
             uraiden.address,
             MAX_UINT192 + 4,
             txdata
         )
 
-    txn_hash = token.transact({"from": sender}).transfer(
-        uraiden.address,
-        MAX_UINT192,
-        txdata
-    )
+    # TODO - uncomment this after channel_deposit_bugbounty_limit is removed
+    # txn_hash = token.transact({"from": sender}).transfer(
+    #     uraiden.address,
+    #     MAX_UINT192,
+    #     txdata
+    # )
 
 
 def test_channel_erc223_event(
