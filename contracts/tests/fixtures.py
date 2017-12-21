@@ -21,11 +21,6 @@ contract_args = [
         'challenge_period': 500
     },
     {
-        'decimals': 18,
-        'supply': 2 ** 200,  # test tokenFallback uint256 -> uint192 conversion
-        'challenge_period': 501
-    },
-    {
         'decimals': 0,
         'supply': 10 ** 26,
         'challenge_period': 502
