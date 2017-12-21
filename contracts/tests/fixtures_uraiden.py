@@ -14,10 +14,6 @@ from tests.fixtures import (
     contract_params,
     create_contract,
     get_token_contract,
-    event_handler,
-    print_gas,
-    txn_gas,
-    uraiden_events,
     get_block
 )
 
@@ -78,16 +74,13 @@ def uraiden_instance(owner, uraiden_contract):
 
 
 @pytest.fixture
-def get_channel(web3, channel_params, owner, get_accounts, uraiden_instance, token_instance, event_handler, print_gas, txn_gas, get_block):
+def get_channel(channel_params, owner, get_accounts, uraiden_instance, token_instance, get_block):
     def get(uraiden=None, token=None, deposit=None, sender=None, receiver=None, contract_type=None):
         deposit = deposit or channel_params['deposit']
         contract_type = contract_type or channel_params['type']
         balance = channel_params['balance']
         uraiden = uraiden or uraiden_instance
         token = token or token_instance
-
-        ev_handler = event_handler(uraiden)
-        gas_used_create = 0
 
         if not sender:
             (sender, receiver) = get_accounts(2)
@@ -96,59 +89,25 @@ def get_channel(web3, channel_params, owner, get_accounts, uraiden_instance, tok
         token.transact({"from": owner}).transfer(sender, deposit + 500)
         token.transact({"from": owner}).transfer(receiver, 100)
 
-        # Memorize balances for tests
-        uraiden_pre_balance = token.call().balanceOf(uraiden.address)
-        sender_pre_balance = token.call().balanceOf(sender)
-        receiver_pre_balance = token.call().balanceOf(receiver)
-
         # Create channel (ERC20 or ERC223 logic)
         if contract_type == '20':
-            txn_hash = token.transact({"from": sender}).approve(
+            token.transact({"from": sender}).approve(
                 uraiden.address,
                 deposit
             )
-            gas_used_create += txn_gas(txn_hash)
             txn_hash = uraiden.transact({"from": sender}).createChannelERC20(
                 receiver,
                 deposit
             )
-            message = 'test_channel_20_create'
         else:
-            txdata = receiver[2:].zfill(40)
-            txdata = bytes.fromhex(txdata)
+            txdata = bytes.fromhex(receiver[2:].zfill(40))
             txn_hash = token.transact({"from": sender}).transfer(
                 uraiden.address,
                 deposit,
                 txdata
             )
-            message = 'test_channel_223_create'
-
-        # Check token balances post channel creation
-        uraiden_balance = uraiden_pre_balance + deposit
-        assert token.call().balanceOf(uraiden.address) == uraiden_balance
-        assert token.call().balanceOf(sender) == sender_pre_balance - deposit
-        assert token.call().balanceOf(receiver) == receiver_pre_balance
-
-        # Check creation event
-        ev_handler.add(
-            txn_hash,
-            uraiden_events['created'],
-            checkCreatedEvent(sender, receiver, deposit)
-        )
-        ev_handler.check()
 
         open_block_number = get_block(txn_hash)
-        channel_data = uraiden.call().getChannelInfo(sender, receiver, open_block_number)
-        assert channel_data[0] == uraiden.call().getKey(
-            sender,
-            receiver,
-            open_block_number
-        )
-        assert channel_data[1] == deposit
-        assert channel_data[2] == 0
-        assert channel_data[3] == 0
-
-        print_gas(txn_hash, message, gas_used_create)
 
         balance_message_hash = balance_proof_hash(
             receiver,

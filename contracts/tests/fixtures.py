@@ -11,6 +11,8 @@ MAX_UINT32 = 2 ** 32 - 1
 fake_address = '0x03432'
 empty_address = '0x0000000000000000000000000000000000000000'
 passphrase = '0'
+
+# recheck test_create_token_fallback_uint_conversion when bug bounty limit is removed
 uraiden_contract_version = '0.1.0'
 channel_deposit_bugbounty_limit = 100 * 10 ** 18
 challenge_period_min = 500
@@ -19,11 +21,6 @@ contract_args = [
         'decimals': 18,
         'supply': 10 ** 26,
         'challenge_period': 500
-    },
-    {
-        'decimals': 18,
-        'supply': 2 ** 200,  # test tokenFallback uint256 -> uint192 conversion
-        'challenge_period': 501
     },
     {
         'decimals': 0,
