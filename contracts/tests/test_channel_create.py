@@ -30,7 +30,7 @@ from tests.fixtures_uraiden import (
 )
 
 
-def test_channel_223_create(owner, get_accounts, uraiden_instance, token_instance):
+def test_channel_erc223_create(owner, get_accounts, uraiden_instance, token_instance):
     token = token_instance
     (sender, receiver, C, D) = get_accounts(4)
     deposit = 1000
@@ -80,7 +80,12 @@ def test_channel_223_create(owner, get_accounts, uraiden_instance, token_instanc
     token_instance.transact({"from": sender}).transfer(uraiden_instance.address, deposit, txdata)
 
 
-def test_channel_223_create_bounty_limit(get_block, owner, get_accounts, uraiden_instance, token_instance):
+def test_channel_erc223_create_bounty_limit(
+        get_block,
+        owner,
+        get_accounts,
+        uraiden_instance,
+        token_instance):
     token = token_instance
     (sender, receiver, C, D) = get_accounts(4)
     txdata = bytes.fromhex(receiver[2:].zfill(40))
@@ -144,7 +149,13 @@ def test_create_token_fallback_uint_conversion(
             )
 
 
-def test_channel_223_event(owner, get_accounts, uraiden_instance, token_instance, event_handler, print_gas):
+def test_channel_erc223_event(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        event_handler,
+        print_gas):
     token = token_instance
     ev_handler = event_handler(uraiden_instance)
     (sender, receiver) = get_accounts(2)
@@ -154,7 +165,11 @@ def test_channel_223_event(owner, get_accounts, uraiden_instance, token_instance
     # Fund accounts with tokens
     token.transact({"from": owner}).transfer(sender, deposit + 100)
 
-    txn_hash = token_instance.transact({"from": sender}).transfer(uraiden_instance.address, 1000, txdata)
+    txn_hash = token_instance.transact({"from": sender}).transfer(
+        uraiden_instance.address,
+        1000,
+        txdata
+    )
 
     # Check creation event
     ev_handler.add(
@@ -167,7 +182,7 @@ def test_channel_223_event(owner, get_accounts, uraiden_instance, token_instance
     print_gas(txn_hash, 'channel_223_create')
 
 
-def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance):
+def test_channel_erc20_create(owner, get_accounts, uraiden_instance, token_instance):
     token = token_instance
     (sender, receiver) = get_accounts(2)
     deposit = 1000
@@ -203,7 +218,12 @@ def test_channel_20_create(owner, get_accounts, uraiden_instance, token_instance
     uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
 
 
-def test_channel_20_create_bounty_limit(owner, get_accounts, uraiden_instance, token_instance, get_block):
+def test_channel_erc20_create_bounty_limit(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        get_block):
     token = token_instance
     (sender, receiver) = get_accounts(2)
 
@@ -242,7 +262,14 @@ def test_channel_20_create_bounty_limit(owner, get_accounts, uraiden_instance, t
     assert channel_data[1] == channel_deposit_bugbounty_limit
 
 
-def test_channel_20_event(owner, get_accounts, uraiden_instance, token_instance, event_handler, txn_gas, print_gas):
+def test_channel_erc20_event(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        event_handler,
+        txn_gas,
+        print_gas):
     token = token_instance
     ev_handler = event_handler(uraiden_instance)
     (sender, receiver) = get_accounts(2)
@@ -270,7 +297,13 @@ def test_channel_20_event(owner, get_accounts, uraiden_instance, token_instance,
     print_gas(txn_hash, 'channel_20_create', gas_used)
 
 
-def test_channel_create_state(owner, channel_params, get_accounts, uraiden_instance, token_instance, get_block):
+def test_channel_create_state(
+        owner,
+        channel_params,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        get_block):
     token = token_instance
     uraiden = uraiden_instance
     (sender, receiver) = get_accounts(2)
