@@ -139,20 +139,20 @@ def test_create_token_fallback_uint_conversion(
     # Open a channel with tokenFallback
     # uint192 deposit = uint192(_deposit), where _deposit is uint256
     with pytest.raises(tester.TransactionFailed):
-        txn_hash = token_instance.transact({"from": sender}).transfer(
-            uraiden_instance.address,
+        txn_hash = token.transact({"from": sender}).transfer(
+            uraiden.address,
             MAX_UINT192 + 1,
             txdata
         )
     with pytest.raises(tester.TransactionFailed):
-        txn_hash = token_instance.transact({"from": sender}).transfer(
-            uraiden_instance.address,
+        txn_hash = token.transact({"from": sender}).transfer(
+            uraiden.address,
             MAX_UINT192 + 4,
             txdata
         )
 
-    txn_hash = token_instance.transact({"from": sender}).transfer(
-        uraiden_instance.address,
+    txn_hash = token.transact({"from": sender}).transfer(
+        uraiden.address,
         MAX_UINT192,
         txdata
     )
