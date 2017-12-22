@@ -165,8 +165,7 @@ def test_full_cycle_error_500(
         url = 'http://{}/something'.format(api_endpoint_address)
         server_mock.get(url, [
             {'status_code': 402, 'headers': headers1},
-            {'status_code': 500, 'headers': {}},
-            {'status_code': 200, 'headers': headers2, 'text': 'success'}
+            {'status_code': 500, 'headers': {}}
         ])
         response = session.get(url)
 
@@ -186,17 +185,7 @@ def test_full_cycle_error_500(
     assert session.channel.balance == 3
     balance_sig_hex = encode_hex(session.channel.balance_sig)
     assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-
-    # Third cycle, retry naively.
-    request = server_mock.request_history[2]
-    assert request.path == '/something'
-    assert request.method == 'GET'
-    assert request.headers['RDN-Contract-Address'] == channel_manager_address
-    assert request.headers['RDN-Balance'] == '3'
-    assert session.channel.balance == 3
-    assert request.headers['RDN-Balance-Signature'] == balance_sig_hex
-    assert session.channel.balance_sig
-    assert response.text == 'success'
+    assert response.status_code == 500
 
 
 def test_full_cycle_success_post(

@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 def start_proxy(receiver_privkey: str) -> PaywalledProxy:
-    state_file_name = '{}_{}.json'.format(
+    state_file_name = 'ticker_proxy.db'.format(
         CHANNEL_MANAGER_ADDRESS, privkey_to_addr(receiver_privkey)
     )
     app_dir = click.get_app_dir('microraiden')

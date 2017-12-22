@@ -288,13 +288,10 @@ class Session(requests.Session):
         return True
 
     def on_http_error(self, method: str, url: str, response: Response, **kwargs) -> bool:
-        log.warning(
-            'Unexpected server error, status code {}. Retrying in {} seconds.'.format(
-                response.status_code, self.retry_interval
-            )
+        log.error(
+            'Unexpected server error, status code {}'.format(response.status_code)
         )
-        time.sleep(self.retry_interval)
-        return True
+        return False
 
     def on_init(self, method: str, url: str, **kwargs):
         log.debug('Starting {} request loop for resource at {}.'.format(method, url))
