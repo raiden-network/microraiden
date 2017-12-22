@@ -229,15 +229,24 @@ class ChannelManager(gevent.Greenlet):
         if c.last_signature is None:
             raise NoBalanceProofReceived('Cannot close a channel without a balance proof.')
         # send closing tx
+        closing_sig = sign_close(
+            self.private_key,
+            sender,
+            open_block_number,
+            c.balance,
+            self.channel_manager_contract.address
+        )
+
         raw_tx = create_signed_contract_transaction(
             self.private_key,
             self.channel_manager_contract,
-            'uncooperativeClose',
+            'cooperativeClose',
             [
                 self.state.receiver,
                 open_block_number,
                 c.balance,
-                decode_hex(c.last_signature)
+                decode_hex(c.last_signature),
+                closing_sig
             ]
         )
 
@@ -280,7 +289,13 @@ class ChannelManager(gevent.Greenlet):
             raise InvalidBalanceProof('Requested closing balance does not match latest one.')
         c.is_closed = True
         c.mtime = time.time()
-        receiver_sig = sign_close(self.private_key, c.last_signature)
+        receiver_sig = sign_close(
+            self.private_key,
+            sender,
+            open_block_number,
+            c.balance,
+            self.channel_manager_contract.address
+        )
         self.state.set_channel(c)
         self.log.info('signed cooperative closing message (sender %s, block number %s)',
                       sender, open_block_number)

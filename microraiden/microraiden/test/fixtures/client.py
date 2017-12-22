@@ -42,9 +42,19 @@ def client(
         web3=web3
     )
     if clean_channels:
-        close_all_channels_cooperatively(client, receiver_privkey, balance=0)
+        close_all_channels_cooperatively(
+            client,
+            receiver_privkey,
+            channel_manager_address,
+            balance=0
+        )
 
     yield client
 
     if clean_channels:
-        close_all_channels_cooperatively(client, receiver_privkey, balance=0)
+        close_all_channels_cooperatively(
+            client,
+            receiver_privkey,
+            channel_manager_address,
+            balance=0
+        )

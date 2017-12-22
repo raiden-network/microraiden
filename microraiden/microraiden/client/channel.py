@@ -150,8 +150,7 @@ class Channel:
             [
                 self.receiver,
                 self.block,
-                self.balance,
-                self.balance_sig
+                self.balance
             ]
         )
         self.core.web3.eth.sendRawTransaction(tx)
@@ -191,7 +190,14 @@ class Channel:
             self.receiver, self.block
         ))
         current_block = self.core.web3.eth.blockNumber
-        if not is_same_address(verify_closing_sig(self.balance_sig, closing_sig), self.receiver):
+        receiver_recovered = verify_closing_sig(
+            self.sender,
+            self.block,
+            self.balance,
+            closing_sig,
+            self.core.channel_manager.address
+        )
+        if not is_same_address(receiver_recovered, self.receiver):
             log.error('Invalid closing signature.')
             return None
 
