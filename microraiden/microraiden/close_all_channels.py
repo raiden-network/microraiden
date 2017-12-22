@@ -20,7 +20,7 @@ from microraiden import (
     utils,
 )
 from microraiden.channel_manager import ChannelManagerState
-from microraiden.utils import create_signed_contract_transaction, privkey_to_addr
+from microraiden.utils import create_signed_contract_transaction, privkey_to_addr, sign_close
 from microraiden.exceptions import StateFileException
 from microraiden.make_helpers import make_channel_manager_contract
 
@@ -136,15 +136,24 @@ def close_open_channels(
 
             # send close if open or settling with wrong balance, unless already done
             if not close_sent and is_valid:
+                closing_sig = sign_close(
+                    private_key,
+                    channel.sender,
+                    channel.open_block_number,
+                    channel.balance,
+                    channel_manager_contract.address
+                )
+
                 raw_tx = create_signed_contract_transaction(
                     private_key,
                     channel_manager_contract,
-                    'uncooperativeClose',
+                    'cooperativeClose',
                     [
                         channel.receiver,
                         channel.open_block_number,
                         channel.balance,
-                        decode_hex(channel.last_signature)
+                        decode_hex(channel.last_signature),
+                        closing_sig
                     ]
                 )
                 tx_hash = web3.eth.sendRawTransaction(raw_tx)

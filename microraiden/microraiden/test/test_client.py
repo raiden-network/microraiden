@@ -34,7 +34,13 @@ def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
     assert c.deposit >= 3
     assert c.balance == 3
 
-    sig = sign_close(receiver_privkey, c.balance_sig)
+    sig = sign_close(
+        receiver_privkey,
+        c.sender,
+        c.block,
+        c.balance,
+        client.context.channel_manager.address
+    )
     assert c.close_cooperatively(sig)
     assert c.state == Channel.State.closed
 
@@ -93,7 +99,7 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
     assert c.deposit == 7
 
     # Check if channel is forgotten on resync after closure.
-    close_channel_cooperatively(c, receiver_privkey)
+    close_channel_cooperatively(c, receiver_privkey, client.context.channel_manager.address)
 
     client.sync_channels()
     assert c not in client.channels
