@@ -154,6 +154,7 @@ def get_balance_message(
         receiver: str, open_block_number: int, balance: int, contract_address: str
 ) -> bytes:
     return eth_sign_typed_data_message([
+        ('string', 'message_id', 'Sender balance proof signature'),
         ('address', 'receiver', receiver),
         ('uint32', 'block_created', (open_block_number, 32)),
         ('uint192', 'balance', (balance, 192)),
@@ -179,10 +180,38 @@ def verify_balance_proof(
     return addr_from_sig(balance_sig, msg)
 
 
-def sign_close(privkey: str, balance_sig: bytes) -> bytes:
-    return sign(privkey, keccak256(balance_sig))
+def get_closing_message(
+        sender: str,
+        open_block_number: int,
+        balance: int,
+        contract_address: str
+) -> bytes:
+    return eth_sign_typed_data_message([
+        ('string', 'message_id', 'Receiver closing signature'),
+        ('address', 'sender', sender),
+        ('uint32', 'block_created', (open_block_number, 32)),
+        ('uint192', 'balance', (balance, 192)),
+        ('address', 'contract', contract_address)
+    ])
 
 
-def verify_closing_sig(balance_sig: bytes, closing_sig: bytes) -> str:
-    msg = keccak256(balance_sig)
+def sign_close(
+        privkey: str,
+        sender: str,
+        open_block_number: int,
+        balance: int,
+        contract_address: str
+) -> bytes:
+    msg = get_closing_message(sender, open_block_number, balance, contract_address)
+    return sign(privkey, msg, v=27)
+
+
+def verify_closing_sig(
+        sender: str,
+        open_block_number: int,
+        balance: int,
+        closing_sig: bytes,
+        contract_address: str
+) -> str:
+    msg = get_closing_message(sender, open_block_number, balance, contract_address)
     return addr_from_sig(closing_sig, msg)

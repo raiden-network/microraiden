@@ -8,7 +8,6 @@ from microraiden.utils import (
     keccak256_hex,
     sign,
     pubkey_to_addr,
-    get_balance_message,
     sign_balance_proof,
     verify_balance_proof,
     eth_sign,
@@ -17,7 +16,9 @@ from microraiden.utils import (
     eth_verify,
     eth_sign_typed_data_message_eip,
     eth_sign_typed_data_eip,
-    pack
+    pack,
+    sign_close,
+    verify_closing_sig
 )
 
 SENDER_PRIVATE_KEY = '0xa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0'
@@ -134,16 +135,11 @@ def test_eth_sign_typed_data_eip():
     assert encode_hex(sig) == sig_expected
 
 
-def test_get_balance_message(channel_manager_address: str):
-    msg = get_balance_message(RECEIVER_ADDR, 310214, 14, channel_manager_address)
-    assert encode_hex(msg) == '0x030600a234c173e696c945642673a00720f591bea0741589a3cb0cb09a898ce1'
-
-
 def test_sign_balance_proof_contract(channel_manager_contract: Contract):
     sig = sign_balance_proof(
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 37, 15, channel_manager_contract.address
     )
-    sender_recovered = channel_manager_contract.call().verifyBalanceProof(
+    sender_recovered = channel_manager_contract.call().extractBalanceProofSignature(
         RECEIVER_ADDR, 37, 15, sig
     )
     assert sender_recovered == SENDER_ADDR
@@ -156,6 +152,24 @@ def test_verify_balance_proof(channel_manager_address: str):
     assert verify_balance_proof(
         RECEIVER_ADDR, 315123, 8, sig, channel_manager_address
     ) == SENDER_ADDR
+
+
+def test_sign_close_contract(channel_manager_contract: Contract):
+    sig = sign_close(
+        RECEIVER_PRIVATE_KEY, SENDER_ADDR, 315832, 13, channel_manager_contract.address
+    )
+    receiver_recovered = channel_manager_contract.call().extractClosingSignature(
+        SENDER_ADDR, 315832, 13, sig
+    )
+    assert receiver_recovered == RECEIVER_ADDR
+
+
+def test_verify_closing_sign(channel_manager_address: str):
+    sig = sign_close(
+        RECEIVER_PRIVATE_KEY, SENDER_ADDR, 315832, 13, channel_manager_address
+    )
+    receiver_recovered = verify_closing_sig(SENDER_ADDR, 315832, 13, sig, channel_manager_address)
+    assert receiver_recovered == RECEIVER_ADDR
 
 
 def test_sign_v0():
