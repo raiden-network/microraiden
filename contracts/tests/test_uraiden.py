@@ -25,6 +25,8 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
+    delegate_contract,
+    delegate_instance,
     get_channel
 )
 # from tests.test_channel_create import get_channel
@@ -44,25 +46,27 @@ def test_uraiden_init(
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address])
     with pytest.raises(TypeError):
-        get_uraiden_contract([fake_address, challenge_period_min])
+        get_uraiden_contract([token.address, 500])
     with pytest.raises(TypeError):
-        get_uraiden_contract([token.address, -2])
+        get_uraiden_contract([fake_address, challenge_period_min, []])
     with pytest.raises(TypeError):
-        get_uraiden_contract([token.address, 2 ** 32])
+        get_uraiden_contract([token.address, -2, []])
     with pytest.raises(TypeError):
-        get_uraiden_contract([0x0, challenge_period_min])
+        get_uraiden_contract([token.address, 2 ** 32, []])
+    with pytest.raises(TypeError):
+        get_uraiden_contract([0x0, challenge_period_min, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([empty_address, challenge_period_min])
+        get_uraiden_contract([empty_address, challenge_period_min, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([A, challenge_period_min])
+        get_uraiden_contract([A, challenge_period_min, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([token.address, 0])
+        get_uraiden_contract([token.address, 0, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([token.address, challenge_period_min - 1])
+        get_uraiden_contract([token.address, challenge_period_min - 1, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([fake_token.address, challenge_period_min])
+        get_uraiden_contract([fake_token.address, challenge_period_min, []])
 
-    uraiden = get_uraiden_contract([token.address, 2 ** 32 - 1])
+    uraiden = get_uraiden_contract([token.address, 2 ** 32 - 1, []])
     assert uraiden.call().token() == token.address
     assert uraiden.call().challenge_period() == 2 ** 32 - 1
     assert token.call().balanceOf(uraiden.address) == 0
@@ -73,7 +77,7 @@ def test_uraiden_init(
 
 
 def test_variable_access(owner, uraiden_contract, token_instance, contract_params):
-    uraiden = uraiden_contract()
+    uraiden = uraiden_contract(token_instance)
     assert uraiden.call().token() == token_instance.address
     assert uraiden.call().challenge_period() == contract_params['challenge_period']
     assert uraiden.call().version() == uraiden_contract_version
@@ -101,9 +105,9 @@ def test_function_access(
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().tokenFallback(sender, 10, bytearray(20))
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': C}).createChannelERC20(D, 10)
+        uraiden_instance.transact({'from': C}).createChannel(D, 10)
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact().topUpERC20(receiver, open_block_number, 10)
+        uraiden_instance.transact().topUp(receiver, open_block_number, 10)
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact().uncooperativeClose(receiver, open_block_number, 10)
     with pytest.raises(tester.TransactionFailed):
@@ -133,11 +137,37 @@ def test_version(
     (A, B) = get_accounts(2)
     token = token_instance
     other_contract = get_uraiden_contract(
-        [token.address, challenge_period_min],
+        [token.address, challenge_period_min, []],
         {'from': A}
     )
 
     assert uraiden_instance.call().version() == uraiden_contract_version
+
+
+def test_trusted_contracts(
+        owner,
+        get_accounts,
+        get_uraiden_contract,
+        uraiden_contract,
+        token_instance,
+        delegate_contract,
+        contract_params):
+    trusted_contract = delegate_contract()
+    other_contract = delegate_contract()
+    simple_account = get_accounts(1)[0]
+    uraiden = uraiden_contract(token_instance, [trusted_contract.address])
+
+    assert uraiden.call().trusted_contracts(trusted_contract.address)
+    assert uraiden.call().trusted_contracts(other_contract.address) == False
+
+    with pytest.raises(TypeError):
+        get_uraiden_contract([token_instance.address, challenge_period_min])
+    with pytest.raises(TypeError):
+        get_uraiden_contract([token_instance.address, challenge_period_min, [fake_address]])
+    with pytest.raises(tester.TransactionFailed):
+        get_uraiden_contract([token_instance.address, challenge_period_min, [empty_address]])
+    with pytest.raises(tester.TransactionFailed):
+        get_uraiden_contract([token_instance.address, challenge_period_min, [simple_account]])
 
 
 def test_get_channel_info(web3, get_accounts, uraiden_instance, token_instance, get_channel):
