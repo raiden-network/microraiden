@@ -210,3 +210,10 @@ def checkSettledEvent(sender, receiver, open_block_number, balance):
         assert event['args']['_open_block_number'] == open_block_number
         assert event['args']['_balance'] == balance
     return get
+
+
+def checkTrustedEvent(contract_address, trusted_status):
+    def get(event):
+        assert event['args']['_trusted_contract_address'] == contract_address
+        assert event['args']['_trusted_status'] == trusted_status
+    return get

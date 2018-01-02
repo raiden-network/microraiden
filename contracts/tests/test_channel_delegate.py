@@ -143,3 +143,28 @@ def test_channel_erc20_topup_delegate(
     # Check channel deposit
     channel_data = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == deposit + deposit_topup
+
+
+def test_delegate_remove_trusted_contract(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        token_instance,
+        delegate_instance):
+    (sender, receiver) = get_accounts(2)
+    deposit = 1000
+
+    # Fund delegate with tokens
+    token_instance.transact({"from": owner}).transfer(delegate_instance.address, deposit * 3)
+
+    # Create channel through delegate
+    delegate_instance.transact({"from": sender}).createChannelERC20(sender, receiver, deposit)
+
+    # Remove trusted contract
+    uraiden_instance.transact({"from": owner}).removeTrustedContracts([
+        delegate_instance.address
+    ])
+
+    # Delegate create channel should fail now
+    with pytest.raises(tester.TransactionFailed):
+        delegate_instance.transact({"from": sender}).createChannelERC20(sender, receiver, deposit)

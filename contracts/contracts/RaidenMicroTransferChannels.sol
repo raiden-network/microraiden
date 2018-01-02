@@ -10,6 +10,9 @@ contract RaidenMicroTransferChannels {
      *  Data structures
      */
 
+    // The only role of the owner_address is to add or remove trusted contracts
+    address public owner_address;
+
     // Number of blocks to wait from an uncooperativeClose initiated by the sender
     // in order to give the receiver a chance to respond with a balance proof
     // in case the sender cheats. After the challenge period, the sender can settle
@@ -57,6 +60,11 @@ contract RaidenMicroTransferChannels {
      * Modifiers
      */
 
+    modifier isOwner() {
+        require(msg.sender == owner_address);
+        _;
+    }
+
     modifier isTrustedContract() {
         require(trusted_contracts[msg.sender]);
         _;
@@ -85,6 +93,9 @@ contract RaidenMicroTransferChannels {
         address indexed _receiver,
         uint32 indexed _open_block_number,
         uint192 _balance);
+    event TrustedContract(
+        address indexed _trusted_contract_address,
+        bool _trusted_status);
 
 
     /*
@@ -114,11 +125,8 @@ contract RaidenMicroTransferChannels {
         require(token.totalSupply() > 0);
 
         challenge_period = _challenge_period;
-        for (uint256 i = 0; i < _trusted_contracts.length; i++) {
-            require(_trusted_contracts[i] != 0x0);
-            require(addressHasCode(_trusted_contracts[i]));
-            trusted_contracts[_trusted_contracts[i]] = true;
-        }
+        owner_address = msg.sender;
+        addTrustedContracts(_trusted_contracts);
     }
 
     /*
@@ -163,6 +171,29 @@ contract RaidenMicroTransferChannels {
                 open_block_number,
                 deposit
             );
+        }
+    }
+
+    /// @notice Function for adding trusted contracts. Can only be called by owner_address.
+    /// @param _trusted_contracts Array of contract addresses that can be trusted to
+    /// open and top up channels on behalf of a sender.
+    function addTrustedContracts(address[] _trusted_contracts) isOwner public {
+        for (uint256 i = 0; i < _trusted_contracts.length; i++) {
+            if (addressHasCode(_trusted_contracts[i])) {
+                trusted_contracts[_trusted_contracts[i]] = true;
+                TrustedContract(_trusted_contracts[i], true);
+            }
+        }
+    }
+
+    /// @notice Function for removing trusted contracts. Can only be called by owner_address.
+    /// @param _trusted_contracts Array of contract addresses to be removed from the trusted_contracts mapping.
+    function removeTrustedContracts(address[] _trusted_contracts) isOwner public {
+        for (uint256 i = 0; i < _trusted_contracts.length; i++) {
+            if (trusted_contracts[_trusted_contracts[i]]) {
+                trusted_contracts[_trusted_contracts[i]] = false;
+                TrustedContract(_trusted_contracts[i], false);
+            }
         }
     }
 
