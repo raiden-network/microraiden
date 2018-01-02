@@ -573,12 +573,12 @@ contract RaidenMicroTransferChannels {
 
         bytes32 key = getKey(_sender_address, _receiver_address, _open_block_number);
 
-        require(channels[key].deposit > 0);
+        require(channels[key].open_block_number > 0);
         require(closing_requests[key].settle_block_number == 0);
         require(channels[key].deposit + _added_deposit <= channel_deposit_bugbounty_limit);
 
         channels[key].deposit += _added_deposit;
-        assert(channels[key].deposit > _added_deposit);
+        assert(channels[key].deposit >= _added_deposit);
         ChannelToppedUp(_sender_address, _receiver_address, _open_block_number, _added_deposit);
     }
 
