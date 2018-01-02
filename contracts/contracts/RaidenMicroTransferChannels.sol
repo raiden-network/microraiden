@@ -54,6 +54,15 @@ contract RaidenMicroTransferChannels {
     }
 
     /*
+     * Modifiers
+     */
+
+    modifier isTrustedContract() {
+        require(trusted_contracts[msg.sender]);
+        _;
+    }
+
+    /*
      *  Events
      */
 
@@ -87,6 +96,8 @@ contract RaidenMicroTransferChannels {
     /// @param _challenge_period A fixed number of blocks representing the challenge period.
     /// We enforce a minimum of 500 blocks waiting period.
     /// after a sender requests the closing of the channel without the receiver's signature.
+    /// @param _trusted_contracts Array of contract addresses that can be trusted to
+    /// open and top up channels on behalf of a sender.
     function RaidenMicroTransferChannels(
         address _token_address,
         uint32 _challenge_period,
@@ -156,7 +167,7 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @notice Creates a new channel between `msg.sender` and `_receiver_address` and transfers
-    /// the `_deposit` token deposit to this contract, compatibility with ERC20 tokens.
+    /// the `_deposit` token deposit to this contract. Compatibility with ERC20 tokens.
     /// @param _receiver_address The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
     function createChannel(address _receiver_address, uint192 _deposit) external {
@@ -167,8 +178,9 @@ contract RaidenMicroTransferChannels {
         require(token.transferFrom(msg.sender, address(this), _deposit));
     }
 
-    /// @notice Function that allows a trusted contract to create a new channel between `_sender_address` and `_receiver_address` and transfers
-    /// the `_deposit` token deposit to this contract, compatibility with ERC20 tokens.
+    /// @notice Function that allows a delegate contract to create a new channel between
+    /// `_sender_address` and `_receiver_address` and transfers token deposit to this contract.
+    /// Can only be called by a trusted contract. Compatibility with ERC20 tokens.
     /// @param _sender_address The sender's address in behalf of whom the delegate sends tokens.
     /// @param _receiver_address The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
@@ -177,9 +189,8 @@ contract RaidenMicroTransferChannels {
         address _receiver_address,
         uint192 _deposit)
         external
+        isTrustedContract
     {
-        require(trusted_contracts[msg.sender]);
-
         createChannelPrivate(_sender_address, _receiver_address, _deposit);
 
         // transferFrom deposit from msg.sender to contract
@@ -211,7 +222,8 @@ contract RaidenMicroTransferChannels {
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
     }
 
-    /// @notice Increase the channel deposit with `_added_deposit`.
+    /// @notice Function that allows a delegate contract to increase the channel deposit
+    /// with `_added_deposit`. Can only be called by a trusted contract. Compatibility with ERC20 tokens.
     /// @param _sender_address The sender's address in behalf of whom the delegate sends tokens.
     /// @param _receiver_address The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the
@@ -223,9 +235,8 @@ contract RaidenMicroTransferChannels {
         uint32 _open_block_number,
         uint192 _added_deposit)
         external
+        isTrustedContract
     {
-        require(trusted_contracts[msg.sender]);
-
         updateInternalBalanceStructs(
             _sender_address,
             _receiver_address,
@@ -234,7 +245,7 @@ contract RaidenMicroTransferChannels {
         );
 
         // transferFrom deposit from msg.sender to contract
-        // ! needs prior approval from user
+        // ! needs prior approval from the trusted contract
         // Do transfer after any state change
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
     }
