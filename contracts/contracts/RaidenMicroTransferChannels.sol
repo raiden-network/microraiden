@@ -188,8 +188,8 @@ contract RaidenMicroTransferChannels {
         address _sender_address,
         address _receiver_address,
         uint192 _deposit)
-        external
         isTrustedContract
+        external
     {
         createChannelPrivate(_sender_address, _receiver_address, _deposit);
 
@@ -234,8 +234,8 @@ contract RaidenMicroTransferChannels {
         address _receiver_address,
         uint32 _open_block_number,
         uint192 _added_deposit)
-        external
         isTrustedContract
+        external
     {
         updateInternalBalanceStructs(
             _sender_address,
