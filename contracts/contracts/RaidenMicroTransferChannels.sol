@@ -93,6 +93,11 @@ contract RaidenMicroTransferChannels {
         address indexed _receiver,
         uint32 indexed _open_block_number,
         uint192 _balance);
+    event ChannelWithdraw(
+        address indexed _sender,
+        address indexed _receiver,
+        uint32 indexed _open_block_number,
+        uint192 _withdrawn_balance);
     event TrustedContract(
         address indexed _trusted_contract_address,
         bool _trusted_status);
@@ -279,6 +284,42 @@ contract RaidenMicroTransferChannels {
         // ! needs prior approval from the trusted contract
         // Do transfer after any state change
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
+
+    /// @notice Allows channel receiver to withdraw tokens.
+    /// @param _open_block_number The block number at which a channel between the
+    /// sender and receiver was created.
+    /// @param _withdrawn_balance Number of tokens to withdraw.
+    /// Has to be smaller or equal to the channel deposit.
+    /// @param _balance_msg_sig The balance message signed by the sender.
+    function withdraw(
+        uint32 _open_block_number,
+        uint192 _withdrawn_balance,
+        bytes _balance_msg_sig)
+        external
+    {
+        require(_withdrawn_balance > 0);
+
+        // Derive sender address from signed balance proof
+        address sender_address = extractBalanceProofSignature(
+            msg.sender,
+            _open_block_number,
+            _withdrawn_balance,
+            _balance_msg_sig
+        );
+
+        bytes32 key = getKey(sender_address, msg.sender, _open_block_number);
+
+        require(channels[key].open_block_number > 0);
+        require(closing_requests[key].settle_block_number == 0);
+        require(_withdrawn_balance <= channels[key].deposit);
+
+        channels[key].deposit -= _withdrawn_balance;
+
+        // Send _withdrawn_balance to the receiver
+        require(token.transfer(msg.sender, _withdrawn_balance));
+
+        ChannelWithdraw(sender_address, msg.sender, _open_block_number, _withdrawn_balance);
+
     }
 
     /// @notice Function called by the sender, receiver or a delegate, with all the needed
