@@ -33,6 +33,7 @@ contract RaidenMicroTransferChannels {
     mapping (bytes32 => Channel) public channels;
     mapping (bytes32 => ClosingRequest) public closing_requests;
     mapping (address => bool) public trusted_contracts;
+    mapping (bytes32 => uint192) public withdrawn_balances;
 
     // 24 bytes (deposit) + 4 bytes (block number)
     struct Channel {
@@ -288,22 +289,22 @@ contract RaidenMicroTransferChannels {
     /// @notice Allows channel receiver to withdraw tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
-    /// @param _withdrawn_balance Number of tokens to withdraw.
+    /// @param _balance The amount of tokens owed by the sender to the receiver.
     /// Has to be smaller or equal to the channel deposit.
     /// @param _balance_msg_sig The balance message signed by the sender.
     function withdraw(
         uint32 _open_block_number,
-        uint192 _withdrawn_balance,
+        uint192 _balance,
         bytes _balance_msg_sig)
         external
     {
-        require(_withdrawn_balance > 0);
+        require(_balance > 0);
 
         // Derive sender address from signed balance proof
         address sender_address = extractBalanceProofSignature(
             msg.sender,
             _open_block_number,
-            _withdrawn_balance,
+            _balance,
             _balance_msg_sig
         );
 
@@ -311,15 +312,15 @@ contract RaidenMicroTransferChannels {
 
         require(channels[key].open_block_number > 0);
         require(closing_requests[key].settle_block_number == 0);
-        require(_withdrawn_balance <= channels[key].deposit);
+        require(_balance <= channels[key].deposit);
 
-        channels[key].deposit -= _withdrawn_balance;
+        uint192 remaining_balance = _balance - withdrawn_balances[key];
+        withdrawn_balances[key] = _balance;
 
-        // Send _withdrawn_balance to the receiver
-        require(token.transfer(msg.sender, _withdrawn_balance));
+        // Send the remaining balance to the receiver
+        require(token.transfer(msg.sender, remaining_balance));
 
-        ChannelWithdraw(sender_address, msg.sender, _open_block_number, _withdrawn_balance);
-
+        ChannelWithdraw(sender_address, msg.sender, _open_block_number, remaining_balance);
     }
 
     /// @notice Function called by the sender, receiver or a delegate, with all the needed
@@ -399,14 +400,14 @@ contract RaidenMicroTransferChannels {
     /// @param _receiver_address The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
-    /// @return Channel information (unique_identifier, deposit, settle_block_number, closing_balance).
+    /// @return Channel information (unique_identifier, deposit, settle_block_number, closing_balance, withdrawn balance).
     function getChannelInfo(
         address _sender_address,
         address _receiver_address,
         uint32 _open_block_number)
         external
         constant
-        returns (bytes32, uint192, uint32, uint192)
+        returns (bytes32, uint192, uint32, uint192, uint192)
     {
         bytes32 key = getKey(_sender_address, _receiver_address, _open_block_number);
         require(channels[key].open_block_number > 0);
@@ -415,7 +416,8 @@ contract RaidenMicroTransferChannels {
             key,
             channels[key].deposit,
             closing_requests[key].settle_block_number,
-            closing_requests[key].closing_balance
+            closing_requests[key].closing_balance,
+            withdrawn_balances[key]
         );
     }
 
@@ -609,7 +611,7 @@ contract RaidenMicroTransferChannels {
         delete closing_requests[key];
 
         // Send _balance to the receiver, as it is always <= deposit
-        require(token.transfer(_receiver_address, _balance));
+        require(token.transfer(_receiver_address, _balance - withdrawn_balances[key]));
 
         // Send deposit - balance back to sender
         require(token.transfer(_sender_address, channel.deposit - _balance));
