@@ -55,21 +55,42 @@ def token_instance(token_contract):
     return token_contract()
 
 
+@pytest.fixture()
+def delegate_contract(chain, owner, create_contract):
+    def get(transaction=None):
+        Delegate = chain.provider.get_contract_factory('Delegate')
+        delegate_contract = create_contract(Delegate, [], {})
+        return delegate_contract
+    return get
+
+
+@pytest.fixture()
+def delegate_instance(delegate_contract):
+    return delegate_contract()
+
+
 @pytest.fixture
 def uraiden_contract(contract_params, token_instance, get_uraiden_contract):
-    def get(token=None, transaction=None):
+    def get(token=None, trusted_contracts=[], transaction=None):
         if not token:
             token = token_instance
         uraiden_contract = get_uraiden_contract(
-            [token.address, contract_params['challenge_period']]
+            [token.address, contract_params['challenge_period'], trusted_contracts]
         )
         return uraiden_contract
     return get
 
 
 @pytest.fixture
-def uraiden_instance(owner, uraiden_contract):
-    uraiden_instance = uraiden_contract()
+def uraiden_instance(owner, uraiden_contract, token_instance, delegate_instance):
+    uraiden_instance = uraiden_contract(
+        token_instance,
+        [delegate_instance.address]
+    )
+    delegate_instance.transact({'from': owner}).setup(
+        token_instance.address,
+        uraiden_instance.address
+    )
     return uraiden_instance
 
 
@@ -95,12 +116,12 @@ def get_channel(channel_params, owner, get_accounts, uraiden_instance, token_ins
                 uraiden.address,
                 deposit
             )
-            txn_hash = uraiden.transact({"from": sender}).createChannelERC20(
+            txn_hash = uraiden.transact({"from": sender}).createChannel(
                 receiver,
                 deposit
             )
         else:
-            txdata = bytes.fromhex(receiver[2:].zfill(40))
+            txdata = bytes.fromhex(sender[2:] + receiver[2:])
             txn_hash = token.transact({"from": sender}).transfer(
                 uraiden.address,
                 deposit,
@@ -137,7 +158,7 @@ def channel_settle_tests(uraiden_instance, token, channel):
     # token.transact({"from": sender}).approve(uraiden_instance.address, 33)
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(receiver, open_block_number, 33)
+        uraiden_instance.transact({'from': sender}).topUp(receiver, open_block_number, 33)
 
 
 def channel_pre_close_tests(uraiden_instance, token, channel, top_up_deposit=0):
@@ -149,7 +170,7 @@ def channel_pre_close_tests(uraiden_instance, token, channel, top_up_deposit=0):
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({'from': sender}).settle(receiver, open_block_number)
 
-    uraiden_instance.transact({'from': sender}).topUpERC20(
+    uraiden_instance.transact({'from': sender}).topUp(
         receiver,
         open_block_number,
         top_up_deposit
@@ -188,4 +209,11 @@ def checkSettledEvent(sender, receiver, open_block_number, balance):
         assert event['args']['_receiver'] == receiver
         assert event['args']['_open_block_number'] == open_block_number
         assert event['args']['_balance'] == balance
+    return get
+
+
+def checkTrustedEvent(contract_address, trusted_status):
+    def get(event):
+        assert event['args']['_trusted_contract_address'] == contract_address
+        assert event['args']['_trusted_status'] == trusted_status
     return get

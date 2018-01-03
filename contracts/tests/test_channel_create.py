@@ -26,6 +26,8 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
+    delegate_contract,
+    delegate_instance,
     checkCreatedEvent
 )
 
@@ -34,7 +36,7 @@ def test_channel_erc223_create(owner, get_accounts, uraiden_instance, token_inst
     token = token_instance
     (sender, receiver, C, D) = get_accounts(4)
     deposit = 1000
-    txdata = bytes.fromhex(receiver[2:].zfill(40))
+    txdata = bytes.fromhex(sender[2:] + receiver[2:])
     txdata_fake = txdata[1:]
 
     # Fund accounts with tokens
@@ -88,7 +90,7 @@ def test_channel_erc223_create_bounty_limit(
         token_instance):
     token = token_instance
     (sender, receiver, C, D) = get_accounts(4)
-    txdata = bytes.fromhex(receiver[2:].zfill(40))
+    txdata = bytes.fromhex(sender[2:] + receiver[2:])
 
     # Fund accounts with tokens
     token.transact({"from": owner}).transfer(sender, channel_deposit_bugbounty_limit + 1)
@@ -130,7 +132,7 @@ def test_create_token_fallback_uint_conversion(
     token = get_token_contract([MAX_UINT192 + 100, 'CustomToken', 'TKN', 18])
     uraiden = uraiden_contract(token)
     (sender, receiver) = get_accounts(2)
-    txdata = bytes.fromhex(receiver[2:].zfill(40))
+    txdata = bytes.fromhex(sender[2:] + receiver[2:])
 
     # Fund accounts with tokens
     token.transact({"from": owner}).transfer(sender, MAX_UINT192 + 5)
@@ -170,7 +172,7 @@ def test_channel_erc223_event(
     ev_handler = event_handler(uraiden_instance)
     (sender, receiver) = get_accounts(2)
     deposit = 1000
-    txdata = bytes.fromhex(receiver[2:].zfill(40))
+    txdata = bytes.fromhex(sender[2:] + receiver[2:])
 
     # Fund accounts with tokens
     token.transact({"from": owner}).transfer(sender, deposit + 100)
@@ -203,29 +205,29 @@ def test_channel_erc20_create(owner, get_accounts, uraiden_instance, token_insta
 
     # Cannot create a channel if tokens were not approved
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
+        uraiden_instance.transact({"from": sender}).createChannel(receiver, deposit)
 
     assert token_instance.call().balanceOf(uraiden_instance.address) == 0
 
     # Can create a channel with deposit 0
-    uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, 0)
+    uraiden_instance.transact({"from": sender}).createChannel(receiver, 0)
 
     # Approve token allowance
     token_instance.transact({"from": sender}).approve(uraiden_instance.address, deposit)
 
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(0x0, deposit)
+        uraiden_instance.transact({"from": sender}).createChannel(0x0, deposit)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20('0x0', deposit)
+        uraiden_instance.transact({"from": sender}).createChannel('0x0', deposit)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(fake_address, deposit)
+        uraiden_instance.transact({"from": sender}).createChannel(fake_address, deposit)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, -3)
+        uraiden_instance.transact({"from": sender}).createChannel(receiver, -3)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, MAX_UINT192 + 1)
+        uraiden_instance.transact({"from": sender}).createChannel(receiver, MAX_UINT192 + 1)
 
     # Create channel
-    uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
+    uraiden_instance.transact({"from": sender}).createChannel(receiver, deposit)
 
 
 def test_channel_erc20_create_bounty_limit(
@@ -249,17 +251,17 @@ def test_channel_erc20_create_bounty_limit(
     pre_balance = token_instance.call().balanceOf(uraiden_instance.address)
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(
+        uraiden_instance.transact({"from": sender}).createChannel(
             receiver,
             channel_deposit_bugbounty_limit + 1
         )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({"from": sender}).createChannelERC20(
+        uraiden_instance.transact({"from": sender}).createChannel(
             receiver,
             channel_deposit_bugbounty_limit + 100
         )
 
-    txn_hash = uraiden_instance.transact({"from": sender}).createChannelERC20(
+    txn_hash = uraiden_instance.transact({"from": sender}).createChannel(
         receiver,
         channel_deposit_bugbounty_limit
     )
@@ -294,7 +296,7 @@ def test_channel_erc20_event(
     gas_used += txn_gas(txn_hash_approve)
 
     # Create channel
-    txn_hash = uraiden_instance.transact({"from": sender}).createChannelERC20(receiver, deposit)
+    txn_hash = uraiden_instance.transact({"from": sender}).createChannel(receiver, deposit)
 
     # Check creation event
     ev_handler.add(
@@ -334,12 +336,12 @@ def test_channel_create_state(
             uraiden.address,
             deposit
         )
-        txn_hash = uraiden.transact({"from": sender}).createChannelERC20(
+        txn_hash = uraiden.transact({"from": sender}).createChannel(
             receiver,
             deposit
         )
     else:
-        txdata = bytes.fromhex(receiver[2:].zfill(40))
+        txdata = bytes.fromhex(sender[2:] + receiver[2:])
         txn_hash = token.transact({"from": sender}).transfer(
             uraiden.address,
             deposit,

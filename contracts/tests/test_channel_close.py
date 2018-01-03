@@ -27,6 +27,8 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
+    delegate_contract,
+    delegate_instance,
     get_channel,
     channel_settle_tests,
     channel_pre_close_tests,
@@ -185,7 +187,7 @@ def test_uncooperative_close_fail_uint32_overflow(
         get_channel):
     challenge_period = MAX_UINT32 - 20
     uraiden_instance = get_uraiden_contract(
-        [token_instance.address, challenge_period]
+        [token_instance.address, challenge_period, []]
     )
 
     (sender, receiver, open_block_number) = get_channel(uraiden_instance)[:3]
@@ -211,7 +213,7 @@ def test_uncooperative_close_uint32_overflow(
         get_channel):
     challenge_period = MAX_UINT32 - 20
     uraiden_instance = get_uraiden_contract(
-        [token_instance.address, challenge_period]
+        [token_instance.address, challenge_period, []]
     )
 
     (sender, receiver, open_block_number) = get_channel(uraiden_instance)[:3]

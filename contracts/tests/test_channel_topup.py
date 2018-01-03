@@ -25,6 +25,8 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
+    delegate_contract,
+    delegate_instance,
     get_channel
 )
 from tests.fixtures_uraiden import checkToppedUpEvent
@@ -47,7 +49,7 @@ def test_channel_topup_223(
 
     # address 20 bytes
     # padded block number from uint32 (4 bytes) to 32 bytes
-    top_up_data = receiver[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
+    top_up_data = sender[2:] + receiver[2:] + hex(open_block_number)[2:].zfill(8)
     top_up_data = bytes.fromhex(top_up_data)
 
     top_up_data_wrong_receiver = sender[2:].zfill(64) + hex(open_block_number)[2:].zfill(8)
@@ -86,7 +88,7 @@ def test_channel_topup_223_bounty_limit(
     channel = get_channel(uraiden_instance, token_instance, channel_deposit, sender, receiver)[:3]
     (sender, receiver, open_block_number) = channel
 
-    top_up_data = receiver[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
+    top_up_data = sender[2:] + receiver[2:] + hex(open_block_number)[2:].zfill(8)
     top_up_data = bytes.fromhex(top_up_data)
 
     # See how many tokens we need to reach channel_deposit_bugbounty_limit
@@ -140,7 +142,7 @@ def test_channel_topup_20(
     top_up_deposit = 14
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(
+        uraiden_instance.transact({'from': sender}).topUp(
             receiver,
             open_block_number,
             top_up_deposit
@@ -151,26 +153,26 @@ def test_channel_topup_20(
     gas_used_approve = txn_gas(txn_hash)
 
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).topUpERC20(0x0, top_up_deposit)
+        uraiden_instance.transact({"from": sender}).topUp(0x0, top_up_deposit)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).topUpERC20('0x0', top_up_deposit)
+        uraiden_instance.transact({"from": sender}).topUp('0x0', top_up_deposit)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).topUpERC20(fake_address, top_up_deposit)
+        uraiden_instance.transact({"from": sender}).topUp(fake_address, top_up_deposit)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).topUpERC20(receiver, -3)
+        uraiden_instance.transact({"from": sender}).topUp(receiver, -3)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).topUpERC20(receiver, MAX_UINT192 + 1)
+        uraiden_instance.transact({"from": sender}).topUp(receiver, MAX_UINT192 + 1)
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': A}).topUpERC20(receiver, open_block_number, top_up_deposit)
+        uraiden_instance.transact({'from': A}).topUp(receiver, open_block_number, top_up_deposit)
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(A, open_block_number, top_up_deposit)
+        uraiden_instance.transact({'from': sender}).topUp(A, open_block_number, top_up_deposit)
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(receiver, open_block_number, 0)
+        uraiden_instance.transact({'from': sender}).topUp(receiver, open_block_number, 0)
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(receiver, 0, top_up_deposit)
+        uraiden_instance.transact({'from': sender}).topUp(receiver, 0, top_up_deposit)
 
-    txn_hash = uraiden_instance.transact({'from': sender}).topUpERC20(
+    txn_hash = uraiden_instance.transact({'from': sender}).topUp(
         receiver,
         open_block_number,
         top_up_deposit
@@ -216,19 +218,19 @@ def test_channel_topup_20_bounty_limit(
     pre_balance = token.call().balanceOf(uraiden_instance.address)
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(
+        uraiden_instance.transact({'from': sender}).topUp(
             receiver,
             open_block_number,
             added_deposit + 1
         )
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUpERC20(
+        uraiden_instance.transact({'from': sender}).topUp(
             receiver,
             open_block_number,
             added_deposit + 50
         )
 
-    uraiden_instance.transact({'from': sender}).topUpERC20(
+    uraiden_instance.transact({'from': sender}).topUp(
         receiver,
         open_block_number,
         added_deposit
@@ -256,7 +258,7 @@ def test_topup_token_fallback_uint_conversion(
     deposit = 100
     top_up_deposit = supply - 100
 
-    txdata = bytes.fromhex(receiver[2:].zfill(40))
+    txdata = bytes.fromhex(sender[2:] + receiver[2:])
 
     # Fund accounts with tokens
     token.transact({"from": owner}).transfer(sender, supply)
@@ -270,7 +272,7 @@ def test_topup_token_fallback_uint_conversion(
     channel_data = uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number)
     assert channel_data[1] == deposit
 
-    top_up_data = receiver[2:].zfill(40) + hex(open_block_number)[2:].zfill(8)
+    top_up_data = sender[2:] + receiver[2:] + hex(open_block_number)[2:].zfill(8)
     top_up_data = bytes.fromhex(top_up_data)
 
     # TopUp a channel with tokenFallback
