@@ -404,7 +404,7 @@ contract RaidenMicroTransferChannels {
         address _receiver_address,
         uint32 _open_block_number)
         external
-        constant
+        view
         returns (bytes32, uint192, uint32, uint192, uint192)
     {
         bytes32 key = getKey(_sender_address, _receiver_address, _open_block_number);
@@ -684,7 +684,7 @@ contract RaidenMicroTransferChannels {
     /// @dev Check if a contract exists.
     /// @param _contract The address of the contract to check for.
     /// @return True if a contract exists, false otherwise.
-    function addressHasCode(address _contract) internal constant returns (bool) {
+    function addressHasCode(address _contract) internal view returns (bool) {
         uint size;
         assembly {
             size := extcodesize(_contract)
