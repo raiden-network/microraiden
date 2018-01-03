@@ -1,8 +1,8 @@
 import * as Web3 from 'web3';
-import BigNumber from 'bignumber.js';
+import * as BigNumber from 'bignumber.js';
 import { typedSignatureHash, recoverTypedSignature } from 'eth-sig-util';
 
-declare const localStorage; // possibly missing
+var localStorage; // possibly missing
 export { BigNumber };
 
 // helper types
@@ -89,7 +89,6 @@ interface MsgParam {
   value: string;
 }
 
-
 // utils
 
 /**
@@ -103,7 +102,7 @@ interface MsgParam {
  * @param method  A method name of obj to be promisified
  * @returns  A method wrapper which returns a promise
  */
-function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> {
+export function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> {
   return (...params) =>
     new Promise((resolve, reject) =>
       obj[method](...params, (err, res) => err ? reject(err) : resolve(res)));
@@ -112,7 +111,7 @@ function promisify<T>(obj: any, method: string): (...args: any[]) => Promise<T> 
 /**
  * Promise-based deferred class
  */
-class Deferred<T> {
+export class Deferred<T> {
   resolve: (res: T) => void;
   reject: (err: Error) => void;
   promise = new Promise<T>((resolve, reject) => {
@@ -127,7 +126,7 @@ class Deferred<T> {
  * @param timeout  Timeout before promise is resolved, in milliseconds
  * @returns  Promise which will be resolved after timeout
  */
-function asyncSleep(timeout: number): Promise<void> {
+export function asyncSleep(timeout: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, timeout));
 }
 
@@ -140,7 +139,7 @@ function asyncSleep(timeout: number): Promise<void> {
  * @param zPadLength  Left-pad with zeroes to this number of characters
  * @returns  hex-encoded value
  */
-function encodeHex(val: string|number|BigNumber, zPadLength?: number): string {
+export function encodeHex(val: string|number|BigNumber, zPadLength?: number): string {
   /* Encode a string or number as hexadecimal, without '0x' prefix */
   if (typeof val === 'number' || val instanceof BigNumber ) {
     val = val.toString(16);
@@ -151,7 +150,6 @@ function encodeHex(val: string|number|BigNumber, zPadLength?: number): string {
   }
   return val.padStart(zPadLength || 0, '0');
 }
-
 
 /**
  * Main MicroRaiden client class
@@ -241,7 +239,7 @@ export class MicroRaiden {
    * @returns  JS's native number representation of bal
    */
   tkn2num(bal: BigNumber): number {
-    return (new BigNumber(bal)).shift(-this.decimals).toNumber();
+    return new BigNumber(bal).shift(-this.decimals).toNumber();
   }
 
   /**
@@ -274,28 +272,28 @@ export class MicroRaiden {
   private getBalanceProofSignatureParams(proof: MicroProof): MsgParam[] {
     return [
       {
-        name: 'message_id',
         type: 'string',
+        name: 'message_id',
         value: 'Sender balance proof signature',
       },
       {
-        name: 'receiver',
         type: 'address',
+        name: 'receiver',
         value: this.channel.receiver,
       },
       {
-        name: 'block_created',
         type: 'uint32',
+        name: 'block_created',
         value: '' + this.channel.block,
       },
       {
-        name: 'balance',
         type: 'uint192',
+        name: 'balance',
         value: proof.balance.toString(),
       },
       {
-        name: 'contract',
         type: 'address',
+        name: 'contract',
         value: this.contract.address,
       },
     ];
@@ -588,19 +586,19 @@ export class MicroRaiden {
         this.contract.address,
         deposit,
         receiver, // bytes _data (3rd param) is the receiver
-        { from: account });
+        { from: account, gas: 100e3 });
     } else {
       // ERC20
       // send 'approve' transaction to token contract
       await promisify<string>(this.token.approve, 'sendTransaction')(
         this.contract.address,
         deposit,
-        { from: account });
+        { from: account, gas: 130e3 });
       // send 'createChannel' transaction to channel manager contract
       transferTxHash = await promisify<string>(this.contract.createChannelERC20, 'sendTransaction')(
         receiver,
         deposit,
-        { from: account });
+        { from: account, gas: 130e3 });
     }
     console.log('transferTxHash', transferTxHash);
 
@@ -633,9 +631,9 @@ export class MicroRaiden {
    * Should work with both ERC20/ERC223 tokens
    *
    * @param deposit  Tokens to be deposited in the channel
-   * @returns  Promise to tx block number
+   * @returns  Promise to tx hash
    */
-  async topUpChannel(deposit: BigNumber): Promise<number> {
+  async topUpChannel(deposit: BigNumber): Promise<string> {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -660,27 +658,26 @@ export class MicroRaiden {
         deposit,
         // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
         this.channel.receiver + encodeHex(this.channel.block, 8),
-        { from: account });
+        { from: account, gas: 70e3 });
     } else {
       // ERC20, approve channel manager contract to handle our tokens, then topUp
       // send 'approve' transaction to token contract
       await promisify<string>(this.token.approve, 'sendTransaction')(
         this.contract.address,
         deposit,
-        { from: account });
+        { from: account, gas: 100e3 });
       // send 'topUp' transaction to channel manager contract
       transferTxHash = await promisify<string>(this.contract.topUpERC20, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
         deposit,
-        { from: account });
+        { from: account, gas: 100e3 });
     }
     console.log('transferTxHash', transferTxHash);
 
     // wait for 'transfer' transaction to be mined
-    const receipt = await this.waitTx(transferTxHash, 1);
-
-    return receipt.blockNumber;
+    await this.waitTx(transferTxHash, 1);
+    return transferTxHash;
   }
 
   /**
@@ -693,9 +690,9 @@ export class MicroRaiden {
    * period, configured in contract.
    *
    * @param closingSig  Cooperative-close signature from receiver
-   * @returns  Promise to block number in which channel was closed
+   * @returns  Promise to closing tx hash
    */
-  async closeChannel(closingSig?: string): Promise<number> {
+  async closeChannel(closingSig?: string): Promise<string> {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
@@ -717,7 +714,7 @@ export class MicroRaiden {
 
 
     let proof: MicroProof;
-    if (!this.channel.proof.sig) {
+    if (closingSig && !this.channel.proof.sig) {
       proof = await this.signNewProof(this.channel.proof);
     } else {
       proof = this.channel.proof;
@@ -730,16 +727,16 @@ export class MicroRaiden {
         proof.balance,
         proof.sig,
         closingSig,
-        { from: this.channel.account }) :
+        { from: this.channel.account, gas: 120e3 }) :
       await promisify<string>(this.contract.uncooperativeClose, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
         proof.balance,
-        { from: this.channel.account });
+        { from: this.channel.account , gas: 100e3 });
 
     console.log('closeTxHash', txHash);
-    const receipt = await this.waitTx(txHash, 0);
-    return receipt.blockNumber;
+    await this.waitTx(txHash, 0);
+    return txHash;
   }
 
   /**
@@ -747,24 +744,29 @@ export class MicroRaiden {
    * this function settles the channel, distributing the tokens to sender and
    * receiver.
    *
-   * @returns  Promise to block number of settlement tx
+   * @returns  Promise to settlement tx hash
    */
-  async settleChannel(): Promise<number> {
+  async settleChannel(): Promise<string> {
     if (!this.isChannelValid()) {
       throw new Error('No valid channelInfo');
     }
-    const info = await this.getChannelInfo();
+    const [ info, currentBlock ] = await Promise.all([
+      this.getChannelInfo(),
+      promisify<number>(this.web3.eth, 'getBlockNumber')()
+    ]);
     if (info.state !== 'closed') {
-      throw new Error('Tried settling opened or settled channel');
+      throw new Error(`Tried settling opened or settled channel: ${info.state}`);
+    } else if (this.challenge && currentBlock < info.block + this.challenge){
+      throw new Error(`Tried settling inside challenge period: ${currentBlock} < ${info.block} + ${this.challenge}`);
     }
     const txHash = await promisify<string>(this.contract.settle, 'sendTransaction')(
       this.channel.receiver,
       this.channel.block,
-      { from: this.channel.account });
+      { from: this.channel.account, gas: 120e3 });
 
     console.log('settleTxHash', txHash);
-    const receipt = await this.waitTx(txHash, 0);
-    return receipt.blockNumber;
+    await this.waitTx(txHash, 0);
+    return txHash;
   }
 
   /**
@@ -786,7 +788,8 @@ export class MicroRaiden {
     } catch (err) {
       if (err.message &&
         (err.message.includes('Method not found') ||
-          err.message.includes('is not a function'))) {
+          err.message.includes('is not a function') ||
+          err.message.includes('not supported'))) {
         sig = await promisify<string>(this.web3.eth, 'sign')(this.channel.account, hex);
       } else {
         throw err;
@@ -847,6 +850,9 @@ export class MicroRaiden {
     //debug
     const recovered = recoverTypedSignature({ data: params, sig });
     console.log('signTypedData =', sig, recovered);
+    if (recovered !== this.channel.account) {
+      throw new Error(`Invalid recovered signature: ${recovered} != ${this.channel.account}. Do your provider support eth_signTypedData?`);
+    }
 
     proof.sig = sig;
 
