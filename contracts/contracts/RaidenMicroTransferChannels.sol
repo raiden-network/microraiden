@@ -313,6 +313,7 @@ contract RaidenMicroTransferChannels {
         require(channels[key].open_block_number > 0);
         require(closing_requests[key].settle_block_number == 0);
         require(_balance <= channels[key].deposit);
+        require(withdrawn_balances[key] < _balance);
 
         uint192 remaining_balance = _balance - withdrawn_balances[key];
         withdrawn_balances[key] = _balance;
