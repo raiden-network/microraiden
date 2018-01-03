@@ -291,7 +291,9 @@ contract RaidenMicroTransferChannels {
     /// @notice Allows channel receiver to withdraw tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
-    /// @param _balance The amount of tokens owed by the sender to the receiver.
+    /// @param _balance Partial or total amount of tokens owed by the sender to the receiver.
+    /// Has to be smaller or equal to the channel deposit. Has to match the balance value from
+    /// `_balance_msg_sig` - the balance message signed by the sender.
     /// Has to be smaller or equal to the channel deposit.
     /// @param _balance_msg_sig The balance message signed by the sender.
     function withdraw(
