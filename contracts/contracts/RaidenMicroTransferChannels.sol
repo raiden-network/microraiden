@@ -93,7 +93,8 @@ contract RaidenMicroTransferChannels {
         address indexed _sender,
         address indexed _receiver,
         uint32 indexed _open_block_number,
-        uint192 _balance);
+        uint192 _balance,
+        uint192 _receiver_tokens);
     event ChannelWithdraw(
         address indexed _sender,
         address indexed _receiver,
@@ -613,12 +614,19 @@ contract RaidenMicroTransferChannels {
         delete closing_requests[key];
 
         // Send _balance to the receiver, as it is always <= deposit
-        require(token.transfer(_receiver_address, _balance - withdrawn_balances[key]));
+        uint192 receiver_remaining_tokens = _balance - withdrawn_balances[key];
+        require(token.transfer(_receiver_address, receiver_remaining_tokens));
 
         // Send deposit - balance back to sender
         require(token.transfer(_sender_address, channel.deposit - _balance));
 
-        ChannelSettled(_sender_address, _receiver_address, _open_block_number, _balance);
+        ChannelSettled(
+            _sender_address,
+            _receiver_address,
+            _open_block_number,
+            _balance,
+            receiver_remaining_tokens
+        );
     }
 
     /*

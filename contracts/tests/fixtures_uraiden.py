@@ -204,12 +204,13 @@ def checkClosedEvent(sender, receiver, open_block_number, balance):
     return get
 
 
-def checkSettledEvent(sender, receiver, open_block_number, balance):
+def checkSettledEvent(sender, receiver, open_block_number, balance, receiver_tokens):
     def get(event):
         assert event['args']['_sender'] == sender
         assert event['args']['_receiver'] == receiver
         assert event['args']['_open_block_number'] == open_block_number
         assert event['args']['_balance'] == balance
+        assert event['args']['_receiver_tokens'] == receiver_tokens
     return get
 
 
