@@ -128,7 +128,7 @@ function pageReady(contractABI, tokenABI) {
     uraiden.loadStoredChannel(account, uRaidenParams.receiver);
     if (uraiden.isChannelValid() && Cookies.get("RDN-Balance-Signature")) {
       uraiden.verifyProof({
-        balance: new microraiden.BigNumber(Cookies.get("RDN-Sender-Balance")),
+        balance: uraiden.web3.toBigNumber(Cookies.get("RDN-Sender-Balance")),
         sig: Cookies.get("RDN-Balance-Signature"),
       });
     }
