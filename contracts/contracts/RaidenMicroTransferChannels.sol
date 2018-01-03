@@ -76,28 +76,28 @@ contract RaidenMicroTransferChannels {
      */
 
     event ChannelCreated(
-        address indexed _sender,
-        address indexed _receiver,
+        address indexed _sender_address,
+        address indexed _receiver_address,
         uint192 _deposit);
     event ChannelToppedUp (
-        address indexed _sender,
-        address indexed _receiver,
+        address indexed _sender_address,
+        address indexed _receiver_address,
         uint32 indexed _open_block_number,
         uint192 _added_deposit);
     event ChannelCloseRequested(
-        address indexed _sender,
-        address indexed _receiver,
+        address indexed _sender_address,
+        address indexed _receiver_address,
         uint32 indexed _open_block_number,
         uint192 _balance);
     event ChannelSettled(
-        address indexed _sender,
-        address indexed _receiver,
+        address indexed _sender_address,
+        address indexed _receiver_address,
         uint32 indexed _open_block_number,
         uint192 _balance,
         uint192 _receiver_tokens);
     event ChannelWithdraw(
-        address indexed _sender,
-        address indexed _receiver,
+        address indexed _sender_address,
+        address indexed _receiver_address,
         uint32 indexed _open_block_number,
         uint192 _withdrawn_balance);
     event TrustedContract(
@@ -158,7 +158,7 @@ contract RaidenMicroTransferChannels {
         uint length = _data.length;
         require(length == 40 || length == 44);
 
-        // Offset of 32 bytes, representing data.length
+        // Offset of 32 bytes, representing _data.length
         address channel_sender_address = address(addressFromBytes(_data, 0x20));
 
         // The channel can be opened by the sender or by a trusted contract
@@ -170,7 +170,8 @@ contract RaidenMicroTransferChannels {
         if (length == 40) {
             createChannelPrivate(channel_sender_address, channel_receiver_address, deposit);
         } else {
-            // Offset of 32 bytes (data.length) + 20 bytes (sender address) + 20 bytes (receiver address)
+            // Offset of: 32 bytes (_data.length) + 20 bytes (sender address)
+            // + 20 bytes (receiver address)
             uint32 open_block_number = uint32(blockNumberFromBytes(_data, 0x48));
             updateInternalBalanceStructs(
                 channel_sender_address,
@@ -178,29 +179,6 @@ contract RaidenMicroTransferChannels {
                 open_block_number,
                 deposit
             );
-        }
-    }
-
-    /// @notice Function for adding trusted contracts. Can only be called by owner_address.
-    /// @param _trusted_contracts Array of contract addresses that can be trusted to
-    /// open and top up channels on behalf of a sender.
-    function addTrustedContracts(address[] _trusted_contracts) isOwner public {
-        for (uint256 i = 0; i < _trusted_contracts.length; i++) {
-            if (addressHasCode(_trusted_contracts[i])) {
-                trusted_contracts[_trusted_contracts[i]] = true;
-                TrustedContract(_trusted_contracts[i], true);
-            }
-        }
-    }
-
-    /// @notice Function for removing trusted contracts. Can only be called by owner_address.
-    /// @param _trusted_contracts Array of contract addresses to be removed from the trusted_contracts mapping.
-    function removeTrustedContracts(address[] _trusted_contracts) isOwner public {
-        for (uint256 i = 0; i < _trusted_contracts.length; i++) {
-            if (trusted_contracts[_trusted_contracts[i]]) {
-                trusted_contracts[_trusted_contracts[i]] = false;
-                TrustedContract(_trusted_contracts[i], false);
-            }
         }
     }
 
@@ -217,7 +195,7 @@ contract RaidenMicroTransferChannels {
     }
 
     /// @notice Function that allows a delegate contract to create a new channel between
-    /// `_sender_address` and `_receiver_address` and transfers token deposit to this contract.
+    /// `_sender_address` and `_receiver_address` and transfers the token deposit to this contract.
     /// Can only be called by a trusted contract. Compatibility with ERC20 tokens.
     /// @param _sender_address The sender's address in behalf of whom the delegate sends tokens.
     /// @param _receiver_address The address that receives tokens.
@@ -255,7 +233,7 @@ contract RaidenMicroTransferChannels {
         );
 
         // transferFrom deposit from msg.sender to contract
-        // ! needs prior approval from user
+        // ! needs prior approval from msg.sender
         // Do transfer after any state change
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
     }
@@ -314,8 +292,12 @@ contract RaidenMicroTransferChannels {
 
         bytes32 key = getKey(sender_address, msg.sender, _open_block_number);
 
+        // Make sure the channel exists
         require(channels[key].open_block_number > 0);
+
+        // Make sure the channel is not in the challenge period
         require(closing_requests[key].settle_block_number == 0);
+
         require(_balance <= channels[key].deposit);
         require(withdrawn_balances[key] < _balance);
 
@@ -345,10 +327,20 @@ contract RaidenMicroTransferChannels {
         external
     {
         // Derive sender address from signed balance proof
-        address sender = extractBalanceProofSignature(_receiver_address, _open_block_number, _balance, _balance_msg_sig);
+        address sender = extractBalanceProofSignature(
+            _receiver_address,
+            _open_block_number,
+            _balance,
+            _balance_msg_sig
+        );
 
         // Derive receiver address from closing signature
-        address receiver = extractClosingSignature(sender, _open_block_number, _balance, _closing_sig);
+        address receiver = extractClosingSignature(
+            sender,
+            _open_block_number,
+            _balance,
+            _closing_sig
+        );
         require(receiver == _receiver_address);
 
         // Both signatures have been verified and the channel can be settled.
@@ -405,7 +397,8 @@ contract RaidenMicroTransferChannels {
     /// @param _receiver_address The address that receives tokens.
     /// @param _open_block_number The block number at which a channel between the
     /// sender and receiver was created.
-    /// @return Channel information (unique_identifier, deposit, settle_block_number, closing_balance, withdrawn balance).
+    /// @return Channel information: unique_identifier, deposit, settle_block_number,
+    /// closing_balance, withdrawn balance).
     function getChannelInfo(
         address _sender_address,
         address _receiver_address,
@@ -429,6 +422,30 @@ contract RaidenMicroTransferChannels {
     /*
      *  Public functions
      */
+
+    /// @notice Function for adding trusted contracts. Can only be called by owner_address.
+    /// @param _trusted_contracts Array of contract addresses that can be trusted to
+    /// open and top up channels on behalf of a sender.
+    function addTrustedContracts(address[] _trusted_contracts) isOwner public {
+        for (uint256 i = 0; i < _trusted_contracts.length; i++) {
+            if (addressHasCode(_trusted_contracts[i])) {
+                trusted_contracts[_trusted_contracts[i]] = true;
+                TrustedContract(_trusted_contracts[i], true);
+            }
+        }
+    }
+
+    /// @notice Function for removing trusted contracts. Can only be called by owner_address.
+    /// @param _trusted_contracts Array of contract addresses to be removed from
+    /// the trusted_contracts mapping.
+    function removeTrustedContracts(address[] _trusted_contracts) isOwner public {
+        for (uint256 i = 0; i < _trusted_contracts.length; i++) {
+            if (trusted_contracts[_trusted_contracts[i]]) {
+                trusted_contracts[_trusted_contracts[i]] = false;
+                TrustedContract(_trusted_contracts[i], false);
+            }
+        }
+    }
 
     /// @notice Returns the sender address extracted from the balance proof.
     /// dev Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
@@ -545,7 +562,12 @@ contract RaidenMicroTransferChannels {
     /// @param _sender_address The address that sends tokens.
     /// @param _receiver_address The address that receives tokens.
     /// @param _deposit The amount of tokens that the sender escrows.
-    function createChannelPrivate(address _sender_address, address _receiver_address, uint192 _deposit) private {
+    function createChannelPrivate(
+        address _sender_address,
+        address _receiver_address,
+        uint192 _deposit)
+        private
+    {
         require(_deposit <= channel_deposit_bugbounty_limit);
 
         uint32 open_block_number = uint32(block.number);
@@ -615,7 +637,7 @@ contract RaidenMicroTransferChannels {
         delete channels[key];
         delete closing_requests[key];
 
-        // Send _balance to the receiver, as it is always <= deposit
+        // Send the unwithdrawn _balance to the receiver
         uint192 receiver_remaining_tokens = _balance - withdrawn_balances[key];
         require(token.transfer(_receiver_address, receiver_remaining_tokens));
 
@@ -661,7 +683,7 @@ contract RaidenMicroTransferChannels {
 
     /// @dev Check if a contract exists.
     /// @param _contract The address of the contract to check for.
-    /// @return True if a contract exists, false otherwise
+    /// @return True if a contract exists, false otherwise.
     function addressHasCode(address _contract) internal constant returns (bool) {
         uint size;
         assembly {
