@@ -36,6 +36,7 @@ def get_uraiden_contract(chain, create_contract):
             print_logs(uraiden_contract, 'ChannelToppedUp', 'RaidenMicroTransferChannels')
             print_logs(uraiden_contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
             print_logs(uraiden_contract, 'ChannelSettled', 'RaidenMicroTransferChannels')
+            print_logs(uraiden_contract, 'ChannelWithdraw', 'RaidenMicroTransferChannels')
 
         return uraiden_contract
     return get
@@ -203,12 +204,13 @@ def checkClosedEvent(sender, receiver, open_block_number, balance):
     return get
 
 
-def checkSettledEvent(sender, receiver, open_block_number, balance):
+def checkSettledEvent(sender, receiver, open_block_number, balance, receiver_tokens):
     def get(event):
         assert event['args']['_sender'] == sender
         assert event['args']['_receiver'] == receiver
         assert event['args']['_open_block_number'] == open_block_number
         assert event['args']['_balance'] == balance
+        assert event['args']['_receiver_tokens'] == receiver_tokens
     return get
 
 
@@ -216,4 +218,13 @@ def checkTrustedEvent(contract_address, trusted_status):
     def get(event):
         assert event['args']['_trusted_contract_address'] == contract_address
         assert event['args']['_trusted_status'] == trusted_status
+    return get
+
+
+def checkWithdrawEvent(sender, receiver, open_block_number, withdrawn_balance):
+    def get(event):
+        assert event['args']['_sender'] == sender
+        assert event['args']['_receiver'] == receiver
+        assert event['args']['_open_block_number'] == open_block_number
+        assert event['args']['_withdrawn_balance'] == withdrawn_balance
     return get

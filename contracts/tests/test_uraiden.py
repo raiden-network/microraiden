@@ -164,3 +164,4 @@ def test_get_channel_info(web3, get_accounts, uraiden_instance, token_instance, 
     assert channel_data[1] == 100
     assert channel_data[2] == 0
     assert channel_data[3] == 0
+    assert channel_data[4] == 0

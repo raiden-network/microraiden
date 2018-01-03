@@ -862,6 +862,7 @@ def test_settle_event(
         sender,
         receiver,
         open_block_number,
+        balance,
         balance)
     )
     ev_handler.check()
