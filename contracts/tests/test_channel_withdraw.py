@@ -27,6 +27,8 @@ from tests.fixtures_uraiden import (
     get_uraiden_contract,
     uraiden_contract,
     uraiden_instance,
+    delegate_contract,
+    delegate_instance,
     get_channel,
     checkWithdrawEvent
 )

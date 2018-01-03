@@ -285,6 +285,7 @@ contract RaidenMicroTransferChannels {
         // ! needs prior approval from the trusted contract
         // Do transfer after any state change
         require(token.transferFrom(msg.sender, address(this), _added_deposit));
+    }
 
     /// @notice Allows channel receiver to withdraw tokens.
     /// @param _open_block_number The block number at which a channel between the
