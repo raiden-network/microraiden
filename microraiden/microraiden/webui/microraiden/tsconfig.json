@@ -19,10 +19,13 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.spec.ts"
   ],
   "types": [
     "core-js",
-    "node"
+    "node",
+    "chai",
+    "chai-as-promised"
   ]
 }

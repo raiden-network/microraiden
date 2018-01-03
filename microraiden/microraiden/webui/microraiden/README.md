@@ -17,6 +17,13 @@ The library itself does not communicate with the µRaiden server, but only with 
 
 Most of the [MicroRaiden](./docs/classes/microraiden.md) APIs return `Promise`s, which are resolved only if the operation was successful (including transaction mining, when relevant), and rejected otherwise. This makes the library compatible with the **await/async** pattern.
 
+## Tests
+
+You can run the tests with:
+
+>     npm test
+
+
 ## API Documentation
 
 The API documentation can be found [here](./docs/README.md). Below is a brief explaination of the main workflow for library usage. More details can be found in the [paywall demo implementation](../js/main.js).

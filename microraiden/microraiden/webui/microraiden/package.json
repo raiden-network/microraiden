@@ -28,7 +28,8 @@
     "build:umd": "webpack",
     "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz",
     "docs": "typedoc --theme markdown --mode file --excludePrivate --readme none --out docs src/index.ts",
-    "prepare": "npm run clean && npm run build && npm run docs"
+    "prepare": "npm run clean && npm run build && npm run docs",
+    "test": "TS_NODE_PROJECT=./ mocha -b -t 20000 -r ts-node/register tests/**/*.ts"
   },
   "main": "dist/cjs/index.js",
   "jsnext:main": "dist/esnext/index.js",
@@ -39,12 +40,22 @@
     "dist"
   ],
   "devDependencies": {
+    "@digix/tempo": "^0.2.0",
+    "@types/chai": "^4.0.10",
+    "@types/chai-as-promised": "^7.1.0",
     "@types/core-js": "^0.9.43",
-    "@types/node": "^8.0.53",
+    "@types/mocha": "^2.2.45",
+    "@types/node": "^8.5.2",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "ethereumjs-util": "^5.1.2",
+    "ganache-cli": "^6.0.3",
+    "mocha": "^4.0.1",
     "rimraf": "^2.6.2",
+    "ts-node": "^4.1.0",
     "typedoc": "^0.9.0",
     "typedoc-plugin-markdown": "^1.0.11",
     "typescript": "^2.6.1",
