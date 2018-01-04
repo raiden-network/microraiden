@@ -1,5 +1,5 @@
 -r requirements.txt
-pytest
+pytest>=2.7.2,!=3.3.*
 ethereum-tester
 mock
 requests_mock
