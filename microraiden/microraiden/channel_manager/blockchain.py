@@ -139,7 +139,7 @@ class Blockchain(gevent.Greenlet):
             **filters_unconfirmed
         )
         for log in logs:
-            assert log['args']['_receiver'].lower() == self.cm.state.receiver
+            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
             sender = log['args']['_sender']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']

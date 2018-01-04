@@ -11,7 +11,7 @@ from eth_utils import (
     is_same_address,
 )
 from ethereum.tester import TransactionFailed
-from web3 import Web3, HTTPProvider, RPCProvider
+from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 from web3.exceptions import BadFunctionCallOutput
 
@@ -56,7 +56,7 @@ log = logging.getLogger('close_all_channels')
     help='Ethereum address of the channel manager contract'
 )
 def main(
-        rpc_provider: RPCProvider,
+        rpc_provider: HTTPProvider,
         private_key: str,
         private_key_password_file: str,
         state_file: str,

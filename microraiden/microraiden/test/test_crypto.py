@@ -1,6 +1,6 @@
 import pytest  # noqa: F401
 from coincurve import PublicKey
-from eth_utils import encode_hex, decode_hex
+from eth_utils import encode_hex, decode_hex, is_same_address
 from web3.contract import Contract
 
 from microraiden.utils import (
@@ -76,7 +76,7 @@ def test_sign():
     pubkey = PublicKey.from_signature_and_message(sig, msg, hasher=None)
     pubkey = pubkey.format(compressed=False)
     assert len(sig) == 65
-    assert pubkey_to_addr(pubkey) == SENDER_ADDR
+    assert is_same_address(pubkey_to_addr(pubkey), SENDER_ADDR)
 
 
 def test_eth_sign():
@@ -98,7 +98,7 @@ def test_eth_sign_typed_data_eip():
     # https://github.com/0xProject/EIPs/blob/01dfc0f9a4122d8ad8817c503447cab8efa8a6c4/EIPS/eip-signTypedData.md#test-cases
     privkey = 'f2f48ee19680706196e2e339e5da3491186e0c4c5030670656b0e0164837257d'
     addr = '0x5409ed021d9299bf6814279a6a1411a7e866a631'
-    assert addr == privkey_to_addr(privkey)
+    assert is_same_address(addr, privkey_to_addr(privkey))
 
     typed_data = [('string', 'message', 'Hi, Alice!')]
 
@@ -142,16 +142,16 @@ def test_sign_balance_proof_contract(channel_manager_contract: Contract):
     sender_recovered = channel_manager_contract.call().extractBalanceProofSignature(
         RECEIVER_ADDR, 37, 15, sig
     )
-    assert sender_recovered.lower() == SENDER_ADDR
+    assert is_same_address(sender_recovered, SENDER_ADDR)
 
 
 def test_verify_balance_proof(channel_manager_address: str):
     sig = sign_balance_proof(
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 315123, 8, channel_manager_address
     )
-    assert verify_balance_proof(
+    assert is_same_address(verify_balance_proof(
         RECEIVER_ADDR, 315123, 8, sig, channel_manager_address
-    ) == SENDER_ADDR
+    ), SENDER_ADDR)
 
 
 def test_sign_close_contract(channel_manager_contract: Contract):
@@ -161,7 +161,7 @@ def test_sign_close_contract(channel_manager_contract: Contract):
     receiver_recovered = channel_manager_contract.call().extractClosingSignature(
         SENDER_ADDR, 315832, 13, sig
     )
-    assert receiver_recovered == RECEIVER_ADDR
+    assert is_same_address(receiver_recovered, RECEIVER_ADDR)
 
 
 def test_verify_closing_sign(channel_manager_address: str):
@@ -169,20 +169,20 @@ def test_verify_closing_sign(channel_manager_address: str):
         RECEIVER_PRIVATE_KEY, SENDER_ADDR, 315832, 13, channel_manager_address
     )
     receiver_recovered = verify_closing_sig(SENDER_ADDR, 315832, 13, sig, channel_manager_address)
-    assert receiver_recovered == RECEIVER_ADDR
+    assert is_same_address(receiver_recovered, RECEIVER_ADDR)
 
 
 def test_sign_v0():
     msg = keccak256('hello v=0')
     sig = sign(SENDER_PRIVATE_KEY, msg)
     assert sig[-1] == 1
-    assert addr_from_sig(sig, msg) == SENDER_ADDR
+    assert is_same_address(addr_from_sig(sig, msg), SENDER_ADDR)
 
 
 def test_eth_sign_v27():
     sig = eth_sign(SENDER_PRIVATE_KEY, 'hello v=27')
     assert sig[-1] == 27
-    assert eth_verify(sig, 'hello v=27') == SENDER_ADDR
+    assert is_same_address(eth_verify(sig, 'hello v=27'), SENDER_ADDR)
 
 
 def test_verify_balance_proof_v0(channel_manager_address: str):
@@ -190,9 +190,9 @@ def test_verify_balance_proof_v0(channel_manager_address: str):
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_address
     )
     sig = sig[:-1] + b'\x00'
-    assert verify_balance_proof(
+    assert is_same_address(verify_balance_proof(
         RECEIVER_ADDR, 312524, 11, sig, channel_manager_address
-    ) == SENDER_ADDR
+    ), SENDER_ADDR)
 
 
 def test_verify_balance_proof_v27(channel_manager_address: str):
@@ -201,6 +201,6 @@ def test_verify_balance_proof_v27(channel_manager_address: str):
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_address
     )
     sig = sig[:-1] + b'\x1b'
-    assert verify_balance_proof(
+    assert is_same_address(verify_balance_proof(
         RECEIVER_ADDR, 312524, 11, sig, channel_manager_address
-    ) == SENDER_ADDR
+    ), SENDER_ADDR)
