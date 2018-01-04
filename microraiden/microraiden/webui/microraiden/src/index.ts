@@ -585,7 +585,7 @@ export class MicroRaiden {
       transferTxHash = await promisify<string>(this.token.transfer['address,uint256,bytes'], 'sendTransaction')(
         this.contract.address,
         deposit,
-        receiver, // bytes _data (3rd param) is the receiver
+        account + receiver.replace(/^0x/i, ''), // _data (3rd param) is sender (20B) + receiver (20B)
         { from: account, gas: 100e3 });
     } else {
       // ERC20
@@ -595,7 +595,7 @@ export class MicroRaiden {
         deposit,
         { from: account, gas: 130e3 });
       // send 'createChannel' transaction to channel manager contract
-      transferTxHash = await promisify<string>(this.contract.createChannelERC20, 'sendTransaction')(
+      transferTxHash = await promisify<string>(this.contract.createChannel, 'sendTransaction')(
         receiver,
         deposit,
         { from: account, gas: 130e3 });
@@ -656,8 +656,10 @@ export class MicroRaiden {
       transferTxHash = await promisify<string>(this.token.transfer['address,uint256,bytes'], 'sendTransaction')(
         this.contract.address,
         deposit,
-        // receiver goes as 3rd param, 20 bytes, plus blocknumber, 4bytes
-        this.channel.receiver + encodeHex(this.channel.block, 8),
+        // sender goes as 3rd param (20B), plus receiver (20B) and blocknumber (4B)
+        this.channel.account +
+          this.channel.receiver.replace(/^0x/i, '') +
+          encodeHex(this.channel.block, 8),
         { from: account, gas: 70e3 });
     } else {
       // ERC20, approve channel manager contract to handle our tokens, then topUp
@@ -667,7 +669,7 @@ export class MicroRaiden {
         deposit,
         { from: account, gas: 100e3 });
       // send 'topUp' transaction to channel manager contract
-      transferTxHash = await promisify<string>(this.contract.topUpERC20, 'sendTransaction')(
+      transferTxHash = await promisify<string>(this.contract.topUp, 'sendTransaction')(
         this.channel.receiver,
         this.channel.block,
         deposit,

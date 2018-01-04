@@ -135,6 +135,7 @@ describe('MicroRaiden', () => {
       ChannelManager.new(
         token.address,
         CHALLENGE_PERIOD,
+        [],
         {
           gas: 5e6,
           from: accounts[accounts.length-1],
