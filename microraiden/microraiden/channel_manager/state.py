@@ -280,7 +280,7 @@ class ChannelManagerState(object):
         return channel
 
     def get_channel_rowid(self, sender: str, open_block_number: int):
-        sender = sender.lower()
+        sender = sender
         c = self.conn.cursor()
         result = c.execute(
             'SELECT rowid from `channels` WHERE sender = ? AND open_block_number = ?',
@@ -297,7 +297,6 @@ class ChannelManagerState(object):
         self.add_channel(channel)
 
     def channel_exists(self, sender, open_block_number):
-        sender = sender.lower()
         c = self.conn.cursor()
         sql = 'SELECT 1 FROM `channels` WHERE `sender` = ? AND `open_block_number` == ?'
         c.execute(sql, [sender, open_block_number])
@@ -318,9 +317,9 @@ class ChannelManagerState(object):
     def add_channel(self, channel):
         assert channel.open_block_number > 0
         assert channel.state is not ChannelState.UNDEFINED
-        assert is_address(channel.sender.lower())
+        assert is_address(channel.sender)
         params = [
-            channel.sender.lower(),
+            channel.sender,
             channel.open_block_number,
             str(channel.deposit),
             str(channel.balance),
@@ -332,14 +331,13 @@ class ChannelManagerState(object):
             channel.confirmed
         ]
         self.conn.execute(ADD_CHANNEL_SQL, params)
-        rowid = self.get_channel_rowid(channel.sender.lower(), channel.open_block_number)
+        rowid = self.get_channel_rowid(channel.sender, channel.open_block_number)
         self.set_unconfirmed_topups(rowid, channel.unconfirmed_topups)
         self.conn.commit()
 
     def get_channel(self, sender, open_block_number):
         assert is_address(sender)
         assert open_block_number > 0
-        sender = sender.lower()
         # TODO unconfirmed topups
         c = self.conn.cursor()
         sql = 'SELECT rowid,* FROM `channels` WHERE `sender` = ? AND `open_block_number` = ?'
@@ -351,9 +349,8 @@ class ChannelManagerState(object):
     def del_channel(self, sender: str, open_block_number: int):
         assert is_address(sender)
         assert open_block_number > 0
-        sender = sender.lower()
         assert self.channel_exists(sender, open_block_number)
-        self.conn.execute(DEL_CHANNEL_SQL, [sender.lower(), open_block_number])
+        self.conn.execute(DEL_CHANNEL_SQL, [sender, open_block_number])
         self.conn.commit()
 
     @classmethod
@@ -380,7 +377,7 @@ class ChannelManagerState(object):
 
     def set_channel_state(self, sender: str, open_block_number: int, state: ChannelState):
         assert is_address(sender)
-        sender = sender.lower()
+        sender = sender
         self.conn.execute('UPDATE `channels` SET `state` = ?'
                           'WHERE `sender` = ? AND `open_block_number` = ?',
                           [state, sender, open_block_number])

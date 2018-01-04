@@ -1,7 +1,14 @@
 from typing import List, Tuple, Any
 
 from coincurve import PrivateKey, PublicKey
-from eth_utils import encode_hex, decode_hex, remove_0x_prefix, keccak, is_0x_prefixed
+from eth_utils import (
+    encode_hex,
+    decode_hex,
+    remove_0x_prefix,
+    keccak,
+    is_0x_prefixed,
+    to_checksum_address
+)
 from ethereum.transactions import Transaction
 import rlp
 
@@ -23,7 +30,9 @@ def pubkey_to_addr(pubkey) -> str:
 
 
 def privkey_to_addr(privkey: str) -> str:
-    return pubkey_to_addr(PrivateKey.from_hex(remove_0x_prefix(privkey)).public_key)
+    return to_checksum_address(
+        pubkey_to_addr(PrivateKey.from_hex(remove_0x_prefix(privkey)).public_key)
+    )
 
 
 def addr_from_sig(sig: bytes, msg: bytes):

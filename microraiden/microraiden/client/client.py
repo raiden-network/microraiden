@@ -79,8 +79,8 @@ class Client:
         channel_key_to_channel = {}
 
         def get_channel(event) -> Channel:
-            sender = event['args']['_sender'].lower()
-            receiver = event['args']['_receiver'].lower()
+            sender = event['args']['_sender']
+            receiver = event['args']['_receiver']
             block = event['args'].get('_open_block_number', event['blockNumber'])
             assert is_same_address(sender, self.context.address)
             return channel_key_to_channel.get((sender, receiver, block), None)

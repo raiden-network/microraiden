@@ -174,7 +174,7 @@ class Blockchain(gevent.Greenlet):
         for log in logs:
             assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
             txhash = log['transactionHash']
-            sender = log['args']['_sender'].lower()
+            sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             added_deposit = log['args']['_added_deposit']
             self.log.debug(
@@ -199,7 +199,7 @@ class Blockchain(gevent.Greenlet):
         for log in logs:
             assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
             txhash = log['transactionHash']
-            sender = log['args']['_sender'].lower()
+            sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             added_deposit = log['args']['_added_deposit']
             self.log.debug(
@@ -232,7 +232,7 @@ class Blockchain(gevent.Greenlet):
         )
         for log in logs:
             assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
-            sender = log['args']['_sender'].lower()
+            sender = log['args']['_sender']
             open_block_number = log['args']['_open_block_number']
             if (sender, open_block_number) not in self.cm.channels:
                 continue

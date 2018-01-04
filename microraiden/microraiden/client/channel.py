@@ -37,8 +37,8 @@ class Channel:
         self._balance_sig = None
 
         self.core = core
-        self.sender = sender.lower()
-        self.receiver = receiver.lower()
+        self.sender = sender
+        self.receiver = receiver
         self.deposit = deposit
         self.block = block
         self.update_balance(balance)

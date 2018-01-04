@@ -65,7 +65,7 @@ class ChannelManager(gevent.Greenlet):
         self.n_confirmations = n_confirmations
         self.log = logging.getLogger('channel_manager')
         network_id = int(web3.version.network)
-        assert is_same_address(privkey_to_addr(self.private_key), self.receiver.lower())
+        assert is_same_address(privkey_to_addr(self.private_key), self.receiver)
 
         # check contract version
         self.check_contract_version()
@@ -95,10 +95,10 @@ class ChannelManager(gevent.Greenlet):
 
         if not is_same_address(self.receiver, self.state.receiver):
             raise StateReceiverAddrMismatch('%s != %s' %
-                                            (self.receiver.lower(), self.state.receiver))
+                                            (self.receiver, self.state.receiver))
         if not is_same_address(self.state.contract_address, channel_manager_contract.address):
             raise StateContractAddrMismatch('%s != %s' % (
-                channel_manager_contract.address.lower(), self.state.contract_address.lower()))
+                channel_manager_contract.address, self.state.contract_address))
 
         self.log.debug('setting up channel manager, receiver=%s channel_contract=%s' %
                        (self.receiver, channel_manager_contract.address))

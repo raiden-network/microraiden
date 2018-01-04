@@ -89,7 +89,7 @@ class ChannelManagementListChannels(Resource):
         if sender_address is not None:
             ret = self.get_all_channels(
                 condition=lambda k, v:
-                (k[0] == sender_address.lower() and
+                (k[0] == sender_address and
                  channel_filter(v))
             )
 
@@ -131,7 +131,7 @@ class ChannelManagementChannelInfo(Resource):
 
     def get(self, sender_address, opening_block):
         try:
-            key = (sender_address.lower(), opening_block)
+            key = (sender_address, opening_block)
             sender_channel = self.channel_manager.channels[key]
         except KeyError:
             return "Sender address not found", 404
