@@ -68,6 +68,10 @@ export interface MicroChannelInfo {
    * Current channel deposited sum
    */
   deposit: BigNumber;
+  /**
+   * Value already taken from the channel
+   */
+  withdrawn: BigNumber;
 }
 
 /**
@@ -534,7 +538,12 @@ export class MicroRaiden {
     }
     // for settled channel, getChannelInfo call will fail, so we return before
     if (settled) {
-      return {'state': 'settled', 'block': settled, 'deposit': new BigNumber(0)};
+      return {
+        'state': 'settled',
+        'block': settled,
+        'deposit': new BigNumber(0),
+        'withdrawn': new BigNumber(0),
+      };
     }
 
     const info = await promisify<BigNumber[]>(this.contract.getChannelInfo, 'call')(
@@ -550,6 +559,7 @@ export class MicroRaiden {
       'state': closed ? 'closed' : 'opened',
       'block': closed || channel.block,
       'deposit': info[1],
+      'withdrawn': info[4],
     };
   }
 

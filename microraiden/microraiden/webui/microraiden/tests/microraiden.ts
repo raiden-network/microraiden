@@ -214,13 +214,12 @@ describe('MicroRaiden', () => {
   });
 
   it('#isChannelValid() true', async () => {
-    const result = uraiden.isChannelValid();
-    expect(result).to.be.true;
+    expect(uraiden.isChannelValid()).to.be.true;
   });
 
   it('#getChannelInfo() valid', async () => {
     const result = await uraiden.getChannelInfo();
-    expect(result).to.have.all.keys('state', 'block', 'deposit');
+    expect(result).to.have.all.keys('state', 'block', 'deposit', 'withdrawn');
     expect(result).to.include({ state: 'opened', block });
     expect(result.deposit.eq(uraiden.num2tkn(10))).to.be.true;
   });
@@ -347,7 +346,7 @@ describe('MicroRaiden', () => {
     expect(closingBlock).to.be.above(block);
 
     let result = await uraiden.getChannelInfo();
-    expect(result).to.have.all.keys('state', 'block', 'deposit');
+    expect(result).to.have.all.keys('state', 'block', 'deposit', 'withdrawn');
     expect(result.state).to.be.equal('settled');
     expect(result.deposit.eq(uraiden.num2tkn(0))).to.be.true;
 
@@ -367,7 +366,7 @@ describe('MicroRaiden', () => {
     uraiden.setBalance(uraiden.num2tkn(4));
 
     let result = await uraiden.getChannelInfo();
-    expect(result).to.have.all.keys('state', 'block', 'deposit');
+    expect(result).to.have.all.keys('state', 'block', 'deposit', 'withdrawn');
     expect(result).to.include({ state: 'opened', block });
     expect(result.deposit.eq(uraiden.num2tkn(15))).to.be.true;
     expect(uraiden.channel.proof.balance.eq(uraiden.num2tkn(4))).to.be.true;
@@ -379,7 +378,7 @@ describe('MicroRaiden', () => {
     const closingBlock = result.block;
     expect(closingBlock).to.be.equal(closingTx.blockNumber);
     expect(closingBlock).to.be.above(block);
-    expect(result).to.have.all.keys('state', 'block', 'deposit');
+    expect(result).to.have.all.keys('state', 'block', 'deposit', 'withdrawn');
     expect(result.state).to.be.equal('closed');
     expect(result.deposit.eq(uraiden.num2tkn(15))).to.be.true;
 
@@ -392,7 +391,7 @@ describe('MicroRaiden', () => {
 
     result = await uraiden.getChannelInfo();
     const settledBlock = result.block;
-    expect(result).to.have.all.keys('state', 'block', 'deposit');
+    expect(result).to.have.all.keys('state', 'block', 'deposit', 'withdrawn');
     expect(result.state).to.be.equal('settled');
     expect(settledBlock).to.be.above(closingBlock);
     expect(result.deposit.eq(uraiden.num2tkn(0))).to.be.true;
