@@ -6,7 +6,7 @@ import logging
 import os
 import click
 from flask import request
-from web3 import Web3, RPCProvider
+from web3 import Web3, HTTPProvider
 
 from microraiden.channel_manager import ChannelManager
 from microraiden.make_helpers import make_channel_manager
@@ -63,7 +63,7 @@ def run(
             private_key,
             CHANNEL_MANAGER_ADDRESS,
             state_file_path,
-            Web3(RPCProvider())
+            Web3(HTTPProvider())
         )
     app = PaywalledProxy(channel_manager)
 
