@@ -383,8 +383,8 @@ export class MicroRaiden {
    */
   async loadChannelFromBlockchain(account: string, receiver: string): Promise<MicroChannel> {
     const openEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelCreated({
-      _sender: account,
-      _receiver: receiver,
+      _sender_address: account,
+      _receiver_address: receiver,
     }, {
       fromBlock: 0,
       toBlock: 'latest'
@@ -395,8 +395,8 @@ export class MicroRaiden {
 
     const minBlock = openEvents[0].blockNumber;
     const settleEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
-      _sender: account,
-      _receiver: receiver,
+      _sender_address: account,
+      _receiver_address: receiver,
     }, {
       fromBlock: minBlock,
       toBlock: 'latest'
@@ -506,8 +506,8 @@ export class MicroRaiden {
     }
 
     const closeEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelCloseRequested({
-      _sender: channel.account,
-      _receiver: channel.receiver,
+      _sender_address: channel.account,
+      _receiver_address: channel.receiver,
       _open_block_number: channel.block,
     }, {
       fromBlock: channel.block,
@@ -522,8 +522,8 @@ export class MicroRaiden {
     }
 
     const settleEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
-      _sender: channel.account,
-      _receiver: channel.receiver,
+      _sender_address: channel.account,
+      _receiver_address: channel.receiver,
       _open_block_number: channel.block,
     }, {
       fromBlock: closed || channel.block,
