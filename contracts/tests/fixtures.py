@@ -13,7 +13,7 @@ empty_address = '0x0000000000000000000000000000000000000000'
 passphrase = '0'
 
 # recheck test_create_token_fallback_uint_conversion when bug bounty limit is removed
-uraiden_contract_version = '0.1.0'
+uraiden_contract_version = '0.2.0'
 channel_deposit_bugbounty_limit = 100 * 10 ** 18
 challenge_period_min = 500
 contract_args = [
