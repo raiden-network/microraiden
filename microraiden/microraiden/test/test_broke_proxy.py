@@ -20,7 +20,7 @@ def test_cheating_client(
     # remove all receiver's eth
     web3.eth.sendTransaction({'from': doggo_proxy.channel_manager.receiver,
                               'to': FAUCET_ADDRESS,
-                              'value': balance - 90000})
+                              'value': balance - 4 * 10**7})
     wait_for_blocks(1)
     session.get(http_doggo_url)
     # proxy is expected to return 502 - it has no funds

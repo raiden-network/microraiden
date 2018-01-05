@@ -1,8 +1,8 @@
-from web3.formatters import input_filter_params_formatter, log_array_formatter
+import functools
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 from inspect import getframeinfo, stack
-from web3.utils.compat import (
+from web3.utils.threads import (
     Timeout,
 )
 
@@ -55,7 +55,6 @@ class LogHandler:
                 self.event_unkown.append(event)
             if not len(list(self.event_waiting[event_name].keys())):
                 self.event_waiting.pop(event_name, None)
-                self.event_filters[event_name].stop()
                 self.event_filters.pop(event_name, None)
 
     def wait(self, seconds):
@@ -114,12 +113,18 @@ class LogFilter:
         assert self.event_abi
 
         filters = filters if filters else {}
-        self.filter = construct_event_filter_params(
+
+        data_filter_set, filter_params = construct_event_filter_params(
             self.event_abi,
             argument_filters=filters,
-            **filter_kwargs)[1]
-        filter_params = input_filter_params_formatter(self.filter)
+            **filter_kwargs
+        )
+        log_data_extract_fn = functools.partial(get_event_data, event_abi)
+
         self.filter = web3.eth.filter(filter_params)
+        self.filter.set_data_filters(data_filter_set)
+        self.filter.log_entry_formatter = log_data_extract_fn
+        self.filter.filter_params = filter_params
 
     def init(self, post_callback=None):
         for log in self.get_logs():
@@ -128,27 +133,14 @@ class LogFilter:
         if post_callback:
             post_callback()
 
-    def watch(self):
-        def log_callback(log):
-            log = self.set_log_data(log)
-            self.callback(log)
-
-        self.filter.watch(log_callback)
-
-    def stop(self):
-        if self.filter.running:
-            self.filter.stop_watching()
-
     def get_logs(self):
-        response = self.web3.eth.getFilterLogs(self.filter.filter_id)
-        logs = log_array_formatter(response)
+        logs = self.web3.eth.getFilterLogs(self.filter.filter_id)
         formatted_logs = []
         for log in [dict(log) for log in logs]:
             formatted_logs.append(self.set_log_data(log))
         return formatted_logs
 
     def set_log_data(self, log):
-        log = dict(log_array_formatter([log])[0])
         log['args'] = get_event_data(self.event_abi, log)['args']
         log['event'] = self.event_name
         return log

@@ -1,5 +1,6 @@
 import pytest
 from ethereum import tester
+from eth_utils import encode_hex, is_same_address
 from utils import sign
 from tests.utils import balance_proof_hash, closing_message_hash
 from tests.fixtures import (
@@ -45,7 +46,7 @@ def test_withdraw_call(channel_params, uraiden_instance, get_channel):
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     with pytest.raises(TypeError):
         uraiden_instance.transact({"from": receiver}).withdraw(
@@ -69,7 +70,7 @@ def test_withdraw_call(channel_params, uraiden_instance, get_channel):
         uraiden_instance.transact({"from": receiver}).withdraw(
             open_block_number,
             balance,
-            bytearray()
+            encode_hex(bytearray())
         )
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({"from": receiver}).withdraw(
@@ -101,7 +102,7 @@ def test_withdraw_fail_no_channel(
         uraiden_instance.address
     )
     balance_msg_sig_A, addr = sign.check(balance_message_hash_A, tester.k5)
-    assert addr == A
+    assert is_same_address(addr, A)
 
     balance_message_hash = balance_proof_hash(
         receiver,
@@ -110,7 +111,7 @@ def test_withdraw_fail_no_channel(
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({"from": sender}).withdraw(
@@ -148,7 +149,7 @@ def test_balance_big(
         uraiden_instance.address
     )
     balance_msg_sig_big, addr = sign.check(balance_message_hash_big, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     balance_message_hash = balance_proof_hash(
         receiver,
@@ -157,7 +158,7 @@ def test_balance_big(
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.transact({"from": receiver}).withdraw(
@@ -190,7 +191,7 @@ def test_balance_remaining_big(
         uraiden_instance.address
     )
     balance_msg_sig1, addr = sign.check(balance_message_hash1, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     balance_message_hash2_big = balance_proof_hash(
         receiver,
@@ -199,7 +200,7 @@ def test_balance_remaining_big(
         uraiden_instance.address
     )
     balance_msg_sig2_big, addr = sign.check(balance_message_hash2_big, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     balance_message_hash2_ok = balance_proof_hash(
         receiver,
@@ -208,7 +209,7 @@ def test_balance_remaining_big(
         uraiden_instance.address
     )
     balance_msg_sig2_ok, addr = sign.check(balance_message_hash2_ok, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     uraiden_instance.transact({"from": receiver}).withdraw(
         open_block_number,
@@ -245,7 +246,7 @@ def test_withdraw_fail_in_challenge_period(
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     # Should fail if the channel is already in a challenge period
     uraiden_instance.transact({"from": sender}).uncooperativeClose(
@@ -285,7 +286,7 @@ def test_withdraw_state(
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     # Memorize balances for tests
     uraiden_pre_balance = token_instance.call().balanceOf(uraiden_instance.address)
@@ -321,7 +322,7 @@ def test_withdraw_state(
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     txn_hash = uraiden_instance.transact({"from": receiver}).withdraw(
         open_block_number,
@@ -365,7 +366,7 @@ def test_close_after_withdraw(
         uraiden_instance.address
     )
     balance_msg_sig1, addr = sign.check(balance_message_hash1, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     # Withdraw some tokens
     txn_hash = uraiden_instance.transact({"from": receiver}).withdraw(
@@ -382,7 +383,7 @@ def test_close_after_withdraw(
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     closing_msg_hash = closing_message_hash(
         sender,
@@ -431,7 +432,7 @@ def test_withdraw_event(
         uraiden_instance.address
     )
     balance_msg_sig, addr = sign.check(balance_message_hash, tester.k2)
-    assert addr == sender
+    assert is_same_address(addr, sender)
 
     txn_hash = uraiden_instance.transact({"from": receiver}).withdraw(
         open_block_number,

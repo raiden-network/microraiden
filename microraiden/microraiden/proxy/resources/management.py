@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from microraiden.utils import sign_close
 from microraiden.proxy.resources.login import auth
-from eth_utils import encode_hex
+from eth_utils import encode_hex, is_address, to_checksum_address
 
 from microraiden.channel_manager import Channel, ChannelManager
 from microraiden.exceptions import NoOpenChannel, InvalidBalanceProof
@@ -86,10 +86,10 @@ class ChannelManagementListChannels(Resource):
         channel_filter = self.get_channel_filter(args['status'])
 
         # if sender exists, return all open blocks
-        if sender_address is not None:
+        if sender_address is not None and is_address(sender_address):
             ret = self.get_all_channels(
                 condition=lambda k, v:
-                (k[0] == sender_address.lower() and
+                (k[0] == to_checksum_address(sender_address) and
                  channel_filter(v))
             )
 
@@ -117,6 +117,8 @@ class ChannelManagementListChannels(Resource):
             return "Bad signature format", 400
         if args.block is None:
             return "No opening block specified", 400
+        if sender_address and is_address(sender_address):
+            sender_address = to_checksum_address(sender_address)
         channel = self.channel_manager.channels[sender_address, args.block]
         if channel.last_signature != args.signature:
             return "Invalid or outdated balance signature", 400
@@ -130,8 +132,10 @@ class ChannelManagementChannelInfo(Resource):
         self.channel_manager = channel_manager
 
     def get(self, sender_address, opening_block):
+        if sender_address and is_address(sender_address):
+            sender_address = to_checksum_address(sender_address)
         try:
-            key = (sender_address.lower(), opening_block)
+            key = (sender_address, opening_block)
             sender_channel = self.channel_manager.channels[key]
         except KeyError:
             return "Sender address not found", 404
@@ -144,6 +148,8 @@ class ChannelManagementChannelInfo(Resource):
         args = parser.parse_args()
         if args.balance is None:
             return "Bad balance format", 400
+        if sender_address and is_address(sender_address):
+            sender_address = to_checksum_address(sender_address)
 
         try:
             close_signature = self.channel_manager.sign_close(
@@ -166,6 +172,8 @@ class ChannelManagementAdminChannels(Resource):
 
     @auth.login_required
     def delete(self, sender_address, opening_block):
+        if sender_address and is_address(sender_address):
+            sender_address = to_checksum_address(sender_address)
         self.channel_manager.force_close_channel(sender_address, opening_block)
         return "force closed (%s, %d)" % (sender_address, opening_block), 200
 

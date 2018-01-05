@@ -280,6 +280,7 @@ class ChannelManagerState(object):
         return channel
 
     def get_channel_rowid(self, sender: str, open_block_number: int):
+        sender = sender
         c = self.conn.cursor()
         result = c.execute(
             'SELECT rowid from `channels` WHERE sender = ? AND open_block_number = ?',
@@ -298,7 +299,7 @@ class ChannelManagerState(object):
     def channel_exists(self, sender, open_block_number):
         c = self.conn.cursor()
         sql = 'SELECT 1 FROM `channels` WHERE `sender` = ? AND `open_block_number` == ?'
-        c.execute(sql, [sender.lower(), open_block_number])
+        c.execute(sql, [sender, open_block_number])
         result = c.fetchone()
         if result is None:
             return False
@@ -316,9 +317,9 @@ class ChannelManagerState(object):
     def add_channel(self, channel):
         assert channel.open_block_number > 0
         assert channel.state is not ChannelState.UNDEFINED
-        assert is_address(channel.sender.lower())
+        assert is_address(channel.sender)
         params = [
-            channel.sender.lower(),
+            channel.sender,
             channel.open_block_number,
             str(channel.deposit),
             str(channel.balance),
@@ -340,7 +341,7 @@ class ChannelManagerState(object):
         # TODO unconfirmed topups
         c = self.conn.cursor()
         sql = 'SELECT rowid,* FROM `channels` WHERE `sender` = ? AND `open_block_number` = ?'
-        c.execute(sql, [sender.lower(), open_block_number])
+        c.execute(sql, [sender, open_block_number])
         result = c.fetchone()
         assert c.fetchone() is None
         return self.result_to_channel(result)
@@ -349,7 +350,7 @@ class ChannelManagerState(object):
         assert is_address(sender)
         assert open_block_number > 0
         assert self.channel_exists(sender, open_block_number)
-        self.conn.execute(DEL_CHANNEL_SQL, [sender.lower(), open_block_number])
+        self.conn.execute(DEL_CHANNEL_SQL, [sender, open_block_number])
         self.conn.commit()
 
     @classmethod
@@ -375,6 +376,8 @@ class ChannelManagerState(object):
         self.conn.commit()
 
     def set_channel_state(self, sender: str, open_block_number: int, state: ChannelState):
+        assert is_address(sender)
+        sender = sender
         self.conn.execute('UPDATE `channels` SET `state` = ?'
                           'WHERE `sender` = ? AND `open_block_number` = ?',
                           [state, sender, open_block_number])

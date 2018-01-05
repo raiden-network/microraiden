@@ -3,6 +3,7 @@ from werkzeug.datastructures import EnvironHeaders
 from flask import Response, make_response, request
 from microraiden import HTTPHeaders as header
 from flask_restful.utils import unpack
+from eth_utils import to_checksum_address
 
 from microraiden.channel_manager import (
     ChannelManager,
@@ -36,7 +37,7 @@ class RequestData:
         if header.SENDER_BALANCE in cookies:
             self.balance = int(cookies.get(header.SENDER_BALANCE))
         if header.SENDER_ADDRESS in cookies:
-            self.sender_address = cookies.get(header.SENDER_ADDRESS)
+            self.sender_address = to_checksum_address(cookies.get(header.SENDER_ADDRESS))
 
     def check_headers(self, headers):
         """Check if headers sent by the client are valid"""
@@ -56,12 +57,21 @@ class RequestData:
             balance = int(balance)
         if price and price < 0:
             raise ValueError("Price must be >= 0")
-        if contract_address and not is_address(contract_address):
-            raise ValueError("Invalid contract address")
-        if receiver_address and not is_address(receiver_address):
-            raise ValueError("Invalid receiver address")
-        if sender_address and not is_address(sender_address):
-            raise ValueError("Invalid sender address")
+        if contract_address:
+            if not is_address(contract_address):
+                raise ValueError("Invalid contract address")
+            else:
+                contract_address = to_checksum_address(contract_address)
+        if receiver_address:
+            if not is_address(receiver_address):
+                raise ValueError("Invalid receiver address")
+            else:
+                receiver_address = to_checksum_address(receiver_address)
+        if sender_address:
+            if not is_address(sender_address):
+                raise ValueError("Invalid sender address")
+            else:
+                sender_address = to_checksum_address(sender_address)
         if payment and not isinstance(payment, int):
             raise ValueError("Payment must be an integer")
         if open_block and open_block < 0:

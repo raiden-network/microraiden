@@ -40,14 +40,14 @@ The Smart Contracts can be installed separately from the other components of the
 populus compile
 
 # tests
-pytest
-pytest -p no:warnings -s
-pytest tests/test_uraiden.py -p no:warnings -s
+py.test
+py.test -p no:warnings -s
+py.test tests/test_uraiden.py -p no:warnings -s
 
 # Recommended for speed:
 # you have to comment lines in tests/conftest.py to use this
-pip install pytest-xdist
-pytest -p no:warnings -s -n NUM_OF_CPUs
+pip install pytest-xdist==1.17.1
+py.test -p no:warnings -s -n NUM_OF_CPUs
 
 ```
 

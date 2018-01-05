@@ -12,7 +12,7 @@ from populus.wait import Wait
 
 from web3 import Web3, EthereumTesterProvider
 from web3.contract import Contract
-from web3.providers.rpc import RPCProvider
+from web3.providers.rpc import HTTPProvider
 
 from microraiden.utils import (
     addr_from_sig,
@@ -163,7 +163,7 @@ def web3(use_tester, mine_sync_event):
         web3.eth.sendTransaction({'to': FAUCET_ADDRESS, 'value': FAUCET_ALLOWANCE})
 
     else:
-        rpc = RPCProvider('localhost', 8545)
+        rpc = HTTPProvider('localhost', 8545)
         web3 = Web3(rpc)
 
     yield web3

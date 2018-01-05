@@ -4,7 +4,7 @@ from typing import List
 import os
 from eth_utils import decode_hex, is_same_address, is_hex, remove_0x_prefix
 from web3 import Web3
-from web3.providers.rpc import RPCProvider
+from web3.providers.rpc import HTTPProvider
 
 from microraiden.utils import (
     get_private_key,
@@ -42,7 +42,7 @@ class Client:
         # Create web3 context if none is provided, either by using the proxies' context or creating
         # a new one.
         if not web3:
-            web3 = Web3(RPCProvider())
+            web3 = Web3(HTTPProvider())
 
         self.context = Context(private_key, web3, channel_manager_address)
 
@@ -82,7 +82,7 @@ class Client:
             sender = event['args']['_sender']
             receiver = event['args']['_receiver']
             block = event['args'].get('_open_block_number', event['blockNumber'])
-            assert sender == self.context.address
+            assert is_same_address(sender, self.context.address)
             return channel_key_to_channel.get((sender, receiver, block), None)
 
         for c in self.channels:

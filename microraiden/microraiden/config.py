@@ -53,7 +53,7 @@ CHANNEL_MANAGER_CONTRACT_VERSION = MICRORAIDEN_VERSION
 # they should stay the same until we decide otherwise
 assert MICRORAIDEN_VERSION == CHANNEL_MANAGER_CONTRACT_VERSION
 #  proxy will stop serving requests if receiver balance is below PROXY_BALANCE_LIMIT
-PROXY_BALANCE_LIMIT = 10**6
+PROXY_BALANCE_LIMIT = 10**8
 SLEEP_RELOAD = 2
 
 
