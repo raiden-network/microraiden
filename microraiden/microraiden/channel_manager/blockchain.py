@@ -139,8 +139,8 @@ class Blockchain(gevent.Greenlet):
             **filters_unconfirmed
         )
         for log in logs:
-            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
-            sender = log['args']['_sender']
+            assert is_same_address(log['args']['_receiver_address'], self.cm.state.receiver)
+            sender = log['args']['_sender_address']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
             self.log.debug(
@@ -157,8 +157,8 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
-            sender = log['args']['_sender']
+            assert is_same_address(log['args']['_receiver_address'], self.cm.state.receiver)
+            sender = log['args']['_sender_address']
             deposit = log['args']['_deposit']
             open_block_number = log['blockNumber']
             self.log.debug('received ChannelOpened event (sender %s, block number %s)',
@@ -172,9 +172,9 @@ class Blockchain(gevent.Greenlet):
             **filters_unconfirmed
         )
         for log in logs:
-            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
+            assert is_same_address(log['args']['_receiver_address'], self.cm.state.receiver)
             txhash = log['transactionHash']
-            sender = log['args']['_sender']
+            sender = log['args']['_sender_address']
             open_block_number = log['args']['_open_block_number']
             added_deposit = log['args']['_added_deposit']
             self.log.debug(
@@ -197,9 +197,9 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
+            assert is_same_address(log['args']['_receiver_address'], self.cm.state.receiver)
             txhash = log['transactionHash']
-            sender = log['args']['_sender']
+            sender = log['args']['_sender_address']
             open_block_number = log['args']['_open_block_number']
             added_deposit = log['args']['_added_deposit']
             self.log.debug(
@@ -217,8 +217,8 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
-            sender = log['args']['_sender']
+            assert is_same_address(log['args']['_receiver_address'], self.cm.state.receiver)
+            sender = log['args']['_sender_address']
             open_block_number = log['args']['_open_block_number']
             self.log.debug('received ChannelSettled event (sender %s, block number %s)',
                            sender, open_block_number)
@@ -231,8 +231,8 @@ class Blockchain(gevent.Greenlet):
             **filters_confirmed
         )
         for log in logs:
-            assert is_same_address(log['args']['_receiver'], self.cm.state.receiver)
-            sender = log['args']['_sender']
+            assert is_same_address(log['args']['_receiver_address'], self.cm.state.receiver)
+            sender = log['args']['_sender_address']
             open_block_number = log['args']['_open_block_number']
             if (sender, open_block_number) not in self.cm.channels:
                 continue

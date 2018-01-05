@@ -128,7 +128,7 @@ def close_open_channels(
             except (BadFunctionCallOutput, TransactionFailed):
                 n_non_existant += 1
                 continue
-            _, deposit, settle_block_number, closing_balance = channel_info
+            _, deposit, settle_block_number, closing_balance, transferred_tokens = channel_info
 
             is_valid = channel.balance <= deposit
             n_invalid_balance_proof += int(not is_valid)
