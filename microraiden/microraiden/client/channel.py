@@ -94,7 +94,9 @@ class Channel:
         ))
         current_block = self.core.web3.eth.blockNumber
 
-        data = decode_hex(self.receiver) + self.block.to_bytes(4, byteorder='big')
+        data = (decode_hex(self.sender) +
+                decode_hex(self.receiver) +
+                self.block.to_bytes(4, byteorder='big'))
         tx = create_signed_contract_transaction(
             self.core.private_key,
             self.core.token,
@@ -248,7 +250,7 @@ class Channel:
             self.receiver, self.block
         ))
 
-        _, _, settle_block, _ = self.core.channel_manager.call().getChannelInfo(
+        _, _, settle_block, _, _ = self.core.channel_manager.call().getChannelInfo(
             self.sender, self.receiver, self.block
         )
 

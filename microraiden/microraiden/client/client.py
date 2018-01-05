@@ -54,7 +54,7 @@ class Client:
         with channel information available on the blockchain to make up for local data loss.
         Naturally, balance signatures cannot be recovered from the blockchain.
         """
-        filters = {'_sender': self.context.address}
+        filters = {'_sender_address': self.context.address}
         create = get_logs(
             self.context.channel_manager,
             'ChannelCreated',
@@ -79,8 +79,8 @@ class Client:
         channel_key_to_channel = {}
 
         def get_channel(event) -> Channel:
-            sender = event['args']['_sender']
-            receiver = event['args']['_receiver']
+            sender = event['args']['_sender_address']
+            receiver = event['args']['_receiver_address']
             block = event['args'].get('_open_block_number', event['blockNumber'])
             assert is_same_address(sender, self.context.address)
             return channel_key_to_channel.get((sender, receiver, block), None)
@@ -95,8 +95,8 @@ class Client:
             else:
                 c = Channel(
                     self.context,
-                    e['args']['_sender'],
-                    e['args']['_receiver'],
+                    e['args']['_sender_address'],
+                    e['args']['_receiver_address'],
                     e['blockNumber'],
                     e['args']['_deposit'],
                     on_settle=lambda channel: self.channels.remove(channel)
@@ -149,7 +149,7 @@ class Client:
             receiver_address, deposit, current_block
         ))
 
-        data = decode_hex(receiver_address)
+        data = decode_hex(self.context.address) + decode_hex(receiver_address)
         tx = create_signed_contract_transaction(
             self.context.private_key,
             self.context.token,
@@ -164,8 +164,8 @@ class Client:
 
         log.debug('Waiting for channel creation event on the blockchain...')
         filters = {
-            '_sender': self.context.address,
-            '_receiver': receiver_address
+            '_sender_address': self.context.address,
+            '_receiver_address': receiver_address
         }
         event = get_event_blocking(
             self.context.channel_manager,
@@ -178,8 +178,8 @@ class Client:
             log.debug('Event received. Channel created in block {}.'.format(event['blockNumber']))
             channel = Channel(
                 self.context,
-                event['args']['_sender'],
-                event['args']['_receiver'],
+                event['args']['_sender_address'],
+                event['args']['_receiver_address'],
                 event['blockNumber'],
                 event['args']['_deposit'],
                 on_settle=lambda c: self.channels.remove(c)
