@@ -394,16 +394,37 @@ export class MicroRaiden {
     }
 
     const minBlock = openEvents[0].blockNumber;
-    const settleEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
-      _sender_address: account,
-      _receiver_address: receiver,
-    }, {
-      fromBlock: minBlock,
-      toBlock: 'latest'
-    }), 'get')();
+    const [ closeEvents, settleEvents, currentBlock, challenge ] = await Promise.all([
+      promisify<{ blockNumber: number }[]>(this.contract.ChannelCloseRequested({
+        _sender_address: account,
+        _receiver_address: receiver,
+      }, {
+        fromBlock: minBlock,
+        toBlock: 'latest'
+      }), 'get')(),
+      promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
+        _sender_address: account,
+        _receiver_address: receiver,
+      }, {
+        fromBlock: minBlock,
+        toBlock: 'latest'
+      }), 'get')(),
+      promisify<number>(this.web3.eth, 'getBlockNumber')(),
+      this.getChallengePeriod(),
+    ]);
 
-    const settledBlocks = settleEvents.map((ev) => ev['args']['_open_block_number'].toNumber()),
-          stillOpen = openEvents.filter((ev) => settledBlocks.indexOf(ev.blockNumber) < 0);
+    const stillOpen = openEvents.filter((ev) => {
+      for (let sev of settleEvents) {
+        if (sev['args']['_open_block_number'].eq(ev.blockNumber))
+          return false;
+      }
+      for (let cev of closeEvents) {
+        if (cev['args']['_open_block_number'].eq(ev.blockNumber) &&
+            cev.blockNumber + challenge > currentBlock)
+          return false;
+      }
+      return true;
+    });
 
     let openChannel: MicroChannel;
     for (let ev of stillOpen) {
