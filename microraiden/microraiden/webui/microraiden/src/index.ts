@@ -2,7 +2,7 @@ import * as Web3 from 'web3';
 import * as BigNumber from 'bignumber.js';
 import { typedSignatureHash, recoverTypedSignature } from 'eth-sig-util';
 
-var localStorage; // possibly missing
+declare const localStorage; // possibly missing
 export { BigNumber };
 
 // helper types
@@ -333,7 +333,7 @@ export class MicroRaiden {
    * @returns  True if a channel data was found, false otherwise
    */
   loadStoredChannel(account: string, receiver: string): boolean {
-    if (!localStorage) {
+    if (typeof localStorage === 'undefined') {
       delete this.channel;
       return false;
     }
@@ -362,7 +362,7 @@ export class MicroRaiden {
     if (!this.channel) {
       return;
     }
-    if (localStorage) {
+    if (typeof localStorage !== 'undefined') {
       const key = [this.channel.account, this.channel.receiver].join('|');
       localStorage.removeItem(key);
     }
@@ -438,7 +438,7 @@ export class MicroRaiden {
    */
   setChannel(channel: MicroChannel): void {
     this.channel = channel;
-    if (localStorage) {
+    if (typeof localStorage !== 'undefined') {
       const key = [this.channel.account, this.channel.receiver].join('|');
       localStorage.setItem(key, JSON.stringify(this.channel));
     }
