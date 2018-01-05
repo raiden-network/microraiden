@@ -113,14 +113,14 @@ class Blockchain(gevent.Greenlet):
             'from_block': self.cm.state.confirmed_head_number + 1,
             'to_block': new_confirmed_head_number,
             'argument_filters': {
-                '_receiver': self.cm.state.receiver
+                '_receiver_address': self.cm.state.receiver
             }
         }
         filters_unconfirmed = {
             'from_block': self.cm.state.unconfirmed_head_number + 1,
             'to_block': new_unconfirmed_head_number,
             'argument_filters': {
-                '_receiver': self.cm.state.receiver
+                '_receiver_address': self.cm.state.receiver
             }
         }
         self.log.debug(

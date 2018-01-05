@@ -115,8 +115,8 @@ class Channel:
             'ChannelToppedUp',
             from_block=current_block + 1,
             argument_filters={
-                '_sender': self.sender,
-                '_receiver': self.receiver,
+                '_sender_address': self.sender,
+                '_receiver_address': self.receiver,
                 '_open_block_number': self.block
             }
         )
@@ -163,8 +163,8 @@ class Channel:
             'ChannelCloseRequested',
             from_block=current_block + 1,
             argument_filters={
-                '_sender': self.sender,
-                '_receiver': self.receiver,
+                '_sender_address': self.sender,
+                '_receiver_address': self.receiver,
                 '_open_block_number': self.block
             }
         )
@@ -223,8 +223,8 @@ class Channel:
             'ChannelSettled',
             from_block=current_block + 1,
             argument_filters={
-                '_sender': self.sender,
-                '_receiver': self.receiver,
+                '_sender_address': self.sender,
+                '_receiver_address': self.receiver,
                 '_open_block_number': self.block
             }
         )
@@ -279,8 +279,8 @@ class Channel:
             'ChannelSettled',
             from_block=current_block + 1,
             argument_filters={
-                '_sender': self.sender,
-                '_receiver': self.receiver,
+                '_sender_address': self.sender,
+                '_receiver_address': self.receiver,
                 '_open_block_number': self.block
             }
         )
