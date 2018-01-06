@@ -61,7 +61,7 @@ services:
             - --private-key-password-file
             - "/tmp/password.txt"
             - --channel-manager-address
-            - "0x6c4A0f93a21fb711adA78F68083577ab541b9620"
+            - "0x161a0d7726eb8b86eb587d8bd483be1ce87b0609"
             - start
             - --host
             - "0.0.0.0"
@@ -91,7 +91,7 @@ services:
             - --private-key-password-file
             - /tmp/password.txt
             - --channel-manager-address
-            - "0x6c4A0f93a21fb711adA78F68083577ab541b9620"
+            - "0x161a0d7726eb8b86eb587d8bd483be1ce87b0609"
             - start
             - --host
             - "0.0.0.0"
