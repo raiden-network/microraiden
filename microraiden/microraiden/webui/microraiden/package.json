@@ -1,6 +1,6 @@
 {
   "name": "microraiden",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Javascript/Typescript client library for µRaiden (MicroRaiden), a payment channels implementation for the Ethereum blockchain",
   "author": "Raiden Network Team <contact@raiden.network>",
   "license": "MIT",

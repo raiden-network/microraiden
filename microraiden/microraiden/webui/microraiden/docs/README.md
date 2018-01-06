@@ -41,7 +41,7 @@
 
 **●  localStorage**:  *`any`* 
 
-*Defined in [index.ts:5](https://github.com/raiden-network/microraiden/blob/ec070e7/microraiden/microraiden/webui/microraiden/src/index.ts#L5)*
+*Defined in [index.ts:5](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L5)*
 
 
 
@@ -59,7 +59,7 @@ ___
 
 
 
-*Defined in [index.ts:130](https://github.com/raiden-network/microraiden/blob/ec070e7/microraiden/microraiden/webui/microraiden/src/index.ts#L130)*
+*Defined in [index.ts:133](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L133)*
 
 
 
@@ -94,7 +94,7 @@ ___
 
 
 
-*Defined in [index.ts:143](https://github.com/raiden-network/microraiden/blob/ec070e7/microraiden/microraiden/webui/microraiden/src/index.ts#L143)*
+*Defined in [index.ts:146](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L146)*
 
 
 
@@ -132,7 +132,7 @@ ___
 
 
 
-*Defined in [index.ts:106](https://github.com/raiden-network/microraiden/blob/ec070e7/microraiden/microraiden/webui/microraiden/src/index.ts#L106)*
+*Defined in [index.ts:109](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L109)*
 
 
 

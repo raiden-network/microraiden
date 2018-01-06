@@ -15,7 +15,7 @@
 
 **●  block**:  *`number`* 
 
-*Defined in [index.ts:66](https://github.com/raiden-network/microraiden/blob/ec070e7/microraiden/microraiden/webui/microraiden/src/index.ts#L66)*
+*Defined in [index.ts:66](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L66)*
 
 
 
@@ -32,7 +32,7 @@ ___
 
 **●  deposit**:  *`BigNumber`* 
 
-*Defined in [index.ts:70](https://github.com/raiden-network/microraiden/blob/ec070e7/microraiden/microraiden/webui/microraiden/src/index.ts#L70)*
+*Defined in [index.ts:70](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L70)*
 
 
 
@@ -49,11 +49,28 @@ ___
 
 **●  state**:  *`string`* 
 
-*Defined in [index.ts:61](https://github.com/raiden-network/microraiden/blob/ec070e7/microraiden/microraiden/webui/microraiden/src/index.ts#L61)*
+*Defined in [index.ts:61](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L61)*
 
 
 
 Current channel state, one of 'opened', 'closed' or 'settled'
+
+
+
+
+___
+
+<a id="withdrawn"></a>
+
+###  withdrawn
+
+**●  withdrawn**:  *`BigNumber`* 
+
+*Defined in [index.ts:74](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L74)*
+
+
+
+Value already taken from the channel
 
 
 
