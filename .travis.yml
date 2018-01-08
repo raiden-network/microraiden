@@ -1,39 +1,82 @@
 dist: trusty
 sudo: true
+language: generic
 
-language: python
-python:
-  - '3.5'
+matrix:
+  include:
+    - language: python
+      python: '3.5'
+      env:
+        - TEST_TYPE=microraiden
+        - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.17/solc-static-linux'
+        - SOLC_VERSION='v0.4.17'
 
-env:
-  global:
-    - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.17/solc-static-linux'
-    - SOLC_VERSION='v0.4.17'
-  matrix:
-    - TEST_TYPE='microraiden'
-    - TEST_TYPE='contracts'
+      before_install:
+        - mkdir -p $HOME/.bin
+        - export PATH=$PATH:$HOME/.bin
+        - ./.travis/download_solc.sh
 
-before_install:
-  - mkdir -p $HOME/.bin
-  - export PATH=$PATH:$HOME/.bin
-  - ./.travis/download_solc.sh
+      cache:
+        pip: true
+        directories:
+          - $HOME/.cache/pip
 
-cache:
-  pip: true
-  directories:
-    - $HOME/.cache/pip
+      install:
+        - pip install -U pip wheel coveralls "coverage<4.4"
+        - pip install pytest-travis-fold
+        - pip install flake8
+        - pip install -r microraiden/requirements-dev.txt
 
-install:
-  - pip install -U pip wheel coveralls "coverage<4.4"
-  - pip install pytest-travis-fold
-  - pip install flake8
-  - pip install -r microraiden/requirements-dev.txt
+      before_script:
+        - flake8 microraiden/
 
-before_script:
-  - flake8 microraiden/
+      script:
+          - coverage run --source microraiden/ --omit 'microraiden/microraiden/test/*,microraiden/microraiden/examples/*' -m py.test --populus-project 'contracts/' -k-needs_xorg --travis-fold=always -vvvvvvvvs $TEST_TYPE
 
-script:
-    - coverage run --source microraiden/ --omit 'microraiden/microraiden/test/*,microraiden/microraiden/examples/*' -m py.test --populus-project 'contracts/' -k-needs_xorg --travis-fold=always -vvvvvvvvs $TEST_TYPE
+      after_success:
+        - coveralls
 
-after_success:
-  - coveralls
+    - language: python
+      python: '3.5'
+      env:
+        - TEST_TYPE=contracts
+        - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.17/solc-static-linux'
+        - SOLC_VERSION='v0.4.17'
+
+      before_install:
+        - mkdir -p $HOME/.bin
+        - export PATH=$PATH:$HOME/.bin
+        - ./.travis/download_solc.sh
+
+      cache:
+        pip: true
+        directories:
+          - $HOME/.cache/pip
+
+      install:
+        - pip install -U pip wheel coveralls "coverage<4.4"
+        - pip install pytest-travis-fold
+        - pip install flake8
+        - pip install -r microraiden/requirements-dev.txt
+
+      before_script:
+        - flake8 microraiden/
+
+      script:
+          - coverage run --source microraiden/ --omit 'microraiden/microraiden/test/*,microraiden/microraiden/examples/*' -m py.test --populus-project 'contracts/' -k-needs_xorg --travis-fold=always -vvvvvvvvs $TEST_TYPE
+
+      after_success:
+        - coveralls
+
+    - language: node_js
+      node_js: 8
+      env:
+        - TEST_TYPE=js
+        - WEBUI=microraiden/microraiden/webui/microraiden
+      cache:
+        directories:
+          - $WEBUI/node_modules
+      before_install:
+        - cd $WEBUI
+      install:
+        - npm install
