@@ -14,7 +14,6 @@ from web3 import Web3
 from microraiden import HTTPHeaders
 from microraiden import Session
 from microraiden.client import Channel
-from microraiden.test.utils.client import patch_on_http_response
 
 
 def check_response(response: Response):
@@ -483,11 +482,10 @@ def test_status_codes(
         session: Session,
         http_doggo_url: str
 ):
-    patch_on_http_response(session, abort_on=[404])
-    session.get(http_doggo_url)
-    assert session.last_response.status_code == 200
-    session.get(http_doggo_url[:-1])
-    assert session.last_response.status_code == 404
+    response = session.get(http_doggo_url)
+    assert response.status_code == 200
+    response = session.get(http_doggo_url[:-1])
+    assert response.status_code == 404
 
 
 def test_requests(

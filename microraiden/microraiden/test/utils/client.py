@@ -40,12 +40,3 @@ def close_all_channels_cooperatively(
     for channel in channels:
         close_channel_cooperatively(channel, privkey_receiver, contract_address, balance)
 
-
-def patch_on_http_response(default_http_client: Session, abort_on=[]):
-    def patched(self, method: str, url: str, response: Response, **kwargs):
-        self.last_response = response
-        return (response.status_code not in abort_on)
-    default_http_client.on_http_response = types.MethodType(
-        patched,
-        default_http_client
-    )
