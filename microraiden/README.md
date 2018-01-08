@@ -12,6 +12,17 @@ virtualenv -p python3 env
 pip install -e microraiden
 ```
 
+#### Using microraiden in pip's _editable_ mode
+Because of `gevent` you will need to install microraiden's requirements first.
+```bash
+virtualenv -p python3 env
+. env/bin/activate
+git clone git@github.com:raiden-network/microraiden.git
+cd microraiden/microraiden
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
 ### Using a global `pip3` installation
 
 ```bash
