@@ -163,7 +163,7 @@ def web3(use_tester, mine_sync_event):
         web3.eth.sendTransaction({'to': FAUCET_ADDRESS, 'value': FAUCET_ALLOWANCE})
 
     else:
-        rpc = HTTPProvider('localhost', 8545)
+        rpc = HTTPProvider('http://localhost:8545')
         web3 = Web3(rpc)
 
     yield web3

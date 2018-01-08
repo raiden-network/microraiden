@@ -65,7 +65,7 @@ def run(
             private_key,
             CHANNEL_MANAGER_ADDRESS,
             state_file_path,
-            Web3(HTTPProvider())
+            Web3(HTTPProvider('http://localhost:8545'))
         )
     app = PaywalledProxy(channel_manager)
 

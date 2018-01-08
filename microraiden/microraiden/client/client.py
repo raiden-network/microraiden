@@ -42,7 +42,7 @@ class Client:
         # Create web3 context if none is provided, either by using the proxies' context or creating
         # a new one.
         if not web3:
-            web3 = Web3(HTTPProvider())
+            web3 = Web3(HTTPProvider('http://localhost:8545'))
 
         self.context = Context(private_key, web3, channel_manager_address)
 
@@ -101,7 +101,7 @@ class Client:
                     e['args']['_deposit'],
                     on_settle=lambda channel: self.channels.remove(channel)
                 )
-                assert c.sender == self.context.address
+                assert is_same_address(c.sender, self.context.address)
                 channel_key_to_channel[(c.sender, c.receiver, c.block)] = c
 
         for e in topup:
@@ -171,6 +171,7 @@ class Client:
             self.context.channel_manager,
             'ChannelCreated',
             from_block=current_block + 1,
+            to_block='latest',
             argument_filters=filters
         )
 
