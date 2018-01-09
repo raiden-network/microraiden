@@ -1,10 +1,7 @@
-import types
-
 from eth_utils import is_same_address
-from requests import Response
 
 from microraiden.client import Channel
-from microraiden import Client, Session
+from microraiden import Client
 from microraiden.utils import privkey_to_addr, sign_close
 
 
@@ -39,4 +36,3 @@ def close_all_channels_cooperatively(
     ]
     for channel in channels:
         close_channel_cooperatively(channel, privkey_receiver, contract_address, balance)
-
