@@ -17,3 +17,6 @@ clean:
 
 mrproper:
 	rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info
+
+webui:
+	python setup.py compile_webui
