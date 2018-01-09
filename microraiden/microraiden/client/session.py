@@ -38,7 +38,7 @@ class Session(requests.Session):
             self.client = Client(**client_kwargs)
 
     def close(self):
-        if self.close_channel_on_exit:
+        if self.close_channel_on_exit and self.channel.state == Channel.State.open:
             self.close_channel()
         requests.Session.close(self)
 

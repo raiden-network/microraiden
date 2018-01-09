@@ -22,3 +22,10 @@ def pytest_addoption(parser):
         dest='clean_channels',
         help="prevent all channels from closing cooperatively before and after each test"
     )
+    parser.addoption(
+        "--faucet-private-key",
+        default='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        dest='faucet_private_key',
+        help="the private key to an address with sufficient ETH and RDN tokens to run tests on a "
+             "real network, specified either as a file path or a hex-encoded private key"
+    )

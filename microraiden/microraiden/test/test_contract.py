@@ -2,7 +2,6 @@ from eth_utils import denoms
 from web3 import Web3
 from web3.utils.empty import empty as web3_empty
 
-from microraiden.test.config import FAUCET_PRIVKEY
 from microraiden.utils import create_signed_transaction, wait_for_transaction
 
 
@@ -53,9 +52,14 @@ def test_create_signed_transaction():
     assert tx == tx_expected
 
 
-def test_wait_for_transaction(web3: Web3, patched_contract, receiver_address: str):
+def test_wait_for_transaction(
+        web3: Web3,
+        patched_contract,
+        receiver_address: str,
+        faucet_private_key: str,
+):
     tx = create_signed_transaction(
-        FAUCET_PRIVKEY,
+        faucet_private_key,
         web3,
         to=receiver_address
     )

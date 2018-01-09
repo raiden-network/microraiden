@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 import os
-from eth_utils import decode_hex, is_same_address, is_hex, remove_0x_prefix
+from eth_utils import decode_hex, is_same_address, is_hex, remove_0x_prefix, to_checksum_address
 from web3 import Web3
 from web3.providers.rpc import HTTPProvider
 
@@ -79,8 +79,8 @@ class Client:
         channel_key_to_channel = {}
 
         def get_channel(event) -> Channel:
-            sender = event['args']['_sender_address']
-            receiver = event['args']['_receiver_address']
+            sender = to_checksum_address(event['args']['_sender_address'])
+            receiver = to_checksum_address(event['args']['_receiver_address'])
             block = event['args'].get('_open_block_number', event['blockNumber'])
             assert is_same_address(sender, self.context.address)
             return channel_key_to_channel.get((sender, receiver, block), None)
@@ -95,8 +95,8 @@ class Client:
             else:
                 c = Channel(
                     self.context,
-                    e['args']['_sender_address'],
-                    e['args']['_receiver_address'],
+                    to_checksum_address(e['args']['_sender_address']),
+                    to_checksum_address(e['args']['_receiver_address']),
                     e['blockNumber'],
                     e['args']['_deposit'],
                     on_settle=lambda channel: self.channels.remove(channel)
@@ -179,8 +179,8 @@ class Client:
             log.debug('Event received. Channel created in block {}.'.format(event['blockNumber']))
             channel = Channel(
                 self.context,
-                event['args']['_sender_address'],
-                event['args']['_receiver_address'],
+                self.context.address,
+                receiver_address,
                 event['blockNumber'],
                 event['args']['_deposit'],
                 on_settle=lambda c: self.channels.remove(c)

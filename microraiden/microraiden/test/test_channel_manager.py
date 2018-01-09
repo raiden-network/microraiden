@@ -578,6 +578,7 @@ def test_different_receivers(
     channel = client.open_channel(receiver1_address, 10)
     wait_for_blocks(1)
     gevent.sleep(blockchain.poll_interval)
+
     assert (sender_address, channel.block) in channel_manager1.unconfirmed_channels
     assert (sender_address, channel.block) not in channel_manager2.unconfirmed_channels
 

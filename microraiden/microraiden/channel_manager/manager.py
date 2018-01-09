@@ -7,7 +7,8 @@ import logging
 import os
 from eth_utils import (
     decode_hex,
-    is_same_address
+    is_same_address,
+    is_checksum_address
 )
 from ethereum.exceptions import InsufficientBalance
 from web3 import Web3
@@ -126,6 +127,7 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_opened(self, sender, open_block_number, deposit):
         """Notify the channel manager of a new confirmed channel opening."""
+        assert is_checksum_address(sender)
         if (sender, open_block_number) in self.channels:
             return  # ignore event if already provessed
         c = Channel(self.state.receiver, sender, deposit, open_block_number)
@@ -136,6 +138,7 @@ class ChannelManager(gevent.Greenlet):
 
     def unconfirmed_event_channel_opened(self, sender, open_block_number, deposit):
         """Notify the channel manager of a new channel opening that has not been confirmed yet."""
+        assert is_checksum_address(sender)
         event_already_processed = (sender, open_block_number) in self.unconfirmed_channels
         channel_already_confirmed = (sender, open_block_number) in self.channels
         if event_already_processed or channel_already_confirmed:
@@ -148,8 +151,9 @@ class ChannelManager(gevent.Greenlet):
                       sender, open_block_number)
 
     def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
-        assert settle_timeout >= 0
         """Notify the channel manager that a the closing of a channel has been requested."""
+        assert is_checksum_address(sender)
+        assert settle_timeout >= 0
         if (sender, open_block_number) not in self.channels:
             self.log.warning(
                 'attempt to close a non existing channel (sender %ss, block_number %ss)',
@@ -175,6 +179,7 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_settled(self, sender, open_block_number):
         """Notify the channel manager that a channel has been settled."""
+        assert is_checksum_address(sender)
         self.log.info('Forgetting settled channel (sender %s, block number %s)',
                       sender, open_block_number)
         self.state.del_channel(sender, open_block_number)
@@ -183,6 +188,7 @@ class ChannelManager(gevent.Greenlet):
             self, sender, open_block_number, txhash, added_deposit
     ):
         """Notify the channel manager of a topup with not enough confirmations yet."""
+        assert is_checksum_address(sender)
         if (sender, open_block_number) not in self.channels:
             assert (sender, open_block_number) in self.unconfirmed_channels
             self.log.info('Ignoring unconfirmed topup of unconfirmed channel '
@@ -198,6 +204,7 @@ class ChannelManager(gevent.Greenlet):
 
     def event_channel_topup(self, sender, open_block_number, txhash, added_deposit):
         """Notify the channel manager that the deposit of a channel has been topped up."""
+        assert is_checksum_address(sender)
         self.log.info(
             'Registering deposit top up (sender %s, block number %s, added deposit %s)',
             sender, open_block_number, added_deposit
@@ -219,6 +226,7 @@ class ChannelManager(gevent.Greenlet):
 
     def close_channel(self, sender, open_block_number):
         """Close and settle a channel."""
+        assert is_checksum_address(sender)
         if not (sender, open_block_number) in self.channels:
             self.log.warning(
                 "attempt to close a non-registered channel (sender=%s open_block=%s" %
@@ -266,6 +274,7 @@ class ChannelManager(gevent.Greenlet):
 
     def force_close_channel(self, sender, open_block_number):
         """Forcibly remove a channel from our channel state"""
+        assert is_checksum_address(sender)
         try:
             self.close_channel(sender, open_block_number)
             return
@@ -276,6 +285,7 @@ class ChannelManager(gevent.Greenlet):
 
     def sign_close(self, sender, open_block_number, balance):
         """Sign an agreement for a channel closing."""
+        assert is_checksum_address(sender)
         if (sender, open_block_number) not in self.channels:
             raise NoOpenChannel('Channel does not exist or has been closed'
                                 '(sender=%s, open_block_number=%d)' % (sender, open_block_number))
@@ -321,6 +331,7 @@ class ChannelManager(gevent.Greenlet):
 
         :returns: the channel
         """
+        assert is_checksum_address(sender)
         if (sender, open_block_number) in self.unconfirmed_channels:
             raise InsufficientConfirmations(
                 'Insufficient confirmations for the channel '
@@ -348,6 +359,7 @@ class ChannelManager(gevent.Greenlet):
 
     def register_payment(self, sender, open_block_number, balance, signature):
         """Register a payment."""
+        assert is_checksum_address(sender)
         c = self.verify_balance_proof(sender, open_block_number, balance, signature)
         if balance <= c.balance:
             raise InvalidBalanceAmount('The balance must not decrease.')

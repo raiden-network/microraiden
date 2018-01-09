@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 import requests_mock
-from eth_utils import encode_hex
+from eth_utils import encode_hex, is_same_address
 from munch import Munch
 from requests import Response
 from requests.exceptions import SSLError
@@ -369,8 +369,8 @@ def test_session(
     assert channel == session.channel
     assert channel.balance_sig
     assert channel.balance < channel.deposit
-    assert channel.sender == sender_address
-    assert channel.receiver == receiver_address
+    assert is_same_address(channel.sender, sender_address)
+    assert is_same_address(channel.receiver, receiver_address)
 
 
 def test_session_topup(

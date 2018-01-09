@@ -8,7 +8,7 @@ import os
 
 from microraiden import Session
 from microraiden.utils import privkey_to_addr
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, TKN_DECIMALS
+from microraiden.config import CHANNEL_MANAGER_ADDRESS
 from microraiden.proxy import PaywalledProxy
 from microraiden.proxy.resources import PaywalledProxyUrl
 from microraiden.make_helpers import make_paywalled_proxy
@@ -41,7 +41,7 @@ class ETHTickerProxy:
         self.app.add_paywalled_resource(
             PaywalledProxyUrl,
             '/<string:ticker>',
-            1 * TKN_DECIMALS,
+            100,
             **cfg
         )
 
