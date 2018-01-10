@@ -1,5 +1,7 @@
 import logging
 from itertools import count
+from typing import List
+
 from eth_utils import is_same_address, encode_hex
 from web3 import Web3
 from web3.contract import Contract
@@ -39,6 +41,7 @@ def test_channel_opening(
         client: Client,
         web3: Web3,
         make_account,
+        private_keys: List[str],
         channel_manager_contract,
         token_contract,
         mine_sync_event,
@@ -46,8 +49,16 @@ def test_channel_opening(
         use_tester,
         state_db_path
 ):
-    receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
-    receiver2_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
+    receiver1_privkey = make_account(
+        RECEIVER_ETH_ALLOWANCE,
+        RECEIVER_TOKEN_ALLOWANCE,
+        private_keys[2]
+    )
+    receiver2_privkey = make_account(
+        RECEIVER_ETH_ALLOWANCE,
+        RECEIVER_TOKEN_ALLOWANCE,
+        private_keys[3]
+    )
     receiver_address = privkey_to_addr(receiver1_privkey)
     # make sure channel_manager1 is terminated properly, otherwise Blockchain will be running
     #  in the background, ruining other tests' results
@@ -536,6 +547,7 @@ def test_balances(
 def test_different_receivers(
         web3: Web3,
         make_account,
+        private_keys: List[str],
         channel_manager_contract: Contract,
         token_contract: Contract,
         mine_sync_event,
@@ -545,8 +557,16 @@ def test_different_receivers(
         use_tester: bool,
         state_db_path: str
 ):
-    receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
-    receiver2_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
+    receiver1_privkey = make_account(
+        RECEIVER_ETH_ALLOWANCE,
+        RECEIVER_TOKEN_ALLOWANCE,
+        private_keys[2]
+    )
+    receiver2_privkey = make_account(
+        RECEIVER_ETH_ALLOWANCE,
+        RECEIVER_TOKEN_ALLOWANCE,
+        private_keys[3]
+    )
     receiver1_address = privkey_to_addr(receiver1_privkey)
     channel_manager1 = ChannelManager(
         web3,

@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 from web3 import Web3
 from web3.contract import Contract
@@ -31,11 +33,16 @@ def test_version(
         web3: Web3,
         channel_manager_contract: Contract,
         token_contract: Contract,
-        make_account
+        make_account,
+        private_keys: List[str]
 ):
     """Test if proxy refuses to run if it deployed contract version
     is different from the one it expects"""
-    receiver1_privkey = make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
+    receiver1_privkey = make_account(
+        RECEIVER_ETH_ALLOWANCE,
+        RECEIVER_TOKEN_ALLOWANCE,
+        private_keys[2]
+    )
 
     # this one should not raise
     cm = ChannelManager(

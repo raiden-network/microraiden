@@ -29,3 +29,15 @@ def pytest_addoption(parser):
         help="the private key to an address with sufficient ETH and RDN tokens to run tests on a "
              "real network, specified either as a file path or a hex-encoded private key"
     )
+    parser.addoption(
+        "--faucet-password-path",
+        default='',
+        dest='faucet_password_path',
+        help="the path to a file containing the password to the faucet's encrypted private key"
+    )
+    parser.addoption(
+        "--private-key-seed",
+        default=14789632,
+        dest='private_key_seed',
+        help="the seed for private key generation for addresses used in tests"
+    )

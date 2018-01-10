@@ -1,13 +1,13 @@
+from typing import List
+
 import pytest
-import random
 
 from eth_utils import (
     decode_hex,
     encode_hex,
-    int_to_big_endian,
-    pad_left,
     is_hex,
-    remove_0x_prefix
+    remove_0x_prefix,
+    keccak
 )
 import ethereum.tester
 from web3 import Web3
@@ -28,21 +28,33 @@ from microraiden.test.config import (
 )
 
 
-def random_private_key(bound):
-    """Randomly gnerate a private key smaller than a certain bound."""
-    n = random.randint(1, bound)  # nosec
-    private_key = encode_hex(pad_left(int_to_big_endian(n), 32, '\0'))
-    return private_key
+@pytest.fixture(scope='session')
+def private_key_seed(request) -> int:
+    return request.config.getoption('private_key_seed')
 
 
 @pytest.fixture(scope='session')
-def faucet_private_key(request) -> str:
+def private_keys(private_key_seed: int) -> List[str]:
+    """
+    Note: using 0 as the seed computes tester coinbase as the first address. This might cause
+    issues, especially on sweeping all of these accounts, as the coinbase cannot be swept.
+    """
+    return [encode_hex(keccak(str(private_key_seed + i))) for i in range(10)]
+
+
+@pytest.fixture(scope='session')
+def faucet_password_path(request) -> str:
+    return request.config.getoption('faucet_password_path')
+
+
+@pytest.fixture(scope='session')
+def faucet_private_key(request, faucet_password_path: str) -> str:
     private_key = request.config.getoption('faucet_private_key')
     if is_hex(private_key):
         assert len(remove_0x_prefix(private_key)) == 64
         return private_key
     else:
-        private_key = get_private_key(private_key)
+        private_key = get_private_key(private_key, faucet_password_path)
         assert private_key is not None, 'Error loading faucet private key from file.'
         return private_key
 
@@ -62,12 +74,11 @@ def make_account(
         faucet_private_key: str,
         faucet_address: str
 ):
-    def account_factory(eth_allowance, token_allowance):
-        privkey = random_private_key(1000)
-        address = privkey_to_addr(privkey)
+    def account_factory(eth_allowance: int, token_allowance: int, private_key: str):
+        address = privkey_to_addr(private_key)
         if use_tester:
             ethereum.tester.accounts.append(decode_hex(address))
-            ethereum.tester.keys.append(decode_hex(privkey))
+            ethereum.tester.keys.append(decode_hex(private_key))
         fund_account(
             address,
             eth_allowance,
@@ -79,12 +90,12 @@ def make_account(
         )
 
         def finalize():
-            sweep_account(privkey, faucet_address, token_contract, web3, wait_for_transaction)
+            sweep_account(private_key, faucet_address, token_contract, web3, wait_for_transaction)
             if use_tester:
                 ethereum.tester.accounts.remove(decode_hex(address))
-                ethereum.tester.keys.remove(decode_hex(privkey))
+                ethereum.tester.keys.remove(decode_hex(private_key))
         request.addfinalizer(finalize)
-        return privkey
+        return private_key
     return account_factory
 
 
@@ -149,8 +160,9 @@ def sweep_account(
                 raise
         else:
             wait_for_transaction(tx_hash)
+            assert token_contract.call().balanceOf(address) == 0
 
-    balance = web3.eth.getBalance(address, 'pending')
+    balance = web3.eth.getBalance(address)
     if balance < 21000 * GAS_PRICE:
         return
     tx = create_signed_transaction(
@@ -162,14 +174,14 @@ def sweep_account(
     )
     tx_hash = web3.eth.sendRawTransaction(tx)
     wait_for_transaction(tx_hash)
-    assert web3.eth.getBalance(address, 'pending') == 0, (
+    assert web3.eth.getBalance(address) == 0, (
         'Sweeping of account {} (private key {}) failed.'.format(address, private_key)
     )
 
 
 @pytest.fixture(scope='session')
-def sender_privkey(make_account):
-    return make_account(SENDER_ETH_ALLOWANCE, SENDER_TOKEN_ALLOWANCE)
+def sender_privkey(make_account, private_keys: List[str]):
+    return make_account(SENDER_ETH_ALLOWANCE, SENDER_TOKEN_ALLOWANCE, private_keys[0])
 
 
 @pytest.fixture(scope='session')
@@ -178,8 +190,8 @@ def sender_address(sender_privkey):
 
 
 @pytest.fixture(scope='session')
-def receiver_privkey(make_account):
-    return make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE)
+def receiver_privkey(make_account, private_keys: List[str]):
+    return make_account(RECEIVER_ETH_ALLOWANCE, RECEIVER_TOKEN_ALLOWANCE, private_keys[1])
 
 
 @pytest.fixture(scope='session')
