@@ -3,12 +3,9 @@ A simple Python script to deploy contracts and then do a smoke test for them.
 '''
 import click
 from populus import Project
-from ethereum.utils import encode_hex
-from eth_utils import pad_left, remove_0x_prefix
 from utils.utils import (
     check_succesful_tx,
-    wait,
-    pack
+    wait
 )
 
 
@@ -75,7 +72,7 @@ def main(**kwargs):
 
     with project.get_chain(chain_name) as chain:
         web3 = chain.web3
-        print('Web3 provider is', web3.currentProvider)
+        print('Web3 provider is', web3.providers[0])
 
         owner = owner or web3.eth.accounts[0]
         assert owner
@@ -94,20 +91,11 @@ def main(**kwargs):
             print(token_name, 'address is', token_address)
 
         microraiden_contract = chain.provider.get_contract_factory('RaidenMicroTransferChannels')
-        txhash = microraiden_contract.deploy(args=[token_address, challenge_period])
+        txhash = microraiden_contract.deploy(args=[token_address, challenge_period, []])
         receipt = check_succesful_tx(chain.web3, txhash, txn_wait)
         microraiden_address = receipt['contractAddress']
 
         print('RaidenMicroTransferChannels address is', microraiden_address)
-
-        abi_encoded_args = encode_hex(pad_left(pack(
-            remove_0x_prefix(token_address),
-            challenge_period),
-            128, '0'
-        ))
-
-        print('RaidenMicroTransferChannels arguments', token_address, challenge_period)
-        print('RaidenMicroTransferChannels abi encoded constructor arguments:', abi_encoded_args)
 
 
 if __name__ == '__main__':
