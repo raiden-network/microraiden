@@ -167,12 +167,23 @@ class Paywall(object):
                 data.sender_address, data.open_block_number,
                 data.balance, data.balance_signature)
         except InsufficientConfirmations as e:
+            log.debug('Refused payment: Insufficient confirmations (sender=%s, block=%d)' %
+                      (data.sender_address, data.open_block_number))
             headers.update({header.INSUF_CONFS: "1"})
             return True, headers
         except NoOpenChannel as e:
+            log.debug('Refused payment: Channel does not exist (sender=%s, block=%d)' %
+                      (data.sender_address, data.open_block_number))
             headers.update({header.NONEXISTING_CHANNEL: "1"})
             return True, headers
-        except (InvalidBalanceAmount, InvalidBalanceProof):
+        except InvalidBalanceAmount as e:
+            log.debug('Refused payment: Invalid balance amount: %s (sender=%s, block=%d)' %
+                      (str(e), data.sender_address, data.open_block_number))
+            headers.update({header.INVALID_PROOF: 1})
+            return True, headers
+        except InvalidBalanceProof as e:
+            log.debug('Refused payment: Invalid balance proof: %s (sender=%s, block=%d)' %
+                      (str(e), data.sender_address, data.open_block_number))
             headers.update({header.INVALID_PROOF: 1})
             return True, headers
 
