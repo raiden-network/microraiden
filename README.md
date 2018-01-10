@@ -79,11 +79,13 @@ Try out the µRaiden demo and build your own customized version, following our i
 
  * install the Proxy component (more details [here](/microraiden/README.md)):
 
-```
-cd microraiden
+```bash
 virtualenv -p python3 env
 . env/bin/activate
-pip install -e microraiden
+git clone git@github.com:raiden-network/microraiden.git
+cd microraiden/microraiden
+pip install -r requirements-dev.txt
+pip install -e .
 ```
 
 * install the WebUI component for the paywall examples
