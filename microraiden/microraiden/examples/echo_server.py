@@ -13,6 +13,7 @@ from microraiden.make_helpers import make_channel_manager
 from microraiden.config import CHANNEL_MANAGER_ADDRESS
 from microraiden.proxy import PaywalledProxy
 from microraiden.proxy.resources import Expensive
+from microraiden.utils import get_private_key
 
 
 log = logging.getLogger(__name__)
@@ -37,10 +38,11 @@ class DynamicPriceResource(Expensive):
 @click.option(
     '--private-key',
     required=True,
-    help='The server\'s private key in hex format.',
+    help='The server\'s private key path.',
     type=str
 )
 def main(private_key: str):
+    private_key = get_private_key(private_key)
     run(private_key)
 
 
