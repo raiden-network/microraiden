@@ -15,7 +15,7 @@
 
 **●  balance**:  *`BigNumber`* 
 
-*Defined in [index.ts:17](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L17)*
+*Defined in [index.ts:17](https://github.com/raiden-network/microraiden/blob/ce9100a/microraiden/microraiden/webui/microraiden/src/index.ts#L17)*
 
 
 
@@ -32,7 +32,7 @@ ___
 
 **●  sig**:  *`string`* 
 
-*Defined in [index.ts:21](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L21)*
+*Defined in [index.ts:21](https://github.com/raiden-network/microraiden/blob/ce9100a/microraiden/microraiden/webui/microraiden/src/index.ts#L21)*
 
 
 

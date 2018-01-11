@@ -30,7 +30,7 @@ Promise-based deferred class
     this.reject = reject;
   })
 
-*Defined in [index.ts:121](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L121)*
+*Defined in [index.ts:121](https://github.com/raiden-network/microraiden/blob/ce9100a/microraiden/microraiden/webui/microraiden/src/index.ts#L121)*
 
 
 
@@ -44,7 +44,7 @@ ___
 
 **●  reject**:  *`function`* 
 
-*Defined in [index.ts:120](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L120)*
+*Defined in [index.ts:120](https://github.com/raiden-network/microraiden/blob/ce9100a/microraiden/microraiden/webui/microraiden/src/index.ts#L120)*
 
 
 #### Type declaration
@@ -77,7 +77,7 @@ ___
 
 **●  resolve**:  *`function`* 
 
-*Defined in [index.ts:119](https://github.com/andrevmatos/microraiden/blob/0546d77/microraiden/microraiden/webui/microraiden/src/index.ts#L119)*
+*Defined in [index.ts:119](https://github.com/raiden-network/microraiden/blob/ce9100a/microraiden/microraiden/webui/microraiden/src/index.ts#L119)*
 
 
 #### Type declaration
