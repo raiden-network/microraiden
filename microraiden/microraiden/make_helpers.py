@@ -1,12 +1,9 @@
 import sys
-
-from web3 import Web3, HTTPProvider
-
 import logging
 
+from web3 import Web3, HTTPProvider
 from web3.contract import Contract
-
-log = logging.getLogger(__name__)
+from eth_utils import to_checksum_address
 
 from microraiden.channel_manager import ChannelManager
 from microraiden.exceptions import (
@@ -15,6 +12,8 @@ from microraiden.exceptions import (
 )
 from microraiden import config
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
+
+log = logging.getLogger(__name__)
 
 
 def make_channel_manager_contract(web3: Web3, channel_manager_address: str) -> Contract:
@@ -30,6 +29,7 @@ def make_channel_manager(
         state_filename: str,
         web3: Web3
 ) -> ChannelManager:
+    channel_manager_address = to_checksum_address(channel_manager_address)
     channel_manager_contract = make_channel_manager_contract(web3, channel_manager_address)
     token_address = channel_manager_contract.call().token()
     token_abi = config.CONTRACT_METADATA[config.TOKEN_ABI_NAME]['abi']
