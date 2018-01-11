@@ -21,7 +21,11 @@ NETWORK_NAMES = {
 
 # address of the default channel manager contract. You can change this using commandline
 # option --channel-manager-address when running the proxy
-CHANNEL_MANAGER_ADDRESS = '0x161a0d7726eb8b86eb587d8bd483be1ce87b0609'  # ropsten
+CHANNEL_MANAGER_ADDRESS = {
+    '1': '',
+    '3': '0x161a0d7726EB8B86EB587d8BD483be1CE87b0609',
+    '42': '0xB9721dF0e024114e7B25F2cF503d8CBE3D52b400'
+}
 # absolute path to this directory. Used to find path to the webUI sources
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 # webUI sources

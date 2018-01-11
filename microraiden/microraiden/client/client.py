@@ -25,7 +25,7 @@ class Client:
             self,
             private_key: str = None,
             key_password_path: str = None,
-            channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
+            channel_manager_address: str = None,
             web3: Web3 = None
     ) -> None:
         is_hex_key = is_hex(private_key) and len(remove_0x_prefix(private_key)) == 64
@@ -43,6 +43,10 @@ class Client:
         # a new one.
         if not web3:
             web3 = Web3(HTTPProvider('http://localhost:8545'))
+
+        channel_manager_address = (
+            channel_manager_address or CHANNEL_MANAGER_ADDRESS[web3.version.network]
+        )
 
         self.context = Context(private_key, web3, channel_manager_address)
 

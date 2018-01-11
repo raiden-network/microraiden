@@ -67,7 +67,6 @@ def main(
         sys.exit(1)
 
     receiver_address = privkey_to_addr(private_key)
-    channel_manager_address = channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
 
     if not state_file:
         state_file_name = "%s_%s.json" % (channel_manager_address[:10], receiver_address[:10])
@@ -76,7 +75,10 @@ def main(
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.eth.defaultAccount = receiver_address
-    channel_manager_contract = make_channel_manager_contract(web3, config.CHANNEL_MANAGER_ADDRESS)
+    channel_manager_address = (
+        channel_manager_address or config.CHANNEL_MANAGER_ADDRESS[web3.version.network]
+    )
+    channel_manager_contract = make_channel_manager_contract(web3, channel_manager_address)
 
     try:
         click.echo('Loading state file from {}'.format(state_file))

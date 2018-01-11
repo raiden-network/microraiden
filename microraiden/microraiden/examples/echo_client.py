@@ -10,8 +10,6 @@ from microraiden import Session
 import logging
 import requests
 
-from microraiden.config import CHANNEL_MANAGER_ADDRESS
-
 
 @click.command()
 @click.option(
@@ -39,7 +37,7 @@ def run(
         key_path: str,
         key_password_path: str,
         resource: str,
-        channel_manager_address: str = CHANNEL_MANAGER_ADDRESS,
+        channel_manager_address: str = None,
         web3: Web3 = None,
         retry_interval: float = 5,
         endpoint_url: str = 'http://localhost:5000'

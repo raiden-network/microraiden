@@ -91,9 +91,6 @@ def main(
         sys.exit(1)
 
     receiver_address = privkey_to_addr(private_key)
-    channel_manager_address = to_checksum_address(
-        channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
-    )
 
     if not state_file:
         state_file_name = "%s_%s.db" % (channel_manager_address[:10], receiver_address[:10])
@@ -106,6 +103,9 @@ def main(
     while True:
         try:
             web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
+            channel_manager_address = to_checksum_address(
+                channel_manager_address or config.CHANNEL_MANAGER_ADDRESS[web3.version.network]
+            )
             app = make_paywalled_proxy(private_key, state_file,
                                        contract_address=channel_manager_address,
                                        web3=web3)

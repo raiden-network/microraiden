@@ -62,12 +62,13 @@ def make_channel_manager(
 def make_paywalled_proxy(
         private_key: str,
         state_filename: str,
-        contract_address=config.CHANNEL_MANAGER_ADDRESS,
+        contract_address=None,
         flask_app=None,
         web3=None
 ) -> PaywalledProxy:
     if web3 is None:
         web3 = Web3(HTTPProvider(config.WEB3_PROVIDER_DEFAULT, request_kwargs={'timeout': 60}))
+        contract_address = contract_address or config.CHANNEL_MANAGER_ADDRESS[web3.version.network]
     channel_manager = make_channel_manager(private_key, contract_address, state_filename, web3)
     proxy = PaywalledProxy(channel_manager, flask_app, config.HTML_DIR, config.JSLIB_DIR)
     return proxy

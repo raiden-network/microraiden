@@ -1,7 +1,6 @@
 import os
 from eth_utils import denoms
 
-CHANNEL_MANAGER_ADDRESS = '0x161a0d7726EB8B86EB587d8BD483be1CE87b0609'
 API_PATH = "/api/1"
 
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))

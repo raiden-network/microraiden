@@ -61,11 +61,12 @@ def run(
     #  - private key to use for receiving funds
     #  - file for storing state information (balance proofs)
     if channel_manager is None:
+        web3 = Web3(HTTPProvider('http://localhost:8545'))
         channel_manager = make_channel_manager(
             private_key,
-            CHANNEL_MANAGER_ADDRESS,
+            CHANNEL_MANAGER_ADDRESS[web3.version.network],
             state_file_path,
-            Web3(HTTPProvider('http://localhost:8545'))
+            web3
         )
     app = PaywalledProxy(channel_manager)
 

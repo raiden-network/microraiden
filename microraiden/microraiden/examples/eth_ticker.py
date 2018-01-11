@@ -7,8 +7,6 @@ import click
 import os
 
 from microraiden import Session
-from microraiden.utils import privkey_to_addr
-from microraiden.config import CHANNEL_MANAGER_ADDRESS
 from microraiden.proxy import PaywalledProxy
 from microraiden.proxy.resources import PaywalledProxyUrl
 from microraiden.make_helpers import make_paywalled_proxy
@@ -17,9 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def start_proxy(receiver_privkey: str) -> PaywalledProxy:
-    state_file_name = 'ticker_proxy.db'.format(
-        CHANNEL_MANAGER_ADDRESS, privkey_to_addr(receiver_privkey)
-    )
+    state_file_name = 'ticker_proxy.db'
     app_dir = click.get_app_dir('microraiden')
     if not os.path.exists(app_dir):
         os.makedirs(app_dir)
