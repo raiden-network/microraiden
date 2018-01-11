@@ -23,7 +23,7 @@ def create_signed_transaction(
         data=b'',
         nonce_offset: int = 0,
         gas_price: int = GAS_PRICE,
-        gas_limit: int = GAS_LIMIT
+        gas_limit: int = 21000
 ) -> str:
     """
     Creates a signed on-chain transaction compliant with EIP155.
@@ -50,7 +50,7 @@ def create_transaction(
         nonce_offset: int = 0,
         value: int = 0,
         gas_price: int = GAS_PRICE,
-        gas_limit: int = GAS_LIMIT
+        gas_limit: int = 21000
 ) -> Transaction:
     nonce = web3.eth.getTransactionCount(from_, 'pending') + nonce_offset
     tx = Transaction(nonce, gas_price, gas_limit, to, value, data)
@@ -151,7 +151,7 @@ def get_event_blocking(
         contract: Contract,
         event_name: str,
         from_block: Union[int, str] = 0,
-        to_block: Union[int, str] = 'pending',
+        to_block: Union[int, str] = 'latest',
         argument_filters: Dict[str, Any]=None,
         condition=None,
         wait=DEFAULT_RETRY_INTERVAL,

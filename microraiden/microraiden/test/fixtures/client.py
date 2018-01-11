@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 from web3 import Web3
 
@@ -32,7 +34,7 @@ def client(
         channel_manager_address: str,
         web3: Web3,
         clean_channels: bool,
-        receiver_privkey: str,
+        private_keys: List[str],
         patched_contract,
         revert_chain
 ):
@@ -44,7 +46,7 @@ def client(
     if clean_channels:
         close_all_channels_cooperatively(
             client,
-            receiver_privkey,
+            private_keys,
             channel_manager_address,
             balance=0
         )
@@ -54,7 +56,7 @@ def client(
     if clean_channels:
         close_all_channels_cooperatively(
             client,
-            receiver_privkey,
+            private_keys,
             channel_manager_address,
             balance=0
         )

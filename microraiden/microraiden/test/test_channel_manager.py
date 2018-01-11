@@ -142,7 +142,6 @@ def test_close_unconfirmed_event(
 def test_close_confirmed_event(
         channel_manager: ChannelManager,
         confirmed_open_channel: Channel,
-        web3: Web3,
         wait_for_blocks
 ):
     blockchain = channel_manager.blockchain
@@ -168,7 +167,8 @@ def test_channel_settled_event(
         channel_manager: ChannelManager,
         confirmed_open_channel: Channel,
         wait_for_blocks,
-        web3: Web3
+        web3: Web3,
+        use_tester: bool
 ):
     blockchain = channel_manager.blockchain
     channel_manager.wait_sync()

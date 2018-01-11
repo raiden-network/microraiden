@@ -3,8 +3,8 @@ import os
 from eth_utils import denoms
 
 API_PATH = "/api/1"
-GAS_LIMIT = 250000
-GAS_PRICE = 20 * denoms.gwei
+GAS_LIMIT = 130000
+GAS_PRICE = 50 * denoms.gwei
 
 NETWORK_NAMES = {
     1: 'mainnet',

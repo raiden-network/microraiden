@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import pytest
@@ -26,6 +27,9 @@ from microraiden.test.config import (
     SENDER_ETH_ALLOWANCE,
     SENDER_TOKEN_ALLOWANCE
 )
+
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='session')
@@ -108,6 +112,7 @@ def fund_account(
         wait_for_transaction,
         faucet_private_key: str,
 ):
+    log.info('Funding account {}'.format(address))
     tx = create_signed_transaction(
         faucet_private_key,
         web3,
@@ -140,6 +145,7 @@ def sweep_account(
         wait_for_transaction
 ):
     address = privkey_to_addr(private_key)
+    log.info('Sweeping account {}'.format(address))
     token_balance = token_contract.call().balanceOf(address)
     if token_balance > 0:
         tx = create_signed_contract_transaction(

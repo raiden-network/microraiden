@@ -244,6 +244,8 @@ def revert_chain(web3: Web3, use_tester: bool, sender_privkey: str, receiver_pri
         snapshot_id = web3.testing.snapshot()
         yield
         web3.testing.revert(snapshot_id)
+    else:
+        yield
 
 
 @pytest.fixture(scope='session')

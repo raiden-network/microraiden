@@ -1,28 +1,41 @@
 from microraiden import Session
+from microraiden.config import GAS_PRICE
+from microraiden.utils import create_signed_transaction
 
 
 def test_cheating_client(
         doggo_proxy,
         web3,
         session: Session,
-        wait_for_blocks,
+        wait_for_transaction,
         http_doggo_url: str,
-        faucet_address: str
+        faucet_private_key: str,
+        faucet_address: str,
+        receiver_privkey: str,
+        receiver_address: str
 ):
     balance = web3.eth.getBalance(doggo_proxy.channel_manager.receiver)
     assert balance > 0
     # remove all receiver's eth
-    web3.eth.sendTransaction({'from': doggo_proxy.channel_manager.receiver,
-                              'to': faucet_address,
-                              'value': balance - 4 * 10**7})
-    wait_for_blocks(1)
+    tx = create_signed_transaction(
+        receiver_privkey,
+        web3,
+        faucet_address,
+        balance - GAS_PRICE * 21000
+    )
+    tx_hash = web3.eth.sendRawTransaction(tx)
+    wait_for_transaction(tx_hash)
     response = session.get(http_doggo_url)
     # proxy is expected to return 502 - it has no funds
     assert response.status_code == 502
-    web3.eth.sendTransaction({'from': faucet_address,
-                              'to': doggo_proxy.channel_manager.receiver,
-                              'value': balance})
-    wait_for_blocks(1)
+    tx = create_signed_transaction(
+        faucet_private_key,
+        web3,
+        receiver_address,
+        balance - GAS_PRICE * 21000
+    )
+    tx_hash = web3.eth.sendRawTransaction(tx)
+    wait_for_transaction(tx_hash)
     response = session.get(http_doggo_url)
     # now it should proceed normally
     assert response.status_code == 200

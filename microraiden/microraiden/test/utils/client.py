@@ -1,8 +1,14 @@
-from eth_utils import is_same_address
+import logging
+from typing import List
+
+from eth_utils import to_checksum_address
 
 from microraiden.client import Channel
 from microraiden import Client
 from microraiden.utils import privkey_to_addr, sign_close
+
+
+log = logging.getLogger(__name__)
 
 
 def close_all_channels(client: Client):
@@ -26,13 +32,16 @@ def close_channel_cooperatively(
 
 
 def close_all_channels_cooperatively(
-        client: Client, privkey_receiver: str, contract_address: str, balance: int=None
+        client: Client, private_keys: List[str], contract_address: str, balance: int=None
 ):
-    receiver_addr = privkey_to_addr(privkey_receiver)
+    addresses_to_keys = {
+        to_checksum_address(privkey_to_addr(private_key)): private_key
+        for private_key in private_keys
+    }
     client.sync_channels()
-    channels = [
-        c for c in client.channels
-        if c.state != Channel.State.closed and is_same_address(c.receiver, receiver_addr)
-    ]
-    for channel in channels:
-        close_channel_cooperatively(channel, privkey_receiver, contract_address, balance)
+    closable_channels = [c for c in client.channels if c.state != Channel.State.closed]
+    log.info('Closing {} channels.'.format(len(closable_channels)))
+    for channel in closable_channels:
+        private_key = addresses_to_keys.get(to_checksum_address(channel.receiver))
+        if private_key is not None:
+            close_channel_cooperatively(channel, private_key, contract_address, balance)
