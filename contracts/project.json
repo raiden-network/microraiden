@@ -144,10 +144,12 @@
       },
       "web3": {
         "provider": {
-          "class": "web3.providers.rpc.RPCProvider",
-          "settings": {
-            "host": "127.0.0.1",
-            "port": 8545
+          "class": "web3.providers.rpc.HTTPProvider",
+            "settings": {
+            "endpoint_uri": "http://127.0.0.1:8545",
+            "request_kwargs": {
+              "timeout": 180
+            }
           }
         }
       }
