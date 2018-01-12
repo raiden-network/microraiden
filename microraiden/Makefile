@@ -1,5 +1,7 @@
 DATADIR:=microraiden/data
 
+all: webui flake8
+
 bandit:
 	bandit -s B101 -r microraiden/
 
@@ -20,3 +22,6 @@ mrproper:
 
 webui:
 	python setup.py compile_webui
+
+docs:
+	cd microraiden/webui/microraiden/ && npm run docs
