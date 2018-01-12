@@ -13,29 +13,29 @@ import requests
 
 @click.command()
 @click.option(
-    '--key-path',
+    '--private-key',
     required=True,
-    help='Path to private key file.',
+    help='Path to private key file or a hex-encoded private key.',
     type=click.Path(exists=True, dir_okay=False, resolve_path=True)
 )
 @click.option(
-    '--key-password-path',
+    '--password-path',
     default=None,
-    help='Path to file containing password for private key.',
+    help='Path to file containing the password for the private key specified.',
     type=click.Path(exists=True, dir_okay=False, resolve_path=True)
 )
 @click.option('--resource', required=True, help='Get this resource.')
 def main(
-        key_path: str,
-        key_password_path: str,
+        private_key: str,
+        password_path: str,
         resource: str
 ):
-    run(key_path, key_password_path, resource)
+    run(private_key, password_path, resource)
 
 
 def run(
-        key_path: str,
-        key_password_path: str,
+        private_key: str,
+        password_path: str,
         resource: str,
         channel_manager_address: str = None,
         web3: Web3 = None,
@@ -45,8 +45,8 @@ def run(
     # Create the client session.
     session = Session(
         endpoint_url=endpoint_url,
-        private_key=key_path,
-        key_password_path=key_password_path,
+        private_key=private_key,
+        key_password_path=password_path,
         channel_manager_address=channel_manager_address,
         web3=web3,
         retry_interval=retry_interval
