@@ -15,7 +15,7 @@
 
 **●  balance**:  *`BigNumber`* 
 
-*Defined in [index.ts:84](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L84)*
+*Defined in [index.ts:84](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L84)*
 
 
 
@@ -29,7 +29,7 @@ ___
 
 **●  decimals**:  *`number`* 
 
-*Defined in [index.ts:83](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L83)*
+*Defined in [index.ts:83](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L83)*
 
 
 
@@ -43,7 +43,7 @@ ___
 
 **●  name**:  *`string`* 
 
-*Defined in [index.ts:81](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L81)*
+*Defined in [index.ts:81](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L81)*
 
 
 
@@ -57,7 +57,7 @@ ___
 
 **●  symbol**:  *`string`* 
 
-*Defined in [index.ts:82](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L82)*
+*Defined in [index.ts:82](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L82)*
 
 
 

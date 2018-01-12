@@ -84,6 +84,9 @@ Licensed under the [MIT License](./LICENSE)
 
 ### Interfaces
 
+* [ChannelCloseRequestedArgs](interfaces/channelcloserequestedargs.md)
+* [ChannelCreatedArgs](interfaces/channelcreatedargs.md)
+* [ChannelSettledArgs](interfaces/channelsettledargs.md)
 * [MicroChannel](interfaces/microchannel.md)
 * [MicroChannelInfo](interfaces/microchannelinfo.md)
 * [MicroProof](interfaces/microproof.md)
@@ -112,7 +115,7 @@ Licensed under the [MIT License](./LICENSE)
 
 **●  localStorage**:  *`any`* 
 
-*Defined in [index.ts:5](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L5)*
+*Defined in [index.ts:5](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L5)*
 
 
 
@@ -130,7 +133,7 @@ ___
 
 
 
-*Defined in [index.ts:133](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L133)*
+*Defined in [index.ts:159](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L159)*
 
 
 
@@ -165,7 +168,7 @@ ___
 
 
 
-*Defined in [index.ts:146](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L146)*
+*Defined in [index.ts:172](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L172)*
 
 
 
@@ -203,7 +206,7 @@ ___
 
 
 
-*Defined in [index.ts:109](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L109)*
+*Defined in [index.ts:135](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L135)*
 
 
 

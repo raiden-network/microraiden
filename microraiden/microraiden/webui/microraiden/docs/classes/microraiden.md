@@ -22,6 +22,7 @@ Contains all methods to interact with a MicroRaiden channel through a web3 insta
 * [channel](microraiden.md#channel)
 * [contract](microraiden.md#contract)
 * [decimals](microraiden.md#decimals)
+* [startBlock](microraiden.md#startblock)
 * [token](microraiden.md#token)
 * [web3](microraiden.md#web3)
 
@@ -58,10 +59,10 @@ Contains all methods to interact with a MicroRaiden channel through a web3 insta
 <a id="constructor"></a>
 
 
-### ⊕ **new MicroRaiden**(web3: *`string`⎮`object`*, contractAddr: *`string`*, contractABI: *`any`[]*, tokenAddr: *`string`*, tokenABI: *`any`[]*): [MicroRaiden](microraiden.md)
+### ⊕ **new MicroRaiden**(web3: *`string`⎮`object`*, contractAddr: *`string`*, contractABI: *`any`[]*, tokenAddr: *`string`*, tokenABI: *`any`[]*, startBlock?: *`number`*): [MicroRaiden](microraiden.md)
 
 
-*Defined in [index.ts:189](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L189)*
+*Defined in [index.ts:221](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L221)*
 
 
 
@@ -77,6 +78,7 @@ MicroRaiden constructor
 | contractABI | `any`[]   |  Channel manager ABI |
 | tokenAddr | `string`   |  Token address, must be the same setup in channel manager |
 | tokenABI | `any`[]   |  Token ABI |
+| startBlock | `number`   |  Block in which channel manager was deployed |
 
 
 
@@ -94,7 +96,7 @@ MicroRaiden constructor
 
 **●  challenge**:  *`number`* 
 
-*Defined in [index.ts:189](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L189)*
+*Defined in [index.ts:215](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L215)*
 
 
 
@@ -111,7 +113,7 @@ ___
 
 **●  channel**:  *[MicroChannel](../interfaces/microchannel.md)* 
 
-*Defined in [index.ts:173](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L173)*
+*Defined in [index.ts:199](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L199)*
 
 
 
@@ -128,7 +130,7 @@ ___
 
 **●  contract**:  *`Web3.ContractInstance`* 
 
-*Defined in [index.ts:181](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L181)*
+*Defined in [index.ts:207](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L207)*
 
 
 
@@ -145,11 +147,28 @@ ___
 
 **●  decimals**:  *`number`*  = 0
 
-*Defined in [index.ts:185](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L185)*
+*Defined in [index.ts:211](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L211)*
 
 
 
 Token decimals
+
+
+
+
+___
+
+<a id="startblock"></a>
+
+###  startBlock
+
+**●  startBlock**:  *`number`* 
+
+*Defined in [index.ts:221](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L221)*
+
+
+
+Block number in which channel manager was created, or before. Just a hint to avoid [loadChannelFromBlockchain](microraiden.md#loadchannelfromblockchain) to scan whole network for ChannelCreated events, default to 0
 
 
 
@@ -162,7 +181,7 @@ ___
 
 **●  token**:  *`Web3.ContractInstance`* 
 
-*Defined in [index.ts:177](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L177)*
+*Defined in [index.ts:203](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L203)*
 
 
 
@@ -179,7 +198,7 @@ ___
 
 **●  web3**:  *`Web3`* 
 
-*Defined in [index.ts:168](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L168)*
+*Defined in [index.ts:194](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L194)*
 
 
 
@@ -200,7 +219,7 @@ ___
 
 
 
-*Defined in [index.ts:1019](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L1019)*
+*Defined in [index.ts:1054](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L1054)*
 
 
 
@@ -235,7 +254,7 @@ ___
 
 
 
-*Defined in [index.ts:728](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L728)*
+*Defined in [index.ts:763](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L763)*
 
 
 
@@ -272,7 +291,7 @@ ___
 
 
 
-*Defined in [index.ts:944](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L944)*
+*Defined in [index.ts:979](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L979)*
 
 
 
@@ -307,7 +326,7 @@ ___
 
 
 
-*Defined in [index.ts:361](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L361)*
+*Defined in [index.ts:396](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L396)*
 
 
 
@@ -332,7 +351,7 @@ ___
 
 
 
-*Defined in [index.ts:491](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L491)*
+*Defined in [index.ts:526](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L526)*
 
 
 
@@ -359,7 +378,7 @@ ___
 
 
 
-*Defined in [index.ts:314](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L314)*
+*Defined in [index.ts:349](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L349)*
 
 
 
@@ -388,7 +407,7 @@ ___
 
 
 
-*Defined in [index.ts:521](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L521)*
+*Defined in [index.ts:556](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L556)*
 
 
 
@@ -423,7 +442,7 @@ ___
 
 
 
-*Defined in [index.ts:503](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L503)*
+*Defined in [index.ts:538](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L538)*
 
 
 
@@ -460,7 +479,7 @@ ___
 
 
 
-*Defined in [index.ts:918](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L918)*
+*Defined in [index.ts:953](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L953)*
 
 
 
@@ -497,7 +516,7 @@ ___
 
 
 
-*Defined in [index.ts:474](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L474)*
+*Defined in [index.ts:509](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L509)*
 
 
 
@@ -532,7 +551,7 @@ ___
 
 
 
-*Defined in [index.ts:384](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L384)*
+*Defined in [index.ts:419](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L419)*
 
 
 
@@ -570,7 +589,7 @@ ___
 
 
 
-*Defined in [index.ts:335](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L335)*
+*Defined in [index.ts:370](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L370)*
 
 
 
@@ -608,7 +627,7 @@ ___
 
 
 
-*Defined in [index.ts:232](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L232)*
+*Defined in [index.ts:267](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L267)*
 
 
 
@@ -645,7 +664,7 @@ ___
 
 
 
-*Defined in [index.ts:598](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L598)*
+*Defined in [index.ts:633](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L633)*
 
 
 
@@ -684,7 +703,7 @@ ___
 
 
 
-*Defined in [index.ts:968](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L968)*
+*Defined in [index.ts:1003](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L1003)*
 
 
 
@@ -719,7 +738,7 @@ ___
 
 
 
-*Defined in [index.ts:460](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L460)*
+*Defined in [index.ts:495](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L495)*
 
 
 
@@ -754,7 +773,7 @@ ___
 
 
 
-*Defined in [index.ts:782](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L782)*
+*Defined in [index.ts:817](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L817)*
 
 
 
@@ -781,7 +800,7 @@ ___
 
 
 
-*Defined in [index.ts:811](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L811)*
+*Defined in [index.ts:846](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L846)*
 
 
 
@@ -816,7 +835,7 @@ ___
 
 
 
-*Defined in [index.ts:849](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L849)*
+*Defined in [index.ts:884](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L884)*
 
 
 
@@ -853,7 +872,7 @@ ___
 
 
 
-*Defined in [index.ts:245](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L245)*
+*Defined in [index.ts:280](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L280)*
 
 
 
@@ -890,7 +909,7 @@ ___
 
 
 
-*Defined in [index.ts:667](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L667)*
+*Defined in [index.ts:702](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L702)*
 
 
 
@@ -927,7 +946,7 @@ ___
 
 
 
-*Defined in [index.ts:989](https://github.com/raiden-network/microraiden/blob/89ba8a5/microraiden/microraiden/webui/microraiden/src/index.ts#L989)*
+*Defined in [index.ts:1024](https://github.com/raiden-network/microraiden/blob/534ae10/microraiden/microraiden/webui/microraiden/src/index.ts#L1024)*
 
 
 
