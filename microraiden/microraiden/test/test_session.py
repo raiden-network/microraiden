@@ -29,7 +29,7 @@ def test_full_cycle_success(
 ):
     session.initial_deposit = lambda x: x
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers1 = Munch()
         headers1.token_address = token_address
         headers1.contract_address = channel_manager_address
@@ -49,14 +49,17 @@ def test_full_cycle_success(
         ])
         response = session.get(url)
 
+    # Filter out any requests made to the ethereum node.
+    request_history = [request for request in server_mock.request_history if request.port == 5000]
+
     # First cycle, request price.
-    request = server_mock.request_history[0]
+    request = request_history[0]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
 
     # Second cycle, pay price.
-    request = server_mock.request_history[1]
+    request = request_history[1]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
@@ -83,7 +86,7 @@ def test_full_cycle_adapt_balance(
     lost_balance_sig = channel.balance_sig
     channel.update_balance(0)
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers1 = Munch()
         headers1.token_address = token_address
         headers1.contract_address = channel_manager_address
@@ -111,14 +114,17 @@ def test_full_cycle_adapt_balance(
 
         response = session.get(url)
 
+    # Filter out any requests made to the ethereum node.
+    request_history = [request for request in server_mock.request_history if request.port == 5000]
+
     # First cycle, request price.
-    request = server_mock.request_history[0]
+    request = request_history[0]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
 
     # Second cycle, pay price based on outdated balance.
-    request = server_mock.request_history[1]
+    request = request_history[1]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
@@ -126,7 +132,7 @@ def test_full_cycle_adapt_balance(
     assert request.headers['RDN-Balance-Signature']
 
     # Third cycle, adapt new balance and pay price again.
-    request = server_mock.request_history[2]
+    request = request_history[2]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
@@ -148,7 +154,7 @@ def test_full_cycle_error_500(
 ):
     session.initial_deposit = lambda x: x
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers1 = Munch()
         headers1.token_address = token_address
         headers1.contract_address = channel_manager_address
@@ -168,14 +174,17 @@ def test_full_cycle_error_500(
         ])
         response = session.get(url)
 
+    # Filter out any requests made to the ethereum node.
+    request_history = [request for request in server_mock.request_history if request.port == 5000]
+
     # First cycle, request price.
-    request = server_mock.request_history[0]
+    request = request_history[0]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
 
     # Second cycle, pay price but receive error.
-    request = server_mock.request_history[1]
+    request = request_history[1]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
@@ -196,7 +205,7 @@ def test_full_cycle_success_post(
 ):
     session.initial_deposit = lambda x: x
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers1 = Munch()
         headers1.token_address = token_address
         headers1.contract_address = channel_manager_address
@@ -216,15 +225,18 @@ def test_full_cycle_success_post(
         ])
         response = session.post(url, json={'somefield': 'somevalue'})
 
+    # Filter out any requests made to the ethereum node.
+    request_history = [request for request in server_mock.request_history if request.port == 5000]
+
     # First cycle, request price.
-    request = server_mock.request_history[0]
+    request = request_history[0]
     assert request.path == '/something'
     assert request.method == 'POST'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
     assert request.json()['somefield'] == 'somevalue'
 
     # Second cycle, pay price.
-    request = server_mock.request_history[1]
+    request = request_history[1]
     assert request.path == '/something'
     assert request.method == 'POST'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
@@ -247,7 +259,7 @@ def test_custom_headers(
 ):
     session.initial_deposit = lambda x: x
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers1 = Munch()
         headers1.token_address = token_address
         headers1.contract_address = channel_manager_address
@@ -271,8 +283,11 @@ def test_custom_headers(
             'RDN-Balance': '5'
         })
 
+    # Filter out any requests made to the ethereum node.
+    request_history = [request for request in server_mock.request_history if request.port == 5000]
+
     # First cycle, request price.
-    request = server_mock.request_history[0]
+    request = request_history[0]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
@@ -280,7 +295,7 @@ def test_custom_headers(
     assert request.headers['someheader'] == 'somevalue'
 
     # Second cycle, pay price.
-    request = server_mock.request_history[1]
+    request = request_history[1]
     assert request.path == '/something'
     assert request.method == 'GET'
     assert request.headers['RDN-Contract-Address'] == channel_manager_address
@@ -500,7 +515,7 @@ def test_requests(
 ):
     import microraiden.requests
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers1 = Munch()
         headers1.token_address = token_address
         headers1.contract_address = channel_manager_address
@@ -542,7 +557,7 @@ def test_cooperative_close_denied(
         wraps=session.on_cooperative_close_denied
     ).start()
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers = {
             HTTPHeaders.TOKEN_ADDRESS: token_address,
             HTTPHeaders.CONTRACT_ADDRESS: channel_manager_address,
@@ -599,7 +614,7 @@ def test_error_handling(
         wraps=session.on_invalid_contract_address
     ).start()
 
-    with requests_mock.mock() as server_mock:
+    with requests_mock.mock(real_http=True) as server_mock:
         headers = {
             HTTPHeaders.TOKEN_ADDRESS: token_address,
             HTTPHeaders.CONTRACT_ADDRESS: channel_manager_address,
