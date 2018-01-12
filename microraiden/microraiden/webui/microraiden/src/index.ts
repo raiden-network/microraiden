@@ -93,6 +93,32 @@ interface MsgParam {
   value: string;
 }
 
+/**
+ * ChannelCreated event arguments
+ */
+interface ChannelCreatedArgs {
+  _sender_address: string;
+  _receiver_address: string;
+}
+
+/**
+ * ChannelCloseRequested event arguments
+ */
+interface ChannelCloseRequestedArgs {
+  _sender_address: string;
+  _receiver_address: string;
+  _open_block_number: BigNumber;
+}
+
+/**
+ * ChannelSettled event arguments
+ */
+interface ChannelSettledArgs {
+  _sender_address: string;
+  _receiver_address: string;
+  _open_block_number: BigNumber;
+}
+
 // utils
 
 /**
@@ -187,6 +213,12 @@ export class MicroRaiden {
    * Challenge period for uncooperative close, setup in channel manager
    */
   challenge: number;
+  /**
+   * Block number in which channel manager was created, or before.
+   * Just a hint to avoid [[loadChannelFromBlockchain]] to scan whole network
+   * for ChannelCreated events, default to 0
+   */
+  startBlock: number;
 
   /**
    * MicroRaiden constructor
@@ -196,6 +228,7 @@ export class MicroRaiden {
    * @param contractABI  Channel manager ABI
    * @param tokenAddr  Token address, must be the same setup in channel manager
    * @param tokenABI  Token ABI
+   * @param startBlock  Block in which channel manager was deployed
    */
   constructor(
     web3: string | { currentProvider: any },
@@ -203,6 +236,7 @@ export class MicroRaiden {
     contractABI: any[],
     tokenAddr: string,
     tokenABI: any[],
+    startBlock?: number,
   ) {
     if (!web3) {
       web3 = 'http://localhost:8545';
@@ -217,6 +251,7 @@ export class MicroRaiden {
 
     this.contract = this.web3.eth.contract(contractABI).at(contractAddr);
     this.token = this.web3.eth.contract(tokenABI).at(tokenAddr);
+    this.startBlock = startBlock || 0;
   }
 
   // utils
@@ -382,27 +417,27 @@ export class MicroRaiden {
    * @returns  Promise to channel info, if a channel was found
    */
   async loadChannelFromBlockchain(account: string, receiver: string): Promise<MicroChannel> {
-    const openEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelCreated({
+    const openEvents = await promisify<Web3.DecodedLogEntryEvent<ChannelCreatedArgs>[]>(this.contract.ChannelCreated({
       _sender_address: account,
       _receiver_address: receiver,
     }, {
-      fromBlock: 0,
+      fromBlock: this.startBlock,
       toBlock: 'latest'
     }), 'get')();
     if (!openEvents || openEvents.length === 0) {
       throw new Error('No channel found for this account');
     }
 
-    const minBlock = openEvents[0].blockNumber;
+    const minBlock = Math.min.apply(null, openEvents.map((ev) => ev.blockNumber));
     const [ closeEvents, settleEvents, currentBlock, challenge ] = await Promise.all([
-      promisify<{ blockNumber: number }[]>(this.contract.ChannelCloseRequested({
+      promisify<Web3.DecodedLogEntryEvent<ChannelCloseRequestedArgs>[]>(this.contract.ChannelCloseRequested({
         _sender_address: account,
         _receiver_address: receiver,
       }, {
         fromBlock: minBlock,
         toBlock: 'latest'
       }), 'get')(),
-      promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
+      promisify<Web3.DecodedLogEntryEvent<ChannelSettledArgs>[]>(this.contract.ChannelSettled({
         _sender_address: account,
         _receiver_address: receiver,
       }, {
@@ -415,11 +450,11 @@ export class MicroRaiden {
 
     const stillOpen = openEvents.filter((ev) => {
       for (let sev of settleEvents) {
-        if (sev['args']['_open_block_number'].eq(ev.blockNumber))
+        if (sev.args._open_block_number.eq(ev.blockNumber))
           return false;
       }
       for (let cev of closeEvents) {
-        if (cev['args']['_open_block_number'].eq(ev.blockNumber) &&
+        if (cev.args._open_block_number.eq(ev.blockNumber) &&
             cev.blockNumber + challenge > currentBlock)
           return false;
       }
@@ -526,7 +561,7 @@ export class MicroRaiden {
       throw new Error('No valid channelInfo');
     }
 
-    const closeEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelCloseRequested({
+    const closeEvents = await promisify<Web3.DecodedLogEntryEvent<ChannelCloseRequestedArgs>[]>(this.contract.ChannelCloseRequested({
       _sender_address: channel.account,
       _receiver_address: channel.receiver,
       _open_block_number: channel.block,
@@ -542,7 +577,7 @@ export class MicroRaiden {
       closed = closeEvents[0].blockNumber;
     }
 
-    const settleEvents = await promisify<{ blockNumber: number }[]>(this.contract.ChannelSettled({
+    const settleEvents = await promisify<Web3.DecodedLogEntryEvent<ChannelSettledArgs>[]>(this.contract.ChannelSettled({
       _sender_address: channel.account,
       _receiver_address: channel.receiver,
       _open_block_number: channel.block,
