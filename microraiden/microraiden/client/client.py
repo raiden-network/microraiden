@@ -181,6 +181,8 @@ class Client:
 
         if event:
             log.debug('Event received. Channel created in block {}.'.format(event['blockNumber']))
+            assert is_same_address(event['args']['_sender_address'], self.context.address)
+            assert is_same_address(event['args']['_receiver_address'], receiver_address)
             channel = Channel(
                 self.context,
                 self.context.address,
