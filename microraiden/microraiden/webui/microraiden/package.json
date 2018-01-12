@@ -27,7 +27,7 @@
     "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
     "build:umd": "webpack",
     "build:umd:min": "cd dist/umd && uglifyjs --compress --mangle --source-map --screw-ie8 -o microraiden.min.js -- microraiden.js && gzip microraiden.min.js -c > microraiden.min.js.gz",
-    "docs": "typedoc --theme markdown --mode file --excludePrivate --readme none --out docs src/index.ts",
+    "docs": "typedoc --theme markdown --mode file --excludePrivate --out docs src/index.ts",
     "prepare": "npm run clean && npm run build && npm run docs",
     "test": "TS_NODE_PROJECT=./ mocha -b -t 20000 -r ts-node/register tests/**/*.ts"
   },

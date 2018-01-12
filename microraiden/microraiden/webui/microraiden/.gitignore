@@ -3,3 +3,4 @@ dist/
 .*.sw?
 *.vim
 package-lock.json
+docs/
