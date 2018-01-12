@@ -7,7 +7,7 @@ GAS_LIMIT = 130000
 
 # Plain old transaction, for lack of a better term.
 POT_GAS_LIMIT = 21000
-GAS_PRICE = 50 * denoms.gwei
+GAS_PRICE = 20 * denoms.gwei
 
 NETWORK_NAMES = {
     1: 'mainnet',
