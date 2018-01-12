@@ -71,6 +71,7 @@ def test_stats(doggo_proxy: PaywalledProxy, api_endpoint_address):
     assert 'token_address' in stats
     assert 'receiver_address' in stats
     assert 'contract_address' in stats
+    assert stats['sync_block'] == doggo_proxy.channel_manager.blockchain.sync_start_block
     assert is_same_address(stats['receiver_address'], doggo_proxy.channel_manager.receiver)
     token_address = doggo_proxy.channel_manager.token_contract.address
     assert is_same_address(stats['token_address'], token_address)

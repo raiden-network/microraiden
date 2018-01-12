@@ -41,6 +41,7 @@ class Blockchain(gevent.Greenlet):
         #  - used to dispute/close channels that are in CHALLENGED state after manager
         #     has ether to spend again
         self.insufficient_balance = False
+        self.sync_start_block = config.START_SYNC_BLOCK[self.web3.version.network]
 
     def _run(self):
         self.running = True
@@ -96,9 +97,9 @@ class Blockchain(gevent.Greenlet):
                 assert False  # unreachable as long as confirmation level is set high enough
 
         if self.cm.state.confirmed_head_number is None:
-            self.cm.state.update_sync_state(confirmed_head_number=-1)
+            self.cm.state.update_sync_state(confirmed_head_number=self.sync_start_block)
         if self.cm.state.unconfirmed_head_number is None:
-            self.cm.state.update_sync_state(unconfirmed_head_number=-1)
+            self.cm.state.update_sync_state(unconfirmed_head_number=self.sync_start_block)
         new_unconfirmed_head_number = self.cm.state.unconfirmed_head_number + self.sync_chunk_size
         new_unconfirmed_head_number = min(new_unconfirmed_head_number, current_block)
         new_confirmed_head_number = max(new_unconfirmed_head_number - self.n_confirmations, 0)

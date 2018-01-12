@@ -1,6 +1,7 @@
 import json
 import os
 from eth_utils import denoms
+from collections import namedtuple
 
 API_PATH = "/api/1"
 GAS_LIMIT = 130000
@@ -22,12 +23,22 @@ NETWORK_NAMES = {
     1337: 'geth'
 }
 
+NetworkConfig = namedtuple('NetworkConfig', 'channel_manager_address start_block')
+
 # address of the default channel manager contract. You can change this using commandline
 # option --channel-manager-address when running the proxy
+NETWORK_CONFIG = {
+    '1': NetworkConfig('0x0', 0),
+    '3': NetworkConfig('0x161a0d7726EB8B86EB587d8BD483be1CE87b0609', 2400640),
+    '42': NetworkConfig('0xB9721dF0e024114e7B25F2cF503d8CBE3D52b400', 5230017)
+}
+# map NETWORK_CONFIG to a network_id: manager_address dict
 CHANNEL_MANAGER_ADDRESS = {
-    '1': '',
-    '3': '0x161a0d7726EB8B86EB587d8BD483be1CE87b0609',
-    '42': '0xB9721dF0e024114e7B25F2cF503d8CBE3D52b400'
+    k: v.channel_manager_address for k, v in NETWORK_CONFIG.items()
+}
+# map NETWORK_CONFIG to a network_id: sync_block dict
+START_SYNC_BLOCK = {
+    k: v.start_block for k, v in NETWORK_CONFIG.items()
 }
 # absolute path to this directory. Used to find path to the webUI sources
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

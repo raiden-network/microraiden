@@ -43,7 +43,8 @@ class ChannelManagementStats(Resource):
                 'contract_address': contract_address,
                 'receiver_address': self.channel_manager.receiver,
                 'manager_abi': self.channel_manager.channel_manager_contract.abi,
-                'token_abi': self.channel_manager.token_contract.abi
+                'token_abi': self.channel_manager.token_contract.abi,
+                'sync_block': self.channel_manager.blockchain.sync_start_block
                 }
 
 
