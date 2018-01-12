@@ -2,7 +2,7 @@
   "name": "microraiden",
   "version": "0.2.0",
   "description": "Javascript/Typescript client library for µRaiden (MicroRaiden), a payment channels implementation for the Ethereum blockchain",
-  "author": "Raiden Network Team <contact@raiden.network>",
+  "author": "Brainbot Labs Est. <contact@brainbot.li>",
   "license": "MIT",
   "homepage": "https://micro.raiden.network",
   "repository": "https://github.com/raiden-network/microraiden/tree/master/microraiden/microraiden/webui/microraiden/",
@@ -17,7 +17,7 @@
     "web3"
   ],
   "contributors": [
-    "André Vitor de Lima Matos <andre@brainbot.com>"
+    "André Vitor de Lima Matos <andre@brainbot.li>"
   ],
   "scripts": {
     "clean": "rimraf dist/ docs/",
