@@ -2,10 +2,17 @@ from microraiden.test.fixtures import * # flake8: noqa
 from gevent import monkey
 monkey.patch_all(thread=False) # thread is false due to clash when testing both contract/microraiden modules
 import logging
+import os
 
 # to disable annoying 'test.rpc eth_getBlockNumber' message
 logging.getLogger('testrpc.rpc').setLevel(logging.WARNING)
 
+# test if both $DISPLAY and tkinter library are available
+try:
+    import tkinter
+    os.environ['DISPLAY']
+except (ImportError, KeyError):
+    os.environ['TEST_SKIP_XORG'] = '1'
 
 def pytest_addoption(parser):
     parser.addoption(

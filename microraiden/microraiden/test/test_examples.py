@@ -2,6 +2,7 @@ import pytest  # noqa: F401
 from _pytest.monkeypatch import MonkeyPatch
 from flask import jsonify
 from web3 import Web3
+import os
 
 from microraiden import Session
 from microraiden.channel_manager import ChannelManager
@@ -13,7 +14,10 @@ from microraiden.proxy.resources import PaywalledProxyUrl
 import microraiden.client.session
 
 
-@pytest.mark.needs_xorg
+@pytest.mark.skipif(
+    ('TEST_SKIP_XORG' in os.environ),
+    reason='requires Xorg'
+)
 def test_eth_ticker(
         empty_proxy: PaywalledProxy,
         session: Session,

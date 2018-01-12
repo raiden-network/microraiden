@@ -31,7 +31,7 @@ matrix:
         - flake8 microraiden/
 
       script:
-          - coverage run --source microraiden/ --omit 'microraiden/microraiden/test/*,microraiden/microraiden/examples/*' -m py.test --populus-project 'contracts/' -k-needs_xorg --travis-fold=always -vvvvvvvvs $TEST_TYPE
+          - coverage run --source microraiden/ --omit 'microraiden/microraiden/test/*,microraiden/microraiden/examples/*' -m py.test --populus-project 'contracts/' --travis-fold=always -vvvvvvvvs $TEST_TYPE
 
       after_success:
         - coveralls
