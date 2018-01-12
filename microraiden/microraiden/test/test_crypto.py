@@ -189,7 +189,7 @@ def test_verify_balance_proof_v0(channel_manager_address: str):
     sig = sign_balance_proof(
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_address
     )
-    sig = sig[:-1] + b'\x00'
+    sig = sig[:-1] + bytes([sig[-1] % 27])
     assert is_same_address(verify_balance_proof(
         RECEIVER_ADDR, 312524, 11, sig, channel_manager_address
     ), SENDER_ADDR)
@@ -200,7 +200,7 @@ def test_verify_balance_proof_v27(channel_manager_address: str):
     sig = sign_balance_proof(
         SENDER_PRIVATE_KEY, RECEIVER_ADDR, 312524, 11, channel_manager_address
     )
-    sig = sig[:-1] + b'\x1b'
+    sig = sig[:-1] + bytes([sig[-1] % 27 + 27])
     assert is_same_address(verify_balance_proof(
         RECEIVER_ADDR, 312524, 11, sig, channel_manager_address
     ), SENDER_ADDR)

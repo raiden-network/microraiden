@@ -15,10 +15,14 @@ def session(client: Client, use_tester: bool, api_endpoint_address: str):
             self.client.context.web3.testing.mine(1)
         return Session._request_resource(self, method, url, **kwargs)
 
+    kwargs = {}
+    if use_tester:
+        kwargs['retry_interval'] = 0.1
+
     session = Session(
         client,
-        retry_interval=0.1,
-        endpoint_url='http://' + api_endpoint_address
+        endpoint_url='http://' + api_endpoint_address,
+        **kwargs
     )
     session._request_resource = types.MethodType(request_patched, session)
     yield session

@@ -170,6 +170,9 @@ def test_channel_settled_event(
         web3: Web3,
         use_tester: bool
 ):
+    if not use_tester:
+        pytest.skip('This test takes several hours on real blockchains.')
+
     blockchain = channel_manager.blockchain
     channel_manager.wait_sync()
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
@@ -435,8 +438,12 @@ def test_settlement(
         wait_for_blocks,
         web3: Web3,
         token_contract: Contract,
-        sender_address: str
+        sender_address: str,
+        use_tester: bool
 ):
+    if not use_tester:
+        pytest.skip('This test takes several hours on real blockchains.')
+
     blockchain = channel_manager.blockchain
     channel_id = (confirmed_open_channel.sender, confirmed_open_channel.block)
 
@@ -557,6 +564,9 @@ def test_different_receivers(
         use_tester: bool,
         state_db_path: str
 ):
+    if not use_tester:
+        pytest.skip('This test takes several hours on real blockchains.')
+
     receiver1_privkey = make_account(
         RECEIVER_ETH_ALLOWANCE,
         RECEIVER_TOKEN_ALLOWANCE,
