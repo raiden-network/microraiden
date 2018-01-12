@@ -92,13 +92,6 @@ def main(
 
     receiver_address = privkey_to_addr(private_key)
 
-    if not state_file:
-        state_file_name = "%s_%s.db" % (channel_manager_address[:10], receiver_address[:10])
-        app_dir = click.get_app_dir('microraiden')
-        if not os.path.exists(app_dir):
-            os.makedirs(app_dir)
-        state_file = os.path.join(app_dir, state_file_name)
-
     config.paywall_html_dir = paywall_info
     while True:
         try:
@@ -106,6 +99,12 @@ def main(
             channel_manager_address = to_checksum_address(
                 channel_manager_address or config.CHANNEL_MANAGER_ADDRESS[web3.version.network]
             )
+            if not state_file:
+                state_file_name = "%s_%s.db" % (channel_manager_address[:10], receiver_address[:10])
+                app_dir = click.get_app_dir('microraiden')
+                if not os.path.exists(app_dir):
+                    os.makedirs(app_dir)
+                state_file = os.path.join(app_dir, state_file_name)
             app = make_paywalled_proxy(private_key, state_file,
                                        contract_address=channel_manager_address,
                                        web3=web3)
