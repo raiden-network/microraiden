@@ -583,7 +583,7 @@ def test_cooperative_close_denied(
 
     assert response.text == 'success'
     assert cooperative_close_denied_mock.call_count == 1
-    assert session.client.channels[0].state == Channel.State.settling
+    assert session.channel.state == Channel.State.settling
 
 
 def test_error_handling(
