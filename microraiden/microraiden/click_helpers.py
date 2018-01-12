@@ -100,7 +100,10 @@ def main(
                 channel_manager_address or config.CHANNEL_MANAGER_ADDRESS[web3.version.network]
             )
             if not state_file:
-                state_file_name = "%s_%s.db" % (channel_manager_address[:10], receiver_address[:10])
+                state_file_name = "%s_%s.db" % (
+                    channel_manager_address[:10],
+                    receiver_address[:10]
+                )
                 app_dir = click.get_app_dir('microraiden')
                 if not os.path.exists(app_dir):
                     os.makedirs(app_dir)
