@@ -1,5 +1,7 @@
 DATADIR:=microraiden/data
 
+all: webui flake8
+
 bandit:
 	bandit -s B101 -r microraiden/
 
@@ -17,3 +19,9 @@ clean:
 
 mrproper:
 	rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info
+
+webui:
+	python setup.py compile_webui
+
+docs:
+	cd microraiden/webui/microraiden/ && npm run docs
