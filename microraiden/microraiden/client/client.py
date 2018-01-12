@@ -13,7 +13,7 @@ from microraiden.utils import (
     create_signed_contract_transaction
 )
 
-from microraiden.config import CHANNEL_MANAGER_ADDRESS
+from microraiden.config import CHANNEL_MANAGER_ADDRESS, WEB3_PROVIDER_DEFAULT
 from microraiden.client.context import Context
 from microraiden.client.channel import Channel
 
@@ -42,7 +42,7 @@ class Client:
         # Create web3 context if none is provided, either by using the proxies' context or creating
         # a new one.
         if not web3:
-            web3 = Web3(HTTPProvider('http://localhost:8545'))
+            web3 = Web3(HTTPProvider(WEB3_PROVIDER_DEFAULT))
 
         channel_manager_address = (
             channel_manager_address or CHANNEL_MANAGER_ADDRESS[web3.version.network]

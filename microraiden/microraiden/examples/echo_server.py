@@ -10,7 +10,7 @@ from web3 import Web3, HTTPProvider
 
 from microraiden.channel_manager import ChannelManager
 from microraiden.make_helpers import make_channel_manager
-from microraiden.config import CHANNEL_MANAGER_ADDRESS
+from microraiden.config import CHANNEL_MANAGER_ADDRESS, WEB3_PROVIDER_DEFAULT
 from microraiden.proxy import PaywalledProxy
 from microraiden.proxy.resources import Expensive
 from microraiden.utils import get_private_key
@@ -61,7 +61,7 @@ def run(
     #  - private key to use for receiving funds
     #  - file for storing state information (balance proofs)
     if channel_manager is None:
-        web3 = Web3(HTTPProvider('http://localhost:8545'))
+        web3 = Web3(HTTPProvider(WEB3_PROVIDER_DEFAULT))
         channel_manager = make_channel_manager(
             private_key,
             CHANNEL_MANAGER_ADDRESS[web3.version.network],

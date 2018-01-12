@@ -14,7 +14,7 @@ from web3 import Web3, EthereumTesterProvider
 from web3.contract import Contract
 from web3.providers.rpc import HTTPProvider
 
-from microraiden.config import CHANNEL_MANAGER_ADDRESS
+from microraiden.config import CHANNEL_MANAGER_ADDRESS, WEB3_PROVIDER_DEFAULT
 from microraiden.utils import (
     addr_from_sig,
     keccak256,
@@ -168,7 +168,7 @@ def web3(use_tester: bool, faucet_private_key: str, faucet_address: str, mine_sy
         web3.eth.sendTransaction({'to': faucet_address, 'value': FAUCET_ALLOWANCE})
 
     else:
-        rpc = HTTPProvider('http://localhost:8545')
+        rpc = HTTPProvider(WEB3_PROVIDER_DEFAULT)
         web3 = Web3(rpc)
 
     yield web3
