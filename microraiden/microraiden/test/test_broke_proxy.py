@@ -1,5 +1,5 @@
 from microraiden import Session
-from microraiden.config import GAS_PRICE
+from microraiden.config import GAS_PRICE, POT_GAS_LIMIT
 from microraiden.utils import create_signed_transaction
 
 
@@ -21,7 +21,7 @@ def test_cheating_client(
         receiver_privkey,
         web3,
         faucet_address,
-        balance - GAS_PRICE * 21000
+        balance - GAS_PRICE * POT_GAS_LIMIT
     )
     tx_hash = web3.eth.sendRawTransaction(tx)
     wait_for_transaction(tx_hash)
@@ -32,7 +32,7 @@ def test_cheating_client(
         faucet_private_key,
         web3,
         receiver_address,
-        balance - GAS_PRICE * 21000
+        balance - GAS_PRICE * POT_GAS_LIMIT
     )
     tx_hash = web3.eth.sendRawTransaction(tx)
     wait_for_transaction(tx_hash)

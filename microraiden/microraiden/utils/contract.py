@@ -7,7 +7,7 @@ from ethereum.transactions import Transaction
 from web3 import Web3
 from web3.contract import Contract
 
-from microraiden.config import GAS_PRICE, GAS_LIMIT
+from microraiden.config import GAS_PRICE, GAS_LIMIT, POT_GAS_LIMIT
 from microraiden.utils import privkey_to_addr, sign_transaction
 from microraiden.utils.populus_compat import LogFilter
 
@@ -23,7 +23,7 @@ def create_signed_transaction(
         data=b'',
         nonce_offset: int = 0,
         gas_price: int = GAS_PRICE,
-        gas_limit: int = 21000
+        gas_limit: int = POT_GAS_LIMIT
 ) -> str:
     """
     Creates a signed on-chain transaction compliant with EIP155.
@@ -50,7 +50,7 @@ def create_transaction(
         nonce_offset: int = 0,
         value: int = 0,
         gas_price: int = GAS_PRICE,
-        gas_limit: int = 21000
+        gas_limit: int = POT_GAS_LIMIT
 ) -> Transaction:
     nonce = web3.eth.getTransactionCount(from_, 'pending') + nonce_offset
     tx = Transaction(nonce, gas_price, gas_limit, to, value, data)
