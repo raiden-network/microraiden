@@ -1,469 +1,307 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 # RaidenMicroTransferChannels
 
-### RaidenMicroTransferChannels
+## Non-Constant Functions
 
+### topUp
+Increase the channel deposit with `_added_deposit`.
 
+#### Input parameters
 
-## Functions
+|name|type|indexed|description|
+|---|---|---|---|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
+|_added_deposit|uint192||The added token deposit with which the current deposit is increased.|
 
+### cooperativeClose
+Function called by the sender, receiver or a delegate, with all the needed signatures to close the channel and settle immediately.
 
+#### Input parameters
 
-### Constant functions
+|name|type|indexed|description|
+|---|---|---|---|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
+|_balance|uint192||The amount of tokens owed by the sender to the receiver.|
+|_balance_msg_sig|bytes||The balance message signed by the sender.|
+|_closing_sig|bytes||The receiver's signed balance message, containing the sender's address.|
 
-#### balanceMessageHash
+### removeTrustedContracts
+Function for removing trusted contracts. Can only be called by owner_address.
 
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+|_trusted_contracts|address[]||Array of contract addresses to be removed from the trusted_contracts mapping.|
 
+### uncooperativeClose
+Sender requests the closing of the channel and starts the challenge period. This can only happen once.
 
-##### Inputs
+#### Input parameters
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_receiver|address|||
-|1|_open_block_number|uint32|||
-|2|_balance|uint192|||
+|name|type|indexed|description|
+|---|---|---|---|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
+|_balance|uint192||The amount of tokens owed by the sender to the receiver.|
 
+### settle
+Function called by the sender after the challenge period has ended, in order to settle and delete the channel, in case the receiver has not closed the channel himself.
 
-##### Returns
+#### Input parameters
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|data|bytes32|||
+|name|type|indexed|description|
+|---|---|---|---|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
 
+### topUpDelegate
+Function that allows a delegate contract to increase the channel deposit with `_added_deposit`. Can only be called by a trusted contract. Compatibility with ERC20 tokens.
 
-#### challenge_period
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+|_sender_address|address||The sender's address in behalf of whom the delegate sends tokens.|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
+|_added_deposit|uint192||The added token deposit with which the current deposit is increased.|
 
+### addTrustedContracts
+Function for adding trusted contracts. Can only be called by owner_address.
 
+#### Input parameters
 
-##### Inputs
+|name|type|indexed|description|
+|---|---|---|---|
+|_trusted_contracts|address[]||Array of contract addresses that can be trusted to open and top up channels on behalf of a sender.|
 
-empty list
+### withdraw
+Allows channel receiver to withdraw tokens.
 
+#### Input parameters
 
-##### Returns
+|name|type|indexed|description|
+|---|---|---|---|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
+|_balance|uint192||Partial or total amount of tokens owed by the sender to the receiver. Has to be smaller or equal to the channel deposit. Has to match the balance value from `_balance_msg_sig` - the balance message signed by the sender. Has to be smaller or equal to the channel deposit.|
+|_balance_msg_sig|bytes||The balance message signed by the sender.|
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|return0|uint8||challenge_period|
+### createChannel
+Creates a new channel between `msg.sender` and `_receiver_address` and transfers the `_deposit` token deposit to this contract. Compatibility with ERC20 tokens.
 
+#### Input parameters
 
-#### closingAgreementMessageHash
+|name|type|indexed|description|
+|---|---|---|---|
+|_receiver_address|address||The address that receives tokens.|
+|_deposit|uint192||The amount of tokens that the sender escrows.|
 
+### tokenFallback
+Opens a new channel or tops up an existing one, compatibility with ERC 223.
+Can only be called from the trusted Token contract.
 
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+|_sender_address|address||The address that sent the tokens to this contract.|
+|_deposit|uint256||The amount of tokens that the sender escrows.|
+|_data|bytes||Data needed for either creating a channel or topping it up. It always contains the sender and receiver addresses +/- a block number.|
 
-##### Inputs
+### createChannelDelegate
+Function that allows a delegate contract to create a new channel between `_sender_address` and `_receiver_address` and transfers the token deposit to this contract. Can only be called by a trusted contract. Compatibility with ERC20 tokens.
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_balance_msg_sig|bytes|||
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+|_sender_address|address||The sender's address in behalf of whom the delegate sends tokens.|
+|_receiver_address|address||The address that receives tokens.|
+|_deposit|uint192||The amount of tokens that the sender escrows.|
 
-##### Returns
+## Constant Functions
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|data|bytes32|||
+### challenge_period
 
+#### Output
 
-#### getChannelInfo
+|name|type|
+|---|---|
+||uint32||
 
+### getChannelInfo
+Function for retrieving information about a channel.
 
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+|_sender_address|address||The address that sends tokens.|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
 
-##### Inputs
+#### Output
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_open_block_number|uint32|||
+Function returns: Channel information: unique_identifier, deposit, settle_block_number, closing_balance, withdrawn balance).
 
+|name|type|
+|---|---|
+||bytes32||
+||uint192||
+||uint32||
+||uint192||
+||uint192||
 
-##### Returns
+### extractBalanceProofSignature
+Returns the sender address extracted from the balance proof. dev Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|param0|bytes32|||
-|1|param1|uint192|||
-|2|param2|uint32|||
-|3|param3|uint192|||
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
+|_balance|uint192||The amount of tokens owed by the sender to the receiver.|
+|_balance_msg_sig|bytes||The balance message signed by the sender.|
 
-#### getKey
+#### Output
 
+Function returns: Address of the balance proof signer.
 
+|name|type|
+|---|---|
+||address||
 
+### extractClosingSignature
+Returns the receiver address extracted from the closing signature. Works with eth_signTypedData https://github.com/ethereum/EIPs/pull/712.
 
-##### Inputs
+#### Input parameters
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_open_block_number|uint32|||
+|name|type|indexed|description|
+|---|---|---|---|
+|_sender_address|address||The address that sends tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
+|_balance|uint192||The amount of tokens owed by the sender to the receiver.|
+|_closing_sig|bytes||The receiver's signed balance message, containing the sender's address.|
 
+#### Output
 
-##### Returns
+Function returns: Address of the closing signature signer.
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|data|bytes32|||
+|name|type|
+|---|---|
+||address||
 
+### withdrawn_balances
 
-#### owner
+#### Input parameters
 
-Data structures
+|name|type|indexed|description|
+|---|---|---|---|
+||bytes32|||
 
+#### Output
 
-##### Inputs
+|name|type|
+|---|---|
+||uint192||
 
-empty list
+### version
 
+#### Output
 
-##### Returns
+|name|type|
+|---|---|
+||string||
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|return0|address||Data structures|
+### channel_deposit_bugbounty_limit
 
+#### Output
 
-#### token_address
+|name|type|
+|---|---|
+||uint256||
 
+### closing_requests
 
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+||bytes32|||
 
-##### Inputs
+#### Output
 
-empty list
+|name|type|
+|---|---|
+|closing_balance|uint192||
+|settle_block_number|uint32||
 
+### channels
 
-##### Returns
+#### Input parameters
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|return0|address||token_address|
+|name|type|indexed|description|
+|---|---|---|---|
+||bytes32|||
 
+#### Output
 
-#### verifyBalanceProof
+|name|type|
+|---|---|
+|deposit|uint192||
+|open_block_number|uint32||
 
+### getKey
+Returns the unique channel identifier used in the contract.
 
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+|_sender_address|address||The address that sends tokens.|
+|_receiver_address|address||The address that receives tokens.|
+|_open_block_number|uint32||The block number at which a channel between the sender and receiver was created.|
 
-##### Inputs
+#### Output
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_receiver|address|||
-|1|_open_block_number|uint32|||
-|2|_balance|uint192|||
-|3|_balance_msg_sig|bytes|||
+Function returns: Unique channel identifier.
 
+|name|type|
+|---|---|
+|data|bytes32||
 
-##### Returns
+### owner_address
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|param0|address|||
+#### Output
 
+|name|type|
+|---|---|
+||address||
 
-#### verifyClosingSignature
+### trusted_contracts
 
+#### Input parameters
 
+|name|type|indexed|description|
+|---|---|---|---|
+||address|||
 
+#### Output
 
-##### Inputs
+|name|type|
+|---|---|
+||bool||
 
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_balance_msg_sig|bytes|||
-|1|_closing_sig|bytes|||
+### token
 
+#### Output
 
-##### Returns
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|param0|address|||
-
-
-
-
-
-
-### State changing functions
-
-#### close
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_receiver|address|||
-|1|_open_block_number|uint32|||
-|2|_balance|uint192|||
-|3|_balance_msg_sig|bytes|||
-|4|_closing_sig|bytes|||
-
-
-#### createChannel
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_deposit|uint192|||
-
-
-#### createChannelERC20
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_receiver|address|||
-|1|_deposit|uint192|||
-
-
-#### initChallengePeriod
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_receiver|address|||
-|1|_open_block_number|uint32|||
-|2|_balance|uint192|||
-
-
-#### settle
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_receiver|address|||
-|1|_open_block_number|uint32|||
-
-
-#### settleChannel
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_open_block_number|uint32|||
-|3|_balance|uint192|||
-
-
-#### tokenFallback
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_deposit|uint256|||
-|2|_data|bytes|||
-
-
-#### topUp
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_open_block_number|uint32|||
-|3|_added_deposit|uint192|||
-
-
-#### topUpERC20
-
-
-
-
-##### Inputs
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_receiver|address|||
-|1|_open_block_number|uint32|||
-|2|_added_deposit|uint192|||
-
-
-
-
-
-
-### Events
-
-#### ChannelCreated
-
-Events
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_deposit|uint192|||
-
-
-#### ChannelToppedUp
-
-
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_open_block_number|uint32|||
-|3|_added_deposit|uint192|||
-|4|_deposit|uint192|||
-
-
-#### ChannelCloseRequested
-
-
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_open_block_number|uint32|||
-|3|_balance|uint192|||
-
-
-#### ChannelSettled
-
-
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_open_block_number|uint32|||
-|3|_balance|uint192|||
-
-
-#### TokenFallback
-
-
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_sender|address|||
-|1|_receiver|address|||
-|2|_deposit|uint192|||
-|3|_data|bytes|||
-
-
-#### GasCost
-
-
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|_function_name|string|||
-|1|_gaslimit|uint|||
-|2|_gas|uint|||
-
-
-
-
-
-### Enums
-
-
-
-
-### Structs
-
-#### Channel
-
-
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|deposit|uint192|||
-|1|open_block_number|uint32|||
-
-
-#### ClosingRequest
-
-
-
-
-##### Params
-
-|#  |Param|Type|TypeHint|Description|
-|---|-----|----|--------|-----------|
-|0|settle_block_number|uint32|||
-|1|closing_balance|uint192|||
+|name|type|
+|---|---|
+||address||
 
 
 

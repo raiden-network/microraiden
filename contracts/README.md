@@ -119,12 +119,11 @@ python -m deploy.deploy_testnet --token-address TOKEN_ADDRESS
 
 [/contracts/docs/RaidenMicroTransferChannels.md](/contracts/docs/RaidenMicroTransferChannels.md)
 
-Run `docs.sh`
 
-Prerequisites
-```
-npm install -g solidity-doc
-
+```bash
+pip install soldocs
+populus compile
+soldocs --input build/contracts.json --output docs/RaidenMicroTransferChannels.md --contracts RaidenMicroTransferChannels
 ```
 
 
