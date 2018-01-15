@@ -1,7 +1,7 @@
 version: '2'
 services:
     web3:
-        image: parity/parity:v1.8.4
+        image: parity/parity:v1.8.6
         restart: always
         volumes:
             - ~/.local/share/io.parity.ethereum.ropsten:/mnt
@@ -43,8 +43,8 @@ services:
         restart: always
         volumes:
             - ./files/demo/:/home/user/.config/microraiden
+            - ./files/demo/key.json:/tmp/key.json:ro
             - ../microraiden/microraiden:/app/microraiden:ro
-            - ../key.json:/tmp/key.json:ro
             - ../pw.txt:/tmp/password.txt:ro
         logging:
             options:
@@ -60,8 +60,6 @@ services:
             - "/tmp/key.json"
             - --private-key-password-file
             - "/tmp/password.txt"
-            - --channel-manager-address
-            - "0x161a0d7726eb8b86eb587d8bd483be1ce87b0609"
             - start
             - --host
             - "0.0.0.0"
@@ -73,8 +71,8 @@ services:
         restart: always
         volumes:
             - ./files/wikidemo/:/home/user/.config/microraiden
+            - ./files/wikidemo/key.json:/tmp/key.json:ro
             - ../microraiden/microraiden:/app/microraiden:ro
-            - ../key.json:/tmp/key.json:ro
             - ../pw.txt:/tmp/password.txt:ro
         logging:
             options:
@@ -90,8 +88,6 @@ services:
             - /tmp/key.json
             - --private-key-password-file
             - /tmp/password.txt
-            - --channel-manager-address
-            - "0x161a0d7726eb8b86eb587d8bd483be1ce87b0609"
             - start
             - --host
             - "0.0.0.0"
