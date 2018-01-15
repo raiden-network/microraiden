@@ -2,9 +2,10 @@ dist: trusty
 sudo: true
 language: generic
 
-matrix:
+jobs:
   include:
     - language: python
+      if: type = pull_request
       python: '3.5'
       env:
         - TEST_TYPE=microraiden
@@ -37,6 +38,7 @@ matrix:
         - coveralls
 
     - language: python
+      if: type = pull_request
       python: '3.5'
       env:
         - TEST_TYPE=contracts
@@ -69,6 +71,7 @@ matrix:
         - coveralls
 
     - language: node_js
+      if: type = pull_request
       node_js: 8
       env:
         - TEST_TYPE=js
@@ -80,3 +83,22 @@ matrix:
         - cd $WEBUI
       install:
         - npm install
+      script:
+        - npm run build
+        - npm test
+
+    - stage: deploy
+      if: type = push AND branch = deploy
+      before_install:
+        - openssl aes-256-cbc -K $encrypted_877337b94c68_key -iv $encrypted_877337b94c68_iv -in .travis/deploy.tar.gz.enc -out .travis/deploy.tar.gz -d
+        - (cd .travis && tar xzf deploy.tar.gz)
+      env:
+        - secure: "kLGtuCmaGM7DaXqynvf4MiM/5p1KP3+Uc/Vbmvt7T95c13G1+hQs+YEGUp1qitLOjdtGC2JapMgQPbzYaY2amG3m8+Eda/p06wFXPtGhQJpu6A+LqXwvARhQtk4rqJUrLFEW/VkEt1f/DOMFsRnghbdGAQmEW9wRmQewuQkKx26yfdv0iUaEi3Ja/72mcgviqNNIMxRQTMjy36PLWkjNkQWCKS9ZUNaTOKgSWpuBjm2oxV9gTe9sCaj8B9JJQYyJQF9opkFTU0jAguTLZAFIuBvdsXxWNgPXKCBG8XidVAYR2mXJzI1Rqf3zuQmZ9Kl6SwvjcRNQ5EHRhhcECSGTtJJkeFu2y8WPrEDrQIJGtoHM9NE1qAvJI5RDTGCas6liju9EOE9SrQv2M1heyn9abW59Y4Gc5NQ+EQRU/l04kh6vLaNc8oT6rSKtE3j/nSbvV/8rRDs5l2JQO4f27R7mXVTuV1sSw+7PYmbzXjIrgMQEFov9KTp1HI1XiBM3Gw6ayupebhoAtNrRYV8xwMP5bJXcEWi32a83ozPmBJVXJaY+cqb2P0Bj5hu+rPuiT0hKn9yAxZYoa8cob8tuFlpqbNph25tp/id4i6E/fFF68y7R+KoN1L/kSLeI4TtYwl7S0Wy6rmf3EpCaMb4nnRyf58QoXvpo9zR9rCSv7MeUEpY="
+      deploy:
+        - provider: script
+          skip_cleanup: true
+          script:
+            - ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i .travis/id_ed25519 $DEMO_SSH "bash -s" -- < .travis/deploy.sh
+          on:
+            repo: raiden-network/microraiden
+            branch: deploy
