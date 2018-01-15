@@ -438,8 +438,13 @@ class ChannelManager(gevent.Greenlet):
         return self.token_contract.address
 
     def check_contract_version(self):
+        """Compare version of the contract to the version of the library.
+        Only major and minor version is used in the comparison.
+        """
         deployed_contract_version = self.channel_manager_contract.call().version()
-        if deployed_contract_version != CHANNEL_MANAGER_CONTRACT_VERSION:
+        deployed_contract_version = deployed_contract_version.rsplit('.', 1)[0]
+        library_version = CHANNEL_MANAGER_CONTRACT_VERSION.rsplit('.', 1)[0]
+        if deployed_contract_version != library_version:
             raise InvalidContractVersion("Incompatible contract version: expected=%s deployed=%s" %
                                          (CHANNEL_MANAGER_CONTRACT_VERSION,
                                           deployed_contract_version))
