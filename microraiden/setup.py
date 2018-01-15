@@ -14,9 +14,16 @@ import subprocess
 import distutils
 import os
 from setuptools import Command
+from setuptools.command.build_py import build_py
 from microraiden.config import MICRORAIDEN_VERSION
 
 DESCRIPTION = 'µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.'
+
+
+class BuildPyCommand(build_py):
+    def run(self):
+        self.run_command('compile_webui')
+        build_py.run(self)
 
 
 class CompileWebUI(Command):
@@ -69,7 +76,13 @@ config = {
     'author_email': 'contact@brainbot.li',
     'description': DESCRIPTION,
     'url': 'https://github.com/raiden-network/microraiden/',
-    'include_package_data': True,
+
+    #   With include_package_data set to True command `py setup.py sdist`
+    #   fails to include package_data contents in the created package.
+    #   I have no idea whether it's a bug or a feature.
+    #
+    #    'include_package_data': True,
+
     'license': 'MIT',
     'keywords': 'raiden ethereum microraiden blockchain',
     'install_requires': reqs,
@@ -88,6 +101,7 @@ config = {
     ],
     'cmdclass': {
         'compile_webui': CompileWebUI,
+        'build_py': BuildPyCommand,
     },
 }
 

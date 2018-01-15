@@ -80,3 +80,6 @@ package-lock.json
 
 # never check in the smoketest_config.json
 smoketest_config.json
+
+# ignore tag files
+tags
