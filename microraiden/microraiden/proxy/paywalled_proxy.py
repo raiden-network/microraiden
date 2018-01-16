@@ -5,7 +5,6 @@ from flask_restful import (
     Api,
 )
 
-from microraiden import config
 
 from microraiden.channel_manager import (
     ChannelManager
@@ -24,7 +23,7 @@ from microraiden.proxy.resources import (
 )
 
 from microraiden.proxy.resources.expensive import LightClientProxy
-from microraiden.config import API_PATH
+from microraiden.constants import API_PATH, HTML_DIR, JSLIB_DIR, JSPREFIX_URL
 from microraiden.proxy.resources.paywall_decorator import Paywall
 
 
@@ -45,15 +44,15 @@ class PaywalledProxy:
         #  this doesn't work atm, due to test teardown problems
         #  it's not a critical error, but it should be fixed
         #  gevent.get_hub().SYSTEM_ERROR += (BaseException, )
-        paywall_html_dir = paywall_html_dir or config.HTML_DIR
-        paywall_js_dir = paywall_js_dir or config.JSLIB_DIR
+        paywall_html_dir = paywall_html_dir or HTML_DIR
+        paywall_js_dir = paywall_js_dir or JSLIB_DIR
         assert isinstance(channel_manager, ChannelManager)
         assert isinstance(paywall_html_dir, str)
 
         if not flask_app:
             self.app = Flask(
                 __name__,
-                static_url_path=config.JSPREFIX_URL,
+                static_url_path=JSPREFIX_URL,
                 static_folder=paywall_js_dir
             )
         else:

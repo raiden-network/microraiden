@@ -32,7 +32,7 @@ from microraiden.exceptions import (
     InvalidContractVersion,
     NoBalanceProofReceived,
 )
-from microraiden.config import CHANNEL_MANAGER_CONTRACT_VERSION
+from microraiden.constants import CHANNEL_MANAGER_CONTRACT_VERSION
 from .state import ChannelManagerState
 from .blockchain import Blockchain
 from .channel import Channel, ChannelState

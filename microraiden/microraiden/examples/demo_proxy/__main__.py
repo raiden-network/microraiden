@@ -4,7 +4,7 @@ import logging
 from flask import send_file
 
 from microraiden.click_helpers import main, pass_app
-from microraiden.config import TKN_DECIMALS
+from microraiden.constants import TKN_DECIMALS
 from microraiden.examples.demo_resources import (
     PaywalledDoggo,
     PaywalledFortune,

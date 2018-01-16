@@ -13,7 +13,8 @@ from microraiden.utils import (
     create_signed_contract_transaction
 )
 
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, WEB3_PROVIDER_DEFAULT
+import microraiden.config as config
+from microraiden.constants import WEB3_PROVIDER_DEFAULT
 from microraiden.client.context import Context
 from microraiden.client.channel import Channel
 
@@ -45,7 +46,7 @@ class Client:
             web3 = Web3(HTTPProvider(WEB3_PROVIDER_DEFAULT))
 
         channel_manager_address = (
-            channel_manager_address or CHANNEL_MANAGER_ADDRESS[web3.version.network]
+            channel_manager_address or config.CHANNEL_MANAGER_ADDRESS
         )
 
         self.context = Context(private_key, web3, channel_manager_address)

@@ -14,7 +14,7 @@ from microraiden.exceptions import (
     InvalidBalanceAmount,
     InsufficientConfirmations
 )
-import microraiden.config as config
+import microraiden.constants as constants
 from functools import wraps
 from eth_utils import is_address
 
@@ -106,7 +106,7 @@ class Paywall(object):
     def access(self, resource, method, *args, **kwargs):
         if self.channel_manager.node_online() is False:
             return "Ethereum node is not responding", 502
-        if self.channel_manager.get_eth_balance() < config.PROXY_BALANCE_LIMIT:
+        if self.channel_manager.get_eth_balance() < constants.PROXY_BALANCE_LIMIT:
             return "Channel manager ETH balance is below limit", 502
         try:
             data = RequestData(request.headers, request.cookies)
@@ -224,7 +224,7 @@ class Paywall(object):
         assert price > 0
         """Generate basic headers that are sent back for every request"""
         headers = {
-            header.GATEWAY_PATH: config.API_PATH,
+            header.GATEWAY_PATH: constants.API_PATH,
             header.RECEIVER_ADDRESS: self.receiver_address,
             header.CONTRACT_ADDRESS: self.contract_address,
             header.TOKEN_ADDRESS: self.channel_manager.get_token_address(),
