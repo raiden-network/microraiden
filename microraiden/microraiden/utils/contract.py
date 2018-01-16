@@ -22,12 +22,14 @@ def create_signed_transaction(
         value: int=0,
         data=b'',
         nonce_offset: int = 0,
-        gas_price: int = NETWORK_CFG.GAS_PRICE,
+        gas_price: Union[int, None] = None,
         gas_limit: int = NETWORK_CFG.POT_GAS_LIMIT
 ) -> str:
     """
     Creates a signed on-chain transaction compliant with EIP155.
     """
+    if gas_price is None:
+        gas_price = NETWORK_CFG.GAS_PRICE
     tx = create_transaction(
         web3=web3,
         from_=privkey_to_addr(private_key),
@@ -49,9 +51,11 @@ def create_transaction(
         data: bytes = b'',
         nonce_offset: int = 0,
         value: int = 0,
-        gas_price: int = NETWORK_CFG.GAS_PRICE,
+        gas_price: Union[int, None] = None,
         gas_limit: int = NETWORK_CFG.POT_GAS_LIMIT
 ) -> Transaction:
+    if gas_price is None:
+        gas_price = NETWORK_CFG.GAS_PRICE
     nonce = web3.eth.getTransactionCount(from_, 'pending') + nonce_offset
     tx = Transaction(nonce, gas_price, gas_limit, to, value, data)
     tx.sender = decode_hex(from_)
@@ -65,12 +69,14 @@ def create_signed_contract_transaction(
         args: List[Any],
         value: int=0,
         nonce_offset: int = 0,
-        gas_price: int = NETWORK_CFG.GAS_PRICE,
+        gas_price: Union[int, None] = None,
         gas_limit: int = NETWORK_CFG.GAS_LIMIT
 ) -> str:
     """
     Creates a signed on-chain contract transaction compliant with EIP155.
     """
+    if gas_price is None:
+        gas_price = NETWORK_CFG.GAS_PRICE
     tx = create_contract_transaction(
         contract=contract,
         from_=privkey_to_addr(private_key),
@@ -92,9 +98,11 @@ def create_contract_transaction(
         args: List[Any],
         value: int = 0,
         nonce_offset: int = 0,
-        gas_price: int = NETWORK_CFG.GAS_PRICE,
+        gas_price: Union[int, None] = None,
         gas_limit: int = NETWORK_CFG.GAS_LIMIT
 ) -> Transaction:
+    if gas_price is None:
+        gas_price = NETWORK_CFG.GAS_PRICE
     data = create_transaction_data(contract, func_name, args)
     return create_transaction(
         web3=contract.web3,

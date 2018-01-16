@@ -25,7 +25,8 @@ NetworkConfig = partial(
 NETWORK_CONFIG_DEFAULTS = {
     1: NetworkConfig(
         channel_manager_address='0x0',
-        start_sync_block=0
+        start_sync_block=0,
+        gas_price=50 * denoms.gwei
     ),
     3: NetworkConfig(
         channel_manager_address='0x161a0d7726EB8B86EB587d8BD483be1CE87b0609',
@@ -43,13 +44,14 @@ class NetworkRuntime:
         super().__setattr__('cfg', None)
 
     def set_defaults(self, network_id: int):
-        super().__setattr__('cfg', NETWORK_CONFIG_DEFAULTS[network_id])
+        cfg_copy = dict(NETWORK_CONFIG_DEFAULTS[network_id]._asdict())
+        super().__setattr__('cfg', cfg_copy)
 
     def __getattr__(self, attr):
-        return self.cfg.__getattribute__(attr.lower())
+        return self.cfg.__getitem__(attr.lower())
 
     def __setattr__(self, attr, value):
-        return self.cfg.__setattribute__(attr.lower(), value)
+        return self.cfg.__setitem__(attr.lower(), value)
 
 
 def get_defaults(network_id: int):
