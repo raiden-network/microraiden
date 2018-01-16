@@ -171,6 +171,7 @@ def web3(use_tester: bool, faucet_private_key: str, faucet_address: str, mine_sy
     else:
         rpc = HTTPProvider(WEB3_PROVIDER_DEFAULT)
         web3 = Web3(rpc)
+        NETWORK_CFG.set_defaults(int(web3.version.network))
 
     yield web3
 

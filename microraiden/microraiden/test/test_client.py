@@ -29,6 +29,7 @@ def test_client(client: Client, receiver_address):
 
 def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
     c = client.get_suitable_channel(receiver_address, 3)
+    assert c is not None
     c.create_transfer(3)
 
     assert c.deposit >= 3
@@ -47,6 +48,7 @@ def test_cooperative_close(client: Client, receiver_privkey, receiver_address):
 
 def test_integrity(client: Client, receiver_address):
     c = client.get_suitable_channel(receiver_address, 5)
+    assert c is not None
     assert c.balance == 0
     assert c.balance_sig == sign_balance_proof(
         client.context.private_key,
@@ -76,6 +78,7 @@ def test_integrity(client: Client, receiver_address):
 
 def test_sync(client: Client, receiver_address, receiver_privkey):
     c = client.get_suitable_channel(receiver_address, 5, initial_deposit=lambda x: x)
+    assert c is not None
     assert c in client.channels
     assert c.deposit == 5
     assert len(client.channels) == 1
@@ -87,6 +90,7 @@ def test_sync(client: Client, receiver_address, receiver_privkey):
 
     # Check if client handles topup events on sync.
     c_topup = client.get_suitable_channel(receiver_address, 7, topup_deposit=lambda x: 2)
+    assert c is not None
     assert c_topup == c
     assert len(client.channels) == 1
     assert c.deposit == 7
@@ -117,6 +121,7 @@ def test_open_channel_insufficient_tokens(client: Client, web3: Web3, receiver_a
 def test_topup_channel_insufficient_tokens(client: Client, web3: Web3, receiver_address: str):
     balance_of = client.context.token.call().balanceOf(client.context.address)
     channel = client.open_channel(receiver_address, 1)
+    assert channel is not None
 
     tx_count_pre = web3.eth.getTransactionCount(client.context.address)
     assert channel.topup(balance_of) is None
