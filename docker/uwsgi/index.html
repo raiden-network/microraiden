@@ -1,73 +1,94 @@
 <head>
-  <title>µRaiden demo</title>
+  <title style="margin-top: font-color: black">µRaiden demos</title>
 
+  <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
+  <script type="text/javascript" src="js/microraiden.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
   <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-exp.min.css">
   <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
+  <link id=​"favicon" rel=​"shortcut icon" type=​"image/​png" href=​"data:​image/​png;​base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAACMuAAAjLgAAAAAAAAAAAAAAAAAA////AP///0n////58/Py/2traf+ysrH/+/v7///////////////////////////5////Sf///wAAAAAAAAAAAP///wD///9J////+fT09P8/Pzz/FxcU/3t7ev/l5eT/////////////////////+f///0n///8AAAAAAAAAAAD///8A////Sf////n09PT/QEA+/wICAP8FBQP/Pj48/9vb2/////////////////n///9J////AAAAAAAAAAAA////AP///0n////59PT0/0BAPv8EBAH/BAQB/z4+PP/q6ur////////////////5////Sf///wAAAAAAAAAAAP///wD///9J////+fT09P9AQD7/AwMA/w4OC/+rq6r/////////////////////+f///0n///8AAAAAAAAAAAD///8A////Sf////n09PT/QEA+/wAAAP9TU1H/9PT0//////////////////////n///9J////AAAAAAAAAAAA////AP///0n////59PT0/z8/Pf8TExD/v7++///////8/Pz/8fHx//Dw8P/w8PD58PDwSfDw8AAAAAAAAAAAAP///wD///9J////+fT09P89PTv/ZWVj//v7+v//////3d3c/0lJRv84ODb/OTk3+Tw8Okk7OzkAAAAAAAAAAAD///8A////Sf////ny8vL/WlpY/83NzP///////////8XFxP8QEA3/AwMA/wgIBfklJSNJGxsZAAAAAAAAAAAA////AP///0n////58/Pz/7e3t//7+/v///////////+VlZP/BwcE/wYGA/8aGhf5eXl3SWhoZwAAAAAAAAAAAP///wD///9J////+f7+/v/7+/v////////////w8PD/RkZE/wQEAf8EBAH/Pz89+dbW1UnQ0M8AAAAAAAAAAAD///8A////Sf////n/////////////////////mpqZ/wwMCf8GBgP/BgYD/4eHhfn///9J/f39AAAAAAAAAAAA////AP///0n////5////////////////v7++/yIiH/8FBQL/BQUC/ygoJf/Z2dj5////Sf///wAAAAAAAAAAAP///wD///9J////+f/////+/v7/uLi3/yoqJ/8EBAH/BwcE/wgIBf+Ojoz/////+f///0n///8AAAAAAAAAAAD///8A////Sf////nq6ur/iYmH/xsbGP8EBAH/BwcE/wUFAv9YWFb/8PDv//////n///9J////AAAAAAAAAAAA6+vrAPHx8Um4uLf5SEhG/wkJBv8GBgP/CAgF/wYGA/83NzT/2dnZ///////////5////Sf///wAAAAAAwAMAAMADAADAAwAAwAMAAMADAADAAwAAwAMAAMADAADAAwAAwAMAAMADAADAAwAAwAMAAMADAADAAwAAwAMAAA==">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-91465549-9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-91465549-9');
+  </script>
+  <style>
+    img.grayscale {
+      filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale"); /* Firefox 3.5+ */
+      filter: gray; /* IE6-9 */
+      -webkit-filter: grayscale(100%); /* Chrome 19+ & Safari 6+ */
+    }
+    img.grayscale:hover {
+      filter: none;
+      -webkit-filter: grayscale(0%);
+    }
+    a.btn.btn-primary {
+      background: #a3a3a3;
+      border-color: #a3a3a3;
+      color: #fff;
+    }
+    a.btn.btn-primary:hover {
+      background: #777777;
+      border-color: #707070;
+      color: #fff;
+    }
+    p {
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+    h5 {
+      margin-bottom: 5px;
+    }
+    h3 {
+      color: #50596C;
+    }
+    img {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container" id="content">
+<div class="container" style="margin-top: 50px;" id="content">
   <div class="columns">
-    <div class="column col-6 col-mx-auto">
-        <h1>µRaiden demo</h1>
+    <div class="column col-9 col-mx-auto">
+        <h1>µRaiden Demos</h1>
     </div>
   </div>
-
   <div class="columns">
-  <div class="column col-6 col-mx-auto" id="description">
+  <div style="margin-top: 10px" class="column col-9 col-mx-auto" id="description">
     <h5>1. Install Web3 browser extension</h5>
-    <p>This allows you to access the Ethereum networks. Use <a href="https://metamask.io/">Metamask</a> or <a href="https://chrome.google.com/webstore/detail/parity-ethereum-integrati/himekenlppkgeaoeddcliojfddemadig">Parity</a> - works in Chrome and Firefox</p>
-    <h5>2. Get some Ropsten Testnet Ether (For free!)</h5>
-    <p>Try <a href="http://faucet.ropsten.be:3001/">some</a> <a href="https://faucet.metamask.io/">faucets</a></p>
-    <h5>3. Buy µRaiden demo tokens with your ether</h5>
-    <p>You can buy some when you first access the resource.</p>
-    <h5>4. Access the content</h5>
-    <p>And thanks for coming!</p>
+    <p><a style="color: #a3a3a3" href="https://metamask.io/">Metamask</a> and <a style="color: #a3a3a3" href="https://chrome.google.com/webstore/detail/parity-ethereum-integrati/himekenlppkgeaoeddcliojfddemadig">Parity</a> allow you to access the Ethereum DApps, in both Chrome and Firefox.</p>
+    <h5>2. Get some Kovan Testnet Ether</h5>
+    <p>Paste your ETH address in the <a style="color: #a3a3a3" href="https://gitter.im/kovan-testnet/faucet">Kovan gitter</a> or try <a style="color: #a3a3a3" href="https://github.com/kovan-testnet/faucet">other faucets.</a></p>
+    <h5>3. Enter the demo</h5>
+    <p>Open Metamask on the Ethereum Kovan testnet and test µRaiden.</p>
   </div>
   </div>
-
-
   <div class="columns">
-    <div class="column col-4 col-ml-auto">
-      <div class="empty">
-        <div class="empty-icon">
-          <i class="icon icon-people"></i>
-        </div>
-        <p class="empty-title h5">Buy fortune cookie</p>
-        <p class="empty-subtitle">(words of wisdom, English)</p>
-        <div class="empty-action">
-          <a class="btn btn-primary" id="fortunes_en" href="/fortunes_en">Buy (1 TKN)</a>
-        </div>
+    <div class="column col-5 col-mr-auto col-ml-auto">
+      <div class="empty" style="padding: 32px">
+        <h3>Pay-per-View</h3>
+        <p class="empty-subtitle">Access online content through micropayments</p>
+        <a id="wiki" href="https://wikidemo.micro.raiden.network/wiki/">
+          <img class="grayscale" src="../static/wikiscreen.jpg" width="100%" height="auto">
+        </a>
       </div>
     </div>
-    <div class="column col-4 col-mr-auto">
-      <div class="empty">
-        <div class="empty-icon">
-          <i class="icon icon-emoji"></i>
-        </div>
-        <p class="empty-title h5">Buy fortune cookie</p>
-        <p class="empty-subtitle">(words of wisdom, Chinese)</p>
-        <div class="empty-action">
-          <a class="btn btn-primary" id="fortunes_cn" href="/fortunes_cn">Buy (1 TKN)</a>
-        </div>
-      </div>
-    </div>
-    <div class="column col-4 col-mr-auto">
-      <div class="empty">
-        <div class="empty-icon">
-          <i class="icon icon-bookmark"></i>
-        </div>
-        <p class="empty-title h5">Access Wikipaydia</p>
-        <p class="empty-subtitle">(paywalled proxy for Wikipedia)</p>
-        <div class="empty-action">
-          <a class="btn btn-primary" id="wiki" href="//wikidemo.micro.raiden.network/wiki/">Wiki (1 TKN)</a>
-        </div>
+    <div class="column col-5 col-mr-auto">
+      <div class="empty" style="padding: 32px">
+        <h3>Fortune Cookie Demo
+          <a class="btn btn-primary" id="fortunes_cn" style="margin-top: -5; margin-left: 20px;" href="https://demo.micro.raiden.network/fortunes_cn">中文</a>
+        </h3>
+        <p class="empty-subtitle">Words of wisdom</p>
+        <a id="fortunes_en" href="https://demo.micro.raiden.network/fortunes_en">
+            <img class="grayscale" src="../static/fortune cookie 1.jpg" width="100%" height="auto">
+        </a>
       </div>
     </div>
   </div>
 </div>
-
 </body>
-
-
