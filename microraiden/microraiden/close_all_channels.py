@@ -67,11 +67,6 @@ def main(
 
     receiver_address = privkey_to_addr(private_key)
 
-    if not state_file:
-        state_file_name = "%s_%s.json" % (channel_manager_address[:10], receiver_address[:10])
-        app_dir = click.get_app_dir('microraiden')
-        state_file = os.path.join(app_dir, state_file_name)
-
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     NETWORK_CFG.set_defaults(int(web3.version.network))
     web3.eth.defaultAccount = receiver_address
@@ -79,6 +74,17 @@ def main(
         channel_manager_address or NETWORK_CFG.channel_manager_address
     )
     channel_manager_contract = make_channel_manager_contract(web3, channel_manager_address)
+
+    if not state_file:
+        state_file_name = "%s_%s.db" % (
+            channel_manager_address[:10],
+            receiver_address[:10]
+        )
+        app_dir = click.get_app_dir('microraiden')
+        if not os.path.exists(app_dir):
+            click.echo('No state file or directory found!')
+            sys.exit(1)
+        state_file = os.path.join(app_dir, state_file_name)
 
     try:
         click.echo('Loading state file from {}'.format(state_file))
