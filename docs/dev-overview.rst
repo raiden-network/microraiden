@@ -2,27 +2,21 @@ Development overview
 ########################################
 
 .. toctree::
-  :maxdepth: 2
-
-µRaiden
-=======
+  :maxdepth: 4 
 
 µRaiden components overview. ! Some parts might be outdated.
 
--  `HTTP Request and Response
-   Headers <#http-request-and-response-headers>`__
--  `Exceptions <#exceptions>`__
--  `Off-Chain Messages <#off-chain-messages>`__
--  `Proxy <#proxy>`__
--  `Python Client <#python-client>`__
--  `Web Client <#web-client>`__
--  `Smart Contract <#smart-contract>`__
 
-HTTP Request and Response Headers
----------------------------------
+HTTP Headers
+-----------------------------------
 
-Encoding: \* ``address`` ``0x`` prefixed hex encoded \* ``uint``
-``[0-9]`` \* ``bytes`` ``0x`` prefixed hex encoded
+Encoding: 
+
+.. TODO: find out int-size, add address fixed size, if relevant  
+
+-  ``address``:  ``0x`` prefixed hex encoded 
+-  ``uint``: ``[0-9]`` 
+-  ``bytes``: ``0x`` prefixed hex encoded
 
 Response Headers
 ~~~~~~~~~~~~~~~~
@@ -136,8 +130,7 @@ Micropayment Sequence
 ~~~~~~~~~~~~~~~~~~~~~
 
 (not-so-standard sequence diagram) For a better overview, also check out
-how the smart contract does a transfer validation:
-`/contracts/README.md#generating-and-validating-a-transfer </contracts/README.md#generating-and-validating-a-transfer>`__
+how the smart contract does a :ref:`balance-proof validation <contract-validate-balance-proof>`.
 
 .. figure:: /diagrams/OffChainSequence.png
    :alt: 
@@ -146,8 +139,7 @@ Channel Closing Sequence
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 For a better overview, also check out how the smart contract does a
-closing signature validation:
-`/contracts/README.md#generating-and-validating-a-closing-agreement </contracts/README.md#generating-and-validating-a-closing-agreement>`__
+:ref:`closing signature validation <contract-validate-close>`.
 
 .. figure:: /diagrams/OffChainSequenceClosing.png
    :alt: 
@@ -174,9 +166,10 @@ Python Client
    :alt: 
 
 Web Client
-----------
+-----------
+For an overview of development regarding the smart contracts, please refer to the :doc:`jsclient/index` documentation.
 
 Smart Contract
---------------
+---------------
+For an overview of development regarding the smart contracts, please refer to the :ref:`Smart Contract API <contract-development>` documentation.
 
-`/contracts/README.md </contracts/README.md>`__

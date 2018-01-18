@@ -12,13 +12,14 @@ Contents
 =========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 2 
    :caption: Contents:
 
-   dev_overview
+   dev-overview
    proxy-tutorial
    rest-api
-   diagrams/diagrams_source
+   jsclient/index
+   contract/index 
 
 Indices and tables
 ==================

@@ -27,8 +27,8 @@ Initialization
 --------------
 
 For initialization you will have to supply the following parameters:
-  - The private key of the account receiving the payments (to extract it from a keystore file you can use MyEtherWallet's "View Wallet Info" functionality).
-  - A file in which the proxy stores off-chain balance proofs. Set this to a path writable by the user that starts the server.
+  - The **private** key of the account receiving the payments (to extract it from a keystore file you can use MyEtherWallet's "View Wallet Info" functionality).
+  - A **file** in which the proxy stores off-chain balance proofs. Set this to a path writable by the user that starts the server.
 
 .. code:: python
 
