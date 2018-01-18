@@ -24,13 +24,17 @@ NetworkConfig = partial(
 # network-specific configuration
 NETWORK_CONFIG_DEFAULTS = {
     1: NetworkConfig(
-        channel_manager_address='0x0',
-        start_sync_block=0,
-        gas_price=50 * denoms.gwei
+        channel_manager_address='0x4d6e0922e6b703f0fdf92745343a9b83eb656402',
+        start_sync_block=4651176,
+        gas_price=20 * denoms.gwei
     ),
     3: NetworkConfig(
         channel_manager_address='0x161a0d7726EB8B86EB587d8BD483be1CE87b0609',
         start_sync_block=2400640
+    ),
+    4: NetworkConfig(
+        channel_manager_address='0x568a0d52a173f584d4a286a22b2a876911079e15',
+        start_sync_block=1338285
     ),
     42: NetworkConfig(
         channel_manager_address='0xB9721dF0e024114e7B25F2cF503d8CBE3D52b400',
