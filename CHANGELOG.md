@@ -2,6 +2,25 @@
 
 ## Development
 * Added this changelog. #356
+* Updated documentation of a µRaiden quickstart in README.md. #342
+* Fixed an outdated usage of `web3.currentProvider`. #341
+* Added server logging messages to failed payment attempts. #340
+* Added JS/TS library tests to travis execution.
+* Fixed an outdated dependency issue concerning `eth-tester`. #336
+* Added a hint on how to install µRaiden using `pip install -e`. #335
+* Implemented contract refactoring in Python client code. #332
+* Updated `populus` and `web3` libraries to newer versions. #327
+* Significantly improved test coverage of JS/TS client libraries. #326
+* Contract refactoring. #325
+* Added functionality to allow receivers to withdraw tokens from a channel without closing it. #324
+* Added functionality to allow trusted delegate contracts to open and top up channels on behalf of the sender. #322
+* Fixed the badly maintained echo example and added a new test to make sure it remains functional. #318
+* Adopted contract refactoring, including new closing messages, in Python code. #317
+* Implemented new, safer contract closing signature in JS/TS client. #315
+* Added utility functions for hierarchical popping of function `kwargs` used in passing arguments through to `requests.Session`. #312
+* Improved code quality, coverage, and speed of contract tests. #310
+* Moved the demo from Kovan to Ropsten, aligned the Docker build with the main demos, purged a lot of static files, and fixed an issue where a proxy would not allow multiple resources of the same class. #308
+* Fixed an issue where proxy resource headers would be overridden by default headers. #305
 * Added channel state recovery and contract verification to the web UI client. #301
 * Error responses in a `Session` object are now returned by the request call. #300
 * Updated demos to use the new paywalled flask resources API. #298
