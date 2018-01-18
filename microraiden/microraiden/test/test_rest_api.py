@@ -4,7 +4,7 @@ import json
 import gevent
 
 from eth_utils import is_same_address
-from microraiden.config import API_PATH
+from microraiden.constants import API_PATH
 from microraiden.proxy.paywalled_proxy import PaywalledProxy
 
 

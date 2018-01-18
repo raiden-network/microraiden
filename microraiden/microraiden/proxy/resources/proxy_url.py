@@ -5,7 +5,7 @@ import requests
 import logging
 from flask import Response, stream_with_context, request
 
-from microraiden.config import MICRORAIDEN_DIR
+from microraiden.constants import MICRORAIDEN_DIR
 
 log = logging.getLogger(__name__)
 

@@ -20,7 +20,7 @@ from microraiden.utils import (
     create_signed_transaction,
     get_private_key
 )
-from microraiden.config import GAS_PRICE, POT_GAS_LIMIT
+from microraiden.config import NETWORK_CFG
 from microraiden.test.config import (
     RECEIVER_ETH_ALLOWANCE,
     RECEIVER_TOKEN_ALLOWANCE,
@@ -168,14 +168,14 @@ def sweep_account(
             assert token_contract.call().balanceOf(address) == 0
 
     balance = web3.eth.getBalance(address)
-    if balance < POT_GAS_LIMIT * GAS_PRICE:
+    if balance < NETWORK_CFG.POT_GAS_LIMIT * NETWORK_CFG.GAS_PRICE:
         return
     tx = create_signed_transaction(
         private_key,
         web3,
         to=faucet_address,
-        value=balance - POT_GAS_LIMIT * GAS_PRICE,
-        gas_limit=POT_GAS_LIMIT
+        value=balance - NETWORK_CFG.POT_GAS_LIMIT * NETWORK_CFG.GAS_PRICE,
+        gas_limit=NETWORK_CFG.POT_GAS_LIMIT
     )
     tx_hash = web3.eth.sendRawTransaction(tx)
     wait_for_transaction(tx_hash)

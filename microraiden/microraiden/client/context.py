@@ -1,6 +1,6 @@
 from web3 import Web3
 
-from microraiden.config import CONTRACT_METADATA, TOKEN_ABI_NAME, CHANNEL_MANAGER_ABI_NAME
+from microraiden.constants import CONTRACT_METADATA, TOKEN_ABI_NAME, CHANNEL_MANAGER_ABI_NAME
 from microraiden.utils import privkey_to_addr
 
 

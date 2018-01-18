@@ -5,7 +5,13 @@ from ethereum.tester import keys
 import os
 import json
 from microraiden.utils import privkey_to_addr
-from microraiden.config import CONTRACTS_ABI_JSON, CHANNEL_MANAGER_ABI_NAME, TOKEN_ABI_NAME
+from microraiden.config import NETWORK_CFG
+from microraiden.constants import (
+    CONTRACTS_ABI_JSON,
+    CHANNEL_MANAGER_ABI_NAME,
+    TOKEN_ABI_NAME,
+    get_network_id
+)
 
 
 @pytest.fixture
@@ -25,7 +31,10 @@ def proxy_ssl_certs(test_dir):
 
 @pytest.fixture(scope='session')
 def use_tester(request):
-    return request.config.getoption('use_tester')
+    is_tester = request.config.getoption('use_tester')
+    if is_tester is True:
+        NETWORK_CFG.set_defaults(get_network_id('ethereum-tester'))
+    return is_tester
 
 
 @pytest.fixture(scope='session')

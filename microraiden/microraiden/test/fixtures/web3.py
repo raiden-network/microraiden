@@ -14,7 +14,8 @@ from web3 import Web3, EthereumTesterProvider
 from web3.contract import Contract
 from web3.providers.rpc import HTTPProvider
 
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, WEB3_PROVIDER_DEFAULT
+from microraiden.config import NETWORK_CFG
+from microraiden.constants import WEB3_PROVIDER_DEFAULT
 from microraiden.utils import (
     addr_from_sig,
     keccak256,
@@ -73,7 +74,7 @@ def token_address(
     else:
         channel_manager = web3.eth.contract(
             abi=channel_manager_abi,
-            address=CHANNEL_MANAGER_ADDRESS[web3.version.network]
+            address=NETWORK_CFG.CHANNEL_MANAGER_ADDRESS
         )
         return channel_manager.call().token()
 
@@ -112,7 +113,7 @@ def channel_manager_address(
         )
         return contract.address
     else:
-        return CHANNEL_MANAGER_ADDRESS[web3.version.network]
+        return NETWORK_CFG.CHANNEL_MANAGER_ADDRESS
 
 
 @pytest.fixture(scope='session')
@@ -170,6 +171,7 @@ def web3(use_tester: bool, faucet_private_key: str, faucet_address: str, mine_sy
     else:
         rpc = HTTPProvider(WEB3_PROVIDER_DEFAULT)
         web3 = Web3(rpc)
+        NETWORK_CFG.set_defaults(int(web3.version.network))
 
     yield web3
 

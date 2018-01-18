@@ -3,6 +3,9 @@ from gevent import monkey
 monkey.patch_all(thread=False) # thread is false due to clash when testing both contract/microraiden modules
 import logging
 import os
+import microraiden.config as config
+
+config.START_SYNC_BLOCK = 0
 
 # to disable annoying 'test.rpc eth_getBlockNumber' message
 logging.getLogger('testrpc.rpc').setLevel(logging.WARNING)

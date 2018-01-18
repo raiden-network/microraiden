@@ -10,7 +10,8 @@ from web3 import Web3, HTTPProvider
 
 from microraiden.channel_manager import ChannelManager
 from microraiden.make_helpers import make_channel_manager
-from microraiden.config import CHANNEL_MANAGER_ADDRESS, WEB3_PROVIDER_DEFAULT
+from microraiden.constants import WEB3_PROVIDER_DEFAULT
+from microraiden.config import NETWORK_CFG
 from microraiden.proxy import PaywalledProxy
 from microraiden.proxy.resources import Expensive
 from microraiden.utils import get_private_key
@@ -62,9 +63,10 @@ def run(
     #  - file for storing state information (balance proofs)
     if channel_manager is None:
         web3 = Web3(HTTPProvider(WEB3_PROVIDER_DEFAULT))
+        NETWORK_CFG.set_defaults(web3.version.network)
         channel_manager = make_channel_manager(
             private_key,
-            CHANNEL_MANAGER_ADDRESS[web3.version.network],
+            NETWORK_CFG.CHANNEL_MANAGER_ADDRESS,
             state_file_path,
             web3
         )

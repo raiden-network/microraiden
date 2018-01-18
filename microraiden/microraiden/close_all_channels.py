@@ -15,10 +15,9 @@ from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 from web3.exceptions import BadFunctionCallOutput
 
-from microraiden import (
-    config,
-    utils,
-)
+from microraiden.constants import WEB3_PROVIDER_DEFAULT
+from microraiden.config import NETWORK_CFG
+from microraiden import utils
 from microraiden.channel_manager import ChannelManagerState
 from microraiden.utils import create_signed_contract_transaction, privkey_to_addr, sign_close
 from microraiden.exceptions import StateFileException
@@ -30,7 +29,7 @@ log = logging.getLogger('close_all_channels')
 @click.command()
 @click.option(
     '--rpc-provider',
-    default=config.WEB3_PROVIDER_DEFAULT,
+    default=WEB3_PROVIDER_DEFAULT,
     help='Address of the Ethereum RPC provider'
 )
 @click.option(
@@ -74,9 +73,10 @@ def main(
         state_file = os.path.join(app_dir, state_file_name)
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
+    NETWORK_CFG.set_defaults(int(web3.version.network))
     web3.eth.defaultAccount = receiver_address
     channel_manager_address = (
-        channel_manager_address or config.CHANNEL_MANAGER_ADDRESS[web3.version.network]
+        channel_manager_address or NETWORK_CFG.channel_manager_address
     )
     channel_manager_contract = make_channel_manager_contract(web3, channel_manager_address)
 
