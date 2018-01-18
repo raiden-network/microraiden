@@ -1,7 +1,20 @@
 # Changelog
 
 ## Development
+* Fixed an issue caused by the contract version check including the maintenance number. #368
+* `setup.py` now also performs npm compilation. #366
+* README.md and diagrams were updated. #364
+* Block syncing is now performed from a hard-coded block number instead of the genesis block. #362
+* Fixed the creation of a channel manager without a contract address via click helpers. #361
+* Added more documentation and updated metadata in the µRaiden web client. #360
+* Fixed author and email information in pypi metadata. #359
+* Some tests are automatically skipped on Travis CI. #358
 * Added this changelog. #356
+* Added support for `make npm`. #352
+* Added support for checksummed addresses in the contract deploy script. #351
+* Python tests can now be run on any real Ethereum network, e.g. Ropsten. #347
+* Added support for checksummed addresses in the echo server example. #346
+* Updated outdates usage of `web3`'s `RPCProvider. #343
 * Updated documentation of a µRaiden quickstart in README.md. #342
 * Fixed an outdated usage of `web3.currentProvider`. #341
 * Added server logging messages to failed payment attempts. #340
