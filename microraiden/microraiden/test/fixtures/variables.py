@@ -33,7 +33,7 @@ def proxy_ssl_certs(test_dir):
 def use_tester(request):
     is_tester = request.config.getoption('use_tester')
     if is_tester is True:
-        NETWORK_CFG.set_defaults(get_network_id('mainnet'))
+        NETWORK_CFG.set_defaults(get_network_id('ethereum-tester'))
     return is_tester
 
 

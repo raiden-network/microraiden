@@ -53,7 +53,9 @@ NETWORK_NAMES = {
     42: 'kovan',
     61: 'etc-main',
     62: 'etc-test',
-    1337: 'geth'
+    1337: 'geth',
+
+    65536: 'ethereum-tester'
 }
 
 

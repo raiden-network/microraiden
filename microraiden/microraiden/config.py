@@ -39,6 +39,10 @@ NETWORK_CONFIG_DEFAULTS = {
     42: NetworkConfig(
         channel_manager_address='0xB9721dF0e024114e7B25F2cF503d8CBE3D52b400',
         start_sync_block=5230017
+    ),
+    65536: NetworkConfig(
+        channel_manager_address='0x0',
+        start_sync_block=0
     )
 }
 
@@ -55,6 +59,8 @@ class NetworkRuntime:
         return self.cfg.__getitem__(attr.lower())
 
     def __setattr__(self, attr, value):
+        if attr == 'cfg':
+            return super().__setattr__('cfg', value)
         return self.cfg.__setitem__(attr.lower(), value)
 
 
