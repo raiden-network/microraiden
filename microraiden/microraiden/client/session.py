@@ -148,8 +148,8 @@ class Session(requests.Session):
                     **kwargs
                 )
 
-            elif HTTPHeaders.INSUF_FUNDS in response.headers:
-                return response, self.on_insufficient_funds(method, url, response, **kwargs)
+            elif HTTPHeaders.INVALID_PROOF in response.headers:
+                return response, self.on_invalid_balance_proof(method, url, response, **kwargs)
 
             elif HTTPHeaders.CONTRACT_ADDRESS not in response.headers or not is_same_address(
                 response.headers.get(HTTPHeaders.CONTRACT_ADDRESS),
@@ -193,9 +193,10 @@ class Session(requests.Session):
         time.sleep(self.retry_interval)
         return True
 
-    def on_insufficient_funds(self, method: str, url: str, response: Response, **kwargs) -> bool:
+    def on_invalid_balance_proof(self, method: str, url: str, response: Response, **kwargs) -> bool:
         log.warning(
-            'Server was unable to verify the transfer - Insufficient funds of the balance proof '
+            'Server was unable to verify the transfer - Either the balance was greater than deposit'
+            'or the balance proof contained a lower balance than expected'
             'or possibly an unconfirmed or unregistered topup. Retrying in {} seconds.'
         )
         time.sleep(self.retry_interval)

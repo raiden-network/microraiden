@@ -624,7 +624,7 @@ def test_error_handling(
         headers = [headers.copy() for _ in range(5)]
         headers[1][HTTPHeaders.NONEXISTING_CHANNEL] = '1'
         headers[2][HTTPHeaders.INSUF_CONFS] = '1'
-        headers[3][HTTPHeaders.INSUF_FUNDS] = '1'
+        headers[3][HTTPHeaders.INVALID_PROOF] = 1
         headers[4][HTTPHeaders.CONTRACT_ADDRESS] = '0x' + '12' * 20
 
         url = 'http://{}/something'.format(api_endpoint_address)
