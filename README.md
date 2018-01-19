@@ -1,5 +1,7 @@
 # µRaiden [![Build Status](https://api.travis-ci.org/raiden-network/microraiden.svg)](https://travis-ci.org/raiden-network/microraiden)
 
++[![Join the chat at https://gitter.im/raiden-network/microraiden](https://badges.gitter.im/raiden-network/microraiden.svg)](https://gitter.im/raiden-network/microraiden?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
+
 
 µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.
 
