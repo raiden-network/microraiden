@@ -7,22 +7,52 @@ Welcome to microraiden's documentation!
 =======================================
 
 
-Contents
-=========
+What is microraiden?
+--------------------
 
 .. toctree::
    :maxdepth: 2 
-   :caption: Contents:
 
+   introduction
+
+Guide
+--------------------
+
+.. toctree::
+   :maxdepth: 2 
+
+   quick-start
+   installation
    proxy-tutorial
-   rest-api
+
+Development
+--------------------
+
+.. toctree::
+   :maxdepth: 2 
+
    dev-overview
+   rest-api
+   api-reference
+
+JavaScript library
+--------------------
+
+.. toctree::
+   :maxdepth: 2 
+
    jsclient/index
+
+Smart Contract  
+--------------------
+
+.. toctree::
+   :maxdepth: 2 
+
    contract/index 
-   api/microraiden
 
 Indices and tables
-==================
+--------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
