@@ -17,7 +17,6 @@ class HTTPHeaders(object):
     OPEN_BLOCK = 'RDN-Open-Block'
 
 # errors
-    INSUF_FUNDS = 'RDN-Insufficient-Funds'
     INSUF_CONFS = 'RDN-Insufficient-Confirmations'
     NONEXISTING_CHANNEL = 'RDN-Nonexisting-Channel'
     INVALID_PROOF = 'RDN-Invalid-Balance-Proof'
