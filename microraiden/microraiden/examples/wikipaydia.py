@@ -1,3 +1,4 @@
+"""Paywalled wikipedia - example of the PaywalledProxyUrl class"""
 import click
 
 from microraiden.click_helpers import main, pass_app

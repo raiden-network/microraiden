@@ -1,3 +1,6 @@
+"""A very basic demonstration of usage of the Proxy.
+You can use this as a template for your own app.
+"""
 import click
 import os
 import logging

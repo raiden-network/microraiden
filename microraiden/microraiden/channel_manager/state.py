@@ -1,3 +1,4 @@
+"""Off-chain state is saved in a sqlite database."""
 # import json
 # import shutil
 import sqlite3
@@ -16,6 +17,7 @@ log = logging.getLogger(__name__)
 
 
 def dict_factory(cursor, row):
+    """make sqlite result a dict with keys being column names"""
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
@@ -123,7 +125,9 @@ class ChannelManagerState(object):
         if filename not in (None, ':memory:'):
             os.chmod(filename, 0o600)
 
-    def setup_db(self, network_id, contract_address, receiver):
+    def setup_db(self, network_id: int, contract_address: str, receiver: str):
+        """Initialize an empty database."""
+        assert is_address(receiver)
         self.conn.executescript(DB_CREATION_SQL)
         self.conn.execute(UPDATE_METADATA_SQL, [network_id, contract_address, receiver])
         self.conn.commit()
@@ -148,7 +152,7 @@ class ChannelManagerState(object):
 
     @property
     def network_id(self):
-        """The receiver address."""
+        """Network the state uses."""
         c = self.conn.cursor()
         c.execute('SELECT `network_id` FROM `metadata`;')
         network_id = c.fetchone()['network_id']
@@ -188,7 +192,7 @@ class ChannelManagerState(object):
         return self._sync_state['unconfirmed_head_number']
 
     @unconfirmed_head_number.setter
-    def unconfirmed_head_number(self, value):
+    def unconfirmed_head_number(self, value: int):
         self.update_sync_state(unconfirmed_head_number=value)
 
     @property
@@ -197,7 +201,7 @@ class ChannelManagerState(object):
         return self._sync_state['unconfirmed_head_hash']
 
     @unconfirmed_head_hash.setter
-    def unconfirmed_head_hash(self, value):
+    def unconfirmed_head_hash(self, value: int):
         self.update_sync_state(unconfirmed_head_hash=value)
 
     def update_sync_state(
@@ -224,18 +228,21 @@ class ChannelManagerState(object):
 
     @property
     def n_channels(self):
+        """Return count of all channels, regardless of their state"""
         c = self.conn.cursor()
         c.execute('SELECT COUNT(*) as count FROM `channels`')
         return c.fetchone()['count']
 
     @property
     def n_open_channels(self):
+        """Return count of open channels"""
         c = self.conn.cursor()
         c.execute('SELECT COUNT(*) as count FROM `channels` WHERE `state` = ?',
                   [ChannelState.OPEN.value])
         return c.fetchone()['count']
 
     def get_channels(self, confirmed=True):
+        """Get list of channels"""
         ret = dict()
         c = self.conn.cursor()
         c.execute('SELECT rowid, * FROM `channels` WHERE `confirmed` = ?', [confirmed])
@@ -254,6 +261,7 @@ class ChannelManagerState(object):
 
     @property
     def pending_channels(self):
+        """Get list of channels in a CLOSE_PENDING state"""
         ret = dict()
         c = self.conn.cursor()
         c.execute('SELECT rowid, * FROM `channels` WHERE `state` = ?',
@@ -263,7 +271,7 @@ class ChannelManagerState(object):
             ret[result['sender'], result['open_block_number']] = channel
         return ret
 
-    def result_to_channel(self, result):
+    def result_to_channel(self, result: dict):
         """Helper function to serialize one row of `channels` table into a channel object
         """
         channel = Channel(self.receiver, result['sender'],
@@ -288,15 +296,17 @@ class ChannelManagerState(object):
         )
         return result.fetchone()['rowid']
 
-    def get_unconfirmed_topups(self, channel_rowid):
+    def get_unconfirmed_topups(self, channel_rowid: int):
         c = self.conn.cursor()
         c.execute('SELECT * FROM topups WHERE channel_rowid = ?', [channel_rowid])
         return {result['txhash']: result['deposit'] for result in c.fetchall()}
 
-    def set_channel(self, channel):
+    def set_channel(self, channel: Channel):
+        """Update channel state"""
         self.add_channel(channel)
 
-    def channel_exists(self, sender, open_block_number):
+    def channel_exists(self, sender: str, open_block_number: int):
+        """Return true if channel(sender, open_block_number) exists"""
         c = self.conn.cursor()
         sql = 'SELECT 1 FROM `channels` WHERE `sender` = ? AND `open_block_number` == ?'
         c.execute(sql, [sender, open_block_number])
@@ -314,7 +324,8 @@ class ChannelManagerState(object):
             self.conn.execute('INSERT OR REPLACE INTO topups VALUES (?, ?, ?)',
                               [channel_rowid, txhash, str(deposit)])
 
-    def add_channel(self, channel):
+    def add_channel(self, channel: Channel):
+        """Add or update channel state"""
         assert channel.open_block_number > 0
         assert channel.state is not ChannelState.UNDEFINED
         assert is_address(channel.sender)
@@ -335,7 +346,7 @@ class ChannelManagerState(object):
         self.set_unconfirmed_topups(rowid, channel.unconfirmed_topups)
         self.conn.commit()
 
-    def get_channel(self, sender, open_block_number):
+    def get_channel(self, sender: str, open_block_number: int):
         assert is_address(sender)
         assert open_block_number > 0
         # TODO unconfirmed topups
