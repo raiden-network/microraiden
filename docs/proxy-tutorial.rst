@@ -35,7 +35,7 @@ For initialization you will have to supply the following parameters:
     from microraiden.make_helpers import make_paywalled_proxy
     app = make_paywalled_proxy(private_key, state_file_name)
 
-:py:meth:`~microraiden.make_helpers.make_paywalled_proxy` is a helper that handles the setup of the channel manager 
+:py:meth:`~microraiden.make_helpers.make_paywalled_proxy` is a helper that handles the setup of the channel manager
 and returns a :py:class:`~microraiden.proxy.paywalled_proxy.PaywalledProxy` instance.
 Microraiden also includes other helpers that parse common commandline options. We are not using them in this example - for a quick overview how to use them, 
 refer to i.e. :py:meth:`~microraiden.examples.demo_proxy.__main__`

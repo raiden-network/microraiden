@@ -21,6 +21,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../microraiden'))
+# sys.path.insert(0, os.path.abspath('../microraiden/microraiden/'))
+# print(os.path.abspath('../microraiden/microraiden/'))
 
 from recommonmark.parser import CommonMarkParser
 
@@ -35,13 +37,13 @@ from recommonmark.parser import CommonMarkParser
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
+#    'sphinx.ext.viewcode',
+#    'sphinx.ext.napoleon',
 ]
 
-
+autodoc_mock_imports = ["requests"]
 # configure napoleon for Google style docstrings
-napoleon_google_docstring = True
+#napoleon_google_docstring = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
