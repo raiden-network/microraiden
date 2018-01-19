@@ -193,9 +193,16 @@ class Session(requests.Session):
         time.sleep(self.retry_interval)
         return True
 
-    def on_invalid_balance_proof(self, method: str, url: str, response: Response, **kwargs) -> bool:
+    def on_invalid_balance_proof(
+        self,
+        method: str,
+        url: str,
+        response: Response,
+        **kwargs
+    ) -> bool:
         log.warning(
-            'Server was unable to verify the transfer - Either the balance was greater than deposit'
+            'Server was unable to verify the transfer - '
+            'Either the balance was greater than deposit'
             'or the balance proof contained a lower balance than expected'
             'or possibly an unconfirmed or unregistered topup. Retrying in {} seconds.'
         )

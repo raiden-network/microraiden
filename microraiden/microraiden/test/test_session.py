@@ -605,8 +605,8 @@ def test_error_handling(
     ).start()
     insufficient_funds_mock = mock.patch.object(
         session,
-        'on_insufficient_funds',
-        wraps=session.on_insufficient_funds
+        'on_invalid_balance_proof',
+        wraps=session.on_invalid_balance_proof
     ).start()
     invalid_contract_address_mock = mock.patch.object(
         session,
@@ -624,7 +624,7 @@ def test_error_handling(
         headers = [headers.copy() for _ in range(5)]
         headers[1][HTTPHeaders.NONEXISTING_CHANNEL] = '1'
         headers[2][HTTPHeaders.INSUF_CONFS] = '1'
-        headers[3][HTTPHeaders.INVALID_PROOF] = 1
+        headers[3][HTTPHeaders.INVALID_PROOF] = '1'
         headers[4][HTTPHeaders.CONTRACT_ADDRESS] = '0x' + '12' * 20
 
         url = 'http://{}/something'.format(api_endpoint_address)

@@ -1,9 +1,7 @@
 import logging
-from werkzeug.datastructures import EnvironHeaders
 from flask import Response, make_response, request
 from microraiden import HTTPHeaders as header
 from flask_restful.utils import unpack
-from eth_utils import to_checksum_address
 
 from microraiden.channel_manager import (
     ChannelManager,
@@ -15,78 +13,11 @@ from microraiden.exceptions import (
     InsufficientConfirmations
 )
 import microraiden.constants as constants
+from microraiden.proxy.resources.request_data import RequestData
 from functools import wraps
 from eth_utils import is_address
 
 log = logging.getLogger(__name__)
-
-
-class RequestData:
-    def __init__(self, headers, cookies=None):
-        """parse a flask request object and check if the data received are valid"""
-        assert isinstance(headers, EnvironHeaders)
-        self.check_headers(headers)
-        if cookies:
-            self.check_cookies(cookies)
-
-    def check_cookies(self, cookies):
-        if header.BALANCE_SIGNATURE in cookies:
-            self.balance_signature = cookies.get(header.BALANCE_SIGNATURE)
-        if header.OPEN_BLOCK in cookies:
-            self.open_block_number = int(cookies.get(header.OPEN_BLOCK))
-        if header.SENDER_BALANCE in cookies:
-            self.balance = int(cookies.get(header.SENDER_BALANCE))
-        if header.SENDER_ADDRESS in cookies:
-            self.sender_address = to_checksum_address(cookies.get(header.SENDER_ADDRESS))
-
-    def check_headers(self, headers):
-        """Check if headers sent by the client are valid"""
-        price = headers.get(header.PRICE, None)
-        contract_address = headers.get(header.CONTRACT_ADDRESS, None)
-        receiver_address = headers.get(header.RECEIVER_ADDRESS, None)
-        sender_address = headers.get(header.SENDER_ADDRESS, None)
-        payment = headers.get(header.PAYMENT, None)
-        balance_signature = headers.get(header.BALANCE_SIGNATURE, None)
-        open_block = headers.get(header.OPEN_BLOCK, None)
-        balance = headers.get(header.BALANCE, None)
-        if price:
-            price = int(price)
-        if open_block:
-            open_block = int(open_block)
-        if balance:
-            balance = int(balance)
-        if price and price < 0:
-            raise ValueError("Price must be >= 0")
-        if contract_address:
-            if not is_address(contract_address):
-                raise ValueError("Invalid contract address")
-            else:
-                contract_address = to_checksum_address(contract_address)
-        if receiver_address:
-            if not is_address(receiver_address):
-                raise ValueError("Invalid receiver address")
-            else:
-                receiver_address = to_checksum_address(receiver_address)
-        if sender_address:
-            if not is_address(sender_address):
-                raise ValueError("Invalid sender address")
-            else:
-                sender_address = to_checksum_address(sender_address)
-        if payment and not isinstance(payment, int):
-            raise ValueError("Payment must be an integer")
-        if open_block and open_block < 0:
-            raise ValueError("Open block must be >= 0")
-        if balance and balance < 0:
-            raise ValueError("Balance must be >= 0")
-
-        self.price = price
-        self.contract_address = contract_address
-        self.receiver_address = receiver_address
-        self.payment = payment
-        self.balance_signature = balance_signature
-        self.sender_address = sender_address
-        self.open_block_number = open_block
-        self.balance = balance
 
 
 class Paywall(object):
