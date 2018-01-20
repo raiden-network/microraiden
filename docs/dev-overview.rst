@@ -1,22 +1,12 @@
-Development overview
+Components overview
 ########################################
 
 .. toctree::
-  :maxdepth: 4 
-
-µRaiden components overview. ! Some parts might be outdated.
+  :maxdepth: 4
 
 
 HTTP Headers
 -----------------------------------
-
-Encoding: 
-
-.. TODO: find out int-size, add address fixed size, if relevant  
-
--  ``address``:  ``0x`` prefixed hex encoded 
--  ``uint``: ``[0-9]`` 
--  ``bytes``: ``0x`` prefixed hex encoded
 
 Response Headers
 ~~~~~~~~~~~~~~~~
@@ -24,67 +14,70 @@ Response Headers
 200 OK
 ^^^^^^
 
-+------------------------+-----------+---------------------------------------------+
-|       Headers          |   Type    |   Description                               |
-+========================+===========+=============================================+
-| RDN-Gateway-Path       | bytes     | Path root of the channel management app     |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Cost               | uint      | Cost of the payment                         |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Contract-Address   | address   | Address of MicroTransferChannels contract   |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Receiver-Address   | address   | Address of the Merchant                     |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Sender-Address     | address   | Address of the Client                       |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Sender-Balance     | uint      | Balance of the Channel                      |
-+------------------------+-----------+---------------------------------------------+
++------------------------+-----------+-------------------------------------------------+
+|       Headers          |   Type    |   Description                                   |
++========================+===========+=================================================+
+| RDN-Gateway-Path       | bytes     | Path root of the channel management app         |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Receiver-Address   | address   | Address of the Merchant                         |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Contract-Address   | address   | Address of RaidenMicroTransferChannels contract |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Token-Address      | address   | Address of the Token contract                   |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Price              | uint      | Resource price                                  |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Sender-Address     | address   | Address of the Client                           |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Sender-Balance     | uint      | Balance of the Channel                          |
++------------------------+-----------+-------------------------------------------------+
 
 402 Payment Required
 ^^^^^^^^^^^^^^^^^^^^
 
-+------------------------+-----------+---------------------------------------------+
-|       Headers          |   Type    |   Description                               |
-+========================+===========+=============================================+
-| RDN-Gateway-Path       | bytes     | Path root of the channel management app     |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Price              | uint      | The price of answering the request          |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Contract-Address   | address   | Address of MicroTransferChannels contract   |
-+------------------------+-----------+---------------------------------------------+
-| RDN-Receiver-Address   | address   | Address of the Merchant                     |
-+------------------------+-----------+---------------------------------------------+
++------------------------+-----------+-------------------------------------------------+
+|       Headers          |   Type    |   Description                                   |
++========================+===========+=================================================+
+| RDN-Gateway-Path       | bytes     | Path root of the channel management app         |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Receiver-Address   | address   | Address of the Merchant                         |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Contract-Address   | address   | Address of RaidenMicroTransferChannels contract |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Token-Address      | address   | Address of the Token contract                   |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Price              | uint      | Resource price                                  |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Sender-Address     | address   | Address of the Client                           |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Sender-Balance     | uint      | Balance of the Channel                          |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Balance-Signature  | bytes     | Optional. Last saved balance proof from the     |
+|                        |           | sender.                                         |
++------------------------+-----------+-------------------------------------------------+
+|                        |           | **+ one of the following:**                     |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Insufficient-Conf  | uint      | Failure - not enough confirmations after the    |
+| irmations              |           | channel creation. Client should wait and retry. |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Nonexisting-Channel| string    | Failure - channel does not exist or was closed. |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Invalid-Balance-   | uint      | Failure - Balance must not be greater than      |
+| Proof                  |           | deposit or The balance must not decrease.       |
++------------------------+-----------+-------------------------------------------------+
+| RDN-Invalid-Amount     | uint      | Failure - wrong payment value                   |
++------------------------+-----------+-------------------------------------------------+
 
-402 Payment Required (non accepted RDN-Balance-Signature )
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------------------+----------+-------------------------------------------+
-|       Headers         |   Type   |   Description                             |
-+=======================+==========+===========================================+
-| RDN-Gateway-Path      | bytes    | Path root of the channel management app   |
-+-----------------------+----------+-------------------------------------------+
-| RDN-Price             | uint     | The price of answering the request        |
-+-----------------------+----------+-------------------------------------------+
-| RDN-Contract-Address  | address  | Address of MicroTransferChannels contract |
-+-----------------------+----------+-------------------------------------------+
-| RDN-Receiver-Address  | address  | Address of the Merchant                   |
-+-----------------------+----------+-------------------------------------------+
-| RDN-Sender-Address    | address  | Address of the Client                     |
-+-----------------------+----------+-------------------------------------------+
-| RDN-Sender-Balance    | uint     | Balance of the Channel                    |
-+-----------------------+----------+-------------------------------------------+
-| RDN-Insufficient-Fund | uint     | Failure - either Payment value too low or |
-| s                     |          | balance exceeds deposit                   |
-+-----------------------+----------+-------------------------------------------+
-| RDN-Insufficient-Conf | uint     | Failure - not enough confirmations after  |
-| irmations             |          | the channel creation. Client should wait  |
-|                       |          | and retry.                                |
-+-----------------------+----------+-------------------------------------------+
-
-4xx / 5xx Errors
+409
 ^^^^^^^^^^^^^^^^
 
-Refund.
+- ValueError
+
+502
+^^^^^^^^^^^^^^^^
+
+- Ethereum node is not responding
+- Channel manager ETH balance is below limit
 
 Request Headers
 ~~~~~~~~~~~~~~~
@@ -109,25 +102,8 @@ Request Headers
 |                       |          | required for unique identification        |
 +-----------------------+----------+-------------------------------------------+
 
-Exceptions
-----------
-
-::
-
-
-    InvalidBalanceAmount
-    InvalidBalanceProof
-    NoOpenChannel
-    InsufficientConfirmations
-    NoBalanceProofReceived
-    StateContractAddrMismatch
-    StateReceiverAddrMismatch
-
-Off-Chain Messages
-------------------
-
-Micropayment Sequence
-~~~~~~~~~~~~~~~~~~~~~
+Off-Chain Micropayment Sequence
+-------------------------------
 
 (not-so-standard sequence diagram) For a better overview, also check out
 how the smart contract does a :ref:`balance-proof validation <contract-validate-balance-proof>`.
@@ -135,17 +111,10 @@ how the smart contract does a :ref:`balance-proof validation <contract-validate-
 .. figure:: /diagrams/OffChainSequence.png
    :alt: 
 
-Channel Closing Sequence
-~~~~~~~~~~~~~~~~~~~~~~~~
+µRaiden Server
+--------------
 
-For a better overview, also check out how the smart contract does a
-:ref:`closing signature validation <contract-validate-close>`.
-
-.. figure:: /diagrams/OffChainSequenceClosing.png
-   :alt: 
-
-Proxy
------
+Non-detailed components overview. For function arguments and types, please check source code and docstrings.
 
 Channel manager
 ~~~~~~~~~~~~~~~
@@ -153,11 +122,11 @@ Channel manager
 .. figure:: /diagrams/ChannelManagerClass.png
    :alt: 
 
-Paywalled Proxy
+Proxy
 ~~~~~~~~~~~~~~~
 
-.. figure:: /diagrams/PaywalledProxyClass.png
-   :alt: 
+.. figure:: /diagrams/ProxyClass.png
+   :alt:
 
 Python Client
 -------------
@@ -167,9 +136,8 @@ Python Client
 
 Web Client
 -----------
-For an overview of development regarding the smart contracts, please refer to the :doc:`jsclient/index` documentation.
+For an overview of the web client, please refer to the :doc:`jsclient/index` documentation.
 
 Smart Contract
 ---------------
-For an overview of development regarding the smart contracts, please refer to the :ref:`Smart Contract API <contract-development>` documentation.
-
+For an overview of the RaidenMicroTransferChannels smart contract, please refer to the :ref:`Smart Contract API <contract-development>` documentation.

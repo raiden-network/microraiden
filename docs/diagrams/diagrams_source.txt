@@ -1,0 +1,664 @@
+Diagrams source code is compatible with:
+http://www.nomnoml.com/
+https://bramp.github.io/js-sequence-diagrams/
+
+
+# RDNMicroTransferChannels
+
+
+## Off-chain
+
+## Off-chain micropayment
+
+```sequence
+
+participant Sender
+participant WebApp
+participant Proxy
+
+Sender -> WebApp: request paywalled content
+WebApp -> Proxy: request paywalled content
+Proxy -> WebApp: serve paywall UI
+Proxy -> Proxy: RDN-Balance-Signature \n not set
+
+Note left of WebApp: STATE 402
+Proxy -> WebApp: HTTP 402 PaymentRequired
+WebApp -> WebApp: LocalStorage \n check if channel exists
+Note over WebApp: channel found (sender, receiver, block)
+
+WebApp->Sender: paywall UI
+Sender -> WebApp: Buy resource
+Note over WebApp: get balance proof hash \n from RaidenMicroTransferChannels \n contract
+
+WebApp -> Sender: Ask for balance proof hash signing
+Sender -> WebApp: Sign balance proof
+WebApp -> Proxy: set HTTP headers \n RDN-Open-Block \n RDN-Sender-Balance \n RDN-Balance-Signature
+
+Proxy -> ChannelManager: verify balance proof
+ChannelManager -> ChannelManager: crypto.py \n verify_balance_proof
+
+
+Note over Proxy, ChannelManager: Exception
+ChannelManager -> Proxy: Insufficient confirmations
+Proxy -> WebApp: HTTP 402 PaymentRequired
+Note left of WebApp: STATE 402
+
+Note over Proxy, ChannelManager: Exception
+ChannelManager -> Proxy: Channel does not exist
+Proxy -> WebApp: HTTP 402 PaymentRequired
+Note left of WebApp: STATE 402
+
+Note over ChannelManager,Proxy: channel found
+Proxy -> ChannelManager: register_payment(receiver, block, \n balance, balance signature)
+
+Note over Proxy, ChannelManager: Exception
+ChannelManager -> Proxy: Invalid balance amount
+Proxy -> WebApp: HTTP 402 PaymentRequired
+Note left of WebApp: STATE 402
+
+Note over Proxy, ChannelManager: Exception
+ChannelManager -> Proxy: Invalid balance proof
+Proxy -> WebApp: HTTP 402 PaymentRequired
+Note left of WebApp: STATE 402
+
+Note over ChannelManager,Proxy: balance proof OK \n payment registered
+Note left of WebApp: STATE 200
+Proxy -> WebApp: Serve premium content
+WebApp -> Sender: Premium content
+
+
+
+```
+
+
+
+## Channel Manager
+
+
+
+```uml
+
+#fill: #ffffff
+
+
+
+[Blockchain
+	|
+	web3
+	channel_manager_contract: address
+	cm: ChannelManager
+	n_confirmations
+	log: logger
+	wait_sync_event: gevent.event.Event
+	is_connected: gevent.event.Event
+	sync_chunk_size
+	sync_start_block
+	running: bool
+	insufficient_balance: bool
+
+	|
+	_run()
+	stop()
+	wait_sync()
+	_update()
+]
+
+[ChannelState
+	|
+    OPEN = 0
+    CLOSED = 1
+    CLOSE_PENDING = 2
+    UNDEFINED = 100
+]
+
+
+[ChannelManagerState
+	|
+	filename
+	conn
+	contract_address
+	receiver
+	network_id
+	_sync_state
+	confirmed_head_number
+	confirmed_head_hash
+	unconfirmed_head_number
+	unconfirmed_head_hash
+	n_channels
+	n_open_channels
+	channels
+	unconfirmed_channels
+	pending_channels
+	|
+	setup_db()
+	update_sync_state()
+	get_channels()
+	result_to_channel()
+	get_channel_rowid()
+	get_unconfirmed_topups()
+	set_channel()
+	channel_exists()
+	set_unconfirmed_topups()
+	add_channel()
+	get_channel()
+	del_channel()
+	load()
+	del_unconfirmed_channels()
+	set_channel_state()
+]
+
+[ChannelManager
+	|
+	Manages channels from the receiver's point of view.
+	|
+	receiver
+	private_key
+	channel_manager_contract
+	token_contract
+	n_confirmations
+	log
+	state
+	lock_state
+	channels
+	unconfirmed_channels
+	pending_channels
+	|
+	_run()
+	stop()
+	set_head()
+	event_channel_opened()
+	unconfirmed_event_channel_opened()
+	event_channel_close_requested()
+	event_channel_settled()
+	unconfirmed_event_channel_topup()
+	event_channel_topup()
+	close_channel()
+	force_close_channel()
+	sign_close()
+	get_locked_balance()
+	get_liquid_balance()
+	get_eth_balance()
+	verify_balance_proof()
+	register_payment()
+	reset_unconfirmed()
+	channels_to_dict()
+	unconfirmed_channels_to_dict()
+	wait_sync()
+	node_online()
+	get_token_address()
+	check_contract_version()
+	close_pending_channels()
+]
+
+[Channel
+	|
+	receiver
+	sender
+	deposit
+	open_block_number
+	balance
+	state
+	last_signature
+	settle_timeout
+	ctime
+	mtime
+	confirmed
+	unconfirmed_topups
+	is_closed
+	unconfirmed_deposit
+	|
+	from_dict(state: dict)
+]
+
+[ChannelManager]+->[Blockchain]
+[ChannelManager]+->[ChannelManagerState]
+[ChannelManager]+->[Channel]
+[Channel]->[ChannelState]
+
+```
+
+
+
+## Proxy
+
+
+```uml
+
+#fill: #ffffff
+
+
+
+
+
+[PaywalledProxy
+	|
+	app
+	api: Api (Flask)
+	rest_server: WSGIServer
+	server_greenlet
+	channel_manager: ChannelManager
+	light_client_proxy
+	|
+	run()
+	stop()
+	join()
+	gevent_error_handler()
+	add_paywalled_resource()
+]
+
+[ChannelManagementRoot
+  |
+  get()
+]
+
+[ChannelManagementListChannels
+	|
+	channel_manager
+	|
+	get_all_channels()
+	get_channel_filter()
+	get_channel_status()
+	get(sender_address)
+	delete(sender_address)
+]
+
+[ChannelManagementAdmin
+	|
+	channel_manager: ChannelManager
+	|
+	get()
+]
+
+[ChannelManagementChannelInfo
+	|
+	channel_manager
+	|
+	get(sender_address,opening_block)
+	delete(sender_address,opening_block)
+]
+
+[ChannelManagementStats
+	|
+	channel_manager: ChannelManager
+	|
+	get()
+
+]
+
+[ChannelManagementAdminChannels
+	|
+	channel_manager: ChannelManager
+	|
+	delete()
+
+]
+
+
+
+[PaywalledProxyUrl
+	|
+	path
+	price
+	get_fn
+	|
+	get(request)
+]
+
+[Paywall
+	|
+	contract_address
+	receiver_address
+	channel_manager
+	light_client_proxy
+	|
+	access()
+	paywall_check()
+	generate_headers()
+	reply_webui()
+]
+
+
+[RequestData
+	|
+	contract_address
+	receiver_address
+	sender_address
+	open_block_number
+	balance
+	balance_signature
+	payment
+	price
+	|
+	check_cookies(cookies)
+	check_headers(headers)
+]
+
+[LightClientProxy
+	|
+	data
+	|
+	get(url)
+]
+
+[Expensive
+	|
+	contract_address
+	receiver_address
+	channel_manager: Channel Manager
+	light_client_proxy
+	_price
+	paywall
+	|
+	get_paywall()
+	price()
+
+]
+
+
+[TokenAccess
+	|
+	token
+	time_created
+	time_accessed
+	user
+]
+
+[UsersDB
+	|
+	users
+	tokens
+	token_expiry_seconds
+	|
+	add_user()
+	del_user()
+	authorize()
+	verify_token()
+	remove_token()
+	get_token()
+]
+[ChannelManagementLogin
+	|
+	get()
+]
+[ChannelManagementLogout
+	|
+	get()
+]
+
+
+
+[Paywall]->[RequestData]
+
+[PaywalledProxy]+->[ChannelManagementListChannels]
+[PaywalledProxy]+->[ChannelManagementChannelInfo]
+[PaywalledProxy]+->[ChannelManagementStats]
+[PaywalledProxy]+->[ChannelManagementAdmin]
+[PaywalledProxy]+->[ChannelManagementAdminChannels]
+[PaywalledProxy]+->[ChannelManagementRoot]
+[PaywalledProxy]+->[ChannelManagementLogin]
+[PaywalledProxy]+->[ChannelManagementLogout]
+
+[PaywalledProxy]+->[Paywall]
+[PaywalledProxy]+->[LightClientProxy]
+[PaywalledProxy]+->[Expensive]
+
+[Expensive]+->[Paywall]
+[Expensive]+->[LightClientProxy]
+
+[Expensive]<:-[PaywalledProxyUrl]
+
+[UsersDB]+-> 0...*[TokenAccess]
+[ChannelManagementLogin]->[UsersDB]
+[ChannelManagementLogout]->[UsersDB]
+
+
+```
+
+
+
+
+```uml
+
+#fill: #ffffff
+
+[Exception]<:-[InvalidBalanceAmount]
+[Exception]<:-[InvalidBalanceProof]
+[Exception]<:-[NoOpenChannel]
+[Exception]<:-[InsufficientConfirmations]
+[Exception]<:-[NoBalanceProofReceived]
+[Exception]<:-[StateContractAddrMismatch]
+[Exception]<:-[StateReceiverAddrMismatch]
+
+
+
+```
+
+
+## Python Client
+
+
+```uml
+
+#fill: #ffffff
+
+
+
+[Client
+	|
+	channels
+	context
+	|
+	sync_channels()
+	get_channel(event)
+	open_channel(receiver, deposit)
+	get_open_channels(receiver)
+	get_suitable_channel()
+]
+
+[Channel
+	|
+	core
+	sender
+	receiver
+	deposit
+	block
+	update_balance
+	balance
+	balance_sig
+	state
+	on_settle
+	|
+	sign()
+	topup(deposit)
+	close(balance)
+	close_cooperatively(closing_sig)
+	settle()
+	create_transfer(value)
+]
+
+[Context
+	|
+	private_key
+	address
+	web3
+	channel_manager: ChannelManager
+	token
+]
+
+
+[Session
+	|
+	channel: Channel
+	endpoint_url
+	client: Client
+	retry_interval
+	initial_deposit
+	topup_deposit
+	close_channel_on_exit
+	|
+	close()
+	request()
+	close_channel()
+	_request_resource()
+	on_nonexisting_channel()
+	on_payment_requested()
+	on_http_error()
+	on_exit()
+	on_success()
+	on_http_response()
+]
+
+[Session]+->[Client]
+[Session]+->[Channel]
+[Client]+->0..*[Channel]
+[Client]+->[Context]
+
+
+```
+
+
+
+## RaidenMicroTransferChannels Smart Contract
+
+
+## Channel Cycle
+
+
+
+```uml
+
+#fill: #ffffff
+
+[RaidenMicroTransferChannels |
+  [<start>start]->[<state>Sender wants Channel with Receiver]
+  [<state>Sender wants Channel with Receiver]->[<state>Transfer Sender tokens to Contract]
+  [<state>Transfer Sender tokens to Contract]->[<state>Channel created ; (sender, receiver, open_block_number)]
+
+  [<state>Channel created ; (sender, receiver, open_block_number)]->[<state>Off-Chain transfers enabled]
+
+ [<state>Off-Chain transfers enabled]->[<choice>Party ; wants to close ; Channel]
+
+
+
+  [<choice>Party ; wants to close ; Channel]->[<state>Sender]
+
+  [<choice>Party ; wants to close ; Channel]->[<state>Receiver]
+
+  [<choice>Party ; wants to close ; Channel]->[<state>Delegate]
+
+  [<state>Receiver]->[<state>cooperativeClose]
+  [<state>Delegate]->[<state>cooperativeClose]
+
+  [<state>cooperativeClose]->[<state>settleChannel private]
+
+  [<state>Sender ; called CLOSE]->[<choice>Balance ; signed by Sender + ; Receiver?]
+
+
+   [<choice>Balance ; signed by Sender + ; Receiver?]->1[<state>cooperativeClose]
+
+   [<choice>Balance ; signed by Sender + ; Receiver?]->0[<state>uncooperativeClose]
+
+   [<state>uncooperativeClose]->[Non Cooperative Case |
+   	[<start>start]->[<state>Challenge period start; settle_block_number]
+   	[<state>Challenge period start; settle_block_number]->[<choice>Challenge ; period pending ; ?]
+
+	[<choice>Challenge ; period pending ; ?]->0[<state>Challenge period ended]
+	[<choice>Challenge ; period pending ; ?]->1[<state>Challenge period]
+
+  	[<state>Challenge period ended]->[<choice>Sender ; calls settle or Receiver calls  ; cooperativeClose?]
+	[<state>Challenge period]->[<choice>Receiver calls ; cooperativeClose?]
+
+	[<choice>Sender ; calls settle or Receiver calls  ; cooperativeClose?]->1[<end>end]
+	[<choice>Receiver calls ; cooperativeClose?]->1[<end>end]
+
+	[<choice>Receiver calls ; cooperativeClose?]->0[<choice>Challenge ; period pending ; ?]
+	[<choice>Sender ; calls settle or Receiver calls  ; cooperativeClose?]->0[<choice>Sender ; calls settle or Receiver calls  ; cooperativeClose?]
+
+   ]
+
+  [Non Cooperative Case]->[<state>settleChannel private]
+
+  [<state>settleChannel private]->[<state>Receiver gets balance]
+  [<state>Receiver gets balance]->[<state>Sender gets deposit-balance]
+  [<state>Sender gets deposit-balance]->[<state>Channel closed]
+
+
+  [<state>Channel closed]->[<end>end]
+]
+
+```
+
+
+
+### Opening a transfer channel ERC223
+
+
+```sequence
+
+Sender -> WebApp: Open Channel with Receiver, \n deposit = 10
+WebApp -> Token: transfer \n (ChannelsContract, 10, data)
+Token -> ChannelsContract: tokenFallback \n (sender, 10, data)
+Note over ChannelsContract: receiver address \n from data
+ChannelsContract -> ChannelsContract: createChannelPrivate \n (sender, receiver, 10)
+Note over ChannelsContract: ChannelCreated
+ChannelsContract -> WebApp: ChannelCreated \n (sender, receiver, 10)
+
+```
+
+
+
+### Topping Up a channel ERC223
+
+
+```sequence
+
+Sender -> WebApp: Top Up Channel \n Receiver, open_block_number, \n add 10 tokens \n existing deposit = 20
+WebApp -> Token: transfer \n (ChannelsContract, 10, data)
+Note over Token: data = msg.data \n for topUp
+Token -> ChannelsContract: tokenFallback \n (sender, 10, data)
+Note over ChannelsContract: receiver address + open_block_number \n from data
+ChannelsContract -> ChannelsContract: topUpPrivate \n (sender, receiver, \n open_block_number, 10)
+Note over ChannelsContract: ChannelToppedUp
+ChannelsContract -> WebApp: ChannelToppedUp \n (sender, receiver, \n open_block_number, 10, 30)
+
+```
+
+
+
+
+### Opening a transfer channel ERC20
+
+
+
+
+```sequence
+
+Sender -> WebApp: Open Channel with Receiver, \n deposit = 10
+WebApp -> Token: approve \n (ChannelsContract, 10)
+WebApp -> ChannelsContract: createChannel \n (receiver, deposit)
+ChannelsContract -> Token: transferFrom \n (sender, contract, 10)
+Note over ChannelsContract,Token: ChannelCreated
+ChannelsContract -> WebApp: ChannelCreated \n (sender, receiver, 10)
+
+```
+
+
+
+### Topping Up a channel ERC20
+
+```sequence
+
+Sender -> WebApp: Top Up Channel \n Receiver, open_block_number, \n add 10 tokens \n existing deposit = 20
+WebApp -> Token: approve \n (ChannelsContract, 10)
+WebApp -> ChannelsContract: topUp \n (receiver, deposit)
+ChannelsContract -> Token: transferFrom \n (sender, contract, 10)
+Note over ChannelsContract,Token: ChannelToppedUp
+ChannelsContract -> WebApp: ChannelToppedUp \n (sender, receiver, \n open_block_number, 10, 30)
+
+```
+
+
+
+```uml
+http://localhost:3000/info.txt
+```
