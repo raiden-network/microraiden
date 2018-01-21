@@ -15,7 +15,7 @@ import distutils
 import os
 from setuptools import Command
 from setuptools.command.build_py import build_py
-from microraiden.config import MICRORAIDEN_VERSION
+from microraiden.constants import MICRORAIDEN_VERSION
 
 DESCRIPTION = 'µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.'
 

@@ -1,7 +1,7 @@
 import click
 
 from microraiden.click_helpers import main, pass_app
-from microraiden.config import TKN_DECIMALS
+from microraiden.constants import TKN_DECIMALS
 from microraiden.examples.demo_resources import PaywalledWikipedia
 
 
