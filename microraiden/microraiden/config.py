@@ -2,7 +2,6 @@ from eth_utils import denoms
 from collections import namedtuple, OrderedDict
 from functools import partial
 
-
 # these are default values for network config
 network_config_defaults = OrderedDict(
     (('channel_manager_address', None),
