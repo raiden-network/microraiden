@@ -1,3 +1,4 @@
+"""A simple client that displays status of a local proxy"""
 import requests
 import json
 import time

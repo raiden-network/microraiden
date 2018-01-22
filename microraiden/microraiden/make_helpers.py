@@ -1,3 +1,4 @@
+"""Helper functions to make initialization of the components simpler"""
 import sys
 import logging
 

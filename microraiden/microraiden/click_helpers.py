@@ -1,12 +1,19 @@
+"""Click option group that initializes the proxy. You can use this to setup your own app
+Example:
+    from microraiden.click_helpers import main, pass_app
+    @main.command()
+    @click.option('--my-option', default=True)
+    @pass_app
+    def start(app, my_option):
+        app.run()
+        app.join()
+    if __name_ == "__main__":
+        main()
+"""
 import click
 import os
 import sys
 from eth_utils import to_checksum_address
-#
-# Flask restarts itself when a file changes, but this restart
-#  does not have PYTHONPATH set properly if you start the
-#  app with python -m microraiden.
-#
 from microraiden.utils import privkey_to_addr
 import logging
 import requests
@@ -15,6 +22,11 @@ from gevent import sleep
 log = logging.getLogger(__name__)
 
 
+#
+# Flask restarts itself when a file changes, but this restart
+#  does not have PYTHONPATH set properly if you start the
+#  app with python -m microraiden.
+#
 if __package__ is None:
     path = os.path.dirname(os.path.dirname(__file__))
     sys.path.insert(0, path)

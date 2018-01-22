@@ -69,6 +69,7 @@ class Blockchain(gevent.Greenlet):
         self.running = False
 
     def wait_sync(self):
+        """Block until event polling is up-to-date with a most recent block of the blockchain"""
         self.wait_sync_event.wait()
 
     def _update(self):
@@ -290,6 +291,8 @@ class Blockchain(gevent.Greenlet):
             self.wait_sync_event.set()
 
     def insufficient_balance_recover(self):
+        """Recover from an insufficient balance state by closing
+        all pending channels if possible."""
         balance = self.web3.eth.getBalance(self.cm.receiver)
         if balance < PROXY_BALANCE_LIMIT:
             return

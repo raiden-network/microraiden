@@ -91,7 +91,13 @@ class PaywalledProxy:
                               resource_class_kwargs={'channel_manager': self.channel_manager})
         self.api.add_resource(ChannelManagementRoot, "/cm")
 
-    def run(self, host='localhost', port=5000, debug=False, ssl_context=None):
+    def run(self,
+            host: str='localhost',
+            port: int=5000, debug:
+            bool=False,
+            ssl_context: list=None
+            ):
+        """Start the proxy/WSGI server"""
         assert ssl_context is None or len(ssl_context) == 2
         # register our custom error handler to ignore some exceptions and fail on others
 #        register_error_handler(self.gevent_error_handler)
@@ -121,6 +127,7 @@ class PaywalledProxy:
         self.server_greenlet.join()
 
     def join(self):
+        """Block until server greenlet/Proxy stops"""
         try:
             self.server_greenlet.join()
         finally:

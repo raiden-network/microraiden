@@ -5,6 +5,7 @@ IGNORE_ERROR = Hub.SYSTEM_ERROR + Hub.NOT_ERROR
 
 
 def register_error_handler(error_handler):
+    """Replace gevent's error handler with a custom one"""
 
     Hub._origin_handle_error = Hub.handle_error
 

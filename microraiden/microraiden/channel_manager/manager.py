@@ -1,3 +1,4 @@
+"""Channel manager handles channel state changes on a low (blockchain) level."""
 import time
 
 import gevent
@@ -115,9 +116,15 @@ class ChannelManager(gevent.Greenlet):
             self.blockchain.stop()
             self.blockchain.join()
 
-    def set_head(self, unconfirmed_head_number, unconfirmed_head_hash,
-                 confirmed_head_number, confirmed_head_hash):
+    def set_head(self,
+                 unconfirmed_head_number: int,
+                 unconfirmed_head_hash: int,
+                 confirmed_head_number,
+                 confirmed_head_hash):
         """Set the block number up to which all events have been registered."""
+        assert unconfirmed_head_number > 0
+        assert confirmed_head_number > 0
+        assert confirmed_head_number < unconfirmed_head_number
         self.state.update_sync_state(unconfirmed_head_number=unconfirmed_head_number,
                                      unconfirmed_head_hash=unconfirmed_head_hash,
                                      confirmed_head_number=confirmed_head_number,
@@ -125,7 +132,7 @@ class ChannelManager(gevent.Greenlet):
 
     # relevant events from the blockchain for receiver from contract
 
-    def event_channel_opened(self, sender, open_block_number, deposit):
+    def event_channel_opened(self, sender: str, open_block_number: int, deposit: int):
         """Notify the channel manager of a new confirmed channel opening."""
         assert is_checksum_address(sender)
         if (sender, open_block_number) in self.channels:
@@ -136,9 +143,11 @@ class ChannelManager(gevent.Greenlet):
         self.log.info('new channel opened (sender %s, block number %s)', sender, open_block_number)
         self.state.set_channel(c)
 
-    def unconfirmed_event_channel_opened(self, sender, open_block_number, deposit):
+    def unconfirmed_event_channel_opened(self, sender: str, open_block_number: int, deposit: int):
         """Notify the channel manager of a new channel opening that has not been confirmed yet."""
         assert is_checksum_address(sender)
+        assert deposit >= 0
+        assert open_block_number > 0
         event_already_processed = (sender, open_block_number) in self.unconfirmed_channels
         channel_already_confirmed = (sender, open_block_number) in self.channels
         if event_already_processed or channel_already_confirmed:
@@ -150,8 +159,16 @@ class ChannelManager(gevent.Greenlet):
         self.log.info('unconfirmed channel event received (sender %s, block_number %s)',
                       sender, open_block_number)
 
-    def event_channel_close_requested(self, sender, open_block_number, balance, settle_timeout):
-        """Notify the channel manager that a the closing of a channel has been requested."""
+    def event_channel_close_requested(
+        self,
+        sender: str,
+        open_block_number: int,
+        balance: int,
+        settle_timeout: int
+    ):
+        """Notify the channel manager that a the closing of a channel has been requested.
+        Params:
+            settle_timeout (int):   settle timeout in blocks"""
         assert is_checksum_address(sender)
         assert settle_timeout >= 0
         if (sender, open_block_number) not in self.channels:
@@ -224,8 +241,12 @@ class ChannelManager(gevent.Greenlet):
 
     # end events ####
 
-    def close_channel(self, sender, open_block_number):
-        """Close and settle a channel."""
+    def close_channel(self, sender: str, open_block_number: int):
+        """Close and settle a channel.
+        Params:
+            sender (str):               sender address
+            open_block_number (int):    block the channel was open in
+        """
         assert is_checksum_address(sender)
         if not (sender, open_block_number) in self.channels:
             self.log.warning(
@@ -272,7 +293,7 @@ class ChannelManager(gevent.Greenlet):
             self.state.set_channel(c)
             raise
 
-    def force_close_channel(self, sender, open_block_number):
+    def force_close_channel(self, sender: str, open_block_number: int):
         """Forcibly remove a channel from our channel state"""
         assert is_checksum_address(sender)
         try:
@@ -283,8 +304,12 @@ class ChannelManager(gevent.Greenlet):
             c.is_closed = True
             self.state.set_channel(c)
 
-    def sign_close(self, sender, open_block_number, balance):
-        """Sign an agreement for a channel closing."""
+    def sign_close(self, sender: str, open_block_number: int, balance: int):
+        """Sign an agreement for a channel closing.
+        Returns:
+            channel close signature (str): a signature that can be used client-side to close
+            the channel by directly calling contract's close method on-chain.
+        """
         assert is_checksum_address(sender)
         if (sender, open_block_number) not in self.channels:
             raise NoOpenChannel('Channel does not exist or has been closed'
@@ -327,9 +352,9 @@ class ChannelManager(gevent.Greenlet):
     def verify_balance_proof(self, sender, open_block_number, balance, signature):
         """Verify that a balance proof is valid and return the sender.
 
-        Does not check the balance itself.
+        This method just verifies if the balance proof is valid - no state update is performed.
 
-        :returns: the channel
+        :returns: Channel, if it exists
         """
         assert is_checksum_address(sender)
         if (sender, open_block_number) in self.unconfirmed_channels:
@@ -357,8 +382,17 @@ class ChannelManager(gevent.Greenlet):
             raise InvalidBalanceProof('Recovered signer does not match the sender')
         return c
 
-    def register_payment(self, sender, open_block_number, balance, signature):
-        """Register a payment."""
+    def register_payment(self, sender: str, open_block_number: int, balance: int, signature: str):
+        """Register a payment.
+        Method will try to reconstruct (verify) balance update data
+        with a signature sent by the client.
+        If verification is succesfull, an internal payment state is updated.
+        Parameters:
+            sender (str):               sender of the balance proof
+            open_block_number (int):    block the channel was opened in
+            balance (int):              updated balance
+            signature(str):             balance proof to verify
+        """
         assert is_checksum_address(sender)
         c = self.verify_balance_proof(sender, open_block_number, balance, signature)
         if balance <= c.balance:

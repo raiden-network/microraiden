@@ -11,6 +11,8 @@ log = logging.getLogger(__name__)
 
 
 class PaywalledProxyUrl(Expensive):
+    """Proxified paywall - if payment is sucessful,
+    it fetches a content from a remote server"""
     def __init__(self, domain=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.paywall_html = self.extract_paywall_body(

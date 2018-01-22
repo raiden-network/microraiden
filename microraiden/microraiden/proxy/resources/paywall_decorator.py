@@ -176,6 +176,12 @@ class Paywall(object):
 
 
 def paywall_decorator(func):
+    """Method decorator for Flask's Resource object. It magically makes
+    every method paywalled.
+    Example:
+        class MyPaywalledResource(Resource):
+            method_decorators = [paywall_decorator]
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         self = func.__self__  # get instance of the bound method

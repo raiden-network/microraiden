@@ -1,26 +1,29 @@
 import logging
+from flask_restful import Resource
+from eth_utils import is_address
 
 from microraiden.channel_manager import (
     ChannelManager,
 )
-
-from flask_restful import Resource
-from eth_utils import is_address
 from .paywall_decorator import paywall_decorator
 
 log = logging.getLogger(__name__)
 
 
 class LightClientProxy:
-    def __init__(self, index_html):
+    """A simple proxy that returns a file that contains paywall html."""
+    def __init__(self, index_html: str):
         with open(index_html) as fp:
             self.data = fp.read()
 
-    def get(self, url):
+    def get(self, url: str):
         return self.data
 
 
 class Expensive(Resource):
+    """Expensive is basically a Flask's resource with a custom method decorator.
+    The decorator handles all the payment processing and user just needs to
+    implement methods for HTTP verb he intends to use."""
     method_decorators = [paywall_decorator]
 
     def __init__(self,
@@ -42,9 +45,11 @@ class Expensive(Resource):
         self.paywall = paywall
 
     def get_paywall(self, url):
+        """Implement this if you want to return a custom HTTP paywall code."""
         return self.light_client_proxy.get(url)
 
     def price(self):
+        """Implement this if you want to have price set dynamically."""
         if callable(self._price):
             return self._price()
         else:
