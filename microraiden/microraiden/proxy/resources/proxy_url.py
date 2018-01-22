@@ -37,6 +37,8 @@ class PaywalledProxyUrl(Expensive):
 
     def get_paywall(self, url: str):
         data = self.get(url)
+        if data.headers['Content-Type'] != 'text/html':
+            return super().get_paywall(url)
 
 #  <link rel="stylesheet" type="text/css" href="/js/styles.css">
 
