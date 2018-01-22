@@ -5,7 +5,6 @@
 
 Welcome to microraiden's documentation!
 =======================================
-Hello, this is a sample introduction text.
 
 
 Contents
@@ -20,6 +19,7 @@ Contents
    rest-api
    jsclient/index
    contract/index 
+   api/microraiden
 
 Indices and tables
 ==================

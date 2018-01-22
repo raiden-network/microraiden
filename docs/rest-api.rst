@@ -12,9 +12,6 @@ Introduction
 provide insight into a channel state, balances, and it allows proxy
 operator to close and settle the channels.
 
-Following are the available API endpoints with which you can interact
-with RMS.
-
 Proxy endpoints
 ===============
 
@@ -152,18 +149,18 @@ Cooperatively closing a channel
 -------------------------------
 
 Returns a receiver's signature that can be used to settle the channel
-immediately.
+immediately (by calling contract's `cooperativeClose()` function).
 
 Example Request
 ^^^^^^^^^^^^^^^^
 ``DELETE /api/1/channels/<sender_address>/<open_block>``
 
-with payload
+with payload balance - last balance of the channel
 
 .. code-block:: json
 
     {
-        "signature": "0x9d735db00d72afdba4d144bab4fd9280a3cc2e75d8ad1272ad1e9da0b6eb110e5c810e9148c07312d71e791beabea4c756c973d70d863b81b1a32854b632975711",
+        "balance": 13000,
     }
 
 Example Response 

@@ -5,3 +5,4 @@ credentials/
 __pycache__
 build/docs/
 docs/api/
+.cache
