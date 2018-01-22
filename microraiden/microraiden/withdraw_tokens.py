@@ -34,7 +34,7 @@ from microraiden.channel_manager import ChannelManagerState
 from microraiden.exceptions import StateFileException
 from microraiden.make_helpers import make_channel_manager_contract
 
-log = logging.getLogger('close_all_channels')
+log = logging.getLogger('withdraw')
 
 
 @click.command()
@@ -66,6 +66,12 @@ log = logging.getLogger('close_all_channels')
     help='Ethereum address of the channel manager contract'
 )
 @click.option(
+    '--minimum-amount',
+    default=1,
+    type=int,
+    help='Minimum amount in available balance in channel to trigger withdraw'
+)
+@click.option(
     '--gas-price',
     default=None,
     type=int,
@@ -77,8 +83,12 @@ def main(
         private_key_password_file: str,
         state_file: str,
         channel_manager_address: str,
+        minimum_amount: int,
         gas_price: int,
 ):
+    if minimum_amount <= 0:
+        click.echo('Minimum amount need to be at least 1')
+        sys.exit(1)
     private_key = utils.get_private_key(private_key, private_key_password_file)
     if private_key is None:
         sys.exit(1)
@@ -118,20 +128,22 @@ def main(
         click.echo('Channel manager contract address mismatch')
         sys.exit(1)
 
-    click.echo('Closing all open channels with valid balance proofs for '
-               'receiver {}'.format(receiver_address))
-    close_open_channels(
+    click.echo('Withdrawing all paid tokens with at least {} due from '
+               'receiver {}'.format(minimum_amount, receiver_address))
+    withdraw_from_channels(
         private_key,
         state,
         channel_manager_contract,
+        minimum_amount,
         gas_price * denoms.gwei if gas_price else None,
     )
 
 
-def close_open_channels(
+def withdraw_from_channels(
         private_key: str,
         state: ChannelManagerState,
         channel_manager_contract: Contract,
+        minimum: int = 1,
         gas_price: int = None,
         wait=lambda: gevent.sleep(1)
 ):
@@ -150,37 +162,29 @@ def close_open_channels(
         _, deposit, settle_block_number, closing_balance, transferred_tokens = channel_info
         available_tokens = channel.balance - transferred_tokens
 
-        if not channel.balance <= deposit:
+        if not channel.balance <= deposit or available_tokens < minimum:
             log.info(
-                'Invalid channel: balance %d > deposit %d',
+                'Not enough available balance: %d - %d = %d < %d',
                 channel.balance,
-                deposit
+                transferred_tokens,
+                available_tokens,
+                minimum
             )
             continue
-        closing_sig = utils.sign_close(
-            private_key,
-            channel.sender,
-            channel.open_block_number,
-            channel.balance,
-            channel_manager_contract.address
-        )
-
         raw_tx = utils.create_signed_contract_transaction(
             private_key,
             channel_manager_contract,
-            'cooperativeClose',
+            'withdraw',
             [
-                channel.receiver,
                 channel.open_block_number,
                 channel.balance,
-                decode_hex(channel.last_signature),
-                closing_sig
+                decode_hex(channel.last_signature)
             ],
             gas_price=gas_price,
         )
         tx_hash = web3.eth.sendRawTransaction(raw_tx)
         log.info(
-            'Sending cooperative close tx (hash: %s): %d from %r',
+            'Sending withdraw tx (hash: %s): %d from %r',
             encode_hex(tx_hash),
             available_tokens,
             channel_id
@@ -191,8 +195,8 @@ def close_open_channels(
     total_tokens = 0
     total_gas = 0
     gas_price = 0
-    for channel_id, close_info in pending_txs.items():
-        tx_hash, available_tokens = close_info
+    for channel_id, withdraw_info in pending_txs.items():
+        tx_hash, available_tokens = withdraw_info
         receipt = None
         # wait for tx to be mined
         while True:
@@ -221,7 +225,7 @@ def close_open_channels(
             success += 1
             total_tokens += available_tokens
     log.info(
-        'FINISHED Close all channels: total tokens recovered: %d, '
+        'FINISHED Withdraw: total tokens recovered: %d, '
         'transactions succeeded: %d, total gas cost: %s ETH',
         total_tokens,
         success,
