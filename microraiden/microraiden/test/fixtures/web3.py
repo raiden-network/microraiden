@@ -24,6 +24,9 @@ from microraiden.test.config import (
     FAUCET_ALLOWANCE,
     INITIAL_TOKEN_SUPPLY
 )
+from microraiden.constants import (
+    get_network_id
+)
 from microraiden.utils.contract import DEFAULT_TIMEOUT, DEFAULT_RETRY_INTERVAL
 import microraiden.utils.contract
 
@@ -121,6 +124,7 @@ def web3(use_tester: bool, faucet_private_key: str, faucet_address: str, mine_sy
     if use_tester:
         provider = EthereumTesterProvider()
         web3 = Web3(provider)
+        NETWORK_CFG.set_defaults(get_network_id('ethereum-tester'))
         x = web3.testing.mine
 
         def mine_patched(self, count):

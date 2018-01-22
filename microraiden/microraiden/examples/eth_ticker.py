@@ -26,7 +26,8 @@ def start_proxy(receiver_privkey: str) -> PaywalledProxy:
 
 
 class ETHTickerProxy:
-    def __init__(self, privkey: str, proxy: PaywalledProxy = None) -> None:
+    def __init__(self, privkey: str = None, proxy: PaywalledProxy = None) -> None:
+        assert privkey or proxy
         if proxy:
             self.app = proxy
         else:
