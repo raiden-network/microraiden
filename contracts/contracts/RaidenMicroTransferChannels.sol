@@ -630,6 +630,7 @@ contract RaidenMicroTransferChannels {
 
         require(channel.open_block_number > 0);
         require(_balance <= channel.deposit);
+        require(withdrawn_balances[key] <= _balance);
 
         // Remove closed channel structures
         // channel.open_block_number will become 0
