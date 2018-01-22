@@ -1,16 +1,20 @@
-.PHONY: all docs microraiden
+.PHONY: all docs microraiden apidocs
 
 DOCS_SRC := docs
-DOCS_BUILD := build/docs
+BUILD_DIR := build
+DOCS_BUILD_DIR := $(BUILD_DIR)/docs
 
 all: docs microraiden
 
-docs:
-	sphinx-build -b html $(DOCS_SRC) $(DOCS_BUILD)
+docs: apidocs
+	sphinx-build -b html $(DOCS_SRC) $(DOCS_BUILD_DIR)
+
+apidocs:
+	sphinx-apidoc -o $(DOCS_SRC)/api microraiden/microraiden/
 
 microraiden:
 	make -C microraiden
 
 clean:
 	make -C microraiden clean
-	rm -rf $(DOCS_BUILD)
+	rm -rf $(BUILD_DIR)
