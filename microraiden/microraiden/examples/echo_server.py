@@ -63,7 +63,7 @@ def run(
     #  - file for storing state information (balance proofs)
     if channel_manager is None:
         web3 = Web3(HTTPProvider(WEB3_PROVIDER_DEFAULT))
-        NETWORK_CFG.set_defaults(web3.version.network)
+        NETWORK_CFG.set_defaults(int(web3.version.network))
         channel_manager = make_channel_manager(
             private_key,
             NETWORK_CFG.CHANNEL_MANAGER_ADDRESS,
