@@ -5,6 +5,8 @@
 
 µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.
 
+[µRaiden documentation](http://microraiden.readthedocs.io/en/latest/)
+
 
 ## Smart Contract
 
@@ -54,17 +56,15 @@ The main differences between the Raiden Network and µRaiden are:
 
 µRaiden uses its own token for payments which is both [ERC20](https://github.com/ethereum/EIPs/issues/20) and [ERC223](https://github.com/ethereum/EIPs/issues/223) compliant.
 
-In a nutshell, clients (subsequently called "senders") wanting to access a provider's payable resources, will [open a micropayment channel](/contracts#opening-a-transfer-channel) with the provider ("receiver") and fund the channel with a number of tokens. These escrowed tokens will be kept by a third party contract that manages opening and closing of channels.
+In a nutshell, clients (subsequently called "senders") wanting to access a provider's payable resources, will [open a micropayment channel](http://microraiden.readthedocs.io/en/latest/contract/index.html#opening-a-transfer-channel) with the provider ("receiver") and fund the channel with a number of tokens. These escrowed tokens will be kept by a third party contract that manages opening and closing of channels.
 
 ### Off-chain transactions
-
-A visual description of the process can be found [here](/docs/dev_overview.md#off-chain-messages).
 
 However, the heart of the system lies in its sender -> receiver off-chain transactions. They offer a secure way to keep track of the last verified channel balance. The channel balance is calculated each time the sender pays for a resource. He is prompted to sign a so-called balance proof, i.e., a message that provably confirms the total amount of transfered tokens. This balance proof is then sent to the receiver's server. If the balance proof checks out after comparing it with the last received balance and verifying the sender's signature, the receiver replaces the old balance value with the new one.
 
 ### Closing and settling channels
 
-A visual description of the process can be found [here](/contracts#closing-a-channel).
+A visual description of the process can be found [here](http://microraiden.readthedocs.io/en/latest/contract/index.html#closing-a-channel).
 
 When a sender wants to close a channel, a final balance proof is prepared and sent to the receiver for a closing signature. In the happy case, the receiver signs and sends the balance proof and his signature to the smart contract managing the channels. The channel is promptly closed and the receiver debt is settled. If there are surplus tokens left, they are returned to the sender.
 
@@ -79,15 +79,12 @@ Try out the µRaiden demo and build your own customized version, following our i
 
 ## Quick Start
 
- * install the Proxy component (more details [here](/microraiden/README.md)):
+ * install the Proxy component (more details [here](http://microraiden.readthedocs.io/en/latest/proxy-tutorial.html)):
 
 ```bash
 virtualenv -p python3 env
 . env/bin/activate
-git clone git@github.com:raiden-network/microraiden.git
-cd microraiden/microraiden
-pip install -r requirements-dev.txt
-pip install -e .
+pip install microraiden
 ```
 
 * install the WebUI component for the paywall examples
@@ -99,12 +96,11 @@ cd microraiden/microraiden/webui/microraiden
 npm i && npm run build
 ```
 
-* run the Proxy component (more details [here](/microraiden/README.md)):
+* run the Proxy component:
 
 For an overview of parameters and default options check https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/click_helpers.py
 
 For chain and contract settings change: https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/config.py
-This is where you integrate custom contract & token deployments.
 
 ```
 cd microraiden
@@ -112,22 +108,4 @@ python -m microraiden.examples.demo_proxy --private-key <private_key_file> start
 ```
 
  * Go to the paywalled resource pages:
-    - http://localhost:5000/doggo.jpg
-
-
-## How To
-
-You can use the configuration for the above default example for creating your own payment channel service.
-
- * µRaiden Paywall Tutorial:
-   - Proxy: [/docs/proxy-tutorial.md](/docs/proxy-tutorial.md)
-   - Web Interface: soon
- * Various paywall [examples](/microraiden/microraiden/examples)
-
-
-## Development Documentation
-
- * Components Overview: [/docs/dev_overview.md](/docs/dev_overview.md)
- * µRaiden Service Setup: [/microraiden/README.md](/microraiden/README.md)
- * Smart Contracts Setup: [/contracts/README.md](/contracts/README.md)
- * JS/TS client library: [NPM package README.md](/microraiden/microraiden/webui/microraiden/README.md)
+    - http://localhost:5000/teapot
