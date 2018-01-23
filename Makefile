@@ -1,4 +1,4 @@
-.PHONY: all docs microraiden apidocs
+.PHONY: all docs microraiden apidocs clean mrproper
 
 DOCS_SRC := docs
 BUILD_DIR := build
@@ -18,3 +18,5 @@ microraiden:
 clean:
 	make -C microraiden clean
 	rm -rf $(BUILD_DIR)
+
+mrproper: clean

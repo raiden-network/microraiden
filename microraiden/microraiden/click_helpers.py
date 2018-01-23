@@ -1,12 +1,16 @@
 """Click option group that initializes the proxy. You can use this to setup your own app
-Example:
+
+Example::
+
     from microraiden.click_helpers import main, pass_app
+
     @main.command()
     @click.option('--my-option', default=True)
     @pass_app
     def start(app, my_option):
         app.run()
         app.join()
+
     if __name_ == "__main__":
         main()
 """

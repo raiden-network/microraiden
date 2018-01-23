@@ -1,3 +1,19 @@
+"""
+``microraiden.requests`` is an extended version of ``requests`` package that
+includes microraiden's payment protocol.
+
+Example::
+
+    import microraiden.requests
+
+    resp = microraiden.requests.get(
+      'http://localhost/paywalled_resource',
+      web3=web3,
+      sender_privkey=my_privkey,
+      channel_manager_address='0x4d6e0922e6b703f0fdf92745343a9b83eb656402'
+    )
+
+"""
 from requests import Response
 
 from microraiden import Session, Client

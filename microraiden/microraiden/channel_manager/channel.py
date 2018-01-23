@@ -1,5 +1,6 @@
 import time
 from enum import IntEnum
+from eth_utils import is_address
 
 
 class ChannelState(IntEnum):
@@ -10,9 +11,25 @@ class ChannelState(IntEnum):
 
 
 class Channel(object):
-    """A channel between two parties."""
+    def __init__(self,
+                 receiver: str,
+                 sender: str,
+                 deposit: int,
+                 open_block_number
+                 ):
+        """
+        A channel between two parties.
 
-    def __init__(self, receiver, sender, deposit, open_block_number):
+        Args:
+            receiver (str): receiver address
+            sender (str): sender address
+            deposit (int): channel deposit
+            open_block_number (int): block the channel was created in
+        """
+        assert is_address(receiver)
+        assert is_address(sender)
+        assert deposit >= 0
+        assert open_block_number >= 0
         self.receiver = receiver
         self.sender = sender  # sender address
         self.deposit = deposit  # deposit is maximum funds that can be used
@@ -30,19 +47,31 @@ class Channel(object):
         self.unconfirmed_topups = {}  # txhash to added deposit
 
     @property
-    def is_closed(self):
+    def is_closed(self) -> bool:
+        """
+        Returns:
+            bool: True if channel is closed
+        """
         return (self.state) in (ChannelState.CLOSED, ChannelState.CLOSE_PENDING)
 
     @is_closed.setter
-    def is_closed(self, value):
+    def is_closed(self, value) -> None:
         assert value is True
         self.state = ChannelState.CLOSED
 
     @property
     def unconfirmed_deposit(self):
+        """
+        Returns:
+            int: sum of all deposits, including unconfirmed ones
+        """
         return self.deposit + sum(self.unconfirmed_topups.values())
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """
+        Returns:
+            dict: Channel object serialized as a dict
+        """
         return self.__dict__
 
     @classmethod

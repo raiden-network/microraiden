@@ -14,9 +14,9 @@ Contents
    :maxdepth: 2 
    :caption: Contents:
 
-   dev-overview
    proxy-tutorial
    rest-api
+   dev-overview
    jsclient/index
    contract/index 
    api/microraiden
