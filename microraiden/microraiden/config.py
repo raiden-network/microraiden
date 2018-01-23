@@ -24,8 +24,8 @@ NetworkConfig = partial(
 NETWORK_CONFIG_DEFAULTS = {
     # mainnet
     1: NetworkConfig(
-        channel_manager_address='0x4d6e0922e6b703f0fdf92745343a9b83eb656402',
-        start_sync_block=4651176,
+        channel_manager_address='0x1440317CB15499083dEE3dDf49C2bD51D0d92e33',
+        start_sync_block=4958602,
         gas_price=20 * denoms.gwei
     ),
     # ropsten
