@@ -75,6 +75,8 @@ def test_integrity(client: Client, receiver_address):
     c.update_balance(100)
     assert not c.is_valid()
 
+    c.update_balance(0)
+
 
 def test_sync(client: Client, receiver_address, receiver_privkey):
     c = client.get_suitable_channel(receiver_address, 5, initial_deposit=lambda x: x)
