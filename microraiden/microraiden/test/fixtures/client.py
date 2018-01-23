@@ -48,7 +48,6 @@ def client(
             client,
             private_keys,
             channel_manager_address,
-            balance=0
         )
 
     yield client
@@ -58,5 +57,4 @@ def client(
             client,
             private_keys,
             channel_manager_address,
-            balance=0
         )

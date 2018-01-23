@@ -34,7 +34,6 @@ def test_close_simple(
         channel_manager.private_key,
         state,
         channel_manager.channel_manager_contract,
-        10,
         wait=lambda: wait_for_blocks(1)
     )
     tx_count_after = web3.eth.getTransactionCount(receiver)
@@ -71,7 +70,6 @@ def test_close_topup(
         channel_manager.private_key,
         state,
         channel_manager.channel_manager_contract,
-        10,
         wait=lambda: wait_for_blocks(1)
     )
     tx_count_after = web3.eth.getTransactionCount(receiver)
@@ -107,7 +105,6 @@ def test_close_valid_close(
         channel_manager.private_key,
         state,
         channel_manager.channel_manager_contract,
-        10,
         wait=lambda: wait_for_blocks(1)
     )
     tx_count_after = web3.eth.getTransactionCount(receiver)
@@ -146,7 +143,6 @@ def test_close_invalid_close(
         channel_manager.private_key,
         state,
         channel_manager.channel_manager_contract,
-        10,
         wait=lambda: wait_for_blocks(1)
     )
     tx_count_after = web3.eth.getTransactionCount(receiver)
@@ -184,7 +180,6 @@ def test_close_settled(
         channel_manager.private_key,
         state,
         channel_manager.channel_manager_contract,
-        10,
         wait=lambda: wait_for_blocks(1)
     )
     tx_count_after = web3.eth.getTransactionCount(receiver)

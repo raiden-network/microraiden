@@ -28,9 +28,8 @@ log = logging.getLogger(__name__)
 #  app with python -m microraiden.
 #
 if __package__ is None:
-    path = os.path.dirname(os.path.dirname(__file__))
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
     sys.path.insert(0, path)
-    sys.path.insert(0, path + "/../")
 
 from web3 import Web3, HTTPProvider
 from microraiden.make_helpers import make_paywalled_proxy
