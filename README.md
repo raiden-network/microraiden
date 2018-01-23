@@ -11,7 +11,7 @@
 Current version: `0.2.0`. Verifiable with `RaidenMicroTransferChannels.call().version()`.
 Note that a new µRaiden release might include changing the Ethereum address used for the smart contract, in case we need to deploy an improved contract version.
 
-The `RaidenMicroTransferChannels` contract has been deployed on the main net: https://etherscan.io/address/0x4d6e0922e6b703f0fdf92745343a9b83eb656402
+The `RaidenMicroTransferChannels` contract has been deployed on the main net: [0x1440317CB15499083dEE3dDf49C2bD51D0d92e33](https://etherscan.io/address/0x1440317CB15499083dEE3dDf49C2bD51D0d92e33)
 
 The following parameters were used:
 - `token_address`: `0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6`
