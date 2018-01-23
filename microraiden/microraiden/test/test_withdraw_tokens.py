@@ -1,11 +1,7 @@
-import pytest
-
 from eth_utils import (
     encode_hex,
 )
-from ethereum.tester import TransactionFailed
 from web3 import Web3
-from web3.exceptions import BadFunctionCallOutput
 
 from microraiden import Client
 from microraiden.channel_manager import ChannelManager
