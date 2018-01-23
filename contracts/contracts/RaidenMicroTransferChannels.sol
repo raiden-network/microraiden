@@ -20,7 +20,7 @@ contract RaidenMicroTransferChannels {
     uint32 public challenge_period;
 
     // Contract semantic version
-    string public constant version = '0.1.0';
+    string public constant version = '0.2.0';
 
     // We temporarily limit total token deposits in a channel to 100 tokens with 18 decimals.
     // This was calculated just for RDN with its current (as of 30/11/2017) price and should

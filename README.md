@@ -8,10 +8,10 @@
 
 ## Smart Contract
 
-Current version: `0.1.0`. Verifiable with `RaidenMicroTransferChannels.call().version()`.
+Current version: `0.2.0`. Verifiable with `RaidenMicroTransferChannels.call().version()`.
 Note that a new µRaiden release might include changing the Ethereum address used for the smart contract, in case we need to deploy an improved contract version.
 
-The `RaidenMicroTransferChannels` contract has been deployed on the main net: https://etherscan.io/address/0x4d6e0922e6b703f0fdf92745343a9b83eb656402
+The `RaidenMicroTransferChannels` contract has been deployed on the main net: [0x1440317CB15499083dEE3dDf49C2bD51D0d92e33](https://etherscan.io/address/0x1440317CB15499083dEE3dDf49C2bD51D0d92e33)
 
 The following parameters were used:
 - `token_address`: `0x255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6`
@@ -25,20 +25,20 @@ All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MER
 ### Kovan
 
 
-- CustomToken address is:  [0x5a7f24e34adac43955de79c6be3a050e29d1f93e](https://kovan.etherscan.io/address/0x5a7f24e34adac43955de79c6be3a050e29d1f93e)
-- RaidenMicroTransferChannels address is: [0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed](https://kovan.etherscan.io/address/0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed#code)
+- CustomToken address is:  [0xb5fdb634904ebe09196c506a4cc4250202f0988f](https://kovan.etherscan.io/address/0xb5fdb634904ebe09196c506a4cc4250202f0988f)
+- RaidenMicroTransferChannels address is: [0xed94e711e9de1ff1e7dd34c39f0d4338a6a6ef92](https://kovan.etherscan.io/address/0xed94e711e9de1ff1e7dd34c39f0d4338a6a6ef92#code)
 
 
 ### Ropsten
 
-- CustomToken address is:  [0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c](https://ropsten.etherscan.io/address/0xe3e546238cbadffb8d47b2a9b2a0205f0db6422c)
-- RaidenMicroTransferChannels address is: [0xe71269969cfd3c9c13c31c1caaf1ac4f242075ed](https://ropsten.etherscan.io/address/0x6c4A0f93a21fb711adA78F68083577ab541b9620#code)
+- CustomToken address is:  [0xff24d15afb9eb080c089053be99881dd18aa1090](https://ropsten.etherscan.io/address/0xff24d15afb9eb080c089053be99881dd18aa1090)
+- RaidenMicroTransferChannels address is: [0x74434527b8e6c8296506d61d0faf3d18c9e4649a](https://ropsten.etherscan.io/address/0x74434527b8e6c8296506d61d0faf3d18c9e4649a#code)
 
 
 ### Rinkeby
 
-- CustomToken address is:  [0x101e64900a7f283468ec7484691afca8385dc1d8](https://rinkeby.etherscan.io/address/0x101e64900a7f283468ec7484691afca8385dc1d8)
-- RaidenMicroTransferChannels address is: [0x568a0d52a173f584d4a286a22b2a876911079e15](https://rinkeby.etherscan.io/address/0x568a0d52a173f584d4a286a22b2a876911079e15#code)
+- CustomToken address is:  [0xf0f863ca785047075f6a92d28fd7dee4de47895e](https://rinkeby.etherscan.io/address/0xf0f863ca785047075f6a92d28fd7dee4de47895e)
+- RaidenMicroTransferChannels address is: [0xbec8fb898e6da01152576d1a1acdd2c957e56fb1](https://rinkeby.etherscan.io/address/0xbec8fb898e6da01152576d1a1acdd2c957e56fb1#code)
 
 
 ## Brief Overview

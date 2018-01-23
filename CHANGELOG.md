@@ -1,6 +1,16 @@
 # Changelog
 
 ## Development
+
+## 0.2.0 - 2018-01-23 - Bug Bounty Release 2
+
+* Update contract, pypi & nmp version, update documentation. #334
+* Add withdraw tokens script for allowing the receiver to withdraw tokens without closing the channel. #398
+* Update documentation, switch to .rst. #345
+* Fix paywall url webui injection. #396
+* Smart contract - add underflow check in `settleChannel`. #394
+* Update eth ticker example. #393
+* Update docstrings. #386
 * Fixed an issue caused by the contract version check including the maintenance number. #368
 * `setup.py` now also performs npm compilation. #366
 * README.md and diagrams were updated. #364

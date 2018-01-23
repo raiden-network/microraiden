@@ -22,23 +22,28 @@ NetworkConfig = partial(
 
 # network-specific configuration
 NETWORK_CONFIG_DEFAULTS = {
+    # mainnet
     1: NetworkConfig(
-        channel_manager_address='0x4d6e0922e6b703f0fdf92745343a9b83eb656402',
-        start_sync_block=4651176,
+        channel_manager_address='0x1440317CB15499083dEE3dDf49C2bD51D0d92e33',
+        start_sync_block=4958602,
         gas_price=20 * denoms.gwei
     ),
+    # ropsten
     3: NetworkConfig(
-        channel_manager_address='0x161a0d7726EB8B86EB587d8BD483be1CE87b0609',
-        start_sync_block=2400640
+        channel_manager_address='0x74434527b8e6c8296506d61d0faf3d18c9e4649a',
+        start_sync_block=2507629
     ),
+    # rinkeby
     4: NetworkConfig(
-        channel_manager_address='0x568a0d52a173f584d4a286a22b2a876911079e15',
-        start_sync_block=1338285
+        channel_manager_address='0xbec8fb898e6da01152576d1a1acdd2c957e56fb1',
+        start_sync_block=1642336
     ),
+    # kovan
     42: NetworkConfig(
-        channel_manager_address='0xB9721dF0e024114e7B25F2cF503d8CBE3D52b400',
-        start_sync_block=5230017
+        channel_manager_address='0xed94e711e9de1ff1e7dd34c39f0d4338a6a6ef92',
+        start_sync_block=5523491
     ),
+    # internal - used only with ethereum tester
     65536: NetworkConfig(
         channel_manager_address='0x0',
         start_sync_block=0
