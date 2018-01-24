@@ -15,14 +15,43 @@ import distutils
 import os
 from setuptools import Command
 from setuptools.command.build_py import build_py
-from microraiden.constants import MICRORAIDEN_VERSION
 
 DESCRIPTION = 'µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.'
+VERSION = open('microraiden/VERSION', 'r').read().strip()
+
+
+def read_version_from_git():
+    try:
+        import shlex
+        git_version, _ = subprocess.Popen(
+            shlex.split('git describe --tags'),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        ).communicate()
+        git_version = git_version.decode()
+        if git_version.startswith('v'):
+            git_version = git_version[1:]
+
+        git_version = git_version.strip()
+        # if this is has commits after the tag, it's a prerelease:
+        if git_version.count('-') == 2:
+            _, _, commit = git_version.split('-')
+            if commit.startswith('g'):
+                commit = commit[1:]
+            return '{}+git.r{}'.format(VERSION, commit)
+        elif git_version.count('.') == 2:
+            return git_version
+        else:
+            return VERSION
+    except BaseException as e:
+        print('could not read version from git: {}'.format(e))
+        return VERSION
 
 
 class BuildPyCommand(build_py):
     def run(self):
         self.run_command('compile_webui')
+        self.run_command('compile_version')
         build_py.run(self)
 
 
@@ -69,7 +98,7 @@ class CompileWebUI(Command):
 
 
 config = {
-    'version': MICRORAIDEN_VERSION,
+    'version': read_version_from_git(),
     'scripts': [],
     'name': 'microraiden',
     'author': 'Brainbot Labs Est.',
@@ -90,7 +119,8 @@ config = {
     'package_data': {'microraiden': ['data/contracts.json',
                                      'webui/js/*',
                                      'webui/index.html',
-                                     'webui/microraiden/dist/umd/microraiden.js']},
+                                     'webui/microraiden/dist/umd/microraiden.js',
+                                     'VERSION']},
     'classifiers': [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

@@ -4,6 +4,12 @@ This file contains configuration constants you probably don't need to change
 import json
 import os
 
+
+def read_version(path: str):
+    return open(path, 'r').read().strip()
+
+
+# api path prefix
 API_PATH = "/api/1"
 """str: api path prefix"""
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -31,7 +37,7 @@ CONTRACTS_ABI_JSON = 'data/contracts.json'
 with open(os.path.join(MICRORAIDEN_DIR, 'microraiden', CONTRACTS_ABI_JSON)) as metadata_file:
     CONTRACT_METADATA = json.load(metadata_file)
 
-MICRORAIDEN_VERSION = "0.2.0"
+MICRORAIDEN_VERSION = read_version(os.path.join(MICRORAIDEN_DIR, 'microraiden', 'VERSION'))
 """str: version of Microraiden library"""
 CHANNEL_MANAGER_CONTRACT_VERSION = "0.2.0"
 """str: required version of the deployed contract at CHANNEL_MANAGER_ADDRESS.
