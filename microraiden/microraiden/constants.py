@@ -4,38 +4,40 @@ This file contains configuration constants you probably don't need to change
 import json
 import os
 
-# api path prefix
 API_PATH = "/api/1"
-# absolute path to this directory. Used to find path to the webUI sources
+"""str: api path prefix"""
 MICRORAIDEN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-# webUI sources
+"""str: absolute path to module directory. Used to find path to the webUI sources"""
 HTML_DIR = os.path.join(MICRORAIDEN_DIR, 'microraiden', 'webui')
-# javascript library for microraiden
+"""str: webUI sources directory"""
 JSLIB_DIR = os.path.join(HTML_DIR, 'js')
-# url prefix for jslib dir
+"""str: javascript directory"""
 JSPREFIX_URL = '/js'
-# decimals of the token. Any price that's set for the proxy resources is multiplied by this.
-TKN_DECIMALS = 10**18  # token decimals
+"""str: url prefix for jslib dir"""
+TKN_DECIMALS = 10**18
+"""int: decimals of the token.
+Any price that's set for the proxy resources is multiplied by this."""
 
-# ethereum node RPC interface should be available here
 WEB3_PROVIDER_DEFAULT = "http://127.0.0.1:8545"
+"""str: ethereum node RPC interface URL"""
 
-# name of the channel manager contract
 CHANNEL_MANAGER_ABI_NAME = 'RaidenMicroTransferChannels'
-# name of the token contract
+"""str: name of the channel manager contract"""
 TOKEN_ABI_NAME = 'CustomToken'
-# compiled contracts path
+"""str: name of the token contract"""
 CONTRACTS_ABI_JSON = 'data/contracts.json'
+"""str: compiled contracts path"""
 
 with open(os.path.join(MICRORAIDEN_DIR, 'microraiden', CONTRACTS_ABI_JSON)) as metadata_file:
     CONTRACT_METADATA = json.load(metadata_file)
 
-# required version of the deployed contract at CHANNEL_MANAGER_ADDRESS.
-# Proxy will refuse to start if the versions do not match.
 MICRORAIDEN_VERSION = "0.2.0"
+"""str: version of Microraiden library"""
 CHANNEL_MANAGER_CONTRACT_VERSION = "0.2.0"
-#  proxy will stop serving requests if receiver balance is below PROXY_BALANCE_LIMIT
+"""str: required version of the deployed contract at CHANNEL_MANAGER_ADDRESS.
+Proxy will refuse to start if the major or minor versions do not match."""
 PROXY_BALANCE_LIMIT = 10**8
+"""int: proxy will stop serving requests if receiver balance is below PROXY_BALANCE_LIMIT"""
 SLEEP_RELOAD = 2
 
 # sanity checks
@@ -60,5 +62,14 @@ NETWORK_NAMES = {
 
 
 def get_network_id(network_name: str):
+    """
+    Map canonical network name to its integer id.
+
+    Args:
+        network_name (str): network name
+
+    Returns:
+        int: network id
+    """
     ids = list(NETWORK_NAMES.keys())
     return ids[list(NETWORK_NAMES.values()).index(network_name)]

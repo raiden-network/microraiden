@@ -12,11 +12,11 @@ log = logging.getLogger(__name__)
 
 class LightClientProxy:
     """A simple proxy that returns a file that contains paywall html."""
-    def __init__(self, index_html: str):
+    def __init__(self, index_html: str) -> None:
         with open(index_html) as fp:
             self.data = fp.read()
 
-    def get(self, url: str):
+    def get(self, url: str) -> str:
         return self.data
 
 
@@ -44,12 +44,21 @@ class Expensive(Resource):
         self._price = price
         self.paywall = paywall
 
-    def get_paywall(self, url):
-        """Implement this if you want to return a custom HTTP paywall code."""
+    def get_paywall(self, url: str) -> str:
+        """Implement this if you want to return a custom HTTP paywall code.
+
+        Returns:
+            str: HTML page with the paywall
+        """
         return self.light_client_proxy.get(url)
 
-    def price(self):
-        """Implement this if you want to have price set dynamically."""
+    def price(self) -> int:
+        """Implement this if you want to have price set dynamically.
+
+        Returns:
+            int: price of a resource. If the value returned is 0, no paywall checks are
+                done and the actual content will be sent to the user.
+        """
         if callable(self._price):
             return self._price()
         else:

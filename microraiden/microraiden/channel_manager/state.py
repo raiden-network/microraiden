@@ -228,21 +228,31 @@ class ChannelManagerState(object):
 
     @property
     def n_channels(self):
-        """Return count of all channels, regardless of their state"""
+        """Returns:
+            int: count of all channels, regardless of their state
+        """
         c = self.conn.cursor()
         c.execute('SELECT COUNT(*) as count FROM `channels`')
         return c.fetchone()['count']
 
     @property
     def n_open_channels(self):
-        """Return count of open channels"""
+        """
+        Returns:
+            int: count of open channels
+        """
         c = self.conn.cursor()
         c.execute('SELECT COUNT(*) as count FROM `channels` WHERE `state` = ?',
                   [ChannelState.OPEN.value])
         return c.fetchone()['count']
 
     def get_channels(self, confirmed=True):
-        """Get list of channels"""
+        """
+        Args:
+            confirmed (bool, optional): return confirmed channels only. Default is True.
+        Returns:
+            dict: map of channels, (sender, open_block_number) => Channel
+        """
         ret = dict()
         c = self.conn.cursor()
         c.execute('SELECT rowid, * FROM `channels` WHERE `confirmed` = ?', [confirmed])

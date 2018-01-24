@@ -1,3 +1,20 @@
+"""This module contains network-specific defaults for different networks.
+You can change i.e. gas price, gas limits, or contract address here.
+
+Example:
+    Set global network defaults for ropsten::
+
+        from config import NETWORK_CFG
+        from constants import get_network_id
+
+        NETWORK_CFG.set_defaults(get_network_id('ropsten'))
+
+    Change global gas price::
+
+        from config import NETWORK_CFG
+
+        NETWORK_CFG.gas_price = 15 * denoms.gwei
+"""
 from eth_utils import denoms
 from collections import namedtuple, OrderedDict
 from functools import partial
@@ -56,6 +73,11 @@ class NetworkRuntime:
         super().__setattr__('cfg', None)
 
     def set_defaults(self, network_id: int):
+        """Set global default settings for a given network id.
+
+        Args:
+            network_id (int): a network id to use.
+        """
         cfg_copy = dict(NETWORK_CONFIG_DEFAULTS[network_id]._asdict())
         super().__setattr__('cfg', cfg_copy)
 

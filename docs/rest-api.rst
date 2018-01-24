@@ -18,7 +18,9 @@ Proxy endpoints
 Getting the status of the proxy
 -------------------------------
 
-This will return a status of balances, open channels etc.
+``/api/1/stats``
+
+Return proxy status: balances, open channels, contract ABI etc.
 
 - **deposit\_sum** - sum of all open channel deposits
 - **open\_channels** - count of all open channels
@@ -62,7 +64,9 @@ Channel endpoints
 Getting all open channels
 -------------------------
 
-This will return a list of all open channels.
+``/api/1/channels/``
+
+Return a list of all open channels.
 
 Example Request
 ^^^^^^^^^^^^^^^^
@@ -94,13 +98,15 @@ Example Response
 Getting all open channels for a given sender
 --------------------------------------------
 
-This will return a list of all open channels for the sender specified in
+``/api/1/channels/<sender_address>``
+
+Return a list of all open channels for the sender specified in
 the second argument of the URL.
 
 Example Request
 ^^^^^^^^^^^^^^^^
 
-``GET /api/1/channels/<sender_address>``
+``GET /api/1/channels/0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb``
 
 Example Response 
 ^^^^^^^^^^^^^^^^
@@ -122,13 +128,15 @@ Example Response
 Getting a single channel info
 -----------------------------
 
+``/api/1/channels/<sender_address>/<open_block>``
+
 Return an info about the channel, identified by sender and open block
 id.
 
 Example Request
 ^^^^^^^^^^^^^^^^
 
-``GET /api/1/channels/<sender_address>/<open_block>``
+``GET /api/1/channels/0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb/3241462``
 
 Example Response 
 ^^^^^^^^^^^^^^^^
@@ -148,12 +156,14 @@ Example Response
 Cooperatively closing a channel
 -------------------------------
 
-Returns a receiver's signature that can be used to settle the channel
+``/api/1/channels/<sender_address>/<open_block>``
+
+Return a receiver's signature that can be used to settle the channel
 immediately (by calling contract's `cooperativeClose()` function).
 
 Example Request
 ^^^^^^^^^^^^^^^^
-``DELETE /api/1/channels/<sender_address>/<open_block>``
+``DELETE /api/1/channels/0x5601ea8445a5d96eeebf89a67c4199fbb7a43fbb/3241642``
 
 with payload balance - last balance of the channel
 

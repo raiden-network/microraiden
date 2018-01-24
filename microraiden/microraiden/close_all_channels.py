@@ -1,3 +1,10 @@
+"""
+Utility module used to close all open channels of the channel manager.
+
+Example::
+
+    $ python -m microraiden.close_all_channels --private-key ~/.keys/my_key.json
+"""
 import logging
 import os
 import sys
@@ -135,6 +142,16 @@ def close_open_channels(
         gas_price: int = None,
         wait=lambda: gevent.sleep(1)
 ):
+    """Closes all open channels that belong to a receiver.
+
+    Args:
+        private_key (str): receiver's private key
+        state (ChannelManagerState): channel manager state
+        channel_manager_contract (str): address of the channel manager contract
+        gas_price (int, optional): gas price you want to use
+            (a network default will be used if not set)
+        wait (callable): pause between checks for a succesfull transaction
+    """
     web3 = channel_manager_contract.web3
     pending_txs = {}
 

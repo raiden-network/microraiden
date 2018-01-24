@@ -150,7 +150,7 @@ Generated docs
 
 .. _Auto-Generated-API: https://github.com/raiden-network/microraiden/blob/master/docs/contract/RaidenMicroTransferChannels.md
 
-There is a Auto-Generated-API_, that is compiled with `soldocs`.
+There is an Auto-Generated-API_, that is compiled with `soldocs`.
 
 
 Prerequisites
