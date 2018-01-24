@@ -6,7 +6,8 @@ import os
 
 from microraiden import Session
 from microraiden.channel_manager import ChannelManager
-from microraiden.examples.eth_ticker import ETHTickerClient, ETHTickerProxy
+from microraiden.examples.ticker_proxy import ETHTickerProxy
+from microraiden.examples.ticker_client import ETHTickerClient
 from microraiden.examples.echo_server import run as run_echo_server
 from microraiden.examples.echo_client import run as run_echo_client
 from microraiden.proxy.paywalled_proxy import PaywalledProxy

@@ -2,48 +2,13 @@ from tkinter import ttk
 import tkinter
 import logging
 import gevent
-
 import click
-import os
+import sys
 
 from microraiden import Session
-from microraiden.proxy import PaywalledProxy
-from microraiden.proxy.resources import PaywalledProxyUrl
-from microraiden.make_helpers import make_paywalled_proxy
+from microraiden import utils
 
 log = logging.getLogger(__name__)
-
-
-def start_proxy(receiver_privkey: str) -> PaywalledProxy:
-    state_file_name = 'ticker_proxy.db'
-    app_dir = click.get_app_dir('microraiden')
-    if not os.path.exists(app_dir):
-        os.makedirs(app_dir)
-
-    app = make_paywalled_proxy(receiver_privkey, os.path.join(app_dir, state_file_name))
-    app.run()
-    return app
-
-
-class ETHTickerProxy:
-    def __init__(self, privkey: str = None, proxy: PaywalledProxy = None) -> None:
-        assert privkey or proxy
-        if proxy:
-            self.app = proxy
-        else:
-            self.app = start_proxy(privkey)
-        cfg = {'resource_class_kwargs': {
-               'domain': 'http://api.bitfinex.com/v1/pubticker/'}
-               }
-        self.app.add_paywalled_resource(
-            PaywalledProxyUrl,
-            '/<string:ticker>',
-            100,
-            **cfg
-        )
-
-    def stop(self):
-        self.app.stop()
 
 
 class ETHTickerClient(ttk.Frame):
@@ -109,22 +74,32 @@ class ETHTickerClient(ttk.Frame):
 
 
 @click.command()
-@click.option('--start-proxy/--no-proxy', default=False)
-def main(start_proxy):
-    proxy = None
+@click.option(
+    '--private-key',
+    required=True,
+    help='Path to private key file of the proxy',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
+@click.option(
+    '--private-key-password-file',
+    default=None,
+    help='Path to file containing password for the JSON-encoded private key',
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True)
+)
+def main(
+    private_key,
+    private_key_password_file,
+):
+    private_key = utils.get_private_key(private_key, private_key_password_file)
+    if private_key is None:
+        sys.exit(1)
     ticker = None
-    receiver_privkey = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    sender_privkey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
     try:
-        if start_proxy:
-            proxy = ETHTickerProxy(receiver_privkey)
-        ticker = ETHTickerClient(sender_privkey)
+        ticker = ETHTickerClient(private_key)
         ticker.run()
     except KeyboardInterrupt:
         if ticker:
             ticker.close()
-        if proxy is not None:
-            proxy.stop()
 
 
 if __name__ == '__main__':
