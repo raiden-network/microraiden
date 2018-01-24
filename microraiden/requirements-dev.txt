@@ -3,3 +3,4 @@ pytest>=2.7.2,!=3.3.*
 eth-tester==0.1.0b5
 mock
 requests_mock
+bumpversion
