@@ -4,6 +4,11 @@ This file contains configuration constants you probably don't need to change
 import json
 import os
 
+
+def read_version(path: str):
+    return open(path, 'r').read().strip()
+
+
 # api path prefix
 API_PATH = "/api/1"
 # absolute path to this directory. Used to find path to the webUI sources
@@ -32,7 +37,7 @@ with open(os.path.join(MICRORAIDEN_DIR, 'microraiden', CONTRACTS_ABI_JSON)) as m
 
 # required version of the deployed contract at CHANNEL_MANAGER_ADDRESS.
 # Proxy will refuse to start if the versions do not match.
-MICRORAIDEN_VERSION = "0.2.0"
+MICRORAIDEN_VERSION = read_version(os.path.join(MICRORAIDEN_DIR, 'microraiden', 'VERSION'))
 CHANNEL_MANAGER_CONTRACT_VERSION = "0.2.0"
 #  proxy will stop serving requests if receiver balance is below PROXY_BALANCE_LIMIT
 PROXY_BALANCE_LIMIT = 10**8

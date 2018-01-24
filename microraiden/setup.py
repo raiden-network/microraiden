@@ -15,7 +15,6 @@ import distutils
 import os
 from setuptools import Command
 from setuptools.command.build_py import build_py
-from microraiden.constants import MICRORAIDEN_VERSION
 
 DESCRIPTION = 'µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.'
 
@@ -69,7 +68,7 @@ class CompileWebUI(Command):
 
 
 config = {
-    'version': MICRORAIDEN_VERSION,
+    'version': open('microraiden/VERSION', 'r').read().strip(),
     'scripts': [],
     'name': 'microraiden',
     'author': 'Brainbot Labs Est.',
@@ -90,7 +89,8 @@ config = {
     'package_data': {'microraiden': ['data/contracts.json',
                                      'webui/js/*',
                                      'webui/index.html',
-                                     'webui/microraiden/dist/umd/microraiden.js']},
+                                     'webui/microraiden/dist/umd/microraiden.js',
+                                     'VERSION']},
     'classifiers': [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
