@@ -1,4 +1,4 @@
-µRaiden
+Guide
 =======
 
 Installation
