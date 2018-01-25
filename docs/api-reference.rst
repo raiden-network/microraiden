@@ -3,10 +3,9 @@
 API
 ===
 
-.. automodule:: microraiden
 
 
 Helper
 ------------------
 
-.. autofunc:: microraiden.microraiden.click_helpers.py 
+.. autofunction:: microraiden.microraiden.click_helpers.py 
