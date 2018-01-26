@@ -6,330 +6,328 @@
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link id="favicon" rel="shortcut icon" type="image/png" href="/js/favicon.png">
+
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
-  <script type="text/javascript" src="//code.jquery.com/jquery-3.2.1.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js"></script>
 
-  <script type="text/javascript" src="/js/web3.js"></script>
-  <script type="text/javascript" src="/js/microraiden.js"></script>
+  <script src="/js/web3.js"></script>
+  <script src="/js/microraiden.js"></script>
 
-<style>
-
+  <style>
 @import url("https://fonts.googleapis.com/css?family=Roboto:400,700");
 
- @font-face {
-   font-family: 'Glyphicons Halflings';
-   src: url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot');
-   src: url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'),
-        url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2') format('woff2'),
-        url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff') format('woff'),
-        url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.ttf') format('truetype'),
-        url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
- }
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot');
+  src: url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2') format('woff2'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff') format('woff'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.ttf') format('truetype'),
+       url('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
 
- .no-print {
-   -webkit-filter: blur(5px);
-   -moz-filter: blur(5px);
-   -o-filter: blur(5px);
-   -ms-filter: blur(5px);
-   filter: blur(5px);
- }
+.no-print {
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  -o-filter: blur(5px);
+  -ms-filter: blur(5px);
+  filter: blur(5px);
+}
 
- .mw-body {
-   -webkit-filter: blur(5px);
-   -moz-filter: blur(5px);
-   -o-filter: blur(5px);
-   -ms-filter: blur(5px);
-   filter: blur(5px);
- }
+.mw-body {
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  -o-filter: blur(5px);
+  -ms-filter: blur(5px);
+  filter: blur(5px);
+}
 
- .mw-body {
-   -webkit-filter: blur(5px);
-   -moz-filter: blur(5px);
-   -o-filter: blur(5px);
-   -ms-filter: blur(5px);
-   filter: blur(5px);
- }
+.mw-body {
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  -o-filter: blur(5px);
+  -ms-filter: blur(5px);
+  filter: blur(5px);
+}
 
- #mw-navigation {
-   -webkit-filter: blur(5px);
-   -moz-filter: blur(5px);
-   -o-filter: blur(5px);
-   -ms-filter: blur(5px);
-   filter: blur(5px);
- }
+#mw-navigation {
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  -o-filter: blur(5px);
+  -ms-filter: blur(5px);
+  filter: blur(5px);
+}
 
- #footer {
-   -webkit-filter: blur(5px);
-   -moz-filter: blur(5px);
-   -o-filter: blur(5px);
-   -ms-filter: blur(5px);
-   filter: blur(5px);
- }
+#footer {
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  -o-filter: blur(5px);
+  -ms-filter: blur(5px);
+  filter: blur(5px);
+}
 
- #overlay {
-   filter: none !important;
-   position: fixed; /* Sit on top of the page content */
-   /*display: none;*/
-   width: 100%; /* Full width (cover the whole page) */
-   height: 100%; /* Full height (cover the whole page) */
-   top: 0;
-   left: 0;
-   right: 0;
-   bottom: 0;
-   background-color: rgba(0,0,0,0.5); /* Black background with opacity */
-   z-index: 10; /* Specify a stack order in case you're using a different order for other elements */
-   cursor: pointer; /* Add a pointer on hover */
- }
+#overlay {
+  filter: none !important;
+  position: fixed; /* Sit on top of the page content */
+  /*display: none;*/
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+  z-index: 10; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: pointer; /* Add a pointer on hover */
+}
 
- @media screen and (min-width: 980px) {
-   .box-container {
-     font-size: 16px;
-     width: 750px;
-     margin: auto;
-     margin-top: 50px;
-     box-shadow: 0 0 5px #888888;
-   }
- }
+@media screen and (min-width: 980px) {
+  .box-container {
+    font-size: 16px;
+    width: 750px;
+    margin: auto;
+    margin-top: 50px;
+    box-shadow: 0 0 5px #888888;
+  }
+}
 
- @media screen and (max-width: 979px) {
-   .box-container {
-     font-size: 16px;
-     width: 70%;
-     margin-left: 15%;
-     margin-right: 15%;
-     margin-top: 50px;
-     box-shadow: 0 0 20px #888888;
-   }
- }
+@media screen and (max-width: 979px) {
+  .box-container {
+    font-size: 16px;
+    width: 70%;
+    margin-left: 15%;
+    margin-right: 15%;
+    margin-top: 50px;
+    box-shadow: 0 0 20px #888888;
+  }
+}
 
- .panel-heading {
-   text-align: center;
- }
+.panel-heading {
+  text-align: center;
+}
 
- .logo {
-   height: 65px;
-   float: left;
-   margin-right: -50px;
- }
+.logo {
+  height: 65px;
+  float: left;
+  margin-right: -50px;
+}
 
- .panel-body {
-   text-align: center;
- }
+.panel-body {
+  text-align: center;
+}
 
- .account-dropdown {
-   margin-top: 0px;
-   margin-bottom: 0px;
- }
+.account-dropdown {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
 
- .instructions {
-   margin-top: 20px;
-   margin-bottom: 20px;
- }
+.instructions {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
 
- .account-label {
-   min-width: 100px;
- }
+.account-label {
+  min-width: 100px;
+}
 
- .account-select {
-   font-size: 16px !important;
- /*  width: auto !important;*/
- /*  margin-left: 25px;*/
- }
+.account-select {
+  font-size: 16px !important;
+/*  width: auto !important;*/
+/*  margin-left: 25px;*/
+}
 
- .log {
-   padding-top: 5px;
-   padding-bottom: 15px;
- }
+.log {
+  padding-top: 5px;
+  padding-bottom: 15px;
+}
 
- .loader {
-   margin: auto;
-   border: 5px solid #f3f3f3; /* Light grey */
-   border-top: 5px solid #3498db; /* Blue */
-   border-radius: 50%;
-   width: 50px;
-   height: 50px;
-   animation: spin 1s linear infinite;
- }
+.loader {
+  margin: auto;
+  border: 5px solid #f3f3f3; /* Light grey */
+  border-top: 5px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
 
- @keyframes spin {
-   0% { transform: rotate(0deg); }
-   100% { transform: rotate(360deg); }
- }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
- li {
-   display: block;
-   float: left;
-   padding: 20px 20px 0px 20px;
-   font-size: 16px;
-   text-align: left;
- }
+li {
+  display: block;
+  float: left;
+  padding: 20px 20px 0px 20px;
+  font-size: 16px;
+  text-align: left;
+}
 
- .transfer li:before {
-   /*Using a Bootstrap glyphicon as the bullet point*/
-   content: "\e081";
-   font-family: 'Glyphicons Halflings';
-   font-size: 25px;
-   float: left;
-   margin-top: -5px;
-   margin-left: 10px;
-   padding-right: 20px;
- }
+.transfer li:before {
+  /*Using a Bootstrap glyphicon as the bullet point*/
+  content: "\e081";
+  font-family: 'Glyphicons Halflings';
+  font-size: 25px;
+  float: left;
+  margin-top: -5px;
+  margin-left: 10px;
+  padding-right: 20px;
+}
 
- .sign li:before {
-   /*Using a Bootstrap glyphicon as the bullet point*/
-   content: "\270f";
-   font-family: 'Glyphicons Halflings';
-   font-size: 25px;
-   float: left;
-   margin-top: -5px;
-   margin-left: 10px;
-   padding-right: 20px;
- }
+.sign li:before {
+  /*Using a Bootstrap glyphicon as the bullet point*/
+  content: "\270f";
+  font-family: 'Glyphicons Halflings';
+  font-size: 25px;
+  float: left;
+  margin-top: -5px;
+  margin-left: 10px;
+  padding-right: 20px;
+}
 
- .deposit {
- /*    float: none;*/
- /*    margin: 0 auto;*/
-   margin-top: 20px;
-   margin-bottom: 10px;
- /*  margin-bottom: 10px;*/
- /*  padding-left: 40px;*/
- /*  padding-right: 40px;*/
+.deposit {
+/*    float: none;*/
+/*    margin: 0 auto;*/
+  margin-top: 20px;
+  margin-bottom: 10px;
+/*  margin-bottom: 10px;*/
+/*  padding-left: 40px;*/
+/*  padding-right: 40px;*/
 
- }
+}
 
- .alert {
-   margin-left: 10px;
-   margin-right: 10px;
- }
+.alert {
+  margin-left: 10px;
+  margin-right: 10px;
+}
 
- .channel {
-   padding-top: 15px;
-   padding-bottom: 90px;
- }
+.channel {
+  padding-top: 15px;
+  padding-bottom: 90px;
+}
 
- .status-label {
-   font-weight: bold;
-   text-align: left;
- }
+.status-label {
+  font-weight: bold;
+  text-align: left;
+}
 
- .glyphicon.on-state-opened {
-   color: #77b300;
-   font-size: 60px;
-   padding-left: 90px;
- }
+.glyphicon.on-state-opened {
+  color: #77b300;
+  font-size: 60px;
+  padding-left: 90px;
+}
 
- .glyphicon.on-state-closed {
-   color: #cc0000;
-   font-size: 60px;
-   padding-left: 90px;
- }
+.glyphicon.on-state-closed {
+  color: #cc0000;
+  font-size: 60px;
+  padding-left: 90px;
+}
 
- .glyphicon.on-state-settled,
- .glyphicon.on-state-error {
-   color: #ff8800;
-   font-size: 50px;
-   padding-left: 90px;
- }
+.glyphicon.on-state-settled,
+.glyphicon.on-state-error {
+  color: #ff8800;
+  font-size: 50px;
+  padding-left: 90px;
+}
 
- .status {
-   text-align: left;
-   font-size: 20px;
- }
+.status {
+  text-align: left;
+  font-size: 20px;
+}
 
- .balance {
-   font-size: 20px;
-   text-align: left;
-   color: white;
- }
+.balance {
+  font-size: 20px;
+  text-align: left;
+#  color: white;
+}
 
- .balance-icon {
-   font-size: 20px;
-   font-weight: bold;
-   text-align: left !important;
-   color: white;
-   padding-left: 0;
- }
+.balance-icon {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: left !important;
+#  color: white;
+  padding-left: 0;
+}
 
- .balance-label {
-   font-weight: bold;
-   text-align: left;
- }
+.balance-label {
+  font-weight: bold;
+  text-align: left;
+}
 
- .btn-default {
-   height: 40px;
- }
+.btn-default {
+  height: 40px;
+}
 
- .btn-bar {
-   padding-top: 15px;
- }
+.btn-bar {
+  padding-top: 15px;
+}
 
- .box-container .btn {
-   font-size: 16px !important;
- }
+.box-container .btn {
+  font-size: 16px !important;
+}
 
- .box-container .input-group {
-   font-size: 16px !important;
- }
+.box-container .input-group {
+  font-size: 16px !important;
+}
 
- .box-container h3, .h3 {
-     font-size: 34px !important;
-     color: #000000;
- }
+.box-container h3, .h3 {
+    font-size: 34px !important;
+    color: #000000;
+}
 
- .box-container h4, .h4 {
-     font-size: 20px !important;
-     color: #000000;
- }
+.box-container h4, .h4 {
+    font-size: 20px !important;
+    color: #000000;
+}
 
- .box-container h5, .h5 {
-     font-size: 16px !important;
-     color: #000000;
- }
+.box-container h5, .h5 {
+    font-size: 16px !important;
+    color: #000000;
+}
 
- h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
-     font-family: "Roboto","Helvetica Neue",Helvetica,Arial,sans-serif !important;
-     font-weight: 500 !important;
-     line-height: 1.1 !important;
- }
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: "Roboto","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+    font-weight: 500 !important;
+    line-height: 1.1 !important;
+}
 
- .text-danger {
-   color: #cc0000 !important;
- }
+.text-danger {
+  color: #cc0000 !important;
+}
 
- .text-warning {
-   color: #ff8800 !important;
- }
+.text-warning {
+  color: #ff8800 !important;
+}
 
- .text-primary {
-   color: #2a9fd6 !important;
- }
+.text-primary {
+  color: #2a9fd6 !important;
+}
 
- .green-btn {
-   background-color: #77b300 !important;
- }
+.green-btn {
+  background-color: #77b300 !important;
+}
 
- .form-control[readonly] {
-   background-color: #ffffff;
- }
+.form-control[readonly] {
+  background-color: #ffffff;
+}
 
- div.tooltip-inner {
- 	width: 150px;
- }
-
-
-</style>
-
-
+div.tooltip-inner {
+	width: 150px;
+}
+  </style>
 </head>
+
 <body>
   <div class="box-container">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <img class="logo" src="data:image/png;base64,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" />
+        <img class="logo" src="/js/logo.png" />
         <h3>Transfer of <strong id="amount"></strong> <strong class="tkn-symbol">TKN</strong> requested</h3>
         <h4>µRaiden payment channel demo</h4>
 
@@ -358,234 +356,228 @@
 
       <div class="account-dropdown form-horizontal">
         <div class="row">
-
           <div class="col-xs-8 col-xs-offset-2">
-      <div class="input-group input-group">
-        <span class="input-group-addon account-label" data-toggle="tooltip" data-placement="left" title="This is your current web3 account">Account</span>
-        <select class="form-control account-select" id="accounts"><option value="" disabled selected>Select your testnet account</option></select>
-      </div>
+            <div class="input-group input-group">
+              <span class="input-group-addon account-label" data-toggle="tooltip" data-placement="left" title="This is your current web3 account">Account</span>
+              <select class="form-control account-select" id="accounts"><option value="" disabled selected>Select your testnet account</option></select>
+            </div>
           </div>
         </div>
         <div class="row">
-
           <div class="col-xs-8 col-xs-offset-2">
-
             <div class="row deposit">
-              <div class="col-sm-8">
+              <div class="col-sm-12" id="balance-column">
                 <div class="input-group input-group">
                   <span class="input-group-addon account-label" >Balance</span>
-                        <input type="text" class="form-control tkn-balance tkn-decimals" id="token_balance" placeholder="Amount TKN"
-                        style="font-size: 16px; text-align:right; height: 40px; border-right-width: 0px;" readonly>
-                        <span class="input-group-btn">
-                          <button type="button" class="btn btn-default token_buy" data-toggle="tooltip" data-placement="bottom" title="0.1 Eth = 50 TKN">Buy</button>
-                        </span>
+                  <input type="text" class="form-control tkn-balance tkn-decimals" id="token_balance" placeholder="Amount TKN"
+                    style="font-size: 16px; text-align:right; height: 40px; border-right-width: 0px;" readonly>
+                  <span class="input-group-btn">
+                    <button type="button" class="btn btn-default token_buy" data-toggle="tooltip" data-placement="bottom" title="0.1 Eth = 50 TKN">Buy</button>
+                  </span>
                 </div>
               </div>
-              <div class="col-sm-4" style="padding-left: 0px;">
+              <div class="col-sm-4" style="padding-left: 0px; display: none;" id="topup-column">
                 <div class="input-group input-group">
                   <input type="number" class="form-control tkn-decimals" id="topup_deposit" placeholder="Amount to deposit"
-                  style="text-align: right; font-size: 16px; height: 40px" min="0" value="2"/>
+                    style="text-align: right; font-size: 16px; height: 40px" min="0" value="2"/>
                   <span class="input-group-btn">
-                    <button type="button" class="btn btn-default" id="topup_start" data-toggle="tooltip" data-placement="bottom" title="Increase the balance of an already open channel">Deposit</button>
+                    <button type="button" class="btn btn-default topup_start" data-toggle="tooltip" data-placement="bottom"
+                      title="Increase the balance of an already open channel">Deposit</button>
                   </span>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
-</div>
+    </div>
 
-      <div class="panel-body">
-
-
-        <div class="row main_switch" id="no_accounts">
-          <div class="log">
-            <h5 class="text-danger">No accounts found!</h5>
-            <h5 class="text-danger">You may need to unlock your account on your Web3 provider (Metamask/Mist/Parity)</h5>
-          </div>
+    <div class="panel-body">
+      <div class="row main_switch" id="no_accounts">
+        <div class="log">
+          <h5 class="text-danger">No accounts found!</h5>
+          <h5 class="text-danger">You may need to unlock your account on your Web3 provider (Metamask/Mist/Parity)</h5>
         </div>
+      </div>
 
-        <div class="row main_switch" id="invalid_contract">
-          <div class="log">
-            <h5 class="text-danger">Invalid contract response!</h5>
-            <h5 class="text-danger">Web3 provider failed to get proper contract response. Please, check your provider is in the right network and synced!</h5>
-          </div>
+      <div class="row main_switch" id="invalid_contract">
+        <div class="log">
+          <h5 class="text-danger">Invalid contract response!</h5>
+          <h5 class="text-danger">Web3 provider failed to get proper contract response. Please, check your provider is in the right network and synced!</h5>
         </div>
+      </div>
 
-        <div class="row main_switch" id="channel_loading">
-          <div class="log">
-            <div class="loader"></div>
-            <h5 class="text-primary">Loading channel</h5>
-          </div>
+      <div class="row main_switch" id="channel_loading">
+        <div class="log">
+          <div class="loader"></div>
+          <h5 class="text-primary">Loading channel</h5>
         </div>
+      </div>
 
+      <div class="row main_switch" id="channel_present">
+        <h5>A channel was found for this address.</h5>
 
-        <div class="row main_switch" id="channel_present">
-          <h5>A channel was found for this address.</h5>
-
-          <div class="channel" id="channel">
+        <div class="channel" id="channel">
+          <div class="col-xs-7">
+            <div class="col-xs-6" id="status-icon">
+              <span class="glyphicon glyphicon-ok-circle on-state on-state-opened" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon-ban-circle on-state on-state-closed" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon-resize-full on-state on-state-settled" aria-hidden="true"></span>
+              <span class="glyphicon glyphicon-warning-sign on-state on-state-error" aria-hidden="true"></span>
+            </div>
+            <div class="col-xs-6 status-content">
+              <div class="status-label">Status</div>
+              <div class="status" id="status">
+                <span class="label label-success on-state on-state-opened"><strong>opened</strong></span>
+                <span class="label label-danger on-state on-state-closed"><strong>closed</strong></span>
+                <span class="label label-warning on-state on-state-settled"><strong>settled</strong></span>
+                <span class="label label-danger on-state on-state-error"><strong>invalid</strong></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-5 balance-content">
+            <div class="balance-label">Remaining Balance</div>
+            <div class="col-xs-5 balance-icon tkn-symbol">TKN</div>
             <div class="col-xs-7">
-              <div class="col-xs-6" id="status-icon">
-                <span class="glyphicon glyphicon-ok-circle on-state on-state-opened" aria-hidden="true"></span>
-                <span class="glyphicon glyphicon-ban-circle on-state on-state-closed" aria-hidden="true"></span>
-                <span class="glyphicon glyphicon-resize-full on-state on-state-settled" aria-hidden="true"></span>
-                <span class="glyphicon glyphicon-warning-sign on-state on-state-error" aria-hidden="true"></span>
-              </div>
-              <div class="col-xs-6 status-content">
-                <div class="status-label">Status</div>
-                <div class="status" id="status">
-                  <span class="label label-success on-state on-state-opened"><strong>opened</strong></span>
-                  <span class="label label-danger on-state on-state-closed"><strong>closed</strong></span>
-                  <span class="label label-warning on-state on-state-settled"><strong>settled</strong></span>
-                  <span class="label label-danger on-state on-state-error"><strong>invalid</strong></span>
-                </div>
-              </div>
-            </div>
-            <div class="col-xs-5 balance-content">
-              <div class="balance-label">Remaining Balance</div>
-              <div class="col-xs-5 balance-icon tkn-symbol">TKN</div>
-              <div class="col-xs-7">
-                <div class="balance" id="channel_present_balance"></div>
-              </div>
+              <div class="balance" id="channel_present_balance"></div>
             </div>
           </div>
+        </div>
 
-          <h5 class="col-sm-12 on-state on-state-opened">
-            Press the Sign button to authorize the transfer.
-          </h5>
-          <!--h5 class="col-sm-12 on-state on-state-closed on-state-settled on-state-error">
-            Choose an action to control the channel
-          </h5-->
+        <h5 class="col-sm-12 on-state on-state-opened">
+          Press the Sign button to authorize the transfer.
+        </h5>
+        <!--h5 class="col-sm-12 on-state on-state-closed on-state-settled on-state-error">
+          Choose an action to control the channel
+        </h5-->
 
-          <div class="col-sm-12 btn-bar" style="display: none">
-            <div class="col-sm-2"></div>
+        <div class="col-sm-12 btn-bar" style="display: none">
+          <div class="col-sm-2"></div>
 
-            <!-- OPENED -->
-            <button type="button" class="col-sm-2 btn btn-default on-state on-state-opened channel_present_close"
-              style="margin-right: 5px">
+          <!-- OPENED -->
+          <button type="button" class="col-sm-2 btn btn-default on-state on-state-opened channel_present_close"
+            style="margin-right: 5px">
+            <span class="glyphicon glyphicon-remove"></span> Close
+          </button>
+          <button type="button" class="col-sm-2 btn btn-default on-state on-state-opened channel_present_forget"
+            style="margin-right: 5px">
+            <span class="glyphicon glyphicon-trash"></span> Forget
+          </button>
+          <button type="button" class="col-sm-4 btn btn-default on-state on-state-opened channel_present_sign">
+            <span class="glyphicon glyphicon-pencil"></span> Sign
+          </button>
+
+          <!-- CLOSED -->
+          <button type="button" class="col-sm-4 btn btn-default on-state on-state-closed channel_present_forget">
+            <span class="glyphicon glyphicon-trash"></span> Forget
+          </button>
+          <button type="button" class="col-sm-4 btn btn-default on-state on-state-closed channel_present_settle"
+            style="margin-left: 5px">
+            <span class="glyphicon glyphicon-ok"></span> Settle
+          </button>
+
+          <!-- SETTLED -->
+          <div class="col-sm-2"></div>
+          <button type="button" class="col-sm-4 btn btn-default on-state on-state-settled on-state-error channel_present_forget">
+            <span class="glyphicon glyphicon-trash"></span> Forget
+          </button>
+
+          <div class="col-sm-1"></div>
+        </div>
+      </div>
+
+      <div class="row main_switch" id="channel_missing">
+        <div class="log">
+          <h5 class="text-warning">No channel was found registered for this account on this website.</h5>
+        </div>
+        <div class="row">
+          <span class="instructions">
+            <h5>In order to proceed...</h5>
+            <ol>
+              <div class="transfer">
+                <li>
+                  Make a desired token <strong>deposit</strong> to open a channel with this site.
+                </li>
+              </div>
+              <div class="sign">
+                <li>
+                  For each transfer, <strong>sign</strong> a message confirming the balance with the new transferred amount. <br>PS: the balance is the cumulative sum of all previous payments and current one. It may also be shown multiplied by as many decimals as token decimals (up to 18).
+                </li>
+              </div>
+            </ol>
+          </span>
+        </div>
+        <div class="row deposit">
+          <div class="col-xs-offset-1 col-xs-5 col-md-offset-3 col-md-6">
+            <div class="input-group">
+              <input type="number" class="form-control tkn-decimals" id="channel_missing_deposit" placeholder="Amount to deposit"
+              style="font-size: 16px; text-align:right; height: 40px;" min="1" value="2"/>
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" id="channel_missing_start" data-toggle="tooltip" data-placement="top" title="Open the payment channel">Deposit</button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row main_switch" id="channel_opening">
+        <div class="log">
+          <div class="loader"></div>
+          <h5 class="text-primary">The transactions are being processed.</h5>
+          <h5 class="text-primary">Please authorize with your Ethereum client.</h5>
+        </div>
+      </div>
+
+      <div class="row main_switch" id="topup">
+        <div class="log">
+          <h5 class="text-warning">Insufficient deposited funds on this channel.</h5>
+        </div>
+        <div class="row">
+          <div class="col-xs-2"></div>
+          <div class="col-xs-5">
+            <div class="balance-label">Current Deposit</div>
+            <div class="col-xs-4 balance-icon tkn-symbol">TKN</div>
+            <div class="col-xs-8">
+              <div class="balance" id="deposited"></div>
+            </div>
+          </div>
+          <div class="col-xs-5 balance-content">
+            <div class="balance-label">Remaining Balance</div>
+            <div class="col-xs-4 balance-icon tkn-symbol">TKN</div>
+            <div class="col-xs-8">
+              <div class="balance" id="remaining"></div>
+            </div>
+          </div>
+        </div>
+      <div class="row" style="padding-top: 30px;">
+          <span class="instructions">
+            <h5>In order to proceed, deposit at least <strong><span id="required"></span> <span class="tkn-symbol">TKN</span></strong> tokens</h5>
+          </span>
+        </div>
+        <div class="row deposit">
+          <div class=" col-sm-offset-1 col-sm-3" >
+            <button type="button" class="btn btn-default btn-block channel_present_close">
               <span class="glyphicon glyphicon-remove"></span> Close
             </button>
-            <button type="button" class="col-sm-2 btn btn-default on-state on-state-opened channel_present_forget"
-              style="margin-right: 5px">
+          </div>
+          <div class="col-sm-3" >
+            <button type="button" class="btn btn-default btn-block channel_present_forget">
               <span class="glyphicon glyphicon-trash"></span> Forget
             </button>
-            <button type="button" class="col-sm-4 btn btn-default on-state on-state-opened channel_present_sign">
-              <span class="glyphicon glyphicon-pencil"></span> Sign
-            </button>
-
-            <!-- CLOSED -->
-            <button type="button" class="col-sm-4 btn btn-default on-state on-state-closed channel_present_forget">
-              <span class="glyphicon glyphicon-trash"></span> Forget
-            </button>
-            <button type="button" class="col-sm-4 btn btn-default on-state on-state-closed channel_present_settle"
-              style="margin-left: 5px">
-              <span class="glyphicon glyphicon-ok"></span> Settle
-            </button>
-
-            <!-- SETTLED -->
-            <div class="col-sm-2"></div>
-            <button type="button" class="col-sm-4 btn btn-default on-state on-state-settled on-state-error channel_present_forget">
-              <span class="glyphicon glyphicon-trash"></span> Forget
-            </button>
-
-            <div class="col-sm-1"></div>
           </div>
-        </div>
-
-        <div class="row main_switch" id="channel_missing">
-          <div class="log">
-            <h5 class="text-warning">No channel was found registered for this account on this website.</h5>
-          </div>
-          <div class="row">
-            <span class="instructions">
-              <h5>In order to proceed...</h5>
-              <ol>
-                <div class="transfer">
-                  <li>
-                    Make a desired token <strong>deposit</strong> to open a channel with this site.
-                  </li>
-                </div>
-                <div class="sign">
-                  <li>
-                    For each transfer, <strong>sign</strong> a message confirming the balance with the new transferred amount. <br>PS: the balance is the cumulative sum of all previous payments and current one. It may also be shown multiplied by as many decimals as token decimals (up to 18).
-                  </li>
-                </div>
-              </ol>
-            </span>
-          </div>
-          <div class="row deposit">
-            <div class="col-xs-offset-1 col-xs-5 col-md-offset-3 col-md-6">
-              <div class="input-group">
-                <input type="number" class="form-control tkn-decimals" id="channel_missing_deposit" placeholder="Amount to deposit"
-                style="font-size: 16px; text-align:right; height: 40px;" min="1" value="2"/>
-                <span class="input-group-btn">
-                  <button type="button" class="btn btn-default" id="channel_missing_start" data-toggle="tooltip" data-placement="top" title="Open the payment channel">Deposit</button>
-                </span>
-              </div>
+          <div class="col-sm-4">
+            <div class="input-group input-group">
+              <input type="number" class="form-control tkn-decimals" id="topup_deposit" placeholder="Amount to deposit"
+              style="text-align: right; font-size: 16px; height: 40px" min="0" value="2"/>
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default topup_start" data-toggle="tooltip" data-placement="bottom" title="Increase the balance of an already open channel">Deposit</button>
+              </span>
             </div>
           </div>
         </div>
-
-        <div class="row main_switch" id="channel_opening">
-          <div class="log">
-            <div class="loader"></div>
-            <h5 class="text-primary">The transactions are being processed.</h5>
-            <h5 class="text-primary">Please authorize with your Ethereum client.</h5>
-          </div>
-        </div>
-
-        <div class="row main_switch" id="topup">
-          <div class="log">
-            <h5 class="text-warning">Insufficient deposited funds on this channel.</h5>
-          </div>
-          <div class="row">
-            <div class="col-xs-2"></div>
-            <div class="col-xs-5">
-              <div class="balance-label">Current Deposit</div>
-              <div class="col-xs-4 balance-icon tkn-symbol">TKN</div>
-              <div class="col-xs-8">
-                <div class="balance" id="deposited"></div>
-              </div>
-            </div>
-            <div class="col-xs-5 balance-content">
-              <div class="balance-label">Remaining Balance</div>
-              <div class="col-xs-4 balance-icon tkn-symbol">TKN</div>
-              <div class="col-xs-8">
-                <div class="balance" id="remaining"></div>
-              </div>
-            </div>
-          </div>
-        <div class="row" style="padding-top: 30px;">
-            <span class="instructions">
-              <h5>In order to proceed, deposit at least <strong><span id="required"></span> <span class="tkn-symbol">TKN</span></strong> tokens</h5>
-            </span>
-          </div>
-          <div class="row deposit">
-            <div class=" col-sm-offset-1 col-sm-3" >
-              <button type="button" class="btn btn-default btn-block channel_present_close">
-                <span class="glyphicon glyphicon-remove"></span> Close
-              </button>
-            </div>
-            <div class="col-sm-3" >
-              <button type="button" class="btn btn-default btn-block channel_present_forget">
-                <span class="glyphicon glyphicon-trash"></span> Forget
-              </button>
-            </div>
-            <div class="col-sm-4">
-              <div class="input-group input-group">
-                <input type="number" class="form-control tkn-decimals" id="topup_deposit" placeholder="Amount to deposit"
-                style="text-align: right; font-size: 16px; height: 40px" min="0" value="2"/>
-                <span class="input-group-btn">
-                  <button type="button" class="btn btn-default" id="topup_start" data-toggle="tooltip" data-placement="bottom" title="Increase the balance of an already open channel">Deposit</button>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
+
+    </div>
     </div>
   </div>
 

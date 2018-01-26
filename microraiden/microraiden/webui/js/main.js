@@ -166,6 +166,8 @@ function pageReady(contractABI, tokenABI, startBlock) {
                 "Please, close+settle+forget, and open a new channel");
               $('#channel_present .channel_present_sign').attr("disabled", true);
               autoSign = false;
+            } else {
+              $('#channel_present .channel_present_sign').attr("disabled", false);
             }
             return info;
           })
@@ -186,6 +188,15 @@ function pageReady(contractABI, tokenABI, startBlock) {
             $("#channel_present #channel_present_deposit").attr(
               "value", uraiden.tkn2num(info.deposit));
             $(".btn-bar").show()
+
+            if (info.state === 'opened') {
+              $("#balance-column").removeClass('col-sm-12').addClass('col-sm-8');
+              $("#topup-column").show();
+            } else {
+              $("#balance-column").removeClass('col-sm-8').addClass('col-sm-12');
+              $("#topup-column").hide();
+            }
+
             if (info.state === 'opened' && autoSign) {
               signRetry();
             }
@@ -301,14 +312,10 @@ function pageReady(contractABI, tokenABI, startBlock) {
   });
 
   $("#topup_deposit").bind("input", function($event) {
-    if (+$event.target.value > 0) {
-      $("#topup_start").attr("disabled", false);
-    } else {
-      $("#topup_start").attr("disabled", true);
-    }
+    $(".topup_start").attr("disabled", !(+$event.target.value > 0));
   });
 
-  $("#topup_start").click(function() {
+  $(".topup_start").click(function() {
     var deposit = uraiden.num2tkn($("#topup_deposit").val());
     mainSwitch("#channel_opening");
     uraiden.topUpChannel(deposit)
