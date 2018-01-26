@@ -15,7 +15,7 @@ class PaywalledProxyUrl(Expensive):
     it fetches a content from a remote server"""
     def __init__(self, domain=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.paywall_html = self.extract_paywall_body(
+        self.paywall_html, self.paywall_header = self.extract_paywall_body(
             os.path.join(MICRORAIDEN_DIR, 'microraiden/webui/index.html')
         )
         self.domain = domain
@@ -28,7 +28,12 @@ class PaywalledProxyUrl(Expensive):
         b = soup.body
         b['id'] = "overlay"
         b.name = "div"
-        return b
+
+        h = [el for el in soup.head
+             if el.name in ('script', 'style') or
+             (el.name == 'link' and 'stylesheet' in el['rel'])]
+
+        return b, h
 
     def get(self, url, *args, **kwargs):
         req = requests.get(self.domain + url, stream=True, params=request.args)
@@ -37,28 +42,13 @@ class PaywalledProxyUrl(Expensive):
 
     def get_paywall(self, url: str):
         data = self.get(url)
-        if data.headers['Content-Type'] != 'text/html':
+        if 'text/html' not in data.headers.get('Content-Type'):
             return super().get_paywall(url)
 
-#  <link rel="stylesheet" type="text/css" href="/js/styles.css">
-
         soup = BeautifulSoup(data.data.decode(), 'html.parser')
-        # generate js paths that are required
-        js_paths = [
-            "//code.jquery.com/jquery-3.2.1.js",
-            "//cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js",
-            "//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js",
-            "/js/web3.js",
-            "/js/microraiden.js"]
-        for src in js_paths:
-            js_tag = soup.new_tag('script', type="text/javascript", src=src)
-            soup.head.append(js_tag)
-        # generate css
-        bs_tag = soup.new_tag('link', rel="stylesheet",
-                              type="text/css", href="/js/dark-bootstrap.min.css")
-        css_tag = soup.new_tag('link', rel="stylesheet", type="text/css", href="/js/styles.css")
-        soup.head.insert(0, bs_tag)
-        soup.head.insert(0, css_tag)
+        # merge js and css elements
+        for tag in reversed(self.paywall_header):
+            soup.head.insert(0, tag)
 
         # inject div that generates the paywall
         soup.body.insert(0, self.paywall_html)
