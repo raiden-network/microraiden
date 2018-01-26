@@ -1,7 +1,7 @@
 version: '2'
 services:
     web3:
-        image: parity/parity:v1.8.6
+        image: parity/parity:v1.8.7
         restart: always
         volumes:
             - ~/.local/share/io.parity.ethereum.ropsten:/mnt
