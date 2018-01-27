@@ -15,6 +15,6 @@ requests
 werkzeug
 populus>=2.2.0
 munch
-typing
+typing==3.6.2
 bs4
 filelock
