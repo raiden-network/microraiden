@@ -86,6 +86,14 @@
   cursor: pointer; /* Add a pointer on hover */
 }
 
+.box-container {
+  overflow-y: scroll;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 @media screen and (min-width: 980px) {
   .box-container {
     font-size: 16px;
@@ -323,7 +331,7 @@ div.tooltip-inner {
   </style>
 </head>
 
-<body>
+<body style="overflow: hidden;">
   <div class="box-container">
     <div class="panel panel-default">
       <div class="panel-heading">
