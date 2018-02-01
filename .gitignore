@@ -4,7 +4,6 @@ credentials/
 *.egg-info
 __pycache__
 build/docs/
-docs/api/
 .cache
 
 # ignore private keys
