@@ -65,11 +65,7 @@ the password for the private key in the first line of the file. If it's
 not provided, the password will be prompted interactively. An Ethereum
 node RPC interface is expected to respond on http://localhost:8545.
 Alternatively, you can use `Infura
-infrastructure <https://infura.io/>`__ as a RPC provider. ### M2M Client
-
-.. code:: bash
-
-    python3 -m microraiden.examples.m2m_client --key-path <path to private key file> --key-password-path <password file>
+infrastructure <https://infura.io/>`__ as a RPC provider.
 
 Library usage
 -------------
