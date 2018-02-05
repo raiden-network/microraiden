@@ -46,14 +46,22 @@
     img {
       margin-top: 10px;
     }
+    #fortunes_cn {
+      margin-top: 20;
+    }
+    @media screen and (min-width: 1049px) {
+      #fortunes_cn {
+      margin-top: -5px;
+      }
+    }
   </style>
 </head>
 <body>
 
-<div class="container" style="margin-top: 50px;" id="content">
+<div class="container" style="margin-top: 30px;" id="content">
   <div class="columns">
     <div class="column col-9 col-mx-auto">
-        <h1>µRaiden Demos</h1>
+        <h1 style="font-weight: 400;">µRaiden Demos</h1>
     </div>
   </div>
   <div class="columns">
@@ -63,7 +71,7 @@
     <h5>2. Get some Ropsten Testnet Ether</h5>
     <p>Try <a style="color: #a3a3a3" href="http://faucet.ropsten.be:3001/">some</a> <a style="color: #a3a3a3" href="https://faucet.metamask.io/">faucets</a>.</p>
     <h5>3. Enter the demo</h5>
-    <p>Open Metamask on the Ethereum Ropsten testnet and test µRaiden.</p>
+    <p style="margin-bottom: 24px;">Open Metamask on the Ethereum Ropsten testnet and test µRaiden.</p>
   </div>
   </div>
   <div class="columns">
@@ -76,10 +84,10 @@
         </a>
       </div>
     </div>
-    <div class="column col-5 col-mr-auto">
+    <div class="column col-5 col-mr-auto col-ml-auto">
       <div class="empty" style="padding: 32px">
         <h3>Fortune Cookie Demo
-          <a class="btn btn-primary" id="fortunes_cn" style="margin-top: -5; margin-left: 20px;" href="/fortunes_cn">中文</a>
+          <a class="btn btn-primary" id="fortunes_cn" style="margin-left: 20px;" href="/fortunes_cn">中文</a>
         </h3>
         <p class="empty-subtitle">Words of wisdom</p>
         <a id="fortunes_en" href="/fortunes_en">

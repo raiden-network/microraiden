@@ -117,6 +117,7 @@
 
 .panel-heading {
   text-align: center;
+  padding-top: 20px;
 }
 
 .logo {
@@ -139,8 +140,14 @@
   margin-bottom: 20px;
 }
 
+.uppertoolbar {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 .account-label {
-  min-width: 100px;
+  min-width: 80px;
+  font-size: 16px;
 }
 
 .account-select {
@@ -217,7 +224,7 @@ li {
 
 .channel {
   padding-top: 15px;
-  padding-bottom: 90px;
+  padding-bottom: 70px;
 }
 
 .status-label {
@@ -242,6 +249,12 @@ li {
   color: #ff8800;
   font-size: 50px;
   padding-left: 90px;
+}
+
+.bottom-section-text {
+  padding-left:80px;
+  padding-right: 80px;
+  text-align: left;
 }
 
 .status {
@@ -269,7 +282,7 @@ li {
 }
 
 .btn-default {
-  height: 40px;
+  height: 34px;
 }
 
 .btn-bar {
@@ -336,22 +349,22 @@ div.tooltip-inner {
     <div class="panel panel-default">
       <div class="panel-heading">
         <img class="logo" src="/js/logo.png" />
-        <h3>Transfer of <strong id="amount"></strong> <strong class="tkn-symbol">TKN</strong> requested</h3>
-        <h4>µRaiden payment channel demo</h4>
+        <h3 style="padding-top: 0px; margin-top: 0px; margin-bottom: 5px">Transfer of <strong id="amount"></strong> <strong class="tkn-symbol">TKN</strong> requested</h3>
+        <h4 style="padding-top: 0px;">µRaiden payment channel demo</h4>
 
       <!--<h4>Read this article and support the
         <span id="publisher" >publisher</span> -
       </h4>
       <h4>by transfering <strong id="amount"></strong> TKN tokens.</h4> -->
-        <div class="col-xs-10 col-xs-offset-2 instructions" style="padding-left: 0px; text-align: left; margin-top: 40px; margin-bottom: 40px">
+        <div class="col-xs-10 col-xs-offset-2 instructions" style="padding-left: 0px; text-align: left; margin-top: 30px; margin-bottom: 30px">
 
           <h5>
               1. Click <strong>Buy</strong> to get <strong class="tkn-symbol">TKN</strong> tokens in exchange for Ropsten Testnet ETH.
           </h5>
-          <h5 style="margin-top: 15px;">
+          <h5 style="margin-top: 10px;">
               2. Click <strong>Deposit</strong> to open a channel with the selected deposit of <strong class="tkn-symbol">TKN</strong>.
           </h5>
-          <h5 style="margin-top: 15px;">
+          <h5 style="margin-top: 10px;">
               3. For each transfer, <strong>sign</strong> the balance proof to access the content.
           </h5>
           <!--<h5>
@@ -364,21 +377,21 @@ div.tooltip-inner {
 
       <div class="account-dropdown form-horizontal">
         <div class="row">
-          <div class="col-xs-8 col-xs-offset-2">
+          <div class="col-xs-8 col-xs-offset-2 uppertoolbar">
             <div class="input-group input-group">
-              <span class="input-group-addon account-label" data-toggle="tooltip" data-placement="left" title="This is your current web3 account">Account</span>
+              <span class="input-group-addon account-label" style="font-size: 16px" data-toggle="tooltip" data-placement="left" title="This is your current web3 account">Account</span>
               <select class="form-control account-select" id="accounts"><option value="" disabled selected>Select your testnet account</option></select>
             </div>
           </div>
         </div>
         <div class="row">
-          <div class="col-xs-8 col-xs-offset-2">
+          <div class="col-xs-8 col-xs-offset-2 uppertoolbar">
             <div class="row deposit">
               <div class="col-sm-12" id="balance-column">
                 <div class="input-group input-group">
-                  <span class="input-group-addon account-label" >Balance</span>
+                  <span class="input-group-addon account-label" style="font-size: 16px">Balance</span>
                   <input type="text" class="form-control tkn-balance tkn-decimals" id="token_balance" placeholder="Amount TKN"
-                    style="font-size: 16px; text-align:right; height: 40px; border-right-width: 0px;" readonly>
+                    style="font-size: 16px; text-align:right; border-right-width: 0px;" readonly>
                   <span class="input-group-btn">
                     <button type="button" class="btn btn-default token_buy" data-toggle="tooltip" data-placement="bottom" title="0.1 Eth = 50 TKN">Buy</button>
                   </span>
@@ -395,23 +408,24 @@ div.tooltip-inner {
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
     </div>
 
     <div class="panel-body">
-      <div class="row main_switch" id="no_accounts">
+      <div class="row main_switch bottom-section-text" id="no_accounts">
         <div class="log">
           <h5 class="text-danger">No accounts found!</h5>
-          <h5 class="text-danger">You may need to unlock your account on your Web3 provider (Metamask/Mist/Parity)</h5>
+          <h5 class="text-danger">You may need to unlock your account on your Web3 provider. (Metamask/Mist/Parity)</h5>
         </div>
       </div>
 
-      <div class="row main_switch" id="invalid_contract">
+      <div class="row main_switch bottom-section-text" id="invalid_contract">
         <div class="log">
           <h5 class="text-danger">Invalid contract response!</h5>
-          <h5 class="text-danger">Web3 provider failed to get proper contract response. Please, check your provider is in the right network and synced!</h5>
+          <h5 class="text-danger">Web3 provider failed to get proper contract response.<br>Please, check your provider is in the right network and synced!</h5>
         </div>
       </div>
 
@@ -422,8 +436,8 @@ div.tooltip-inner {
         </div>
       </div>
 
-      <div class="row main_switch" id="channel_present">
-        <h5>A channel was found for this address.</h5>
+      <div class="row main_switch " id="channel_present">
+        <h5 class="bottom-section-text">A channel was found for this address.</h5>
 
         <div class="channel" id="channel">
           <div class="col-xs-7">
@@ -452,7 +466,7 @@ div.tooltip-inner {
           </div>
         </div>
 
-        <h5 class="col-sm-12 on-state on-state-opened">
+        <h5 class="col-sm-12 on-state on-state-opened bottom-section-text">
           Press the Sign button to authorize the transfer.
         </h5>
         <!--h5 class="col-sm-12 on-state on-state-closed on-state-settled on-state-error">
@@ -500,15 +514,15 @@ div.tooltip-inner {
         </div>
         <div class="row">
           <span class="instructions">
-            <h5>In order to proceed...</h5>
-            <ol>
-              <div class="transfer">
-                <li>
+            <h5 class="bottom-section-text">In order to proceed...</h5>
+            <ol class="bottom-section-text">
+              <div class="transfer ">
+                <li style="padding-left: 0px;">
                   Make a desired token <strong>deposit</strong> to open a channel with this site.
                 </li>
               </div>
-              <div class="sign">
-                <li>
+              <div class="sign ">
+                <li style="padding-left: 0px;">
                   For each transfer, <strong>sign</strong> a message confirming the balance with the new transferred amount. <br>PS: the balance is the cumulative sum of all previous payments and current one. It may also be shown multiplied by as many decimals as token decimals (up to 18).
                 </li>
               </div>
@@ -516,10 +530,10 @@ div.tooltip-inner {
           </span>
         </div>
         <div class="row deposit">
-          <div class="col-xs-offset-1 col-xs-5 col-md-offset-3 col-md-6">
+          <div class="col-xs-8 col-xs-offset-2">
             <div class="input-group">
               <input type="number" class="form-control tkn-decimals" id="channel_missing_deposit" placeholder="Amount to deposit"
-              style="font-size: 16px; text-align:right; height: 40px;" min="1" value="2"/>
+              style="font-size: 16px; text-align:right;" min="1" value="2"/>
               <span class="input-group-btn">
                 <button type="button" class="btn btn-default" id="channel_missing_start" data-toggle="tooltip" data-placement="top" title="Open the payment channel">Deposit</button>
               </span>
@@ -558,8 +572,8 @@ div.tooltip-inner {
           </div>
         </div>
       <div class="row" style="padding-top: 30px;">
-          <span class="instructions">
-            <h5>In order to proceed, deposit at least <strong><span id="required"></span> <span class="tkn-symbol">TKN</span></strong> tokens</h5>
+          <span class="instructions ">
+            <h5 class="bottom-section-text">In order to proceed, deposit at least <strong><span id="required"></span> <span class="tkn-symbol">TKN</span></strong> tokens</h5>
           </span>
         </div>
         <div class="row deposit">
@@ -576,7 +590,7 @@ div.tooltip-inner {
           <div class="col-sm-4">
             <div class="input-group input-group">
               <input type="number" class="form-control tkn-decimals" id="topup_deposit" placeholder="Amount to deposit"
-              style="text-align: right; font-size: 16px; height: 40px" min="0" value="2"/>
+              style="text-align: right; font-size: 16px;" min="0" value="2"/>
               <span class="input-group-btn">
                 <button type="button" class="btn btn-default topup_start" data-toggle="tooltip" data-placement="bottom" title="Increase the balance of an already open channel">Deposit</button>
               </span>
