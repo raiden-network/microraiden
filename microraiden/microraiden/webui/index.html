@@ -84,14 +84,7 @@
   background-color: rgba(0,0,0,0.5); /* Black background with opacity */
   z-index: 10; /* Specify a stack order in case you're using a different order for other elements */
   cursor: pointer; /* Add a pointer on hover */
-}
-
-.box-container {
   overflow-y: scroll;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
 }
 
 @media screen and (min-width: 980px) {
@@ -344,7 +337,7 @@ div.tooltip-inner {
   </style>
 </head>
 
-<body style="overflow: hidden;">
+<body style="overflow-y: hidden;">
   <div class="box-container">
     <div class="panel panel-default">
       <div class="panel-heading">
@@ -400,7 +393,7 @@ div.tooltip-inner {
               <div class="col-sm-4" style="padding-left: 0px; display: none;" id="topup-column">
                 <div class="input-group input-group">
                   <input type="number" class="form-control tkn-decimals" id="topup_deposit" placeholder="Amount to deposit"
-                    style="text-align: right; font-size: 16px; height: 40px" min="0" value="2"/>
+                    style="text-align: right; font-size: 16px; height: 34px" min="0" value="2"/>
                   <span class="input-group-btn">
                     <button type="button" class="btn btn-default topup_start" data-toggle="tooltip" data-placement="bottom"
                       title="Increase the balance of an already open channel">Deposit</button>
