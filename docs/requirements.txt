@@ -1,0 +1,2 @@
+sphinx-autodoc-typehints
+sphinx-click>=1.0.4
