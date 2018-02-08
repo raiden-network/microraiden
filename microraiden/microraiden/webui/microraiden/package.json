@@ -46,6 +46,7 @@
     "@types/core-js": "^0.9.43",
     "@types/mocha": "^2.2.45",
     "@types/node": "^8.5.2",
+    "@types/lodash": "^4.14.102",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
