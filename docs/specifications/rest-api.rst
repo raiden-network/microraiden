@@ -5,9 +5,6 @@ REST API
   :maxdepth: 3
 
 
-Introduction
-============
-
 µRaiden exposes a Restful API to
 provide insight into a channel state, balances, and it allows proxy
 operator to close and settle the channels.

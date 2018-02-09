@@ -1,11 +1,5 @@
-JavaScript client library
+Web-Client (JavaScript)
 ########################## 
-
-.. toctree::
-  :maxdepth: 3
-
-Introduction
-===================
 
 For a quick overview on how to use the Javascript client library please refer to the `README <https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/webui/microraiden/README.md>`_
 
