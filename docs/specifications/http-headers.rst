@@ -1,10 +1,3 @@
-Components overview
-########################################
-
-.. toctree::
-  :maxdepth: 4
-
-
 HTTP Headers
 -----------------------------------
 
@@ -101,43 +94,3 @@ Request Headers
 | RDN-Open-Block        | uint     | Opening block number of the channel       |
 |                       |          | required for unique identification        |
 +-----------------------+----------+-------------------------------------------+
-
-Off-Chain Micropayment Sequence
--------------------------------
-
-(not-so-standard sequence diagram) For a better overview, also check out
-how the smart contract does a :ref:`balance-proof validation <contract-validate-balance-proof>`.
-
-.. figure:: /diagrams/OffChainSequence.png
-   :alt: 
-
-µRaiden Server
---------------
-
-Non-detailed components overview. For function arguments and types, please check source code and docstrings.
-
-Channel manager
-~~~~~~~~~~~~~~~
-
-.. figure:: /diagrams/ChannelManagerClass.png
-   :alt: 
-
-Proxy
-~~~~~~~~~~~~~~~
-
-.. figure:: /diagrams/ProxyClass.png
-   :alt:
-
-Python Client
--------------
-
-.. figure:: /diagrams/PythonClientClass.png
-   :alt: 
-
-Web Client
------------
-For an overview of the web client, please refer to the :doc:`jsclient/index` documentation.
-
-Smart Contract
----------------
-For an overview of the RaidenMicroTransferChannels smart contract, please refer to the :ref:`Smart Contract API <contract-development>` documentation.
