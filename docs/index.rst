@@ -52,7 +52,7 @@ component only supports one.
     python -m microraiden.examples.demo_proxy --private-key <private_key_file> start
 
 For an overview of parameters and default options check
-in the :doc:`cmdline` documentation or directly in the source-code for
+in the :doc:`pyserver/cmdline` documentation or directly in the source-code for
 :py:mod:`microraiden.microraiden.click_helpers`.
 
 For chain and contract settings change :py:mod:`microraiden.microraiden.config`.
