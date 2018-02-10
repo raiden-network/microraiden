@@ -7,7 +7,6 @@ in the source code. If you have further questions look in the source-code
 directly.
 
 
-
 .. automodule:: microraiden.proxy.paywalled_proxy
     :members:
     :undoc-members:
@@ -16,4 +15,4 @@ directly.
 .. automodule:: microraiden.proxy.resources
     :members:
     :undoc-members:
-    :noindex
+    :noindex:
