@@ -18,7 +18,6 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import os
 import sys
-from recommonmark.parser import CommonMarkParser
 
 VERSION_FILE_PATH = os.path.abspath('../microraiden/microraiden/VERSION')
 sys.path.insert(0, os.path.abspath('../microraiden'))
@@ -54,12 +53,10 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = '.rst'
-source_suffix = ['.rst', '.md']
+source_suffix = '.rst'
 
 # Source parsers, add markdown parser from commonmark package
 source_parsers = {
-    '.md': CommonMarkParser,
 }
 
 # The master toctree document.
