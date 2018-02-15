@@ -1,6 +1,6 @@
 # µRaiden [![Build Status](https://api.travis-ci.org/raiden-network/microraiden.svg)](https://travis-ci.org/raiden-network/microraiden)
 
-+[![Join the chat at https://gitter.im/raiden-network/microraiden](https://badges.gitter.im/raiden-network/microraiden.svg)](https://gitter.im/raiden-network/microraiden?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
+[![Join the chat at https://gitter.im/raiden-network/microraiden](https://badges.gitter.im/raiden-network/microraiden.svg)](https://gitter.im/raiden-network/microraiden?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.
@@ -10,7 +10,7 @@
 
 ## Smart Contract
 
-Current version: `0.2.0`. Verifiable with `RaidenMicroTransferChannels.call().version()`.
+Current version: `0.2.0` (second Bug Bounty release). Verifiable with `RaidenMicroTransferChannels.call().version()`.
 Note that a new µRaiden release might include changing the Ethereum address used for the smart contract, in case we need to deploy an improved contract version.
 
 The `RaidenMicroTransferChannels` contract has been deployed on the main net: [0x1440317CB15499083dEE3dDf49C2bD51D0d92e33](https://etherscan.io/address/0x1440317CB15499083dEE3dDf49C2bD51D0d92e33)
@@ -20,8 +20,9 @@ The following parameters were used:
 - `challenge_period`: `8640` (blocks, rough equivalent of 36 hours)
 
 
-There have been internal and external audits of above contract. That being said:
-All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+There have been internal and external audits of the above contract. That being said, we do not recommend them to be used in production before a stable `1.0.0` release is made. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+
+A stable release depends on the [SignTypedData - EIP712](https://github.com/ethereum/EIPs/pull/712) standard being finalized. We are aware that the current supported implementation of this standard has security issues.
 
 
 ### Kovan
