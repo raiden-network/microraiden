@@ -7,10 +7,10 @@ DATADIR:=microraiden/data
 
 all: docs webui flake8
 
-install:
+pip-install:
 	pip install .
 
-dev_install:
+pip-install-dev:
 	pip install -e .[dev] -r requirements-dev.txt
 
 docs: pydocs jsdocs
