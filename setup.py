@@ -17,7 +17,8 @@ VERSION = open('microraiden/VERSION', 'r').read().strip()
 
 REQUIREMENTS = [
     'cytoolz==0.8.2',
-    'eth-utils>=0.7.4',
+    # upper bound due to eth-abi 0.5.0:
+    'eth-utils>=0.7.4,<=0.7.9',
     'eth-keyfile==0.4.0',
     'eth-keys==0.1.0-beta.3',
     'coincurve',
