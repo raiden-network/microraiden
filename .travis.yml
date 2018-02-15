@@ -26,13 +26,14 @@ jobs:
         - pip install -U pip wheel coveralls "coverage<4.4"
         - pip install pytest-travis-fold
         - pip install flake8
-        - pip install -r microraiden/requirements-dev.txt
+        - pip install -r requirements-dev.txt
+        - pip install .[dev]
 
       before_script:
         - flake8 microraiden/
 
       script:
-          - coverage run --source microraiden/ --omit 'microraiden/microraiden/test/*,microraiden/microraiden/examples/*' -m py.test --populus-project 'contracts/' --travis-fold=always -vvvvvvvvs $TEST_TYPE
+          - coverage run --source microraiden/ --omit 'microraiden/test/*,microraiden/examples/*' -m py.test --populus-project 'contracts/' --travis-fold=always -vvvvvvvvs $TEST_TYPE
 
       after_success:
         - coveralls
@@ -59,13 +60,14 @@ jobs:
         - pip install -U pip wheel coveralls "coverage<4.4"
         - pip install pytest-travis-fold
         - pip install flake8
-        - pip install -r microraiden/requirements-dev.txt
+        - pip install -r requirements-dev.txt
+        - pip install .[dev]
 
       before_script:
         - flake8 microraiden/
 
       script:
-          - coverage run --source microraiden/ --omit 'microraiden/microraiden/test/*,microraiden/microraiden/examples/*' -m py.test --populus-project 'contracts/' -k-needs_xorg --travis-fold=always -vvvvvvvvs $TEST_TYPE
+          - coverage run --source microraiden/ --omit 'microraiden/test/*,microraiden/examples/*' -m py.test --populus-project 'contracts/' -k-needs_xorg --travis-fold=always -vvvvvvvvs $TEST_TYPE
 
       after_success:
         - coveralls
@@ -75,7 +77,7 @@ jobs:
       node_js: 8
       env:
         - TEST_TYPE=js
-        - WEBUI=microraiden/microraiden/webui/microraiden
+        - WEBUI=microraiden/webui/microraiden
       cache:
         directories:
           - $WEBUI/node_modules
