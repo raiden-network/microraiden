@@ -9,17 +9,19 @@ for paywalled content.
 
 The main differences between the Raiden Network and µRaiden are:
 
-- µRaiden is a many-to-one unidirectional state channel protocol, while
-the Raiden Network is a many-to-many bidirectional solution and implies
+- **µRaiden** is a many-to-one unidirectional state channel protocol.
+  
+In comparison, the **Raiden Network** is a many-to-many bidirectional solutio and implies
 a more complex design of channel networks. This allows the Raiden
 Network to efficiently send transfers without being forced to pay for
 opening new channels with people who are already in the network. 
 
-- µRaiden off-chain transactions do not cost anything, as they are only
-exchanged between sender and receiver. The Raiden Network has a more
-complicated incentive-based off-chain transport of transaction
+- **µRaiden** off-chain transactions do not cost anything as they are only exchanged between sender and receiver
+
+The **Raiden Network** has a more complicated incentive-based off-chain transport of transaction
 information, from one user to another (following the channel network
 path used to connect the sender and the receiver).
+
 
 
 Sender / Receiver
@@ -32,10 +34,10 @@ structured in 2 logically separated parts:
 - the `Receiver` or `Proxy-Server` side of a payment 
 
 The `Sender` is the one who initially deposits Ether in the µRaiden payment channel.
-From this point on he signs a so called `balance proof` with his private key.
-This proof functions as a valid micropayment, once the `Receiver` gets hold of it.
+From this point on he signs so called `balance proofs` with his private key.
+A balance-proof functions as a valid micropayment, once the `Receiver` gets hold of it and keeps it on his disk.
 
-The µRaiden application has different solutions for different scenarios for the `Sender` side:
+The µRaiden application has different implementations for different scenarios for the `Sender` side:
 
 - a JavaScript client that runs in the Senders browser whenever the Sender visits the Receivers webpage
 - a Python client that runs on the Senders machine and makes http requests to the Receivers Proxy-Server instance
@@ -43,9 +45,9 @@ The µRaiden application has different solutions for different scenarios for the
 A typical use case for the **JavaScript** client would be a content provider, who wants to receive micropayments for accessing 
 paywalled content. The content provider is the `Receiver` in this scenario and he would integrate µRaidens `Proxy-Server`
 for example in his flask or Django backend.
-At the same time, the content provider would implement µRaidens JavaScript Client in his webpage.
+At the same time, the content provider would serve an implementation of µRaidens JavaScript Client from his webpage.
 All the consumer of the paywalled content now needs is an Ethereum account that is backed with some RDN and that is web3 accessible (
-for example with MetaMask). The JavaScript client will run on the consumers browser and once it needs to sign a microtransaction the
+for example with MetaMask). The JavaScript client will run in the consumers browser and once it needs to sign a microtransaction the
 MetaMask plugin will pop up and ask for confirmation.
 
 The **Python client** would get mainly used in Machine-to-Machine (M2M) applications or more customized applications without the use of a browser.
@@ -54,6 +56,9 @@ Price information on the requested resource will be sent from the `Receiver` to 
 Vice versa, once the `Sender` has processed his business-logic (like evaluating the price), he will repeat the http-request with a matching
 `balance proof` embedded in the custom http-Header.
 This balance proof signature represents the actual micropayment and should be followed up by the `Receiver` with the delivery of the requested resource.
+
+.. figure:: /diagrams/uRaidenOverview.png
+   :alt:
 
 Off-chain transactions
 ~~~~~~~~~~~~~~~~~~~~~~~
