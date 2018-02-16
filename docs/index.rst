@@ -12,6 +12,9 @@ What is µRaiden?
 It comes as a set of open source libraries, documentation, and code examples for multiple use cases, ready to implement on the Ethereum mainnet. 
 Whereas its big brother, the Raiden Network, aims to allow for multihop transfers via a network of bidirectional payment channels, µRaiden already enables to make micropayments through unidirectional payment channels.
 
+.. figure:: /diagrams/uRaidenOverview.png
+   :alt:
+
 Try out the demos
 ------------------
 
