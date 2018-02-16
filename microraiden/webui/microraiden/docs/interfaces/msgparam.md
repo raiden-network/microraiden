@@ -15,7 +15,7 @@ Array member type to be sent to eth_signTypedData
 
 **●  name**:  *`string`* 
 
-*Defined in [index.ts:92](https://github.com/raiden-network/microraiden/blob/c14448d/microraiden/webui/microraiden/src/index.ts#L92)*
+*Defined in [index.ts:92](https://github.com/raiden-network/microraiden/blob/615c038/microraiden/webui/microraiden/src/index.ts#L92)*
 
 
 
@@ -29,7 +29,7 @@ ___
 
 **●  type**:  *`string`* 
 
-*Defined in [index.ts:91](https://github.com/raiden-network/microraiden/blob/c14448d/microraiden/webui/microraiden/src/index.ts#L91)*
+*Defined in [index.ts:91](https://github.com/raiden-network/microraiden/blob/615c038/microraiden/webui/microraiden/src/index.ts#L91)*
 
 
 
@@ -43,7 +43,7 @@ ___
 
 **●  value**:  *`string`* 
 
-*Defined in [index.ts:93](https://github.com/raiden-network/microraiden/blob/c14448d/microraiden/webui/microraiden/src/index.ts#L93)*
+*Defined in [index.ts:93](https://github.com/raiden-network/microraiden/blob/615c038/microraiden/webui/microraiden/src/index.ts#L93)*
 
 
 

@@ -115,7 +115,7 @@ Licensed under the [MIT License](./LICENSE)
 
 **●  localStorage**:  *`any`* 
 
-*Defined in [index.ts:5](https://github.com/raiden-network/microraiden/blob/c14448d/microraiden/webui/microraiden/src/index.ts#L5)*
+*Defined in [index.ts:5](https://github.com/raiden-network/microraiden/blob/615c038/microraiden/webui/microraiden/src/index.ts#L5)*
 
 
 
@@ -133,7 +133,7 @@ ___
 
 
 
-*Defined in [index.ts:159](https://github.com/raiden-network/microraiden/blob/c14448d/microraiden/webui/microraiden/src/index.ts#L159)*
+*Defined in [index.ts:159](https://github.com/raiden-network/microraiden/blob/615c038/microraiden/webui/microraiden/src/index.ts#L159)*
 
 
 
@@ -168,7 +168,7 @@ ___
 
 
 
-*Defined in [index.ts:172](https://github.com/raiden-network/microraiden/blob/c14448d/microraiden/webui/microraiden/src/index.ts#L172)*
+*Defined in [index.ts:172](https://github.com/raiden-network/microraiden/blob/615c038/microraiden/webui/microraiden/src/index.ts#L172)*
 
 
 
@@ -206,7 +206,7 @@ ___
 
 
 
-*Defined in [index.ts:135](https://github.com/raiden-network/microraiden/blob/c14448d/microraiden/webui/microraiden/src/index.ts#L135)*
+*Defined in [index.ts:135](https://github.com/raiden-network/microraiden/blob/615c038/microraiden/webui/microraiden/src/index.ts#L135)*
 
 
 
