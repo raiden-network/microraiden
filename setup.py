@@ -5,11 +5,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-with open('requirements.txt') as requirements:
-    reqs = requirements.read().split()
-with open('requirements-dev.txt') as requirements_dev:
-    reqs += requirements_dev.read().split()[2:]
-
 import subprocess
 import distutils
 import os
@@ -18,6 +13,37 @@ from setuptools.command.build_py import build_py
 
 DESCRIPTION = 'µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.'
 VERSION = open('microraiden/VERSION', 'r').read().strip()
+
+
+REQUIREMENTS = [
+    'cytoolz==0.8.2',
+    # upper bound due to eth-abi 0.5.0:
+    'eth-utils>=0.7.4,<=0.7.9',
+    'eth-keyfile==0.4.0',
+    'eth-keys==0.1.0-beta.3',
+    'coincurve',
+    'rlp>=0.4.3,<0.6.0',
+    'flask',
+    'flask_httpauth',
+    'flask_restful',
+    'ethereum<2.0.0,>=1.6.1',
+    'web3==v4.0.0-beta.4',
+    'gevent',
+    'click',
+    'requests',
+    'werkzeug',
+    'populus>=2.2.0',
+    'munch',
+    'typing==3.6.2',
+    'bs4',
+    'filelock',
+]
+
+REQUIREMENTS_DEV = [
+    'eth-tester==0.1.0b5',
+    'mock',
+    'requests_mock',
+]
 
 
 def read_version_from_git():
@@ -51,7 +77,6 @@ def read_version_from_git():
 class BuildPyCommand(build_py):
     def run(self):
         self.run_command('compile_webui')
-        self.run_command('compile_version')
         build_py.run(self)
 
 
@@ -114,7 +139,8 @@ config = {
 
     'license': 'MIT',
     'keywords': 'raiden ethereum microraiden blockchain',
-    'install_requires': reqs,
+    'install_requires': REQUIREMENTS,
+    'extras_require': {'dev': REQUIREMENTS_DEV},
     'packages': find_packages(exclude=['test']),
     'package_data': {'microraiden': ['data/contracts.json',
                                      'webui/js/*',
@@ -136,3 +162,4 @@ config = {
 }
 
 setup(**config)
+
