@@ -99,9 +99,9 @@ npm i && npm run build
 
 * run the Proxy component:
 
-For an overview of parameters and default options check https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/click_helpers.py
+For an overview of parameters and default options check https://github.com/raiden-network/microraiden/blob/master/microraiden/click_helpers.py
 
-For chain and contract settings change: https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/config.py
+For chain and contract settings change: https://github.com/raiden-network/microraiden/blob/master/microraiden/config.py
 
 ```
 cd microraiden
