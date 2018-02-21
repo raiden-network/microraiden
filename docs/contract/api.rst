@@ -191,6 +191,7 @@ Balance proof / closing agreement signature verification:
 
     receiver_address = Contract.call().extractClosingSignature(sender_address, open_block_number, balance, closing_sig)
 
+.. _contract-closing-a-channel:
 
 Closing a channel
 ------------------
