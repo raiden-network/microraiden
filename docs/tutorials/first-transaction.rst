@@ -23,11 +23,13 @@ To actually start the request for resource /hello, we will fire up the µRaiden 
 While the Receiver is still running (in another terminal window for example), execute this command from the µRaiden root folder:
 
 .. code:: sh
+
    python microraiden/examples/echo_client.py --private-key microraiden/examples/pk_tut.txt --resource /echofix/hello
 
 After some seconds, you should get the output
 
 .. code:: sh
+
    INFO:root:Got the resource /echofix/hello type=text/html; charset=utf-8:
    hello
 
