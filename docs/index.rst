@@ -24,6 +24,10 @@ to try out µRaiden.
 Just follow the instructions on  
 https://demo.micro.raiden.network/
 
+Next steps
+-----------
+If you want to start playing with microraiden, a good starting point is to check out the :doc:`Tutorials <tutorials/index>` section.
+Best you start with the :doc:`developer setup <tutorials/index>` and try our :doc:`Blockchain Tutorial <tutorials/index>` afterwards.
 
 Documentation Content
 ----------------------
