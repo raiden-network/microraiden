@@ -64,7 +64,7 @@ Off-chain transactions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 A visual description of the process can be found
-`here <dev_overview#off-chain-messages>`__.
+:doc:`here <../specifications/offchain>`.
 
 .. TODO this is the old text - since we have a layman explanation above, we should go into more detail on signatures etc
 The heart of the system lies in its sender -> receiver
@@ -111,9 +111,7 @@ a new channel has to be opened.
 Closing and settling channels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A visual description of the process can be found
-`here </contracts/index.rst#closing-a-channel>`__.
-
+A visual description of the process can be found :ref:`here <contract-closing-a-channel>`.
 
 .. TODO again, this is the old text with some overlap to above - go a little bit more into detail how the contract recovers the pubkey etc
 When a sender wants to close a channel, a final balance proof is
