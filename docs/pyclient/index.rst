@@ -9,6 +9,5 @@ M2M-Client (python)
    usage
 
    components-overview
-   py-api
 
 
