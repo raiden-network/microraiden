@@ -37,9 +37,7 @@ Documentation Content
 
    introduction/index
    specifications/index
-   pyserver/index
-   pyclient/index
-   jsclient/index
+   applications/index
    contract/index 
    tutorials/index
 
