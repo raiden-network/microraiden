@@ -3,6 +3,9 @@ Your first microtransaction
 
 In order to get you started, we created an example application for you, that receives micropayments and some 
 parameter over a http-request - and simply echos this parameter when the micropayment was valid.
+Please follow the instructions
+:doc:`here <../dev-setup>`
+to set up geth and install microraiden.
 
 Starting the µRaiden Receiver
 -------------------------------
