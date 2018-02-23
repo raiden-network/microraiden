@@ -20,7 +20,7 @@ import os
 import sys
 
 VERSION_FILE_PATH = os.path.abspath('../microraiden/VERSION')
-sys.path.insert(0, os.path.abspath('../microraiden'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- General configuration ------------------------------------------------
