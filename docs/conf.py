@@ -20,7 +20,7 @@ import os
 import sys
 
 VERSION_FILE_PATH = os.path.abspath('../microraiden/VERSION')
-#sys.path.insert(0, os.path.abspath('../microraiden'))
+sys.path.insert(0, os.path.abspath('../microraiden'))
 
 
 # -- General configuration ------------------------------------------------
@@ -33,10 +33,10 @@ VERSION_FILE_PATH = os.path.abspath('../microraiden/VERSION')
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-#    'sphinx.ext.autodoc',
+    'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-#    'sphinx.ext.napoleon',
-#    'sphinx_autodoc_typehints',
+    'sphinx.ext.napoleon',
+    'sphinx_autodoc_typehints',
     'sphinx_click.ext'
 ]
 
