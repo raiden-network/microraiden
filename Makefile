@@ -11,7 +11,7 @@ pip-install:
 	pip install .
 
 pip-install-dev:
-	pip install -e .[dev] -r requirements-dev.txt
+	pip install -e . -r requirements-dev.txt
 
 docs: pydocs jsdocs
 
