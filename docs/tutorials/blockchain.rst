@@ -58,7 +58,7 @@ To be able to use the echo client, you have to get the “TKN” Token configure
 
 With our demo app
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-The easiest way to get same TKN on the Ropsten-network is to use our JavaScript application
+The easiest way to get some TKN on the Ropsten-network is to use our JavaScript application
 that we host with our µRaiden `live-demos <https://demo.micro.raiden.network>`_.
 
 Altough this is part of a specific demo-application, you can just use the upper part of the dialogue 
@@ -101,10 +101,9 @@ To check wether the exchange of TKN was sucessful, you can add TKN as a custom t
 With  MyEtherWallet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want to have a little bit more control over the token-exchange,
+If you want to have a little bit more control over the exchange of token,
 you can also use MyEtherWallet to interact with the Smart-Contract directly:
 
-.. TODO add picture for point 3
 1) Choose the browser with your Ropsten-ETH loaded MetaMask account activated
 2) Go to https://www.myetherwallet.com/ and go through their advice on phishing-precautions.
 3) Select the `Ropsten` Network in the tab in the upper right

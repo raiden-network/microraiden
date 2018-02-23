@@ -12,17 +12,20 @@ It is recommended to use a virtual environment to separate your global python ap
 (all the dependency-packages) µRaiden likes to run in:
 
 .. code:: bash
+
     python3 -m venv env
     . env/bin/activate
 
  A short check of the location of your python version should show the :code:`./env/bin/python` binary.
 
 .. code:: bash
+
     which python
 
 To switch back to your usual python executable, simply deactivate the `venv`:
 
 .. code:: bash
+
     deativate 
 
 There are more sophisticated tools to keep track of your virtualenvs and python installations.
