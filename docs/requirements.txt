@@ -2,4 +2,4 @@ sphinx
 click
 sphinx-autodoc-typehints
 sphinx-click>=1.0.4
-sphinx_rtd_theme
+sphinx_bootstrap_theme

@@ -1,0 +1,111 @@
+<nav id="navbar" class="navbar navbar-default navbar-fixed-top" style="background-color: #f4f4f4; border-bottom-width: 0px; color: #333">
+    <div class="container-fluid" style="padding-left: 10px; padding-right: 10px; background-color: #f4f4f4; color: #333">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+              <a id="logospan" href ="https://raiden.network">
+                <img id="logo" src="../_static/Raiden_Logo.png" height=40 alt="Raiden logo">
+              </a>
+        </div>
+        <div class="navbar-header" style="margin-top: 12px;">
+              <a style="font-size: 16px;" href="/" >documentation</a>
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+            <form id="nav-search-dropdown" action="../search.html" method="get">
+              <div class="form-group nav-search">
+                <input type="text" name="q" class="form-control" placeholder="Search">
+              </div>
+              <input type="hidden" name="check_keywords" value="yes">
+              <input type="hidden" name="area" value="default">
+            </form>
+
+          <div id="sidebar-navbar">
+      	     {{ toctree() }}
+          </div>
+            <ul id="linklist" class="nav navbar-nav navbar-right">
+              <!--<li style="margin-top: 4px">
+                  <a class="page-scroll" href="/">Home</a>
+              </li>-->
+              <li id="nav-search-list">
+                <form action="../search.html" method="get">
+                  <div class="form-group nav-search">
+                    <input type="text" name="q" class="form-control" placeholder="Search">
+                  </div>
+                  <input type="hidden" name="check_keywords" value="yes">
+                  <input type="hidden" name="area" value="default">
+                </form>
+              </li>
+              <li style="margin-top: 2px">
+                  <a class="link" style="text-transform: none" href="/101.html">101</a>
+              </li>
+              <li style="margin-top: 2px">
+                  <a class="link" style="text-transform: none" href="/micro.html">µRaiden</a>
+              </li>
+              <li style="margin-top: 2px">
+                <!--  <a class="link" style="text-transform: none" href="/developers.html">Developers</a> -->
+                  <a class="link dropdown-toggle" style="text-transform: none" data-toggle="dropdown" href="/developers.html">Developers
+                    <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      <li><a href="https://raiden.network/faq.html">FAQ</a></li>
+                      <hr style=" margin-top: 5px; margin-bottom: 5px; max-width: 20px">
+                      <li><a href="http://raiden-network.readthedocs.io/en/stable/">Raiden Network Docs</a></li>
+                      <li><a href="http://microraiden.readthedocs.io/en/stable/">µRaiden Docs</a></li>
+                      <hr style=" margin-top: 5px; margin-bottom: 5px; max-width: 20px">
+                      <li><a href="https://demo.micro.raiden.network">µRaiden Demos</a></li>
+                    </ul>
+              </li>
+              <!-- <li style="margin-top: 4px">
+                  <a class="link" href="/faq.html">FAQ</a>
+              </li> -->
+
+              <li style="margin-top: 2px">
+                  <a class="link" style="text-transform: none" href="https://token.raiden.network/">Token</a>
+              </li>
+
+              <!--<li class="social-icon">
+                    <a class="link" href="https://gitter.im/raiden-network/raiden" target="_blank">
+                      <img src="../img/riot.png" style="width:15px"></i>
+                    </a>
+                </li>
+                <li class="link">
+                  <a rel="noopener noreferrer" href="https://www.youtube.com/channel/UCoUP_hnjUddEvbxmtNCcApg" target="_blank">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tv">
+                      <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline>
+                    </svg>
+                  </a>
+                </li>
+                <li class="link">
+                  <a rel="noopener noreferrer" href="https://riot.im/app/#/room/#raiden-network:matrix.org" target="_blank">
+                   <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-circle">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                  </a>
+            </li>
+            <li class="link">
+                  <a rel="noopener noreferrer" href="https://github.com/raiden-network/raiden/" target="_blank">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github">
+                      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                    </svg>
+                  </a>
+                </li>
+                <li class="link">
+                  <a rel="noopener noreferrer" href="https://www.reddit.com/r/raidennetwork/" target="_blank">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1">
+                      <path d="M2.204 14.049c-.06.276-.091.56-.091.847 0 3.443 4.402 6.249 9.814 6.249 5.41 0 9.812-2.804 9.812-6.249 0-.274-.029-.546-.082-.809l-.015-.032c-.021-.055-.029-.11-.029-.165-.302-1.175-1.117-2.241-2.296-3.103-.045-.016-.088-.039-.126-.07-.026-.02-.045-.042-.067-.064-1.792-1.234-4.356-2.008-7.196-2.008-2.815 0-5.354.759-7.146 1.971-.014.018-.029.033-.049.049-.039.033-.084.06-.13.075-1.206.862-2.042 1.937-2.354 3.123 0 .058-.014.114-.037.171l-.008.015zm9.773 5.441c-1.794 0-3.057-.389-3.863-1.197-.173-.174-.173-.457 0-.632.176-.165.46-.165.635 0 .63.629 1.685.943 3.228.943 1.542 0 2.591-.3 3.219-.929.165-.164.45-.164.629 0 .165.18.165.465 0 .645-.809.808-2.065 1.198-3.862 1.198l.014-.028zm-3.606-7.573c-.914 0-1.677.765-1.677 1.677 0 .91.763 1.65 1.677 1.65s1.651-.74 1.651-1.65c0-.912-.739-1.677-1.651-1.677zm7.233 0c-.914 0-1.678.765-1.678 1.677 0 .91.764 1.65 1.678 1.65s1.651-.74 1.651-1.65c0-.912-.739-1.677-1.651-1.677zm4.548-1.595c1.037.833 1.8 1.821 2.189 2.904.45-.336.719-.864.719-1.449 0-1.002-.815-1.816-1.818-1.816-.399 0-.778.129-1.09.363v-.002zM2.711 9.963c-1.003 0-1.817.816-1.817 1.818 0 .543.239 1.048.644 1.389.401-1.079 1.172-2.053 2.213-2.876-.302-.21-.663-.329-1.039-.329v-.002zm9.217 12.079c-5.906 0-10.709-3.205-10.709-7.142 0-.275.023-.544.068-.809C.494 13.598 0 12.729 0 11.777c0-1.496 1.227-2.713 2.725-2.713.674 0 1.303.246 1.797.682 1.856-1.191 4.357-1.941 7.112-1.992l1.812-5.524.404.095s.016 0 .016.002l4.223.993c.344-.798 1.138-1.36 2.065-1.36 1.229 0 2.231 1.004 2.231 2.234 0 1.232-1.003 2.234-2.231 2.234s-2.23-1.004-2.23-2.23l-3.851-.912-1.467 4.477c2.65.105 5.047.854 6.844 2.021.494-.464 1.144-.719 1.833-.719 1.498 0 2.718 1.213 2.718 2.711 0 .987-.54 1.886-1.378 2.365.029.255.059.494.059.749-.015 3.938-4.806 7.143-10.72 7.143l-.034.009zm8.179-19.187c-.74 0-1.34.599-1.34 1.338 0 .738.6 1.34 1.34 1.34.732 0 1.33-.6 1.33-1.334 0-.733-.598-1.332-1.347-1.332l.017-.012z"></path>
+                    </svg>
+                  </a>
+                </li>
+                      -->
+            </ul>
+        </div>
+         <!--/.navbar-collapse -->
+    </div>
+    <!-- /.container-fluid -->
+</nav>

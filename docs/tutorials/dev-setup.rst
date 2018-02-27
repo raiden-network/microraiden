@@ -16,7 +16,7 @@ It is recommended to use a virtual environment to separate your global python ap
     python3 -m venv env
     . env/bin/activate
 
- A short check of the location of your python version should show the :code:`./env/bin/python` binary.
+A short check of the location of your python version should show the :code:`./env/bin/python` binary.
 
 .. code:: bash
 
