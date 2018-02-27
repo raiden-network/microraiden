@@ -11,7 +11,6 @@ Proxy-Server (python)
    installation
    usage
    cmdline
-   py-api
    
    components-overview
    py-api 
