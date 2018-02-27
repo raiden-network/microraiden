@@ -1,4 +1,4 @@
-Proxy tutorial
+Paywall tutorial
 ########################################
 
 .. toctree::

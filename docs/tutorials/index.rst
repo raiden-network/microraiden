@@ -7,5 +7,5 @@ Tutorials
    dev-setup
    blockchain     
    first-transaction
-   proxy-tutorial
+   paywall-tutorial
 
