@@ -4,7 +4,7 @@ Paywall tutorial
 .. toctree::
   :maxdepth: 2
 
-Bevor starting, please follow the
+Before starting, please follow the
 :doc:`microraiden installation instructions <dev-setup>`
 and the
 :doc:`instructions to set up geth <blockchain>`.
