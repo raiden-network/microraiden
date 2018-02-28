@@ -11,6 +11,9 @@ BUILDDIR      = _build
 
 pip-install:
 	pip install -r ./requirements.txt
+
+clean:
+	rm -r "$(BUILDDIR)"
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
