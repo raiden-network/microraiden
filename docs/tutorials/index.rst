@@ -8,4 +8,4 @@ Tutorials
    blockchain     
    first-transaction
    paywall-tutorial
-
+   raspi-tutorial
