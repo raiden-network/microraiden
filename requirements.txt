@@ -2,7 +2,7 @@ cytoolz==0.8.2
 eth-utils>=0.7.4,<=0.7.9
 eth-keyfile==0.4.0
 eth-keys==0.1.0-beta.3
-coincurve
+coincurve>=7.1.0
 rlp>=0.4.3,<0.6.0
 flask
 flask_httpauth
