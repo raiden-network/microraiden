@@ -5,7 +5,7 @@
 
 µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.
 
-[µRaiden documentation](http://microraiden.readthedocs.io/en/latest/)
+[µRaiden documentation](https://microraiden.readthedocs.io/)
 
 
 ## Smart Contract
