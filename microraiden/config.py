@@ -47,17 +47,17 @@ NETWORK_CONFIG_DEFAULTS = {
     ),
     # ropsten
     3: NetworkConfig(
-        channel_manager_address='0x74434527b8e6c8296506d61d0faf3d18c9e4649a',
+        channel_manager_address='0x74434527b8E6C8296506D61d0faF3D18c9e4649A',
         start_sync_block=2507629
     ),
     # rinkeby
     4: NetworkConfig(
-        channel_manager_address='0xbec8fb898e6da01152576d1a1acdd2c957e56fb1',
+        channel_manager_address='0xbEc8fb898E6Da01152576d1A1ACdd2c957E56fb1',
         start_sync_block=1642336
     ),
     # kovan
     42: NetworkConfig(
-        channel_manager_address='0xed94e711e9de1ff1e7dd34c39f0d4338a6a6ef92',
+        channel_manager_address='0xeD94E711e9DE1FF1E7dd34C39F0d4338A6A6ef92',
         start_sync_block=5523491
     ),
     # internal - used only with ethereum tester
