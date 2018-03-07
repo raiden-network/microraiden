@@ -6,6 +6,7 @@ from web3.utils.threads import (
     Timeout,
 )
 
+
 class LogHandler:
     def __init__(self, web3, address, abi):
         self.web3 = web3
@@ -20,7 +21,7 @@ class LogHandler:
         caller = getframeinfo(stack()[1][0])
         message = "%s:%d" % (caller.filename, caller.lineno)
 
-        if not event_name in self.event_waiting:
+        if event_name not in self.event_waiting:
             self.event_waiting[event_name] = {}
             self.event_filters[event_name] = LogFilter(
                 self.web3,
@@ -80,19 +81,20 @@ class LogHandler:
                 print(message)
                 print('----------------------------------')
             else:
-                raise Exception(message + ' waiting_events ' + str(waiting_events), ' len(self.event_unkown) ' + str(len(self.event_unkown)))
+                raise Exception(message + ' waiting_events ' + str(waiting_events),
+                                ' len(self.event_unkown) ' + str(len(self.event_unkown)))
 
 
 class LogFilter:
     def __init__(self,
-        web3,
-        abi,
-        address,
-        event_name,
-        from_block=0,
-        to_block='latest',
-        filters=None,
-        callback=None):
+                 web3,
+                 abi,
+                 address,
+                 event_name,
+                 from_block=0,
+                 to_block='latest',
+                 filters=None,
+                 callback=None):
         self.web3 = web3
         self.event_name = event_name
 
@@ -144,3 +146,9 @@ class LogFilter:
         log['args'] = get_event_data(self.event_abi, log)['args']
         log['event'] = self.event_name
         return log
+
+    def uninstall(self):
+        assert self.web3 is not None
+        assert self.filter is not None
+        self.web3.eth.uninstallFilter(self.filter.filter_id)
+        self.filter = None
