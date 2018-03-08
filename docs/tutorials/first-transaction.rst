@@ -8,6 +8,9 @@ Please follow the
 and the
 :doc:`instructions to set up geth <blockchain>`.
 
+.. figure:: /diagrams/uRaidenEchoOverview.png 
+   :alt:
+
 Starting the µRaiden Receiver
 -------------------------------
 
