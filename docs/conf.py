@@ -23,7 +23,6 @@ import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath('../'))
 VERSION_FILE_PATH = os.path.abspath('../microraiden/VERSION')
-sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- General configuration ------------------------------------------------
@@ -200,7 +199,7 @@ texinfo_documents = [
 ]
 
 html_sidebars = {
-   '**': ['raidensidebar.html' , 'searchbox.html'],
+   '**': ['raidensidebar.html'],
 #   'using/windows': ['windowssidebar.html', 'searchbox.html'],
 }
 
