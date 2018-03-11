@@ -205,7 +205,7 @@ html_sidebars = {
 
 html_theme_options = {
     'bootstrap_version': "3",
-    'globaltoc_depth': 2,
+    'globaltoc_depth': 3,
 }
 def setup(app):
     app.add_stylesheet("css/main.css")
