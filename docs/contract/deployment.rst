@@ -1,14 +1,14 @@
 Deployment
-===========
+==========
 
 Chain setup for testing
-------------------------
+-----------------------
 
 Note - you can change RPC/IPC chain connection, timeout parameters etc. in `project.json <https://github.com/raiden-network/microraiden/blob/master/contracts/project.json>`__ 
 
 
 **privtest**
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~
 
 1) Start the geth-node from the commandline:
           
@@ -19,13 +19,15 @@ Note - you can change RPC/IPC chain connection, timeout parameters etc. in `proj
          --dev \
          ---rpc --rpccorsdomain '\*' --rpcport 8545 \
          --rpcapi eth,net,web3,personal \
-         --unlock 0xf590ee24CbFB67d1ca212e21294f967130909A5a \
+         --unlock <account> \
          --password ~/password.txt
 
     # geth console 
     # you have to mine yourself: miner.start() 
-    geth attach ipc:/Users/loredana/Library/Ethereum/privtest/geth.ipc
+    geth attach ipc:~/Library/Ethereum/privtest/geth.ipc
 
+The :code:`--unlock` argument specifies, which geth account should be unlocked for RPC access.
+More info can be found`here <https://github.com/ethereum/go-ethereum/wiki/Managing-your-accounts#listing-accounts-and-checking-balances>`_.
 
 **kovan**
 ~~~~~~~~~
@@ -47,7 +49,7 @@ Note - you can change RPC/IPC chain connection, timeout parameters etc. in `proj
             --author 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb
 
 **ropsten**
-~~~~~~~~~~~~~
+~~~~~~~~~~~
 
 1. Get some testnet-Ether at the `ropsten-faucet <https://www.reddit.com/r/ethdev/comments/61zdn8/if\_you\_need\_some\_ropsten\_testnet\_ethers/>`__
 #. Modify the `project.json <https://github.com/raiden-network/microraiden/blob/master/contracts/project.json#L49>`__ to change the default account
@@ -60,16 +62,19 @@ Note - you can change RPC/IPC chain connection, timeout parameters etc. in `proj
        --unlock 0xbB5AEb01acF5b75bc36eC01f5137Dd2728FbE983 \
        --password ~/password.txt
 
+The :code:`--unlock` argument specifies, which geth account should be unlocked for RPC access.
+More info can be found`here <https://github.com/ethereum/go-ethereum/wiki/Managing-your-accounts#listing-accounts-and-checking-balances>`_.
+
 
 **rinkeby**
-~~~~~~~~~~~~~
+~~~~~~~~~~~
 
 1. Get some testnet-Ether at the `rinkeby-faucet <https://www.rinkeby.io/#faucet>`__
 #. Modify the `/contracts/project.json <https://github.com/raiden-network/microraiden/blob/master/contracts/project.json#L214>`__ to change the default account
 
 
 **Fast deployment**
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 There are some scripts to provide you with convenient ways to setup a quick deployment.
 

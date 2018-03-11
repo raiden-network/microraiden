@@ -1,7 +1,7 @@
-Your first microtransaction
-=============================
+System context
+==============
 
-In order to get you started, we created an example application for you, that receives micropayments and some 
+In order to get you started, we created an example application, that receives micropayments and some
 parameter over a http-request - and simply echos this parameter when the micropayment was valid.
 Please follow the
 :doc:`microraiden installation instructions <dev-setup>`
@@ -12,9 +12,9 @@ and the
    :alt:
 
 Starting the µRaiden Receiver
--------------------------------
+-----------------------------
 
-From the root directory of microraiden, start:
+From the root directory of µRaiden, start:
 
 .. code:: sh
 
@@ -23,9 +23,9 @@ From the root directory of microraiden, start:
 *Note: the file pk_tut.txt should contain your private key as exported in the Blockchain Setup guide by MetaMask.*
 
 Starting the µRaiden Sender
-----------------------------
+---------------------------
 
-To actually start the request for resource /hello, we will fire up the µRaiden client with the prefunded account.
+To actually start the request for resource :code:`/hello`, we will fire up the µRaiden client with the prefunded account.
 
 While the Receiver is still running (in another terminal window for example), execute this command from the µRaiden root folder:
 

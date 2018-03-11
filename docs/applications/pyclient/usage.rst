@@ -3,7 +3,9 @@ Usage
 
 
 The µRaiden client can be used as a standalone library, to make machine-to-machine payments easily available.
-After installation, import the following class:
+
+
+An example use of the library would import the :py:class:`~mircoraiden.Client` class:
 
 .. code:: python
 
@@ -20,9 +22,9 @@ be prompted interactively.
     client = Client(key_path='<path to private key file>', key_password_file='<path to password file>')
 
 This client object allows interaction with the blockchain and
-offline-signing of transactions and Raiden balance proofs.
+offline-signing of transactions/balance-proofs.
 
-An example lifecycle of a ``Client`` object could look like this:
+An example lifecycle of a :py:class:`~mircoraiden.Client` object could look like this:
 
 .. code:: python
 
@@ -66,5 +68,3 @@ An example lifecycle of a ``Client`` object could look like this:
 
         channel.close_cooperatively(closing_sig)
 
-The values required for a valid balance proof required by the receiver
-end are printed above. Make sure to let them know.

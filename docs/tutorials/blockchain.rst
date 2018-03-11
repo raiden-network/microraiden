@@ -2,7 +2,7 @@ Blockchain setup
 =================
 
 In order to follow our tutorials or develop your own µRaiden applications,
-there are some additional requirements to be fullfilled.
+there are some additional requirements to be fulfilled.
 If you want to develop applications that function as the **Receiver** you have
 to connect to the Ethereum blockchain through one of the Ethereum node applications.
 There are others, but we focus on `geth`, the Go implementation.
@@ -12,7 +12,8 @@ Running `geth`
 
 The following components have to be installed in order to run the tutorials:
 
-Geth must be up and running, listening on RPC 8545 and completely synced with Ropsten
+Geth must be up and running, listening on RPC 8545 and completely synced with Ropsten.
+
 Optional: To create an account, get Ropsten ETH (RETH) and export the private key, MetaMask must be installed and connected to Ropsten
 Optional: To use the echo_client, you have to acquire TKN. On the main page (https://github.com/raiden-network/microraiden) the Token addresses are listed, for Ropsten it can be found `here <https://ropsten.etherscan.io/address/0xff24d15afb9eb080c089053be99881dd18aa190>`_
 Setup a Ropsten-synced Geth
@@ -37,7 +38,7 @@ Funded Ropsten account with MetaMask
 Note: You don’t have to follow these steps if you have an account on Ropsten already preloaded with Ropsten Ether and know how to export the private key of the preloaded account.
 
 After successful installation of MetaMask, just follow the steps mentioned in the screenshots to create a new account, get Ropsten Ether at a faucet and export the private key of this new, Ether preloaded account.
-We will use the private key for js-Client applications in the Tutorials.
+We will use the private key for Sender applications in the tutorials.
 Your MetaMask account will represent the **Sender** of a microtransaction.
 
 
@@ -78,7 +79,7 @@ A dialogue will pop up in MetaMask that asks for your confirmation of the genera
 4) Accept the transaction
 
 
-To check wether the exchange of TKN was sucessful, you can add TKN as a custom token to MetaMask.
+To check whether the exchange of TKN was successful, you can add TKN as a custom token to MetaMask.
 
 5) Under the `Tokens` tab, choose `Add token` and fill in the TKN address again:
 
@@ -90,7 +91,7 @@ To check wether the exchange of TKN was sucessful, you can add TKN as a custom t
 .. figure:: /diagrams/myether4.png
    :alt:
 
-6) Once the transaction was succesful, you should see your TKN balance under the `Tokens` tab
+6) Once the transaction was successful, you should see your TKN balance under the `Tokens` tab
 
 .. figure:: /diagrams/myether5.png
    :alt:
@@ -102,7 +103,7 @@ With  MyEtherWallet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want to have a little bit more control over the exchange of token,
-you can also use MyEtherWallet to interact with the Smart-Contract directly:
+you can also use MyEtherWallet to interact with the Smart Contract directly:
 
 1) Choose the browser with your Ropsten-ETH loaded MetaMask account activated
 2) Go to https://www.myetherwallet.com/ and go through their advice on phishing-precautions.
@@ -134,7 +135,7 @@ A dialogue will pop up in MetaMask that asks for your confirmation of the genera
 8) Accept the transaction
 
 
-To check wether the exchange of TKN was sucessful, you can add TKN as a custom token to MetaMask.
+To check whether the exchange of TKN was successful, you can add TKN as a custom token to MetaMask.
 
 9) Under the `Tokens` tab, choose `Add token` and fill in the TKN address again:
 
@@ -146,11 +147,11 @@ To check wether the exchange of TKN was sucessful, you can add TKN as a custom t
 .. figure:: /diagrams/myether4.png
    :alt:
 
-10) Once the transaction was succesful, you should see your TKN balance under the `Tokens` tab
+10) Once the transaction was successful, you should see your TKN balance under the `Tokens` tab
 
 .. figure:: /diagrams/myether5.png
    :alt:
 
 
 
-**Now you're good to go! Check out the other Tutorials and get started with microraiden!**
+**Now you're good to go! Check out the other Tutorials and get started with µRaiden!**
