@@ -1,27 +1,34 @@
-A quick classification
-=======================
+Comparison: Raiden Network
+================================
 
 µRaiden is not part of the `Raiden
 Network <https://github.com/raiden-network/raiden>`__. However, it was
 built using the same state channel idea and implements it in a less
-general fashion focusing on the concrete application of micropayments
-for paywalled content.
+general fashion. It focuses on the concrete application of charging per-use of APIs,
+digital content and utilities via micropayments in Ethereum based ERC20 tokens.
 
 The main differences between the Raiden Network and µRaiden are:
 
-- **µRaiden** is a many-to-one unidirectional state channel protocol.
-  
-In comparison, the **Raiden Network** is a many-to-many bidirectional solutio and implies
-a more complex design of channel networks. This allows the Raiden
-Network to efficiently send transfers without being forced to pay for
-opening new channels with people who are already in the network. 
+- **µRaiden** is a many-to-one unidirectional payment channel protocol.
 
-- **µRaiden** off-chain transactions do not cost anything as they are only exchanged between sender and receiver
+A payment channel in the **Raiden Network** is based on the same principles as µRaiden, but is laid out bidirectional,
+so that the roles of sender and receiver are mutable.
+Additionally it uses a special cryptographic protocol to connect the owners of those singular payment channels
+to form an interconnected network of channels.
 
-The **Raiden Network** has a more complicated incentive-based off-chain transport of transaction
-information, from one user to another (following the channel network
-path used to connect the sender and the receiver).
+This allows participants of the Raiden Network to efficiently send transfers without being forced to pay for
+opening new channels with people who are already in the network - it is a many-to-many payment solution.
 
+- **µRaiden**'s off-chain transactions do not cost anything as they are only exchanged between sender and receiver,
+because they don't use intermediary channels.
+
+Apart from the initial cost of opening up a channel, a µRaiden transaction doesn't cost anything, because to deliver the
+payment itself is as easy as putting some additional data in a http-request.
+
+To be able to use an existing channel in an interconnected network of channel,
+the Raiden Network requires an additional, sophisticated application transport layer.
+The forwarding of payments from sender to receiver through the network is based on incentivizing intermediary users
+to lend their resources in a secure and automated way.
 
 
 Sender / Receiver
@@ -77,6 +84,7 @@ server. If the balance proof checks out after comparing it with the last
 received balance and verifying the sender's signature, the receiver
 replaces the old balance value with the new one.
 
+.. _intro-smart-contract:
 
 Smart Contract
 ===============
