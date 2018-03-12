@@ -5,7 +5,7 @@ Usage
 The µRaiden client can be used as a standalone library, to make machine-to-machine payments easily available.
 
 
-An example use of the library would import the :py:class:`~mircoraiden.Client` class:
+An example use of the library would import the :py:class:`~mircoraiden.Client` :doc:`class <components-overview>`:
 
 .. code:: python
 
