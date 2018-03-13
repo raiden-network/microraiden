@@ -13,7 +13,8 @@ It comes as a set of open source libraries, documentation, and code examples for
 Whereas its big brother, the `Raiden Network <http://raiden.network>`_, aims to allow for multihop transfers via a network of bidirectional payment channels, µRaiden already enables to make micropayments through unidirectional payment channels.
 
 .. figure:: /diagrams/uRaidenOverview.png
-   :alt:
+
+   Schematic overview of an exemplaric µRaiden application [1]_ [3]_
 
 Try out the demos
 ------------------
@@ -47,3 +48,11 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+.. rubric:: Footnotes
+
+.. [#] All robot icons made by `Freepic <http://flaticon.com/authors/freepik>`_ from http://www.flaticon.com.
+.. [#] Raspberry PI Pictograms by `TinkTank.club <http://www.tinktank.club>`_
+.. [#] All other icons from http://icomoon.io IcoMoon Icon Pack Free, licensed under a Creative Commons Attribution 4.0 International License
+

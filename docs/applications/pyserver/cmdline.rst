@@ -1,8 +1,5 @@
-.. toctree::
-  :maxdepth: 2
-
 Command line options
-======================
+====================
 
 When invoking microraiden from the commandline, you have several options:
 
