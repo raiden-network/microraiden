@@ -58,10 +58,10 @@ for example with MetaMask). The JavaScript client will run in the consumers brow
 MetaMask plugin will pop up and ask for confirmation.
 
 The **Python client** would get mainly used in Machine-to-Machine (M2M) applications or more customized applications without the use of a browser.
-In this scenario, the `Sender` has to actively install the client application and connect it to his standard blockchain-interface (like geth or parity).The client will then send out http-requests to a known `Receiver` that is running a **Proxy-Server** application.
+In this scenario, the `Sender` has to actively install the :doc:`client application </tutorials/dev-setup>` and connect it to his standard blockchain-interface (like geth or parity).The client will then send out http-requests to a known `Receiver` that is running a **Proxy-Server** application.
 Price information on the requested resource will be sent from the `Receiver` to the `Sender` in a custom http-Header.
 Vice versa, once the `Sender` has processed his business-logic (like evaluating the price), he will repeat the http-request with a matching
-`balance proof` embedded in the custom http-Header.
+`balance proof` embedded in the custom :doc:`http-Header </specifications/http-headers>`.
 This balance proof signature represents the actual micropayment and should be followed up by the `Receiver` with the delivery of the requested resource.
 
 .. figure:: /diagrams/uRaidenOverview.png
