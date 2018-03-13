@@ -2,8 +2,6 @@
 Setup µRaiden Raspberry Pi in local network
 ===========================================
 
-.. toctree::
-  :maxdepth: 2
 
 Prerequisites
 ==================================
@@ -53,7 +51,9 @@ Running µRaiden Client and Server
 ====================================
 
 .. figure:: /diagrams/SetupRasPi.png
-   :alt:
+
+
+    Networking topology of a machine-to-machine application with RaspberryPi µRaiden-nodes [1]_ [2]_
 
 
 As the next step, you are going to setup the raspberry pi as the µRaiden client or the sender and our PC as as the µRaiden proxy server as well as the web3 provider running a geth node synced to Ropsten testnet. Next, you will run the ``echo_server`` and the ``echo_client``  examples from the ``microraiden/examples`` folder, the ``echo_client`` on the raspberry pi and the ``echo_server`` on our PC.
@@ -214,3 +214,10 @@ References
 - https://geth.ethereum.org/downloads/
 - https://ethereum.stackexchange.com/questions/31610/how-to-install-geth-on-rpi-3b
 - https://owocki.com/install-ethereum-geth-raspberry-pi-b/
+
+
+.. rubric:: Footnotes
+
+.. [#] All robot icons made by `Freepic <http://flaticon.com/authors/freepik>`_ from http://www.flaticon.com.
+.. [#] Raspberry PI Pictograms by `TinkTank.club <http://www.tinktank.club>`_
+.. [#] All other icons from http://icomoon.io IcoMoon Icon Pack Free, licensed under a Creative Commons Attribution 4.0 International License

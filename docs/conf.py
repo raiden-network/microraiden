@@ -22,6 +22,7 @@ import sphinx_bootstrap_theme
 
 
 sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../contracts/'))
 VERSION_FILE_PATH = os.path.abspath('../microraiden/VERSION')
 
 

@@ -9,7 +9,9 @@ and the
 :doc:`instructions to set up geth <blockchain>`.
 
 .. figure:: /diagrams/uRaidenEchoOverview.png 
-   :alt:
+
+
+   Schematic overview of a machine-to-machine µRaiden application [3]_
 
 Starting the µRaiden Receiver
 -----------------------------
@@ -48,3 +50,8 @@ This means:
 
 Congratulations, you just performed your first micropayment!
 
+.. rubric:: Footnotes
+
+.. [#] All robot icons made by `Freepic <http://flaticon.com/authors/freepik>`_ from http://www.flaticon.com.
+.. [#] Raspberry PI Pictograms by `TinkTank.club <http://www.tinktank.club>`_
+.. [#] All other icons from http://icomoon.io IcoMoon Icon Pack Free, licensed under a Creative Commons Attribution 4.0 International License

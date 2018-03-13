@@ -65,7 +65,8 @@ Vice versa, once the `Sender` has processed his business-logic (like evaluating 
 This balance proof signature represents the actual micropayment and should be followed up by the `Receiver` with the delivery of the requested resource.
 
 .. figure:: /diagrams/uRaidenOverview.png
-   :alt:
+
+   Schematic overview of an exemplaric µRaiden application [1]_ [3]_
 
 Off-chain transactions
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,3 +152,10 @@ sender sends the balance proof along with the receiver's closing
 signature. Worst case scenario is the receiver closing the channel
 during the challenge period. Therefore, trustworthy sender-receiver
 relations are stimulated.
+
+
+.. rubric:: Footnotes
+
+.. [#] All robot icons made by `Freepic <http://flaticon.com/authors/freepik>`_ from http://www.flaticon.com.
+.. [#] Raspberry PI Pictograms by `TinkTank.club <http://www.tinktank.club>`_
+.. [#] All other icons from http://icomoon.io IcoMoon Icon Pack Free, licensed under a Creative Commons Attribution 4.0 International License
