@@ -1,5 +1,9 @@
+Try the echo service
+====================
+
+
 System context
-==============
+--------------
 
 In order to get you started, we created an example application, that receives micropayments and some
 parameter over a http-request - and simply echos this parameter when the micropayment was valid.
