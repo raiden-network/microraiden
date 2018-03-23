@@ -6,6 +6,6 @@ Tutorials
 
    dev-setup
    blockchain     
-   system-context
+   try-echo-service
    paywall-tutorial
    raspi-tutorial

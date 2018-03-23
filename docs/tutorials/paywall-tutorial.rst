@@ -1,4 +1,4 @@
-Paywall tutorial
+Create a paywall
 ################
 
 .. toctree::
