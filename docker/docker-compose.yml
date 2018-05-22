@@ -90,3 +90,15 @@ services:
             - WEBROOT_PATH=/tmp/letsencrypt
             - EXP_LIMIT=30
             - CHECK_FREQ=1
+
+    webui_build:
+        image: node
+        restart: "no"
+        volumes:
+            - ../microraiden/webui/microraiden/:/app
+        working_dir: /app
+        user: "1000:1000"
+        entrypoint: /bin/sh
+        command:
+            - -c
+            - npm i
