@@ -5,11 +5,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-with open('requirements.txt') as requirements:
-    reqs = requirements.read().split()
-with open('requirements-dev.txt') as requirements_dev:
-    reqs += requirements_dev.read().split()[2:]
-
 import subprocess
 import distutils
 import os
@@ -18,6 +13,12 @@ from setuptools.command.build_py import build_py
 
 DESCRIPTION = 'µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.'
 VERSION = open('microraiden/VERSION', 'r').read().strip()
+
+
+def read_requirements(path: str):
+    assert os.path.isfile(path)
+    with open(path) as requirements:
+        return requirements.read().split()
 
 
 def read_version_from_git():
@@ -51,7 +52,6 @@ def read_version_from_git():
 class BuildPyCommand(build_py):
     def run(self):
         self.run_command('compile_webui')
-        self.run_command('compile_version')
         build_py.run(self)
 
 
@@ -114,7 +114,8 @@ config = {
 
     'license': 'MIT',
     'keywords': 'raiden ethereum microraiden blockchain',
-    'install_requires': reqs,
+    'install_requires': read_requirements('requirements.txt'),
+    'extras_require': {'dev': read_requirements('requirements-dev.txt')},
     'packages': find_packages(exclude=['test']),
     'package_data': {'microraiden': ['data/contracts.json',
                                      'webui/js/*',

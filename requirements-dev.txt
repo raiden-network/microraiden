@@ -1,6 +1,6 @@
--r requirements.txt
 pytest>=2.7.2,!=3.3.*
+bumpversion
 eth-tester==0.1.0b5
 mock
 requests_mock
-bumpversion
+populus>=2.2.0

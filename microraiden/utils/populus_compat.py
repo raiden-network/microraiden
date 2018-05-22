@@ -66,3 +66,9 @@ class LogFilter:
         log['args'] = get_event_data(self.event_abi, log)['args']
         log['event'] = self.event_name
         return log
+
+    def uninstall(self):
+        assert self.web3 is not None
+        assert self.filter is not None
+        self.web3.eth.uninstallFilter(self.filter.filter_id)
+        self.filter = None

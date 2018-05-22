@@ -147,7 +147,9 @@ def get_logs(
         to_block,
         argument_filters
     )
-    return tmp_filter.get_logs()
+    logs = tmp_filter.get_logs()
+    tmp_filter.uninstall()
+    return logs
 
 
 def _get_logs_raw(contract: Contract, filter_params: Dict[str, Any]):

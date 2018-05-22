@@ -1,16 +1,16 @@
 # µRaiden [![Build Status](https://api.travis-ci.org/raiden-network/microraiden.svg)](https://travis-ci.org/raiden-network/microraiden)
 
-+[![Join the chat at https://gitter.im/raiden-network/microraiden](https://badges.gitter.im/raiden-network/microraiden.svg)](https://gitter.im/raiden-network/microraiden?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
+[![Join the chat at https://gitter.im/raiden-network/microraiden](https://badges.gitter.im/raiden-network/microraiden.svg)](https://gitter.im/raiden-network/microraiden?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 µRaiden is an off-chain, cheap, scalable and low-latency micropayment solution.
 
-[µRaiden documentation](http://microraiden.readthedocs.io/en/latest/)
+[µRaiden documentation](https://microraiden.readthedocs.io/)
 
 
 ## Smart Contract
 
-Current version: `0.2.0`. Verifiable with `RaidenMicroTransferChannels.call().version()`.
+Current version: `0.2.0` (second Bug Bounty release). Verifiable with `RaidenMicroTransferChannels.call().version()`.
 Note that a new µRaiden release might include changing the Ethereum address used for the smart contract, in case we need to deploy an improved contract version.
 
 The `RaidenMicroTransferChannels` contract has been deployed on the main net: [0x1440317CB15499083dEE3dDf49C2bD51D0d92e33](https://etherscan.io/address/0x1440317CB15499083dEE3dDf49C2bD51D0d92e33)
@@ -20,8 +20,9 @@ The following parameters were used:
 - `challenge_period`: `8640` (blocks, rough equivalent of 36 hours)
 
 
-There have been internal and external audits of above contract. That being said:
-All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+There have been internal and external audits of the above contract. That being said, we do not recommend them to be used in production before a stable `1.0.0` release is made. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+
+A stable release depends on the [SignTypedData - EIP712](https://github.com/ethereum/EIPs/pull/712) standard being finalized. We are aware that the current supported implementation of this standard has security issues.
 
 
 ### Kovan
@@ -98,9 +99,9 @@ npm i && npm run build
 
 * run the Proxy component:
 
-For an overview of parameters and default options check https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/click_helpers.py
+For an overview of parameters and default options check https://github.com/raiden-network/microraiden/blob/master/microraiden/click_helpers.py
 
-For chain and contract settings change: https://github.com/raiden-network/microraiden/blob/master/microraiden/microraiden/config.py
+For chain and contract settings change: https://github.com/raiden-network/microraiden/blob/master/microraiden/config.py
 
 ```
 cd microraiden
@@ -109,3 +110,116 @@ python -m microraiden.examples.demo_proxy --private-key <private_key_file> start
 
  * Go to the paywalled resource pages:
     - http://localhost:5000/teapot
+
+
+# µRaiden
+
+## Installation
+
+### Using `virtualenv`
+
+Run the following commands from the repository root directory.
+
+```bash
+virtualenv -p python3 env
+. env/bin/activate
+pip install -e microraiden
+```
+
+#### Using microraiden in pip's _editable_ mode
+Because of `gevent` you will need to install microraiden's requirements first.
+```bash
+virtualenv -p python3 env
+. env/bin/activate
+git clone git@github.com:raiden-network/microraiden.git
+cd microraiden/microraiden
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
+### Using a global `pip3` installation
+
+```bash
+sudo pip3 install -e microraiden
+```
+
+## Execution
+
+### HTTP Proxy
+There are several examples that demonstrate how to serve custom content. To try them, run one of the following commands from the `microraiden` directory:
+```bash
+python3 -m microraiden.examples.demo_proxy --private-key <private_key_file> start
+```
+or
+```bash
+python3 -m microraiden.examples.wikipaydia --private-key <private_key_file> --private-key-password-file <password_file> start
+```
+By default, the web server listens on `0.0.0.0:5000`. The private key file should be in the JSON format produced by Geth/Parity and must be readable and writable only by the owner to be accepted (`-rw-------`). A ``--private-key-password-file`` option can be specified, containing the password for the private key in the first line of the file. If it's not provided, the password will be prompted interactively.
+An Ethereum node RPC interface is expected to respond on http://localhost:8545. Alternatively, you can use [Infura infrastructure](https://infura.io/) as a RPC provider.
+### M2M Client
+```bash
+python3 -m microraiden.examples.m2m_client --key-path <path to private key file> --key-password-path <password file>
+```
+
+## Library usage
+
+### Client
+The µRaiden client backend used by the M2M sample client can be used as a standalone library. After installation, import the following class:
+```python
+from microraiden import Client
+
+client = Client('<hex-encoded private key>')
+```
+
+Alternatively you can specify a path to a JSON private key, optionally specifying a file containing the password. If it's not provided, it'll be prompted interactively.
+```python
+client = Client(key_path='<path to private key file>', key_password_file='<path to password file>')
+```
+
+This client object allows interaction with the blockchain and offline-signing of transactions and Raiden balance proofs.
+
+An example lifecycle of a `Client` object could look like this:
+
+```python
+from microraiden import Client
+
+receiver = '0xb6b79519c91edbb5a0fc95f190741ad0c4b1bb4d'
+privkey = '0x55e58f57ec2177ea681ee461c6d2740060fd03109036e7e6b26dcf0d16a28169'
+
+# 'with' statement to cleanly release the client's file lock in the end.
+with Client(privkey) as client:
+
+    channel = client.get_suitable_channel(receiver, 10)
+    channel.create_transfer(3)
+    channel.create_transfer(4)
+
+    print(
+        'Current balance proof:\n'
+        'From: {}\n'
+        'To: {}\n'
+        'Channel opened at block: #{}\n'  # used to uniquely identify this channel
+        'Balance: {}\n'                   # total: 7
+        'Signature: {}\n'                 # valid signature for a balance of 7 on this channel
+        .format(
+            channel.sender, channel.receiver, channel.block, channel.balance, channel.balance_sig
+        )
+    )
+
+    channel.topup(5)                      # total deposit: 15
+
+    channel.create_transfer(5)            # total balance: 12
+
+    channel.close()
+
+    # Wait for settlement period to end.
+
+    channel.settle()
+
+    # Instead of requesting a close and waiting for the settlement period to end, you can also perform
+    # a cooperative close, provided that you have a receiver-signed balance proof that matches your
+    # current channel balance.
+
+    channel.close_cooperatively(closing_sig)
+```
+
+The values required for a valid balance proof required by the receiver end are printed above. Make sure to let them know.

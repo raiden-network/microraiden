@@ -31,6 +31,7 @@ def make_channel_manager_contract(web3: Web3, channel_manager_address: str) -> C
     Returns:
         Contract: contract wrapper class
     """
+    channel_manager_address = to_checksum_address(channel_manager_address)
     return web3.eth.contract(
         abi=constants.CONTRACT_METADATA[constants.CHANNEL_MANAGER_ABI_NAME]['abi'],
         address=channel_manager_address
