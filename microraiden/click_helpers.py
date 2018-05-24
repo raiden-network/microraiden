@@ -93,7 +93,7 @@ pass_app = click.make_pass_decorator(PaywalledProxy)
     '--paywall-info',
     default=constants.HTML_DIR,
     help='Directory where the paywall info is stored. '
-         'The directory shoud contain a index.html file with the payment info/webapp. '
+         'The directory should contain an index.html file with the payment info/webapp. '
          'Content of the directory (js files, images..) is available on the "js/" endpoint.'
 )
 @click.pass_context
