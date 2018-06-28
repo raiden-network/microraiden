@@ -5,9 +5,9 @@ Requirements
 ------------
 It is required that you have :code:`pip`, :code:`python` (version 3.5 or greater) and :code:`git` installed.
 
-- To install pip, see the official documentation <https://pip.pypa.io/en/stable/installing/>`
+- To install pip, see the official documentation <https://pip.pypa.io/en/stable/installing/>`_
 - To install Python `download the latest version <https://www.python.org/downloads/>`_ 
-- If you don't have git, `download it here <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`
+- If you don't have git, `download it here <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_
 
 Python environment setup
 ------------------------
