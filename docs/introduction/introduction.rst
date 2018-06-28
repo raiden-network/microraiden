@@ -11,7 +11,7 @@ The main differences between the Raiden Network and µRaiden are:
 
 - **µRaiden** is a many-to-one unidirectional payment channel protocol.
 
-A payment channel in the **Raiden Network** is based on the same principles as µRaiden, but is laid out bidirectional,
+A payment channel in the **Raiden Network** is based on the same principles as µRaiden, but is laid out bidirectionally,
 so that the roles of sender and receiver are mutable.
 Additionally it uses a special cryptographic protocol to connect the owners of those singular payment channels
 to form an interconnected network of channels.
@@ -19,13 +19,12 @@ to form an interconnected network of channels.
 This allows participants of the Raiden Network to efficiently send transfers without being forced to pay for
 opening new channels with people who are already in the network - it is a many-to-many payment solution.
 
-- **µRaiden**'s off-chain transactions do not cost anything as they are only exchanged between sender and receiver,
-because they don't use intermediary channels.
+- **µRaiden**'s off-chain transactions do not cost anything as they are only exchanged between sender and receiver, because they don't use intermediary channels.
 
 Apart from the initial cost of opening up a channel, a µRaiden transaction doesn't cost anything, because to deliver the
 payment itself is as easy as putting some additional data in a http-request.
 
-To be able to use an existing channel in an interconnected network of channel,
+To be able to use an existing channel in an interconnected network of channels,
 the Raiden Network requires an additional, sophisticated application transport layer.
 The forwarding of payments from sender to receiver through the network is based on incentivizing intermediary users
 to lend their resources in a secure and automated way.
@@ -46,15 +45,14 @@ A balance-proof functions as a valid micropayment, once the `Receiver` gets hold
 
 The µRaiden application has different implementations for different scenarios for the `Sender` side:
 
-- a JavaScript client that runs in the Senders browser whenever the Sender visits the Receivers webpage
-- a Python client that runs on the Senders machine and makes http requests to the Receivers Proxy-Server instance
+- a JavaScript client that runs in the Senders browser whenever the Sender visits the Receiver's webpage
+- a Python client that runs on the Sender's machine and makes http requests to the Receiver's Proxy-Server instance
 
 A typical use case for the **JavaScript** client would be a content provider, who wants to receive micropayments for accessing 
-paywalled content. The content provider is the `Receiver` in this scenario and he would integrate µRaidens `Proxy-Server`
+paywalled content. The content provider is the `Receiver` in this scenario and he would integrate µRaiden's `Proxy-Server`
 for example in his flask or Django backend.
-At the same time, the content provider would serve an implementation of µRaidens JavaScript Client from his webpage.
-All the consumer of the paywalled content now needs is an Ethereum account that is backed with some RDN and that is web3 accessible (
-for example with MetaMask). The JavaScript client will run in the consumers browser and once it needs to sign a microtransaction the
+At the same time, the content provider would serve an implementation of µRaiden's JavaScript Client from his webpage.
+All that the consumer of the paywalled content now needs is an Ethereum account that is backed with some RDN and that is web3 accessible (for example with MetaMask). The JavaScript client will run in the consumer's browser and once it needs to sign a microtransaction the
 MetaMask plugin will pop up and ask for confirmation.
 
 The **Python client** would get mainly used in Machine-to-Machine (M2M) applications or more customized applications without the use of a browser.
@@ -80,7 +78,7 @@ off-chain transactions. They offer a secure way to keep track of the
 last verified channel balance. The channel balance is calculated each
 time the sender pays for a resource. He is prompted to sign a so-called
 balance proof, i.e., a message that provably confirms the total amount
-of transfered tokens. This balance proof is then sent to the receiver's
+of transferred tokens. This balance proof is then sent to the receiver's
 server. If the balance proof checks out after comparing it with the last
 received balance and verifying the sender's signature, the receiver
 replaces the old balance value with the new one.
@@ -104,8 +102,9 @@ With the balance proof, the contract now can reconstruct the public key of the `
 must have agreed to the updated balance.
 
 This means that there are only 2 transactions that have to happen on the blockchain:
-- the initial `opening` of the channel with the prepaid amount the sender eventually wants to spent during the channels lifetime
-- the final `closing` of the channel, where the senders initial deposit is paid out to the receiver and sender, based on the agreed on off chain balances 
+
+- the initial `opening` of the channel with the prepaid amount the sender eventually wants to spend during the channel's lifetime
+- the final `closing` of the channel, where the sender's initial deposit is paid out to the receiver and sender, based on the agreed on off-chain balances 
 
 If the channel runs low on funds before it is closed, the sender can increase the transferable amount of the channel
 with a `topup` transaction on-chain.
@@ -141,7 +140,7 @@ and remove the channel from the contract's memory.
 What happens if the sender attempts to cheat and sends a balance proof
 with a smaller balance? The receiver server will notice the error and
 automatically send a request to the channel manager contract during the
-challenge period to close the channel with his latest stored balance
+challenge period to close the channel with the receiver's latest stored balance
 proof.
 
 There are incentives for having a collaborative channel closing.
