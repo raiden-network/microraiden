@@ -3,10 +3,11 @@ Development setup
 
 Requirements
 ------------
-It is required that you have :code:`pip`, :code:`python` (version 3.5) and :code:`git` installed.
-You can visit `the official pip documentation <https://pip.pypa.io/en/stable/installing/>`_ and install pip before you proceed.
+It is required that you have :code:`pip`, :code:`python` (version 3.5 or greater) and :code:`git` installed.
 
-.. _python-env-setup:
+- To install pip, visit `the official documentation <https://pip.pypa.io/en/stable/installing/>`_
+- To install Python _`download the latest version <https://www.python.org/downloads/>`_ 
+- If you don't have git, _`download it here <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_
 
 Python environment setup
 ------------------------
@@ -39,7 +40,7 @@ For example, check out `pyenv <https://github.com/pyenv/pyenv>`_ in combination 
 ------------------------------------
 
 When you want to develop on the µRaiden codebase, it is best to install it in pip’s editable mode.
-This way, you can edit the source code directly and never worry about re-installing µRaiden -
+This way, you can edit the source code directly and never worry about reinstalling µRaiden -
 the linked application always reflects the changes you made.
 To install µRaiden for development, download the repository and run our install script with:
 
@@ -48,5 +49,3 @@ To install µRaiden for development, download the repository and run our install
     git clone git@github.com:raiden-network/microraiden.git
     cd microraiden
     make pip-install-dev
-
-
