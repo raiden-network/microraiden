@@ -1,24 +1,14 @@
 Blockchain setup
 =================
 
-In order to follow our tutorials or develop your own µRaiden applications,
-there are some additional requirements to be fulfilled.
 If you want to develop applications that function as the **Receiver** you have
 to connect to the Ethereum blockchain through one of the Ethereum node applications.
 There are others, but we focus on `geth`, the Go implementation.
 
-Running `geth`
+Setup a Ropsten-synced Geth
 ---------------
 
-The following components have to be installed in order to run the tutorials:
-
-Geth must be up and running, listening on RPC 8545 and completely synced with Ropsten.
-
-Optional: To create an account, get Ropsten ETH (RETH) and export the private key, MetaMask must be installed and connected to Ropsten
-Optional: To use the echo_client, you have to acquire TKN. On the main page (https://github.com/raiden-network/microraiden) the Token addresses are listed, for Ropsten it can be found `here <https://ropsten.etherscan.io/address/0xff24d15afb9eb080c089053be99881dd18aa190>`_
-Setup a Ropsten-synced Geth
-
-The quick start requires that your Geth client is synced to the Ropsten testnet.
+The quick start requires that your `geth` client is synced to the Ropsten testnet.
 Geth should answer RPC calls on `http://localhost:8545` and have the APIs `eth`, `net`, `web3` and `personal` accessible. 
 
 Note: as of Geth version `1.8.0`, these parameters are required to start Geth in the correct mode:
@@ -36,6 +26,7 @@ Funded Ropsten account with MetaMask
 ---------------------------------------
 
 Note: You don’t have to follow these steps if you have an account on Ropsten already preloaded with Ropsten Ether and know how to export the private key of the preloaded account.
+
 
 After successful installation of MetaMask, just follow the steps mentioned in the screenshots to create a new account, get Ropsten Ether at a faucet and export the private key of this new, Ether preloaded account.
 We will use the private key for Sender applications in the tutorials.
@@ -57,6 +48,12 @@ Buy TKN on Ropsten
 
 To be able to use the echo client, you have to get the “TKN” Token configured for the RaidenMicroTransferChannels on Ropsten.
 
+
+Directly with the TKN smart contract
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+On the main page (https://github.com/raiden-network/microraiden) the Token addresses are listed, for Ropsten it can be found `here <https://ropsten.etherscan.io/address/0xff24d15afb9eb080c089053be99881dd18aa1090>`_
+
+
 With our demo app
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 The easiest way to get some TKN on the Ropsten-network is to use our JavaScript application
@@ -73,11 +70,9 @@ and forget about the lower half.
 .. figure:: /diagrams/buytkndemo.png
    :alt:
 
-
 A dialogue will pop up in MetaMask that asks for your confirmation of the generated transaction.
 
 4) Accept the transaction
-
 
 To check whether the exchange of TKN was successful, you can add TKN as a custom token to MetaMask.
 
@@ -95,9 +90,6 @@ To check whether the exchange of TKN was successful, you can add TKN as a custom
 
 .. figure:: /diagrams/myether5.png
    :alt:
-
-
- 
 
 With  MyEtherWallet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
