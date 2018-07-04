@@ -5,7 +5,7 @@ If you want to develop applications that function as the **Receiver** you have
 to connect to the Ethereum blockchain through one of the Ethereum node applications.
 There are others, but we focus on `geth`, the Go implementation.
 
-Setup a Ropsten-synced Geth
+Setup a Ropsten-synced Geth or Parity
 ---------------
 
 The quick start requires that your `geth` client is synced to the Ropsten testnet.
@@ -21,6 +21,11 @@ Note: as of Geth version `1.8.0`, these parameters are required to start Geth in
         --rpcport 8545 --rpcaddr 127.0.0.1 \
         --rpccorsdomain "*"
 
+If you want to use Parity instead, Geth is sometimes not syncing correctly with Ropsten, you need the same parameter but this code:
+
+.. code:: sh 
+   
+   parity --chain ropsten --rpcport=8545
 
 Funded Ropsten account with MetaMask
 ---------------------------------------
