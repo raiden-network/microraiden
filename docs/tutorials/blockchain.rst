@@ -21,7 +21,7 @@ Note: as of Geth version `1.8.0`, these parameters are required to start Geth in
         --rpcport 8545 --rpcaddr 127.0.0.1 \
         --rpccorsdomain "*"
 
-If you want to use Parity instead, Geth is sometimes not syncing correctly with Ropsten, you need the same parameter but this code:
+If you are having trouble syncing with Geth, you may want to use Parity instead. Use the same parameter but with this code:
 
 .. code:: sh 
    
