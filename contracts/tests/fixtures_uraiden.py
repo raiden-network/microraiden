@@ -97,7 +97,14 @@ def uraiden_instance(owner, uraiden_contract, token_instance, delegate_instance)
 
 @pytest.fixture
 def get_channel(channel_params, owner, get_accounts, uraiden_instance, token_instance, get_block):
-    def get(uraiden=None, token=None, deposit=None, sender=None, receiver=None, contract_type=None):
+    def get(
+        uraiden=None,
+        token=None,
+        deposit=None,
+        sender=None,
+        receiver=None,
+        contract_type=None
+    ):
         deposit = deposit or channel_params['deposit']
         contract_type = contract_type or channel_params['type']
         balance = channel_params['balance']

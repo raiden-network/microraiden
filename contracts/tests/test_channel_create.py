@@ -293,7 +293,9 @@ def test_channel_erc20_event(
     token.transact({"from": owner}).transfer(sender, deposit + 100)
 
     # Approve token allowance
-    txn_hash_approve = token_instance.transact({"from": sender}).approve(uraiden_instance.address, deposit)
+    txn_hash_approve = token_instance.transact(
+        {"from": sender}
+    ).approve(uraiden_instance.address, deposit)
     gas_used += txn_gas(txn_hash_approve)
 
     # Create channel

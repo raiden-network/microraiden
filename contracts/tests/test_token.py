@@ -28,7 +28,7 @@ def test_token_mint(web3, token_contract, contract_params, get_accounts):
         token.transact({'from': A}).mint()
 
     wei_value = 10**17 + 21000
-    tokens = 50 * multiplier;
+    tokens = 50 * multiplier
     token.transact({'from': A, 'value': wei_value}).mint()
     assert token.call().balanceOf(A) == tokens
     assert token.call().totalSupply() == supply + tokens

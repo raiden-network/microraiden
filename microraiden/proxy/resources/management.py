@@ -107,7 +107,7 @@ class ChannelManagementListChannels(Resource):
                  } for k, v in joined_channels.items()
             ]
 
-        return json.dumps(ret), 200
+        return ret, 200
 
     def delete(self, sender_address):
         parser = reqparse.RequestParser()
