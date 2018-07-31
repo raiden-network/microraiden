@@ -4,6 +4,10 @@ from utils import sign
 from tests.utils import balance_proof_hash, closing_message_hash
 from eth_utils import encode_hex, is_same_address
 from tests.fixtures import (
+    fake_address,
+    MAX_UINT256,
+    MAX_UINT32,
+    uraiden_events,
     contract_params,
     channel_params,
     owner_index,
@@ -16,11 +20,6 @@ from tests.fixtures import (
     print_gas,
     get_block,
     event_handler,
-    fake_address,
-    MAX_UINT256,
-    MAX_UINT32,
-    MAX_UINT192,
-    uraiden_events
 )
 from tests.fixtures_uraiden import (
     token_contract,
@@ -30,9 +29,9 @@ from tests.fixtures_uraiden import (
     uraiden_instance,
     delegate_contract,
     delegate_instance,
+    channel_pre_close_tests,
     get_channel,
     channel_settle_tests,
-    channel_pre_close_tests,
     checkClosedEvent,
     checkSettledEvent
 )
@@ -421,7 +420,6 @@ def test_cooperative_close_fail_wrong_balance(
         get_channel):
     (sender, receiver, open_block_number, balance_msg_sig, closing_sig) = get_channel()
     balance = channel_params['balance']
-    deposit = channel_params['deposit']
 
     balance_message_hash_fake = balance_proof_hash(
         receiver,
@@ -648,8 +646,10 @@ def test_cooperative_close_state(
     assert token_instance.call().balanceOf(sender) == sender_post_balance
     assert token_instance.call().balanceOf(uraiden_instance.address) == contract_post_balance
 
-    channel_settle_tests(uraiden_instance, token_instance,
-        (sender, receiver, open_block_number)
+    channel_settle_tests(
+        uraiden_instance,
+        token_instance,
+        (sender, receiver, open_block_number),
     )
 
     # Channel does not exist anymore, so this will fail
@@ -820,8 +820,10 @@ def test_settle_state(
     assert token_instance.call().balanceOf(sender) == sender_post_balance
     assert token_instance.call().balanceOf(uraiden_instance.address) == contract_post_balance
 
-    channel_settle_tests(uraiden_instance, token_instance,
-        (sender, receiver, open_block_number)
+    channel_settle_tests(
+        uraiden_instance,
+        token_instance,
+        (sender, receiver, open_block_number),
     )
 
     # Channel does not exist anymore, so this will fail

@@ -63,7 +63,7 @@ class LogHandler:
             with Timeout(seconds) as timeout:
                 while len(list(self.event_waiting.keys())):
                     timeout.sleep(2)
-        except:
+        except BaseException as e:
             message = 'NO EVENTS WERE TRIGGERED FOR: ' + str(self.event_waiting)
             if len(self.event_unkown) > 0:
                 message += '\n UNKOWN EVENTS: ' + str(self.event_unkown)

@@ -37,7 +37,8 @@ def test_uraiden_init(
     get_accounts,
     get_uraiden_contract,
     token_contract,
-    uraiden_contract):
+    uraiden_contract
+):
     token = token_contract()
     fake_token = uraiden_contract()
     (A, B) = get_accounts(2)
@@ -91,9 +92,9 @@ def test_function_access(
     uraiden_contract,
     uraiden_instance,
     token_instance,
-    get_channel):
+    get_channel
+):
     (A, B, C, D) = get_accounts(4)
-    uraiden_instance2 = uraiden_contract()
     channel = get_channel(uraiden_instance, token_instance, 100, A, B)[:3]
     (sender, receiver, open_block_number) = channel
 
@@ -145,13 +146,14 @@ def test_version(
     get_accounts,
     get_uraiden_contract,
     uraiden_instance,
-    token_instance):
+    token_instance
+):
     (A, B) = get_accounts(2)
-    token = token_instance
     other_contract = get_uraiden_contract(
-        [token.address, challenge_period_min, []],
+        [token_instance.address, challenge_period_min, []],
         {'from': A}
     )
+    assert other_contract is not None
 
     assert uraiden_instance.call().version() == uraiden_contract_version
 
@@ -162,7 +164,7 @@ def test_get_channel_info(web3, get_accounts, uraiden_instance, token_instance, 
     (sender, receiver, open_block_number) = channel
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number-2)
+        uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number - 2)
     web3.testing.mine(2)
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.call().getChannelInfo(A, receiver, open_block_number)

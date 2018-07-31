@@ -65,7 +65,6 @@ def test_trusted_contracts_constructor(
 
 def test_add_trusted_contracts_call(owner, get_accounts, uraiden_instance, delegate_contract):
     (A, B) = get_accounts(2)
-    trusted_contract = delegate_contract()
 
     with pytest.raises(TypeError):
         uraiden_instance.transact({'from': owner}).addTrustedContracts([fake_address])
@@ -74,7 +73,12 @@ def test_add_trusted_contracts_call(owner, get_accounts, uraiden_instance, deleg
     uraiden_instance.transact({'from': owner}).addTrustedContracts([empty_address])
 
 
-def test_add_trusted_contracts_only_owner(owner, get_accounts, uraiden_instance, delegate_contract):
+def test_add_trusted_contracts_only_owner(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        delegate_contract
+):
     (A, B) = get_accounts(2)
     trusted_contract = delegate_contract()
 
@@ -85,7 +89,13 @@ def test_add_trusted_contracts_only_owner(owner, get_accounts, uraiden_instance,
     assert uraiden_instance.call().trusted_contracts(trusted_contract.address)
 
 
-def test_add_trusted_contracts_state(owner, get_accounts, uraiden_instance, delegate_contract, print_gas):
+def test_add_trusted_contracts_state(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        delegate_contract,
+        print_gas
+):
     (A, B) = get_accounts(2)
     trusted_contract1 = delegate_contract()
     trusted_contract2 = delegate_contract()
@@ -100,7 +110,9 @@ def test_add_trusted_contracts_state(owner, get_accounts, uraiden_instance, dele
     uraiden_instance.transact({'from': owner}).addTrustedContracts([A])
     assert not uraiden_instance.call().trusted_contracts(A)
 
-    txn_hash = uraiden_instance.transact({'from': owner}).addTrustedContracts([trusted_contract1.address])
+    txn_hash = uraiden_instance.transact(
+        {'from': owner}
+    ).addTrustedContracts([trusted_contract1.address])
     assert uraiden_instance.call().trusted_contracts(trusted_contract1.address)
 
     print_gas(txn_hash, 'add 1 trusted contract')
@@ -119,7 +131,13 @@ def test_add_trusted_contracts_state(owner, get_accounts, uraiden_instance, dele
     print_gas(txn_hash, 'add 3 trusted contracts')
 
 
-def test_add_trusted_contracts_event(owner, get_accounts, uraiden_instance, delegate_contract, event_handler):
+def test_add_trusted_contracts_event(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        delegate_contract,
+        event_handler
+):
     (A, B) = get_accounts(2)
     ev_handler = event_handler(uraiden_instance)
     trusted_contract = delegate_contract()
@@ -136,7 +154,12 @@ def test_add_trusted_contracts_event(owner, get_accounts, uraiden_instance, dele
     ev_handler.check()
 
 
-def test_remove_trusted_contracts_call(owner, get_accounts, uraiden_instance, delegate_contract):
+def test_remove_trusted_contracts_call(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        delegate_contract
+):
     (A, B) = get_accounts(2)
     trusted_contract1 = delegate_contract()
     trusted_contract2 = delegate_contract()
@@ -154,7 +177,12 @@ def test_remove_trusted_contracts_call(owner, get_accounts, uraiden_instance, de
     )
 
 
-def test_remove_trusted_contracts_only_owner(owner, get_accounts, uraiden_instance, delegate_contract):
+def test_remove_trusted_contracts_only_owner(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        delegate_contract
+):
     (A, B) = get_accounts(2)
     trusted_contract = delegate_contract()
 
@@ -170,7 +198,13 @@ def test_remove_trusted_contracts_only_owner(owner, get_accounts, uraiden_instan
     assert not uraiden_instance.call().trusted_contracts(trusted_contract.address)
 
 
-def test_remove_trusted_contracts_state(owner, get_accounts, uraiden_instance, delegate_contract, print_gas):
+def test_remove_trusted_contracts_state(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        delegate_contract,
+        print_gas
+):
     (A, B) = get_accounts(2)
     trusted_contract1 = delegate_contract()
     trusted_contract2 = delegate_contract()
@@ -206,7 +240,13 @@ def test_remove_trusted_contracts_state(owner, get_accounts, uraiden_instance, d
     print_gas(txn_hash, 'remove 1 trusted contract')
 
 
-def test_remove_trusted_contracts_event(owner, get_accounts, uraiden_instance, delegate_contract, event_handler):
+def test_remove_trusted_contracts_event(
+        owner,
+        get_accounts,
+        uraiden_instance,
+        delegate_contract,
+        event_handler
+):
     (A, B) = get_accounts(2)
     ev_handler = event_handler(uraiden_instance)
     trusted_contract1 = delegate_contract()
