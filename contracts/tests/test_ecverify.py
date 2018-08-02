@@ -3,24 +3,6 @@ from ethereum import tester
 from utils import sign
 from eth_utils import encode_hex, is_same_address
 from tests.utils import balance_proof_hash, closing_message_hash
-from tests.fixtures import (
-    owner_index,
-    owner,
-    contract_params,
-    create_contract,
-    get_token_contract,
-    get_accounts,
-    create_accounts
-)
-from tests.fixtures_uraiden import (
-    token_contract,
-    token_instance,
-    get_uraiden_contract,
-    uraiden_contract,
-    uraiden_instance,
-    delegate_contract,
-    delegate_instance,
-)
 
 
 @pytest.fixture

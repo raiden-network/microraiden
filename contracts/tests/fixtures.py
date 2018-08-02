@@ -1,21 +1,9 @@
 import pytest
 from utils.logs import LogHandler
+from tests.constants import PASSPHRASE
 
-
-print_the_logs = False
-
-
-MAX_UINT256 = 2 ** 256 - 1
-MAX_UINT192 = 2 ** 192 - 1
-MAX_UINT32 = 2 ** 32 - 1
-fake_address = '0x03432'
-empty_address = '0x0000000000000000000000000000000000000000'
-passphrase = '0'
 
 # recheck test_create_token_fallback_uint_conversion when bug bounty limit is removed
-uraiden_contract_version = '0.2.0'
-channel_deposit_bugbounty_limit = 100 * 10 ** 18
-challenge_period_min = 500
 contract_args = [
     {
         'decimals': 18,
@@ -47,14 +35,9 @@ channel_values = [
 ]
 
 
-uraiden_events = {
-    'created': 'ChannelCreated',
-    'topup': 'ChannelToppedUp',
-    'closed': 'ChannelCloseRequested',
-    'settled': 'ChannelSettled',
-    'withdraw': 'ChannelWithdraw',
-    'trusted': 'TrustedContract'
-}
+@pytest.fixture()
+def enable_logs():
+    return False
 
 
 @pytest.fixture(params=contract_args)
@@ -96,14 +79,14 @@ def create_accounts(web3):
     def get(number):
         new_accounts = []
         for i in range(0, number):
-            new_account = web3.personal.newAccount(passphrase)
+            new_account = web3.personal.newAccount(PASSPHRASE)
             amount = int(web3.eth.getBalance(web3.eth.accounts[0]) / 2 / number)
             web3.eth.sendTransaction({
                 'from': web3.eth.accounts[0],
                 'to': new_account,
                 'value': amount
             })
-            web3.personal.unlockAccount(new_account, passphrase)
+            web3.personal.unlockAccount(new_account, PASSPHRASE)
             new_accounts.append(new_account)
         return new_accounts
     return get

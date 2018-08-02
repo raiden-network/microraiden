@@ -1,28 +1,5 @@
 import pytest
 from ethereum import tester
-from tests.fixtures import (
-    contract_params,
-    channel_params,
-    owner_index,
-    owner,
-    create_accounts,
-    get_accounts,
-    create_contract,
-    get_token_contract,
-    get_block,
-    fake_address,
-    empty_address,
-)
-from tests.fixtures_uraiden import (
-    token_contract,
-    token_instance,
-    get_uraiden_contract,
-    uraiden_contract,
-    uraiden_instance,
-    delegate_contract,
-    delegate_instance,
-    get_channel,
-)
 
 
 def test_channel_erc223_create_delegate(
