@@ -3,37 +3,16 @@ from ethereum import tester
 from utils import sign
 from tests.utils import balance_proof_hash, closing_message_hash
 from eth_utils import encode_hex, is_same_address
-from tests.fixtures import (
-    fake_address,
+from tests.constants import (
+    FAKE_ADDRESS,
     MAX_UINT256,
     MAX_UINT32,
-    uraiden_events,
-    contract_params,
-    channel_params,
-    owner_index,
-    owner,
-    create_accounts,
-    get_accounts,
-    create_contract,
-    get_token_contract,
-    txn_gas,
-    print_gas,
-    get_block,
-    event_handler,
+    URAIDEN_EVENTS,
 )
-from tests.fixtures_uraiden import (
-    token_contract,
-    token_instance,
-    get_uraiden_contract,
-    uraiden_contract,
-    uraiden_instance,
-    delegate_contract,
-    delegate_instance,
-    channel_pre_close_tests,
-    get_channel,
-    channel_settle_tests,
+from tests.utils import (
     checkClosedEvent,
-    checkSettledEvent
+    checkSettledEvent,
+    channel_settle_tests,
 )
 
 
@@ -49,7 +28,7 @@ def test_uncooperative_close_call(channel_params, uraiden_instance, get_channel)
         )
     with pytest.raises(TypeError):
         uraiden_instance.transact({"from": sender}).uncooperativeClose(
-            fake_address,
+            FAKE_ADDRESS,
             open_block_number,
             balance
         )
@@ -272,7 +251,7 @@ def test_uncooperative_close_event(
         balance
     )
 
-    ev_handler.add(txn_hash, uraiden_events['closed'], checkClosedEvent(
+    ev_handler.add(txn_hash, URAIDEN_EVENTS['closed'], checkClosedEvent(
         sender,
         receiver,
         open_block_number,
@@ -295,7 +274,7 @@ def test_cooperative_close_call(channel_params, uraiden_instance, get_channel):
         )
     with pytest.raises(TypeError):
         uraiden_instance.transact({"from": sender}).cooperativeClose(
-            fake_address,
+            FAKE_ADDRESS,
             open_block_number,
             balance,
             balance_msg_sig,
@@ -687,7 +666,7 @@ def test_cooperative_close_event(
         closing_sig
     )
 
-    ev_handler.add(txn_hash, uraiden_events['settled'], checkClosedEvent(
+    ev_handler.add(txn_hash, URAIDEN_EVENTS['settled'], checkClosedEvent(
         sender,
         receiver,
         open_block_number,
@@ -720,7 +699,7 @@ def test_settle_call(
     with pytest.raises(TypeError):
         uraiden_instance.transact({"from": sender}).settle(0x0, open_block_number)
     with pytest.raises(TypeError):
-        uraiden_instance.transact({"from": sender}).settle(fake_address, open_block_number)
+        uraiden_instance.transact({"from": sender}).settle(FAKE_ADDRESS, open_block_number)
     with pytest.raises(TypeError):
         uraiden_instance.transact({"from": sender}).settle(receiver, -2)
     with pytest.raises(TypeError):
@@ -861,7 +840,7 @@ def test_settle_event(
 
     txn_hash = uraiden_instance.transact({"from": sender}).settle(receiver, open_block_number)
 
-    ev_handler.add(txn_hash, uraiden_events['settled'], checkSettledEvent(
+    ev_handler.add(txn_hash, URAIDEN_EVENTS['settled'], checkSettledEvent(
         sender,
         receiver,
         open_block_number,

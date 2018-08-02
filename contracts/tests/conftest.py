@@ -4,3 +4,6 @@
 #
 from gevent import monkey
 monkey.patch_all(thread=False)
+
+from .fixtures import *  # noqa
+from .fixtures_uraiden import *  # noqa

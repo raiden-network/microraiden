@@ -1,5 +1,4 @@
 from flask_restful import Resource, reqparse
-import json
 from collections import defaultdict
 
 from microraiden.utils import sign_close
