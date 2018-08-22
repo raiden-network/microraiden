@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 import os
 from eth_utils import decode_hex, is_same_address, is_hex, remove_0x_prefix, to_checksum_address
@@ -29,6 +29,14 @@ class Client:
             channel_manager_address: str = None,
             web3: Web3 = None
     ) -> None:
+        """
+
+        Args:
+            private_key:
+            key_password_path:
+            channel_manager_address:
+            web3:
+        """
         is_hex_key = is_hex(private_key) and len(remove_0x_prefix(private_key)) == 64
         is_path = os.path.exists(private_key)
         assert is_hex_key or is_path, 'Private key must either be a hex key or a file path.'
@@ -131,12 +139,21 @@ class Client:
 
         log.debug('Synced a total of {} channels.'.format(len(self.channels)))
 
-    def open_channel(self, receiver_address: str, deposit: int):
-        """
+    def open_channel(self, receiver_address: str, deposit: int) -> Optional[Channel]:
+        """Open a channel with a receiver and deposit
+
         Attempts to open a new channel to the receiver with the given deposit. Blocks until the
-        creation transaction is found in a pending block or timeout is reached. The new channel
-        state is returned.
+        creation transaction is found in a pending block or timeout is reached.
+
+        Args:
+            receiver_address: the partner with whom the channel should be opened
+            deposit:  the initial deposit for the channel (Should be > 0)
+
+        Returns:
+            The opened channel, if successful. Otherwise `None`
+
         """
+
         assert isinstance(receiver_address, str)
         assert isinstance(deposit, int)
         assert deposit > 0

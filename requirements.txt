@@ -18,4 +18,3 @@ munch
 typing==3.6.2
 bs4
 filelock
-

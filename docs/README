@@ -1,0 +1,12 @@
+Build instructions for the documentation:
+
+Prerequisites: python3, pip
+
+in microraiden/docs do the following:
+
+make pip-install
+make html
+cd _build/html
+python3 -m http.server 8080
+
+# then in your browser, visit http://localhost:8080
