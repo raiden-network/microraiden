@@ -9,7 +9,6 @@ from eth_utils import (
 )
 from utils.utils import (
     check_succesful_tx,
-    wait,
 )
 
 

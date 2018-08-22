@@ -6,20 +6,10 @@ from tests.utils import (
     balance_proof_hash,
     closing_message_hash
 )
-from tests.fixtures import (
-    print_the_logs,
-    channel_params,
-    owner_index,
-    owner,
-    contract_params,
-    create_contract,
-    get_token_contract,
-    get_block
-)
 
 
 @pytest.fixture()
-def get_uraiden_contract(chain, create_contract):
+def get_uraiden_contract(chain, create_contract, enable_logs):
     def get(arguments, transaction=None):
         RaidenMicroTransferChannels = chain.provider.get_contract_factory(
             'RaidenMicroTransferChannels'
@@ -31,7 +21,7 @@ def get_uraiden_contract(chain, create_contract):
             transaction
         )
 
-        if print_the_logs:
+        if enable_logs:
             print_logs(uraiden_contract, 'ChannelCreated', 'RaidenMicroTransferChannels')
             print_logs(uraiden_contract, 'ChannelToppedUp', 'RaidenMicroTransferChannels')
             print_logs(uraiden_contract, 'ChannelCloseRequested', 'RaidenMicroTransferChannels')
@@ -97,7 +87,14 @@ def uraiden_instance(owner, uraiden_contract, token_instance, delegate_instance)
 
 @pytest.fixture
 def get_channel(channel_params, owner, get_accounts, uraiden_instance, token_instance, get_block):
-    def get(uraiden=None, token=None, deposit=None, sender=None, receiver=None, contract_type=None):
+    def get(
+        uraiden=None,
+        token=None,
+        deposit=None,
+        sender=None,
+        receiver=None,
+        contract_type=None
+    ):
         deposit = deposit or channel_params['deposit']
         contract_type = contract_type or channel_params['type']
         balance = channel_params['balance']
@@ -148,83 +145,4 @@ def get_channel(channel_params, owner, get_accounts, uraiden_instance, token_ins
         closing_sig, addr = sign.check(closing_msg_hash, tester.k3)
 
         return (sender, receiver, open_block_number, balance_msg_sig, closing_sig)
-    return get
-
-
-def channel_settle_tests(uraiden_instance, token, channel):
-    (sender, receiver, open_block_number) = channel
-
-    # Approve token allowance
-    # TODO: why this fails?
-    # token.transact({"from": sender}).approve(uraiden_instance.address, 33)
-
-    with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).topUp(receiver, open_block_number, 33)
-
-
-def channel_pre_close_tests(uraiden_instance, token, channel, top_up_deposit=0):
-    (sender, receiver, open_block_number) = channel
-
-    # Approve token allowance
-    token.transact({"from": sender}).approve(uraiden_instance.address, 33)
-
-    with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.transact({'from': sender}).settle(receiver, open_block_number)
-
-    uraiden_instance.transact({'from': sender}).topUp(
-        receiver,
-        open_block_number,
-        top_up_deposit
-    )
-
-
-def checkCreatedEvent(sender, receiver, deposit):
-    def get(event):
-        assert event['args']['_sender_address'] == sender
-        assert event['args']['_receiver_address'] == receiver
-        assert event['args']['_deposit'] == deposit
-    return get
-
-
-def checkToppedUpEvent(sender, receiver, open_block_number, added_deposit, deposit):
-    def get(event):
-        assert event['args']['_sender_address'] == sender
-        assert event['args']['_receiver_address'] == receiver
-        assert event['args']['_open_block_number'] == open_block_number
-        assert event['args']['_added_deposit'] == added_deposit
-    return get
-
-
-def checkClosedEvent(sender, receiver, open_block_number, balance):
-    def get(event):
-        assert event['args']['_sender_address'] == sender
-        assert event['args']['_receiver_address'] == receiver
-        assert event['args']['_open_block_number'] == open_block_number
-        assert event['args']['_balance'] == balance
-    return get
-
-
-def checkSettledEvent(sender, receiver, open_block_number, balance, receiver_tokens):
-    def get(event):
-        assert event['args']['_sender_address'] == sender
-        assert event['args']['_receiver_address'] == receiver
-        assert event['args']['_open_block_number'] == open_block_number
-        assert event['args']['_balance'] == balance
-        assert event['args']['_receiver_tokens'] == receiver_tokens
-    return get
-
-
-def checkTrustedEvent(contract_address, trusted_status):
-    def get(event):
-        assert event['args']['_trusted_contract_address'] == contract_address
-        assert event['args']['_trusted_status'] == trusted_status
-    return get
-
-
-def checkWithdrawEvent(sender, receiver, open_block_number, withdrawn_balance):
-    def get(event):
-        assert event['args']['_sender_address'] == sender
-        assert event['args']['_receiver_address'] == receiver
-        assert event['args']['_open_block_number'] == open_block_number
-        assert event['args']['_withdrawn_balance'] == withdrawn_balance
     return get

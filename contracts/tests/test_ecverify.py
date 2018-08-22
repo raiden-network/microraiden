@@ -3,24 +3,6 @@ from ethereum import tester
 from utils import sign
 from eth_utils import encode_hex, is_same_address
 from tests.utils import balance_proof_hash, closing_message_hash
-from tests.fixtures import (
-    owner_index,
-    owner,
-    contract_params,
-    create_contract,
-    get_token_contract,
-    get_accounts,
-    create_accounts
-)
-from tests.fixtures_uraiden import (
-    token_contract,
-    token_instance,
-    get_uraiden_contract,
-    uraiden_contract,
-    uraiden_instance,
-    delegate_contract,
-    delegate_instance,
-)
 
 
 @pytest.fixture
@@ -65,7 +47,12 @@ def test_sign(web3, ecverify_test_contract):
     balance = 22000000000000000000
 
     balance_message_hash = balance_proof_hash(B, block, balance, ecverify_test_contract.address)
-    balance_message_hash2 = balance_proof_hash(B, block, balance + 1000, ecverify_test_contract.address)
+    balance_message_hash2 = balance_proof_hash(
+        B,
+        block,
+        balance + 1000,
+        ecverify_test_contract.address
+    )
     signed_message, addr = sign.check(balance_message_hash, tester.k0)
     signed_message_false, addr1 = sign.check(balance_message_hash, tester.k1)
     assert is_same_address(addr, A)
@@ -118,7 +105,7 @@ def test_sign(web3, ecverify_test_contract):
     value2 = 2000
     _address = '0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb'
 
-    signed_message = '0x0adc437691e266072e9aa1763329062a6b2fa1d7f94034f1b1e691218fe9fd285f4f20132fa00230f591571a3575456bb382040e02e93ff0f32544907748a9821c'
+    signed_message = '0x0adc437691e266072e9aa1763329062a6b2fa1d7f94034f1b1e691218fe9fd285f4f20132fa00230f591571a3575456bb382040e02e93ff0f32544907748a9821c' # noqa
     signed_message = bytes.fromhex(signed_message[2:])
     verified_address = ecverify_test_contract.call().verifyEthSignedTypedData(
         _address,
@@ -131,7 +118,6 @@ def test_sign(web3, ecverify_test_contract):
 
 def test_extract_balance_proof_signature(get_accounts, token_instance, uraiden_instance):
     (A, B) = get_accounts(2)
-    token = token_instance
     uraiden = uraiden_instance
 
     receiver = '0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb'
@@ -180,7 +166,6 @@ def test_extract_balance_proof_signature(get_accounts, token_instance, uraiden_i
 
 def test_extract_closing_signature(get_accounts, token_instance, uraiden_instance):
     (A, B) = get_accounts(2)
-    token = token_instance
     uraiden = uraiden_instance
 
     sender = '0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb'

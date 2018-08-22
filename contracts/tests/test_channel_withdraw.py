@@ -3,35 +3,12 @@ from ethereum import tester
 from eth_utils import encode_hex, is_same_address
 from utils import sign
 from tests.utils import balance_proof_hash, closing_message_hash
-from tests.fixtures import (
-    contract_params,
-    channel_params,
-    owner_index,
-    owner,
-    create_accounts,
-    get_accounts,
-    create_contract,
-    get_token_contract,
-    txn_gas,
-    print_gas,
-    get_block,
-    event_handler,
-    fake_address,
-    MAX_UINT256,
+from tests.constants import (
     MAX_UINT32,
-    MAX_UINT192,
-    uraiden_events
+    URAIDEN_EVENTS,
 )
-from tests.fixtures_uraiden import (
-    token_contract,
-    token_instance,
-    get_uraiden_contract,
-    uraiden_contract,
-    uraiden_instance,
-    delegate_contract,
-    delegate_instance,
-    get_channel,
-    checkWithdrawEvent
+from tests.utils import (
+    checkWithdrawEvent,
 )
 
 
@@ -178,7 +155,8 @@ def test_balance_remaining_big(
         channel_params,
         get_accounts,
         uraiden_instance,
-        get_channel):
+        get_channel
+):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance1 = 30
     balance2_big = channel_params['deposit'] + 1
@@ -235,7 +213,8 @@ def test_withdraw_fail_in_challenge_period(
         channel_params,
         get_accounts,
         uraiden_instance,
-        get_channel):
+        get_channel
+):
     (sender, receiver, open_block_number) = get_channel()[:3]
     balance = 30
 
@@ -273,7 +252,8 @@ def test_withdraw_state(
         token_instance,
         get_channel,
         get_block,
-        print_gas):
+        print_gas
+):
     (sender, receiver, open_block_number) = get_channel()[:3]
     deposit = channel_params['deposit']
     balance1 = 20
@@ -353,7 +333,8 @@ def test_close_after_withdraw(
         token_instance,
         get_channel,
         get_block,
-        print_gas):
+        print_gas
+):
     (sender, receiver, open_block_number) = get_channel()[:3]
     deposit = channel_params['deposit']
     balance1 = 20
@@ -374,6 +355,7 @@ def test_close_after_withdraw(
         balance1,
         balance_msg_sig1
     )
+    assert txn_hash is not None
 
     # Cooperatively close the channel
     balance_message_hash = balance_proof_hash(
@@ -440,7 +422,7 @@ def test_withdraw_event(
         balance_msg_sig
     )
 
-    ev_handler.add(txn_hash, uraiden_events['withdraw'], checkWithdrawEvent(
+    ev_handler.add(txn_hash, URAIDEN_EVENTS['withdraw'], checkWithdrawEvent(
         sender,
         receiver,
         open_block_number,

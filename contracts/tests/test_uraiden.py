@@ -1,33 +1,12 @@
 import pytest
 from ethereum import tester
 from eth_utils import encode_hex, is_same_address
-from tests.fixtures import (
-    channel_deposit_bugbounty_limit,
-    uraiden_contract_version,
-    challenge_period_min,
-    contract_params,
-    channel_params,
-    owner_index,
-    owner,
-    create_accounts,
-    get_accounts,
-    create_contract,
-    get_token_contract,
-    fake_address,
-    empty_address,
-    print_gas,
-    txn_gas,
-    get_block,
-)
-from tests.fixtures_uraiden import (
-    token_contract,
-    token_instance,
-    get_uraiden_contract,
-    uraiden_contract,
-    uraiden_instance,
-    delegate_contract,
-    delegate_instance,
-    get_channel
+from tests.constants import (
+    FAKE_ADDRESS,
+    CHALLENGE_PERIOD_MIN,
+    EMPTY_ADDRESS,
+    URAIDEN_CONTRACT_VERSION,
+    CHANNEL_DEPOSIT_BUGBOUNTY_LIMIT,
 )
 
 
@@ -37,7 +16,8 @@ def test_uraiden_init(
     get_accounts,
     get_uraiden_contract,
     token_contract,
-    uraiden_contract):
+    uraiden_contract
+):
     token = token_contract()
     fake_token = uraiden_contract()
     (A, B) = get_accounts(2)
@@ -47,23 +27,23 @@ def test_uraiden_init(
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address, 500])
     with pytest.raises(TypeError):
-        get_uraiden_contract([fake_address, challenge_period_min, []])
+        get_uraiden_contract([FAKE_ADDRESS, CHALLENGE_PERIOD_MIN, []])
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address, -2, []])
     with pytest.raises(TypeError):
         get_uraiden_contract([token.address, 2 ** 32, []])
     with pytest.raises(TypeError):
-        get_uraiden_contract([0x0, challenge_period_min, []])
+        get_uraiden_contract([0x0, CHALLENGE_PERIOD_MIN, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([empty_address, challenge_period_min, []])
+        get_uraiden_contract([EMPTY_ADDRESS, CHALLENGE_PERIOD_MIN, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([A, challenge_period_min, []])
+        get_uraiden_contract([A, CHALLENGE_PERIOD_MIN, []])
     with pytest.raises(tester.TransactionFailed):
         get_uraiden_contract([token.address, 0, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([token.address, challenge_period_min - 1, []])
+        get_uraiden_contract([token.address, CHALLENGE_PERIOD_MIN - 1, []])
     with pytest.raises(tester.TransactionFailed):
-        get_uraiden_contract([fake_token.address, challenge_period_min, []])
+        get_uraiden_contract([fake_token.address, CHALLENGE_PERIOD_MIN, []])
 
     uraiden = get_uraiden_contract([token.address, 2 ** 32 - 1, []])
     assert is_same_address(uraiden.call().owner_address(), owner)
@@ -73,7 +53,7 @@ def test_uraiden_init(
     assert web3.eth.getBalance(uraiden.address) == 0
 
     # Temporary limit for the bug bounty release
-    assert uraiden.call().channel_deposit_bugbounty_limit() == channel_deposit_bugbounty_limit
+    assert uraiden.call().channel_deposit_bugbounty_limit() == CHANNEL_DEPOSIT_BUGBOUNTY_LIMIT
 
 
 def test_variable_access(owner, uraiden_contract, token_instance, contract_params):
@@ -81,8 +61,8 @@ def test_variable_access(owner, uraiden_contract, token_instance, contract_param
     assert is_same_address(uraiden.call().owner_address(), owner)
     assert is_same_address(uraiden.call().token(), token_instance.address)
     assert uraiden.call().challenge_period() == contract_params['challenge_period']
-    assert uraiden.call().version() == uraiden_contract_version
-    assert uraiden.call().channel_deposit_bugbounty_limit() == channel_deposit_bugbounty_limit
+    assert uraiden.call().version() == URAIDEN_CONTRACT_VERSION
+    assert uraiden.call().channel_deposit_bugbounty_limit() == CHANNEL_DEPOSIT_BUGBOUNTY_LIMIT
 
 
 def test_function_access(
@@ -91,9 +71,9 @@ def test_function_access(
     uraiden_contract,
     uraiden_instance,
     token_instance,
-    get_channel):
+    get_channel
+):
     (A, B, C, D) = get_accounts(4)
-    uraiden_instance2 = uraiden_contract()
     channel = get_channel(uraiden_instance, token_instance, 100, A, B)[:3]
     (sender, receiver, open_block_number) = channel
 
@@ -145,15 +125,16 @@ def test_version(
     get_accounts,
     get_uraiden_contract,
     uraiden_instance,
-    token_instance):
+    token_instance
+):
     (A, B) = get_accounts(2)
-    token = token_instance
     other_contract = get_uraiden_contract(
-        [token.address, challenge_period_min, []],
+        [token_instance.address, CHALLENGE_PERIOD_MIN, []],
         {'from': A}
     )
+    assert other_contract is not None
 
-    assert uraiden_instance.call().version() == uraiden_contract_version
+    assert uraiden_instance.call().version() == URAIDEN_CONTRACT_VERSION
 
 
 def test_get_channel_info(web3, get_accounts, uraiden_instance, token_instance, get_channel):
@@ -162,7 +143,7 @@ def test_get_channel_info(web3, get_accounts, uraiden_instance, token_instance, 
     (sender, receiver, open_block_number) = channel
 
     with pytest.raises(tester.TransactionFailed):
-        uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number-2)
+        uraiden_instance.call().getChannelInfo(sender, receiver, open_block_number - 2)
     web3.testing.mine(2)
     with pytest.raises(tester.TransactionFailed):
         uraiden_instance.call().getChannelInfo(A, receiver, open_block_number)

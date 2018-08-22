@@ -35,7 +35,7 @@ describe('MicroRaiden', () => {
   let accounts: string[];
 
   const web3 = new Web3(ganache.provider({
-    blocktime: 1,
+    blockTime: 1,
     seed: '1337',
     accounts: accountsKeys,
   }));
