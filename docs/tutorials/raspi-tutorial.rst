@@ -6,6 +6,8 @@ Setup µRaiden Raspberry Pi in local network
 Prerequisites
 ==================================
 
+- Install the go-ethereum client called `geth <https://github.com/ethereum/go-ethereum/wiki/geth>`_
+
 - Install the raspberry pi with the  `RASPBIAN STRETCH WITH DESKTOP <https://www.raspberrypi.org/downloads/raspbian/>`_ OS.
 
 - Set-up the raspberry pi an explanation can be found `here <https://youtu.be/WBlXvGwkZa8>`_ .
@@ -17,7 +19,6 @@ Prerequisites
 .. code ::
 
   $ ssh pi@192.168.1.105
-
 
 - We highly recommend using a virtual environment with `virtualenvwrapper <https://virtualenvwrapper.readthedocs.io/en/latest/>`_
 
@@ -56,12 +57,9 @@ Running µRaiden Client and Server
     Networking topology of a machine-to-machine application with RaspberryPi µRaiden-nodes [1]_ [2]_
 
 
-As the next step, you are going to setup the raspberry pi as the µRaiden client or the sender and our PC as as the µRaiden proxy server as well as the web3 provider running a geth node synced to Ropsten testnet. Next, you will run the ``echo_server`` and the ``echo_client``  examples from the ``microraiden/examples`` folder, the ``echo_client`` on the raspberry pi and the ``echo_server`` on our PC.
+As the next step, you are going to setup the raspberry pi (`Sender`) as the µRaiden client or the  and our PC as as the µRaiden proxy server (`Receiver`) as well as the web3 provider running a geth node synced to Ropsten testnet. Next, you will run the ``echo_server`` and the ``echo_client``  examples from the ``microraiden/examples`` folder. The ``echo_client`` on the raspberry pi, and the ``echo_server`` on your PC.
 
 Please make sure that the raspberry pi and your PC are in the same network.
-
-Install the go-ethereum client called **geth** on your PC using the guide  `here <http://github.com/ethereum/go-ethereum/wiki/Installing-Geth>`_
-
 
 Running geth on the PC
 -------------------------------------------
@@ -74,7 +72,7 @@ Start geth with these flags(**run this command on PC**)
 
 The `rpcaddr` as **0.0.0.0** means that a given socket is listening on all the available IP addresses the computer has. This is important so that µRaiden client on the raspberry can use it as a **web3** provider.
 
-Before running both the client or the server make sure that both the sender and receiver addresses have `TKN balances for opening channels <https://docs.google.com/document/d/1cr2yeoqGi0gSbcRjUl8841ZqVuyDf_mRW3Gr2Qw5T10/edit#heading=h.j0rsbka7yn17>`_ .
+Before running both the client or the server make sure that both the sender and receiver addresses have .:doc:`TKN balances for opening channels <blockchain>`.
 
 
 Running the µRaiden Proxy Server
@@ -203,8 +201,6 @@ For Transferring file from your machine to the Raspberry pi refer to this docume
 https://www.raspberrypi.org/documentation/remote-access/ssh/sftp.md
 
 You could download and use filezilla.
-
-
 
 References
 ===========================

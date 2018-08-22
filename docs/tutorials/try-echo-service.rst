@@ -20,13 +20,13 @@ and the
 Starting the µRaiden Receiver
 -----------------------------
 
+Before starting the receiver, it needs to be assigned a private key with some TKN. Navigate to :code:`./microraiden/microraiden/examples` and create a new file containing your private key as exported in the Blockchain Setup guide by MetaMask. The file should be named :code:`pk_tut.txt`.
+
 From the root directory of µRaiden, start:
 
 .. code:: sh
 
     python microraiden/examples/echo_server.py --private-key microraiden/examples/pk_tut.txt
-
-*Note: the file pk_tut.txt should contain your private key as exported in the Blockchain Setup guide by MetaMask.*
 
 Starting the µRaiden Sender
 ---------------------------
